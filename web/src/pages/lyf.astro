@@ -80,8 +80,8 @@ const desc = `Uppfletting í sérlyfjaskrá Lyfjastofnunar: ${count} markaðsset
     #lyf-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
     .chips { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
     .chip { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: var(--muted); border-radius: 999px; padding: 6px 13px; font-size: 12.5px; cursor: pointer; }
-    .chip:hover { color: #f6b13b; border-color: rgba(246,177,59,.4); }
-    .chip.on { background: rgba(246,177,59,.14); border-color: #f6b13b; color: #f6b13b; }
+    .chip:hover { color: var(--gold); border-color: rgba(246,177,59,.4); }
+    .chip.on { background: rgba(246,177,59,.14); border-color: var(--gold); color: var(--gold); }
     #lyf-atc { background: #0d1424; border: 1px solid rgba(255,255,255,.12); color: var(--ink); border-radius: 999px; padding: 6px 12px; font-size: 12.5px; }
     .count { font-size: 12.5px; color: var(--faint); margin: 12px 0; } .count b { color: var(--ink); }
 
@@ -112,14 +112,14 @@ const desc = `Uppfletting í sérlyfjaskrá Lyfjastofnunar: ${count} markaðsset
     main[data-pg="lyf"] .c-m { font-size: 12.5px; color: var(--muted); margin-top: 7px; }
     main[data-pg="lyf"] .c-i { font-size: 12px; color: var(--faint); margin-top: 3px; }
     main[data-pg="lyf"] .pr { margin-top: 8px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
-    main[data-pg="lyf"] .pr-v { color: #f6b13b; font-weight: 700; font-variant-numeric: tabular-nums; font-size: 14px; }
+    main[data-pg="lyf"] .pr-v { color: var(--gold); font-weight: 700; font-variant-numeric: tabular-nums; font-size: 14px; }
     main[data-pg="lyf"] .pr-b { font-size: 11px; color: #86d896; border: 1px solid rgba(134,216,150,.3); border-radius: 6px; padding: 1px 6px; }
     main[data-pg="lyf"] .pr-w { font-size: 11.5px; color: var(--faint); }
     main[data-pg="lyf"] .c-f { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-top: 9px; padding-top: 9px; border-top: 1px solid rgba(255,255,255,.06); }
-    main[data-pg="lyf"] .c-f a { color: #f6b13b; font-size: 12px; text-decoration: none; }
+    main[data-pg="lyf"] .c-f a { color: var(--gold); font-size: 12px; text-decoration: none; }
     main[data-pg="lyf"] .c-f a:hover { text-decoration: underline; }
     main[data-pg="lyf"] .c-x { background: none; border: 1px solid rgba(255,255,255,.14); color: var(--muted); border-radius: 8px; padding: 4px 9px; font-size: 11.5px; cursor: pointer; white-space: nowrap; }
-    main[data-pg="lyf"] .c-x:hover { color: #f6b13b; border-color: rgba(246,177,59,.4); }
+    main[data-pg="lyf"] .c-x:hover { color: var(--gold); border-color: rgba(246,177,59,.4); }
     main[data-pg="lyf"] .c-pk { margin-top: 9px; overflow-x: auto; }
     main[data-pg="lyf"] table.pk { width: 100%; border-collapse: collapse; font-size: 11.5px; }
     main[data-pg="lyf"] table.pk th { text-align: left; color: var(--faint); font-weight: 600; padding: 3px 6px; border-bottom: 1px solid rgba(255,255,255,.1); text-transform: uppercase; font-size: 10px; }

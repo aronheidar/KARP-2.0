@@ -5,7 +5,7 @@
 #fs-form { display: flex; gap: 8px; margin: 18px 0 14px; }
 #fs-q { flex: 1; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 11px 14px; color: var(--ink); font-size: 15px; }
 #fs-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
-#fs-btn { background: #f6b13b; color: #101623; border: 0; border-radius: 10px; padding: 0 18px; font-size: 14px; font-weight: 700; cursor: pointer; }
+#fs-btn { background: var(--gold); color: var(--surface); border: 0; border-radius: 10px; padding: 0 18px; font-size: 14px; font-weight: 700; cursor: pointer; }
 #fs-btn:hover { filter: brightness(1.08); }
 .fs-empty { color: var(--faint); font-size: 13.5px; padding: 14px 2px; }
 .fs-hits { border: 1px solid rgba(255,255,255,.08); border-radius: 12px; overflow: hidden; }
@@ -29,24 +29,24 @@
 .eig-node{position:absolute;display:flex;flex-direction:column;justify-content:center;gap:1px;padding:4px 8px;border-radius:9px;border:1px solid rgba(246,177,59,.35);background:rgba(255,255,255,.04);color:var(--ink);font:inherit;text-align:left;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.25)}
 .eig-node .eig-node-nm{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .eig-node .eig-node-mt{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.eig-node.root{border-color:#f6b13b;background:linear-gradient(180deg,rgba(246,177,59,.18),rgba(246,177,59,.06))}
+.eig-node.root{border-color:var(--gold);background:linear-gradient(180deg,rgba(246,177,59,.18),rgba(246,177,59,.06))}
 .eig-node.einst{border-color:rgba(90,169,230,.5)}
 .eig-node.einst.yfir{background:rgba(90,169,230,.20);border-color:#5aa9e6}
 .eig-node.felag{border-color:rgba(192,132,252,.5)}
 .eig-node.felag.yfir{background:rgba(192,132,252,.20);border-color:#c084fc}
 .eig-node.klik{cursor:pointer}
-.eig-node.klik:hover{border-color:#f6b13b;background:rgba(246,177,59,.12)}
+.eig-node.klik:hover{border-color:var(--gold);background:rgba(246,177,59,.12)}
 .eig-echip{position:absolute;transform:translate(-50%,-50%);font-size:10px;font-weight:600;color:var(--ink);background:var(--surface);padding:0 4px;border-radius:5px;pointer-events:none}
 .eig-legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:10px 0;font-size:11px;color:var(--ink)}
 .eig-lg{display:inline-flex;align-items:center;gap:5px}
 .eig-lg i.nd{width:12px;height:12px;border-radius:3px;border:1px solid rgba(246,177,59,.35);display:inline-block}
-.eig-lg i.nd.root{border-color:#f6b13b;background:rgba(246,177,59,.5)}
+.eig-lg i.nd.root{border-color:var(--gold);background:rgba(246,177,59,.5)}
 .eig-lg i.nd.einst{border-color:#5aa9e6}
 .eig-lg i.nd.einst.yfir{background:#5aa9e6}
 .eig-lg i.nd.felag{border-color:#c084fc}
 .eig-lg i.nd.felag.yfir{background:#c084fc}
 .eig-lg i.ed{width:16px;height:0;border-top-width:3px;border-top-style:solid;display:inline-block}
-.eig-lg i.ed.b51{border-color:#f6b13b}
+.eig-lg i.ed.b51{border-color:var(--gold)}
 .eig-lg i.ed.b25{border-color:#5aa9e6}
 .eig-lg i.ed.blt{border-color:#54607a}
 .eig-tafla{width:100%;border-collapse:collapse;margin:6px 0 14px;font-size:13px}
@@ -74,25 +74,25 @@
 .eig-cta b{font-size:15px}.eig-cta span{color:var(--ink);font-size:13px}
 .eig-cta-btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;align-items:center}
 .eig-cta-sub{font-size:12.5px;color:#b9c6da;margin:8px 0 0}
-.eig-cta-sub a{color:#f6b13b;text-decoration:none;font-weight:600}
+.eig-cta-sub a{color:var(--gold);text-decoration:none;font-weight:600}
 .eig-cta-sub a:hover{text-decoration:underline}
-.eig-buy{background:#f6b13b;color:#1a1205;border:0;border-radius:9px;padding:9px 16px;font-weight:700;cursor:pointer}
+.eig-buy{background:var(--gold);color:var(--surface);border:0;border-radius:9px;padding:9px 16px;font-weight:700;cursor:pointer}
 .eig-buy:disabled{opacity:.6;cursor:default}
-.eig-sample{color:#f6b13b;text-decoration:none;font-size:13px}.eig-sample:hover{text-decoration:underline}
+.eig-sample{color:var(--gold);text-decoration:none;font-size:13px}.eig-sample:hover{text-decoration:underline}
 .eig-loading{color:var(--muted);padding:14px}
 .eig-report{margin-top:8px}
 .eig-h{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .eig-h h3{margin:0;font-size:19px}
 .eig-print{background:rgba(255,255,255,.06);color:var(--ink);border:1px solid rgba(246,177,59,.35);border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit}
 .eig-intro{color:var(--ink);font-size:13px;line-height:1.55}
-.eig-sec{margin:18px 0 4px;font-size:15px;color:#f6b13b}
+.eig-sec{margin:18px 0 4px;font-size:15px;color:var(--gold)}
 .eig-cap{color:var(--muted);font-size:12px;margin:0 0 4px}
 .eig-samplebar,.fs-samplebar{background:rgba(246,177,59,.10);border:1px solid rgba(246,177,59,.35);border-radius:9px;padding:8px 12px;font-size:13px;margin-bottom:10px}
 .eig-sample-wrap{max-width:900px;margin:16px auto}
 @media print{.eig-print,.eig-cta-btns,.eig-samplebar,.fs-samplebar,.eig-buy{display:none}.eig-sec{color:#000}}
 
 /* Hlekkur á fulla /eigendur/ síðu (frá /fyrirtaeki/) */
-.eig-fulllink { display: inline-block; margin: 4px 0 2px; color: #f6b13b; text-decoration: none; font-size: 13px; font-weight: 600; }
+.eig-fulllink { display: inline-block; margin: 4px 0 2px; color: var(--gold); text-decoration: none; font-size: 13px; font-weight: 600; }
 .eig-fulllink:hover { text-decoration: underline; }
 /* Víxl-tenglar milli skýrslnanna þriggja (fyrirtæki · eigendur · áreiðanleiki) */
 .eig-related { display: flex; gap: 18px; flex-wrap: wrap; margin: 8px 0 4px; }
@@ -109,7 +109,7 @@
 .eig-rev-r { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; padding: 7px 10px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 8px; }
 .eig-rev-o { font-weight: 600; color: var(--ink); min-width: 150px; }
 .eig-rev-c { display: flex; flex-wrap: wrap; gap: 6px; }
-.eig-rev-c a { color: #f6b13b; text-decoration: none; font-size: 13px; background: rgba(246,177,59,.08); border: 1px solid rgba(246,177,59,.2); border-radius: 6px; padding: 2px 8px; }
+.eig-rev-c a { color: var(--gold); text-decoration: none; font-size: 13px; background: rgba(246,177,59,.08); border: 1px solid rgba(246,177,59,.2); border-radius: 6px; padding: 2px 8px; }
 .eig-rev-c a:hover { text-decoration: underline; }
 .eig-rev-c em { color: var(--muted); font-style: normal; font-size: 11px; }
 /* Chart 6 — eignarhlutur sem míni-súla í töflu */
@@ -121,19 +121,19 @@
 .eig-erlent-n { color: var(--muted); font-size: 12px; }
 /* Auðgun 12 — dótturfélög (samstæðukort niður) */
 .eig-subs { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 14px; }
-.eig-sub-i { color: #f6b13b; text-decoration: none; font-size: 13px; background: rgba(246,177,59,.08); border: 1px solid rgba(246,177,59,.2); border-radius: 6px; padding: 3px 9px; }
+.eig-sub-i { color: var(--gold); text-decoration: none; font-size: 13px; background: rgba(246,177,59,.08); border: 1px solid rgba(246,177,59,.2); border-radius: 6px; padding: 3px 9px; }
 .eig-sub-i:hover { text-decoration: underline; }
 .eig-sub-i em { color: var(--muted); font-style: normal; font-size: 11px; }
 
 /* ── 🧭 Föst aðgerðastika (report-nav.js) — sama röð á öllum þremur skýrslunum ── */
 .rnav { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0 0 12px; }
-.rnav .fs-back { flex: 0 0 auto; background: none; border: 0; color: #f6b13b; font-size: 12.5px; cursor: pointer; padding: 0; }
+.rnav .fs-back { flex: 0 0 auto; background: none; border: 0; color: var(--gold); font-size: 12.5px; cursor: pointer; padding: 0; }
 .rnav .fs-back:hover { text-decoration: underline; }
 @media print { .rnav { display: none !important; } }
 .rnav-seg { display: inline-flex; gap: 2px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); border-radius: 9px; padding: 2px; flex-wrap: wrap; }
 .rnav-v { font-size: 12px; padding: 4px 10px; border-radius: 7px; color: var(--muted); text-decoration: none; white-space: nowrap; }
 a.rnav-v:hover { color: var(--ink); background: rgba(255,255,255,.06); }
-.rnav-v.on { color: #0b0f17; background: #f6b13b; font-weight: 700; }
+.rnav-v.on { color: var(--surface); background: var(--gold); font-weight: 700; }
 .rnav-act { display: inline-flex; gap: 8px; align-items: center; margin-left: auto; flex-wrap: wrap; }
 @media (max-width: 640px) { .rnav-act { margin-left: 0; } }
 /* fs-vakta hnappastíllinn (fylgja/PDF/refresh) — deildur hér svo /eigendur/ fái hann líka */
@@ -147,7 +147,7 @@ a.rnav-v:hover { color: var(--ink); background: rgba(255,255,255,.06); }
 .kpi-pend-hd { display: flex; gap: 10px; align-items: flex-start; }
 .kpi-pend-hd b { color: var(--ink); font-size: 13.5px; display: block; }
 .kpi-pend-s { color: var(--muted); font-size: 12px; display: block; margin-top: 2px; }
-.kpi-pend-spin { flex: 0 0 auto; width: 16px; height: 16px; margin-top: 2px; border: 2px solid rgba(246,177,59,.25); border-top-color: #f6b13b; border-radius: 50%; animation: kpiSpin 0.9s linear infinite; }
+.kpi-pend-spin { flex: 0 0 auto; width: 16px; height: 16px; margin-top: 2px; border: 2px solid rgba(246,177,59,.25); border-top-color: var(--gold); border-radius: 50%; animation: kpiSpin 0.9s linear infinite; }
 @keyframes kpiSpin { to { transform: rotate(360deg); } }
 .kpi-pend-track { height: 7px; margin-top: 10px; background: rgba(255,255,255,.07); border-radius: 5px; overflow: hidden; }
 .kpi-pend-bar { height: 100%; width: 2%; background: linear-gradient(90deg, #f6b13b, #ffd27a); border-radius: 5px; transition: width 0.9s linear; }
@@ -187,7 +187,7 @@ body.fs-printing .eig-kort-host .tk-panel { display: none !important; }
 .tf-intro { color: var(--muted); font-size: 13.5px; margin: 4px 0 12px; }
 .tf-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; border-bottom: 1px solid rgba(255,255,255,.1); }
 .tf-tab { appearance: none; background: none; border: 0; border-bottom: 2px solid transparent; color: #9fb0c8; font: inherit; font-weight: 600; font-size: 13.5px; padding: 7px 11px; cursor: pointer; margin-bottom: -1px; }
-.tf-tab:hover { color: #eaf1fb; } .tf-tab.on { color: #f6b13b; border-bottom-color: #f6b13b; }
+.tf-tab:hover { color: #eaf1fb; } .tf-tab.on { color: var(--gold); border-bottom-color: var(--gold); }
 .tf-controls { display: flex; gap: 14px; align-items: center; margin: 10px 0; flex-wrap: wrap; }
 .tf-controls select { background: rgba(255,255,255,.06); color: var(--ink); border: 1px solid rgba(246,177,59,.35); border-radius: 8px; padding: 5px 8px; font: inherit; }
 .tf-pdf { background: rgba(255,255,255,.06); color: var(--ink); border: 1px solid rgba(246,177,59,.35); border-radius: 8px; padding: 6px 12px; cursor: pointer; font: inherit; }
@@ -195,6 +195,6 @@ body.fs-printing .eig-kort-host .tk-panel { display: none !important; }
 .tf-host { overflow-x: auto; }
 .tf-tafla .tf-rank { color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; width: 32px; }
 .tf-tafla .tf-num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.tf-tafla .tf-nm a { color: #f6b13b; text-decoration: none; font-weight: 600; } .tf-tafla .tf-nm a:hover { text-decoration: underline; }
+.tf-tafla .tf-nm a { color: var(--gold); text-decoration: none; font-weight: 600; } .tf-tafla .tf-nm a:hover { text-decoration: underline; }
 .tf-lock { margin-top: 14px; }
 @media print { .tf-tabs, .tf-controls, .tf-lock { display: none !important; } }

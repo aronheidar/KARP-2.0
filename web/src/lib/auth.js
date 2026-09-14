@@ -119,14 +119,14 @@ export async function karpPost(path, body) {
 const CHIP_CSS = '.chip a{text-decoration:none}'
   // LOTA 22: chip-inn helst innan rammans — avatar klemmdur, nafnið á EINNI línu m. ellipsis
   + '.chip{flex-wrap:nowrap!important;min-width:0}'
-  + '.kc-in{color:#06121a;background:#f6b13b;padding:5px 12px;border-radius:8px;font-weight:700}'
+  + '.kc-in{color:var(--surface);background:var(--gold);padding:5px 12px;border-radius:8px;font-weight:700}'
   + '.kc-reg{color:#cdd6e6;padding:5px 8px}'
   + '.kc-prof{display:flex;align-items:center;gap:7px;color:#eaf1fb;min-width:0;flex:1}'
   + '.kc-av{width:26px;height:26px;border-radius:50%;object-fit:cover;flex:none}'
   + '.kc-ini{width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;background:#1f6feb;color:#fff;font-weight:700;font-size:13px;flex:none}'
   + '.kc-name{font-weight:600;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}'
   + '.kc-out{color:#7e8ca6;padding:0 4px;text-decoration:none;flex:none;display:inline-flex;align-items:center}'
-  + '.kc-out:hover{color:#f6b13b}';
+  + '.kc-out:hover{color:var(--gold)}';
 function injectChipCss() {
   if (typeof document === 'undefined' || document.getElementById('karp-chip-css')) return;
   const s = document.createElement('style');
@@ -276,9 +276,9 @@ export function nextTierUp() {
 
 const RQ_CSS = '.krq{font-size:12.5px;color:#8fa0b8;margin:9px 0 2px;display:flex;flex-wrap:wrap;align-items:center;gap:3px 10px;line-height:1.5}'
   + '.krq b{color:#cdd6e6;font-weight:700}'
-  + '.krq-low b{color:#f6b13b}'
-  + '.krq.krq-zero{color:#f6b13b}'
-  + '.krq-up{color:#f6b13b;text-decoration:none;font-weight:600;white-space:nowrap}'
+  + '.krq-low b{color:var(--gold)}'
+  + '.krq.krq-zero{color:var(--gold)}'
+  + '.krq-up{color:var(--gold);text-decoration:none;font-weight:600;white-space:nowrap}'
   + '.krq-up:hover{text-decoration:underline}';
 function injectReportQuotaCss() { if (typeof document === 'undefined' || document.getElementById('karp-rquota-css')) return; const s = document.createElement('style'); s.id = 'karp-rquota-css'; s.textContent = RQ_CSS; document.head.appendChild(s); }
 
@@ -411,16 +411,16 @@ export async function karpCheckout(body, gateEl) {
 }
 
 const GATE_CSS = '.plus-gate{max-width:520px;margin:24px auto;background:rgba(246,177,59,.06);border:1px solid rgba(246,177,59,.35);border-radius:16px;padding:24px 26px;text-align:center}'
-  + '.pg-badge{display:inline-block;background:#f6b13b;color:#131a29;font-weight:800;font-size:12px;letter-spacing:.05em;padding:4px 12px;border-radius:999px}'
+  + '.pg-badge{display:inline-block;background:var(--gold);color:var(--surface);font-weight:800;font-size:12px;letter-spacing:.05em;padding:4px 12px;border-radius:999px}'
   + '.pg-h{font-size:21px;color:#eaf1fb;margin:12px 0 6px}.pg-b{color:#cdd6e6;font-size:14px;line-height:1.55;margin:0 0 16px}'
   + '.pg-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}'
-  + '.pg-main{background:#f6b13b;color:#131a29;font-weight:800;font-size:14px;text-decoration:none;padding:11px 20px;border-radius:11px;border:0;cursor:pointer}'
+  + '.pg-main{background:var(--gold);color:var(--surface);font-weight:800;font-size:14px;text-decoration:none;padding:11px 20px;border-radius:11px;border:0;cursor:pointer}'
   + '.pg-sec{border:1px solid rgba(255,255,255,.2);color:#cdd6e6;font-size:14px;text-decoration:none;padding:11px 20px;border-radius:11px}'
   + '.pg-note{color:#8fa0b8;font-size:12px;margin-top:12px}'
   + '.sg-kt{padding:11px 14px;border:1px solid rgba(255,255,255,.2);border-radius:11px;background:rgba(255,255,255,.05);color:#eaf1fb;font:inherit;font-size:14px;width:200px;text-align:center;letter-spacing:.06em}'
-  + '.sg-kt:focus{outline:none;border-color:#f6b13b}'
+  + '.sg-kt:focus{outline:none;border-color:var(--gold)}'
   + '.sg-err{color:#ff8a8a;font-size:12.5px;margin-top:10px}'
-  + '.sg-err a.pg-help,.pg-note a.pg-help{color:#f6b13b;text-decoration:none}'
+  + '.sg-err a.pg-help,.pg-note a.pg-help{color:var(--gold);text-decoration:none}'
   + '.sg-checkout{margin-top:14px;text-align:left;min-height:60px}'
   + '.sg-frame{width:100%;min-height:540px;border:0;border-radius:12px;background:#fff;margin-top:12px}';
 function injectGateCss() { if (typeof document === 'undefined' || document.getElementById('karp-gate-css')) return; const s = document.createElement('style'); s.id = 'karp-gate-css'; s.textContent = GATE_CSS; document.head.appendChild(s); }

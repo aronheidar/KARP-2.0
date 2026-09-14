@@ -115,10 +115,10 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
     .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
     h1 { font-size: 30px; margin: 0 0 10px; }
     .lead { color: var(--ink); font-size: 15px; line-height: 1.6; }
-    .lv-note { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 8px 12px; border-radius: 0 8px 8px 0; margin: 10px 0 22px; line-height: 1.5; }
+    .lv-note { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid var(--gold); padding: 8px 12px; border-radius: 0 8px 8px 0; margin: 10px 0 22px; line-height: 1.5; }
 
     #lv-gate { font-size: 14px; color: var(--muted); line-height: 1.6; }
-    #lv-gate a { color: #f6b13b; font-weight: 700; }
+    #lv-gate a { color: var(--gold); font-weight: 700; }
 
     h2 { font-size: 18px; color: var(--ink); margin: 30px 0 6px; }
     .sub { font-size: 13.5px; color: var(--muted); margin: 0 0 12px; line-height: 1.5; }
@@ -126,7 +126,7 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
     .lv-pills { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 14px; }
     .lv-pill { font: inherit; font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--muted); cursor: pointer; }
     .lv-pill:hover { color: var(--ink); border-color: rgba(246,177,59,.4); }
-    .lv-pill-on { background: rgba(246,177,59,.14); border-color: rgba(246,177,59,.5); color: #f6b13b; font-weight: 700; }
+    .lv-pill-on { background: rgba(246,177,59,.14); border-color: rgba(246,177,59,.5); color: var(--gold); font-weight: 700; }
 
     .lv-save-row { display: flex; align-items: center; gap: 12px; margin: 4px 0 8px; flex-wrap: wrap; }
     .lv-save-row button { padding: 9px 18px; border-radius: 10px; border: 0; background: var(--gold); color: #1a1205; font-weight: 700; cursor: pointer; }
@@ -134,11 +134,11 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
     .lv-save-msg { font-size: 12.5px; color: var(--muted); }
     .lv-save-msg.ok { color: #46e08a; }
     .lv-save-msg.err { color: #ff6d7a; }
-    .lv-hint { font-size: 13px; color: #f6b13b; background: rgba(246,177,59,.08); border: 1px solid rgba(246,177,59,.3); border-radius: 10px; padding: 9px 13px; margin: 4px 0 16px; }
+    .lv-hint { font-size: 13px; color: var(--gold); background: rgba(246,177,59,.08); border: 1px solid rgba(246,177,59,.3); border-radius: 10px; padding: 9px 13px; margin: 4px 0 16px; }
 
     .lv-sub-h { font-size: 15px; color: var(--ink); margin: 24px 0 4px; font-weight: 700; }
     .lv-hlad .lv-brot { font-size: 13px; color: var(--muted); font-style: italic; margin: 6px 0 4px; line-height: 1.45; }
-    .lv-hlad .lv-kw-hit { display: inline-block; font-size: 11.5px; padding: 1px 7px; border-radius: 999px; background: rgba(246,177,59,.14); color: #f6b13b; border: 1px solid rgba(246,177,59,.35); }
+    .lv-hlad .lv-kw-hit { display: inline-block; font-size: 11.5px; padding: 1px 7px; border-radius: 999px; background: rgba(246,177,59,.14); color: var(--gold); border: 1px solid rgba(246,177,59,.35); }
     .lv-hlad .lv-dypt { font-size: 11.5px; color: var(--faint); }
     .lv-post { margin-top: 18px; padding: 12px 14px 10px; border-radius: 12px; background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.3); }
     .lv-post .lv-sub-h { margin-top: 0; }
@@ -152,14 +152,14 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
     .lv-kw-row input { font: inherit; font-size: 13.5px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); min-width: 200px; flex: 1 1 240px; }
     .lv-kw-row input:focus { outline: none; border-color: rgba(246,177,59,.5); }
     .lv-kw-row button { font: inherit; font-size: 13.5px; padding: 8px 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font-weight: 600; cursor: pointer; white-space: nowrap; }
-    .lv-kw-row button:hover { border-color: rgba(246,177,59,.4); color: #f6b13b; }
+    .lv-kw-row button:hover { border-color: rgba(246,177,59,.4); color: var(--gold); }
     .lv-kw-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 6px; }
-    .lv-kw-chip { display: inline-flex; align-items: center; gap: 2px; font-size: 13px; font-weight: 600; padding: 5px 6px 5px 12px; border-radius: 999px; border: 1px solid rgba(246,177,59,.5); background: rgba(246,177,59,.12); color: #f6b13b; }
+    .lv-kw-chip { display: inline-flex; align-items: center; gap: 2px; font-size: 13px; font-weight: 600; padding: 5px 6px 5px 12px; border-radius: 999px; border: 1px solid rgba(246,177,59,.5); background: rgba(246,177,59,.12); color: var(--gold); }
     .lv-kw-chip button { font: inherit; border: 0; background: transparent; color: inherit; cursor: pointer; font-size: 16px; line-height: 1; padding: 0 5px; border-radius: 999px; }
     .lv-kw-chip button:hover { color: #ff6d7a; }
 
     .lv-empty { color: var(--muted); font-size: 13.5px; margin-top: 10px; }
-    .lv-plus { font-size: 11px; font-weight: 700; color: #f6b13b; border: 1px solid rgba(246,177,59,.4); border-radius: 999px; padding: 1px 8px; vertical-align: middle; margin-left: 6px; }
+    .lv-plus { font-size: 11px; font-weight: 700; color: var(--gold); border: 1px solid rgba(246,177,59,.4); border-radius: 999px; padding: 1px 8px; vertical-align: middle; margin-left: 6px; }
 
     /* ── Opnu veiturnar (fluttar af /vaktir/) ── */
     #lv-open h3 { font-size: 13px; color: var(--ink); margin: 0 0 6px; }
@@ -179,19 +179,19 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
     main[data-pg="lobbyvakt"] #samrad-list .fi, main[data-pg="lobbyvakt"] #greidslur-list .fi { display: block; padding: 8px 2px; border-bottom: 1px solid rgba(255,255,255,.07); text-decoration: none; }
     main[data-pg="lobbyvakt"] #greidslur-list .pos { color: #42d086; }
     main[data-pg="lobbyvakt"] #greidslur-list .neg { color: #e0655f; }
-    main[data-pg="lobbyvakt"] #greidslur-list b { color: #f6b13b; font-weight: 600; }
-    main[data-pg="lobbyvakt"] .fi.hit { border-left: 3px solid #f6b13b; padding-left: 8px; background: rgba(246,177,59,.06); border-radius: 6px; }
+    main[data-pg="lobbyvakt"] #greidslur-list b { color: var(--gold); font-weight: 600; }
+    main[data-pg="lobbyvakt"] .fi.hit { border-left: 3px solid var(--gold); padding-left: 8px; background: rgba(246,177,59,.06); border-radius: 6px; }
     main[data-pg="lobbyvakt"] .fi .t { display: block; font-size: 13px; color: var(--ink); line-height: 1.35; }
-    main[data-pg="lobbyvakt"] .fi:hover .t { color: #f6b13b; }
+    main[data-pg="lobbyvakt"] .fi:hover .t { color: var(--gold); }
     main[data-pg="lobbyvakt"] .fi .s { display: block; font-size: 11px; color: var(--faint); margin-top: 2px; }
     main[data-pg="lobbyvakt"] .dom-ai { color: #b9c6da !important; font-size: 12px !important; margin-top: 3px; line-height: 1.4; }
     main[data-pg="lobbyvakt"] #samrad-list .pill, main[data-pg="lobbyvakt"] #domar-hr .pill, main[data-pg="lobbyvakt"] #domar-lr .pill { display: inline-block; padding: 1px 7px; border-radius: 8px; font-size: 10.5px; background: rgba(255,255,255,.08); color: var(--muted); }
     main[data-pg="lobbyvakt"] #samrad-list .pill.op { background: rgba(66,208,134,.16); color: #42d086; }
-    main[data-pg="lobbyvakt"] #samrad-list .pill.gr { background: rgba(246,177,59,.13); color: #f6b13b; }
+    main[data-pg="lobbyvakt"] #samrad-list .pill.gr { background: rgba(246,177,59,.13); color: var(--gold); }
     main[data-pg="lobbyvakt"] #samrad-pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
     main[data-pg="lobbyvakt"] #samrad-pills .spill { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: var(--muted); border-radius: 999px; padding: 3px 11px; font-size: 11.5px; cursor: pointer; }
-    main[data-pg="lobbyvakt"] #samrad-pills .spill:hover { border-color: rgba(246,177,59,.45); color: #f6b13b; }
-    main[data-pg="lobbyvakt"] #samrad-pills .spill.on { background: rgba(246,177,59,.14); border-color: rgba(246,177,59,.5); color: #f6b13b; font-weight: 600; }
+    main[data-pg="lobbyvakt"] #samrad-pills .spill:hover { border-color: rgba(246,177,59,.45); color: var(--gold); }
+    main[data-pg="lobbyvakt"] #samrad-pills .spill.on { background: rgba(246,177,59,.14); border-color: rgba(246,177,59,.5); color: var(--gold); font-weight: 600; }
   </style>
 
   <!-- ⚠ Runtime-innerHTML (straumur-kortin) → Astro scoped-CSS nær EKKI yfir → is:global með
@@ -200,23 +200,23 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
     main[data-pg="lobbyvakt"] .lv-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin: 0 0 12px; }
     main[data-pg="lobbyvakt"] .lv-card-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 6px; }
     main[data-pg="lobbyvakt"] .lv-kind { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
-    main[data-pg="lobbyvakt"] .lv-kwmark { font-size: 11px; font-weight: 700; color: #f6b13b; margin-left: 7px; text-transform: none; letter-spacing: 0; }
+    main[data-pg="lobbyvakt"] .lv-kwmark { font-size: 11px; font-weight: 700; color: var(--gold); margin-left: 7px; text-transform: none; letter-spacing: 0; }
     main[data-pg="lobbyvakt"] .lv-stig { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; }
     main[data-pg="lobbyvakt"] .lv-stig-mikil { background: rgba(255,109,122,.15); color: #ff6d7a; }
-    main[data-pg="lobbyvakt"] .lv-stig-midl { background: rgba(246,177,59,.15); color: #f6b13b; }
+    main[data-pg="lobbyvakt"] .lv-stig-midl { background: rgba(246,177,59,.15); color: var(--gold); }
     main[data-pg="lobbyvakt"] .lv-stig-litil { background: rgba(255,255,255,.07); color: var(--faint); }
     main[data-pg="lobbyvakt"] .lv-title { font-size: 16px; margin: 2px 0 8px; line-height: 1.35; }
     main[data-pg="lobbyvakt"] .lv-title a { color: var(--ink); text-decoration: none; }
-    main[data-pg="lobbyvakt"] .lv-title a:hover { color: #f6b13b; }
+    main[data-pg="lobbyvakt"] .lv-title a:hover { color: var(--gold); }
     main[data-pg="lobbyvakt"] .lv-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
     main[data-pg="lobbyvakt"] .lv-tag { font-size: 11.5px; background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: 20px; padding: 2px 10px; color: var(--muted); }
     main[data-pg="lobbyvakt"] .lv-brief { font-size: 13.5px; color: var(--ink); line-height: 1.5; margin: 0 0 8px; }
     main[data-pg="lobbyvakt"] .lv-meta { font-size: 12.5px; color: var(--muted); }
-    main[data-pg="lobbyvakt"] .lv-deadline { color: #f6b13b; font-weight: 700; }
+    main[data-pg="lobbyvakt"] .lv-deadline { color: var(--gold); font-weight: 700; }
     main[data-pg="lobbyvakt"] .lv-stada { color: var(--muted); }
     main[data-pg="lobbyvakt"] .lv-card-note { font-size: 11px; color: var(--faint); margin-top: 8px; line-height: 1.4; }
     main[data-pg="lobbyvakt"] .lv-lock { border-style: dashed; }
-    main[data-pg="lobbyvakt"] .lv-upsell { display: inline-block; margin-top: 6px; color: #f6b13b; font-weight: 700; text-decoration: none; }
+    main[data-pg="lobbyvakt"] .lv-upsell { display: inline-block; margin-top: 6px; color: var(--gold); font-weight: 700; text-decoration: none; }
   </style>
 
   <script>

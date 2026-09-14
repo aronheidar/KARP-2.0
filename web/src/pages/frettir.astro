@@ -198,20 +198,20 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     .rel-b:hover { background: rgba(25,211,197,.18); }
     .cos { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; margin-top: 10px; }
     .co { display: flex; justify-content: space-between; align-items: center; gap: 8px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 10px; padding: 10px 12px; color: var(--ink); font-size: 13px; font-weight: 600; cursor: pointer; text-align: left; }
-    .co:hover { border-color: #f6b13b; }
+    .co:hover { border-color: var(--gold); }
     .co-s { font-size: 11px; font-weight: 800; color: var(--muted); }
     .co-ent .co-s { font-weight: 400; font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .fy-search { display: flex; gap: 8px; margin: 10px 0 12px; }
     .fy-search input { flex: 1; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: var(--ink); border-radius: 10px; padding: 10px 14px; font-size: 14px; outline: none; }
-    .fy-search input:focus { border-color: #f6b13b; }
-    .fy-search button { background: #f6b13b; color: var(--bg); border: 0; border-radius: 10px; padding: 10px 18px; font-size: 13.5px; font-weight: 800; cursor: pointer; }
+    .fy-search input:focus { border-color: var(--gold); }
+    .fy-search button { background: var(--gold); color: var(--bg); border: 0; border-radius: 10px; padding: 10px 18px; font-size: 13.5px; font-weight: 800; cursor: pointer; }
     .fy-search button:hover { filter: brightness(1.1); }
     .co-fl { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16); color: var(--ink); border-radius: 999px; padding: 4px 14px; font-size: 12px; font-weight: 700; cursor: pointer; }
     .co-fl.on { background: rgba(70,224,138,.14); border-color: rgba(70,224,138,.5); color: #46e08a; }
     .co-s.up { color: #46e08a; } .co-s.dn { color: #ff6d7a; }
     .foot { font-size: 12px; color: var(--faint); margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
     .more-link { font-size: 12.5px; color: var(--muted); margin-top: 14px; }
-    .more-link a { color: #f6b13b; }
+    .more-link a { color: var(--gold); }
   </style>
   <style is:global>
     /* 2 dálkar á fréttalistanum (LOTA 14) — minna skrun */
@@ -225,33 +225,33 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     .live .it { break-inside: avoid; }
     .live .it, #co-detail .it, #btm-news .it { display: block; padding: 9px 2px; border-bottom: 1px solid rgba(255,255,255,.07); text-decoration: none; }
     .live .it .t, #co-detail .it .t, #btm-news .it .t { display: block; font-size: 14px; color: var(--ink); line-height: 1.35; }
-    .live .it:hover .t, #co-detail .it:hover .t, #btm-news .it:hover .t { color: #f6b13b; }
+    .live .it:hover .t, #co-detail .it:hover .t, #btm-news .it:hover .t { color: var(--gold); }
     .live .it .s, #co-detail .it .s, #btm-news .it .s { display: block; font-size: 11px; color: var(--faint); margin-top: 2px; }
     /* LOTA 36: felligluggi fyrir eldri fyrirsagnir */
     .btm-more { margin-top: 4px; }
-    .btm-more summary { cursor: pointer; list-style: none; display: inline-block; font-size: 12.5px; font-weight: 700; color: #f6b13b; background: rgba(246,177,59,.1); border: 1px solid rgba(246,177,59,.4); border-radius: 999px; padding: 6px 16px; margin: 10px 0 4px; user-select: none; }
+    .btm-more summary { cursor: pointer; list-style: none; display: inline-block; font-size: 12.5px; font-weight: 700; color: var(--gold); background: rgba(246,177,59,.1); border: 1px solid rgba(246,177,59,.4); border-radius: 999px; padding: 6px 16px; margin: 10px 0 4px; user-select: none; }
     .btm-more summary::-webkit-details-marker { display: none; }
     .btm-more summary:hover { background: rgba(246,177,59,.18); }
     .btm-more[open] summary { color: var(--muted); background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.15); }
-    .live-empty { font-size: 13.5px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 12px 14px; border-radius: 0 8px 8px 0; }
+    .live-empty { font-size: 13.5px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid var(--gold); padding: 12px 14px; border-radius: 0 8px 8px 0; }
     #co-detail { margin-top: 16px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 16px 18px; }
     #co-detail .d-h { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-    #co-detail .d-n { font-size: 19px; font-weight: 800; color: #f6b13b; }
+    #co-detail .d-n { font-size: 19px; font-weight: 800; color: var(--gold); }
     #co-detail .d-tiles { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
     #co-detail .d-t { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); border-radius: 9px; padding: 7px 11px; font-size: 12px; color: var(--muted); }
     #co-detail .d-t b { color: var(--ink); font-size: 14px; }
     #co-detail .d-t b.up { color: #46e08a; } #co-detail .d-t b.dn { color: #ff6d7a; }
     .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 12px; }
     .chip { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: var(--muted); border-radius: 999px; padding: 5px 13px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
-    .chip:hover { color: #f6b13b; border-color: #f6b13b; }
-    .chip.on { color: var(--bg); background: #f6b13b; border-color: #f6b13b; }
+    .chip:hover { color: var(--gold); border-color: var(--gold); }
+    .chip.on { color: var(--bg); background: var(--gold); border-color: var(--gold); }
     /* Málefna-flokkar: 119 flísar í einni röð eru ólæsilegar → flokkur valinn, flísar hans birtast. */
     .mal-cats { margin-bottom: 2px; }
     .mal-cat { border-style: dashed; }
     .mal-cat.on { border-style: solid; }
     .mal-n { opacity: .55; font-weight: 500; margin-left: 5px; font-size: 11px; }
     #fg-vogchips { min-height: 30px; }
-    #fg-vogsida { display: block; margin: 2px 0 10px; font-size: 13px; color: #f6b13b; font-weight: 700; }
+    #fg-vogsida { display: block; margin: 2px 0 10px; font-size: 13px; color: var(--gold); font-weight: 700; }
 
     /* Tengla-hub: innri tenging á aðila-síðurnar (voru munaðarlausar). */
     .hub { margin: 34px 0 6px; border-top: 1px solid var(--line); padding-top: 18px; }
@@ -261,12 +261,12 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     .hub-g h3 { font-size: 13px; color: var(--ink); margin: 0 0 6px; font-weight: 700; }
     .hub-l { display: flex; flex-wrap: wrap; gap: 6px 10px; }
     .hub-l a { font-size: 12.5px; color: var(--muted); text-decoration: none; }
-    .hub-l a:hover { color: #f6b13b; text-decoration: underline; }
+    .hub-l a:hover { color: var(--gold); text-decoration: underline; }
     #co-detail .d-sec { font-size: 11px; font-weight: 800; color: #19d3c5; text-transform: uppercase; letter-spacing: .05em; margin: 14px 0 4px; }
     #co-detail #d-tl { width: 100%; height: 190px; }
     #co-detail .d-cloud { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; padding: 4px 0; }
     #co-detail .d-w { color: var(--ink); }
-    #co-detail .d-w:nth-child(3n) { color: #f6b13b; } #co-detail .d-w:nth-child(3n+1) { color: #19d3c5; }
+    #co-detail .d-w:nth-child(3n) { color: var(--gold); } #co-detail .d-w:nth-child(3n+1) { color: #19d3c5; }
     /* Premium-spjöldin (LOTA 13, eins og gamla) */
     .se-card { background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.09); border-radius: 12px; padding: 12px 14px; margin: 10px 0; }
     /* LOTA 20: spjaldið í tvo dálka á breiðum skjá — LOTA 35: ÞRJÁ á mjög breiðum */
@@ -286,10 +286,10 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     #btm-news { margin-top: 26px; border-top: 1px solid rgba(255,255,255,.1); padding-top: 6px; }
     /* ⭐ Pro-kynningin í spjaldinu (runtime-DOM) */
     .pro-tease { background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.35); border-radius: 13px; padding: 16px 18px; }
-    .pt-t { font-size: 15px; font-weight: 800; color: #f6b13b; margin-bottom: 6px; }
+    .pt-t { font-size: 15px; font-weight: 800; color: var(--gold); margin-bottom: 6px; }
     .pro-tease p { font-size: 13px; color: var(--ink); margin: 0 0 12px; }
     .pt-btns { display: flex; gap: 8px; flex-wrap: wrap; }
-    .pt-main { background: #f6b13b; color: var(--surface); font-weight: 800; padding: 8px 18px; border-radius: 9px; text-decoration: none; font-size: 13px; }
+    .pt-main { background: var(--gold); color: var(--surface); font-weight: 800; padding: 8px 18px; border-radius: 9px; text-decoration: none; font-size: 13px; }
     .pt-sec { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.18); color: var(--ink); padding: 8px 16px; border-radius: 9px; text-decoration: none; font-size: 13px; }
     .se-card .se-l { font-size: 13px; font-weight: 800; color: var(--ink); }
     .se-sub { font-size: 11px; color: var(--faint); font-weight: 400; margin-left: 6px; }
@@ -303,7 +303,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     .se-leg { display: flex; gap: 14px; font-size: 11.5px; flex-wrap: wrap; }
     .se-note { font-size: 11px; color: var(--faint); margin-top: 8px; line-height: 1.45; }
     /* 💸 Greiðslur frá ríkinu (LOTA 53) */
-    .rik-tot { font-size: 21px; font-weight: 800; color: #f6b13b; font-variant-numeric: tabular-nums; margin: 4px 0 6px; }
+    .rik-tot { font-size: 21px; font-weight: 800; color: var(--gold); font-variant-numeric: tabular-nums; margin: 4px 0 6px; }
     .rik-tr { font-size: 11.5px; font-weight: 700; }
     .rik-tr.up { color: #46e08a; } .rik-tr.dn { color: #ff6d7a; }
     .rik-bars { display: flex; align-items: flex-end; gap: 3px; height: 44px; margin: 4px 0 2px; }
@@ -313,7 +313,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     .rv-tile { background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.09); border-radius: 10px; padding: 9px 11px; }
     .rv-tile.good { border-color: rgba(70,224,138,.4); } .rv-tile.warn { border-color: rgba(246,177,59,.4); } .rv-tile.bad { border-color: rgba(255,109,122,.4); }
     .rv-v { font-size: 17px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
-    .rv-tile.good .rv-v { color: #46e08a; } .rv-tile.warn .rv-v { color: #f6b13b; } .rv-tile.bad .rv-v { color: #ff6d7a; }
+    .rv-tile.good .rv-v { color: #46e08a; } .rv-tile.warn .rv-v { color: var(--gold); } .rv-tile.bad .rv-v { color: #ff6d7a; }
     .rv-l { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
     .rv-l span { color: var(--faint); font-size: 10px; }
     .fy-srcrows, .fy-dist { margin-top: 10px; }
@@ -340,13 +340,13 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     /* 📊 Fjölmiðlagreiningin (LOTA 34B — runtime-DOM) */
     #greining { margin-top: 34px; border-top: 1px solid rgba(255,255,255,.1); padding-top: 18px; }
     .fg-h { font-size: 17px; color: var(--ink); margin: 0 0 10px; }
-    #fg-selname { font-size: 12px; color: #f6b13b; font-weight: 600; margin-left: 8px; }
+    #fg-selname { font-size: 12px; color: var(--gold); font-weight: 600; margin-left: 8px; }
     #fg-selname button { background: none; border: 0; color: var(--faint); cursor: pointer; font-size: 12px; }
     .fg-sh { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 22px 0 8px; }
     #fg-kpis .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 10px 0 8px; }
     #fg-kpis .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
     #fg-kpis .k-l { font-size: 12px; color: var(--muted); }
-    #fg-kpis .k-v { font-size: 25px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    #fg-kpis .k-v { font-size: 25px; font-weight: 800; color: var(--gold); margin-top: 2px; font-variant-numeric: tabular-nums; }
     #fg-kpis .k-s { font-size: 11px; color: var(--faint); }
     .fg-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
     @media (max-width: 760px) { .fg-pair { grid-template-columns: 1fr; } }
@@ -359,37 +359,37 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     #fg-vog .fy-srcidx { font-size: 12px; font-weight: 800; text-align: right; background: none !important; font-variant-numeric: tabular-nums; }
     #fg-vog .fy-srcc { font-size: 11px; color: var(--faint); text-align: right; }
     #fg-vog .vog-note { font-size: 11.5px; color: var(--faint); margin-top: 8px; }
-    #fg-vog .empty, #fg-kpis .empty { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 13px; border-radius: 0 8px 8px 0; }
+    #fg-vog .empty, #fg-kpis .empty { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid var(--gold); padding: 10px 13px; border-radius: 0 8px 8px 0; }
     /* 🕸️ Tengslanetið */
     #tn-graph { width: 100%; height: 470px; background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.07); border-radius: 12px; }
     .tn-note { font-size: 12px; color: var(--faint); text-align: center; margin: 8px 0 4px; min-height: 16px; }
-    .tn-note a { color: #f6b13b; }
+    .tn-note a { color: var(--gold); }
     #tn-pairs { margin-top: 10px; }
     .tn-pairs-h { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 14px 0 6px; }
     .tn-pair { display: grid; grid-template-columns: 1fr 90px; gap: 10px; align-items: center; padding: 5px 2px; border-bottom: 1px solid rgba(255,255,255,.05); }
     .tn-pair-n { font-size: 12.5px; color: var(--ink); }
     .tn-pair-n b { color: var(--ink); font-weight: 600; }
-    .tn-pair-v { font-size: 12px; color: #f6b13b; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .tn-pair-v { font-size: 12px; color: var(--gold); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
     /* ⚖️ SoV-samanburður */
     .sov-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 6px 0 10px; }
     .sov-row input { flex: 1; min-width: 170px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 9px 12px; color: var(--ink); font-size: 13px; }
     .sov-row input:focus { outline: none; border-color: rgba(246,177,59,.55); }
     .sov-vs { font-size: 12px; color: var(--faint); font-weight: 700; }
-    #sov-go { background: #f6b13b; color: var(--bg); border: 0; border-radius: 10px; padding: 9px 18px; font-size: 13px; font-weight: 800; cursor: pointer; }
+    #sov-go { background: var(--gold); color: var(--bg); border: 0; border-radius: 10px; padding: 9px 18px; font-size: 13px; font-weight: 800; cursor: pointer; }
     .sov-bar { display: flex; border-radius: 10px; overflow: hidden; height: 34px; margin: 10px 0 8px; font-size: 12px; font-weight: 700; }
     .sov-bar .sov-a { background: rgba(246,177,59,.8); color: var(--bg); display: flex; align-items: center; padding: 0 10px; white-space: nowrap; overflow: hidden; }
     .sov-bar .sov-b { background: rgba(58,160,255,.75); color: var(--bg); display: flex; align-items: center; justify-content: flex-end; padding: 0 10px; white-space: nowrap; overflow: hidden; }
     .sov-kpis { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); margin-bottom: 6px; }
     .sov-kpis b { color: var(--ink); }
     #sov-tl { width: 100%; height: 220px; }
-    #sov-out .empty { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 13px; border-radius: 0 8px 8px 0; }
+    #sov-out .empty { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid var(--gold); padding: 10px 13px; border-radius: 0 8px 8px 0; }
     /* 🖨️ PDF-skýrslan (prent-DOM) */
-    #fg-selname .fg-btn { background: rgba(246,177,59,.14); border: 1px solid rgba(246,177,59,.45); color: #f6b13b; border-radius: 8px; padding: 3px 10px; font-size: 11.5px; cursor: pointer; margin-left: 6px; }
+    #fg-selname .fg-btn { background: rgba(246,177,59,.14); border: 1px solid rgba(246,177,59,.45); color: var(--gold); border-radius: 8px; padding: 3px 10px; font-size: 11.5px; cursor: pointer; margin-left: 6px; }
     #fg-report { display: none; }
     @media print {
       body > :not(#fg-report) { display: none !important; }
       #fg-report { display: block !important; background: #fff; color: #111; font-size: 12px; line-height: 1.5; padding: 10px 6px; }
-      #fg-report .rep-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; border-bottom: 3px solid #f6b13b; padding-bottom: 8px; margin-bottom: 14px; }
+      #fg-report .rep-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; border-bottom: 3px solid var(--gold); padding-bottom: 8px; margin-bottom: 14px; }
       #fg-report .rep-logo { font-weight: 800; letter-spacing: 2px; font-size: 15px; }
       #fg-report .rep-t { font-size: 17px; font-weight: 800; }
       #fg-report .rep-d { font-size: 11px; color: #555; }
@@ -404,7 +404,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       #fg-report .rep-sbar i { display: block; height: 100%; }
       #fg-report .rep-cap { font-size: 10.5px; color: #555; margin-bottom: 8px; }
       #fg-report .rep-tbl { border-collapse: collapse; width: 100%; max-width: 460px; font-size: 11px; }
-      #fg-report .rep-tbl th { text-align: left; border-bottom: 2px solid #f6b13b; padding: 3px 8px 3px 0; font-size: 10px; text-transform: uppercase; color: #444; }
+      #fg-report .rep-tbl th { text-align: left; border-bottom: 2px solid var(--gold); padding: 3px 8px 3px 0; font-size: 10px; text-transform: uppercase; color: #444; }
       #fg-report .rep-tbl td { border-bottom: 1px solid #e5e5e5; padding: 3px 8px 3px 0; }
       #fg-report .rep-txt { font-size: 11.5px; color: #222; line-height: 1.55; }
     }
@@ -416,7 +416,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     .yt-list { display: flex; flex-direction: column; }
     .yt-row { display: block; padding: 7px 2px; border-bottom: 1px solid rgba(255,255,255,.06); text-decoration: none; }
     .yt-row:last-child { border-bottom: 0; }
-    .yt-row:hover .yt-t { color: #f6b13b; }
+    .yt-row:hover .yt-t { color: var(--gold); }
     .yt-t { display: block; font-size: 12.5px; color: var(--ink); line-height: 1.35; }
     .yt-m { display: block; font-size: 11px; color: var(--faint); margin-top: 2px; }
     .fy-health { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; border-radius: 10px; padding: 9px 13px; margin: 10px 0; font-size: 12.5px; }
@@ -654,7 +654,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
           const seinni = d.m.slice(6).reduce((a, x) => a + x, 0), fyrri = d.m.slice(0, 6).reduce((a, x) => a + x, 0);
           const trend = fyrri > 0 ? Math.round(((seinni - fyrri) / fyrri) * 100) : null;
           const orgs = (d.orgs || []).slice(0, 3).map(([o, v]) => `${esc9(o)} (${mkrB(v)})`).join(' · ');
-          el.innerHTML = `<div class="se-card"><div class="se-l">Greiðslur frá ríkinu <span class="se-sub">${esc9(hit.n)} · sl. 12 mán</span></div><div class="rik-tot">${mkrB(hit.t)}${trend != null ? ` <span class="rik-tr ${trend >= 0 ? 'up' : 'dn'}">${trend >= 0 ? '▲' : '▼'} ${trend >= 0 ? '+' : ''}${trend}% seinni 6 mán vs fyrri</span>` : ''}</div>${bars}${orgs ? `<div class="rik-orgs">Stærstu kaupendur: ${orgs}</div>` : ''}<div class="se-note">Bókfærðar greiðslur ríkisins af opnirreikningar.is (Fjársýslan) — <a href="/birgjar/" style="color:#f6b13b">öll birgjagreiningin →</a></div></div>`;
+          el.innerHTML = `<div class="se-card"><div class="se-l">Greiðslur frá ríkinu <span class="se-sub">${esc9(hit.n)} · sl. 12 mán</span></div><div class="rik-tot">${mkrB(hit.t)}${trend != null ? ` <span class="rik-tr ${trend >= 0 ? 'up' : 'dn'}">${trend >= 0 ? '▲' : '▼'} ${trend >= 0 ? '+' : ''}${trend}% seinni 6 mán vs fyrri</span>` : ''}</div>${bars}${orgs ? `<div class="rik-orgs">Stærstu kaupendur: ${orgs}</div>` : ''}<div class="se-note">Bókfærðar greiðslur ríkisins af opnirreikningar.is (Fjársýslan) — <a href="/birgjar/" style="color:var(--gold)">öll birgjagreiningin →</a></div></div>`;
         }).catch(() => { el.innerHTML = ''; });
       }
       // 📢 Kauphallartilkynningar (LOTA 48): opinber OMX-veita um /api/tilkynningar
@@ -1236,10 +1236,10 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     /* 👁️ Sýnishorn fyrir útskráða (?syni=1) — kynningarborði + dæmispjöld (runtime-DOM → is:global) */
     .syni-wrap { margin: 4px 0 18px; }
     .syni-banner { background: linear-gradient(180deg, rgba(246,177,59,.13), rgba(246,177,59,.04)); border: 1px solid rgba(246,177,59,.5); border-radius: 14px; padding: 16px 18px; margin: 0 0 14px; }
-    .syni-banner .syni-t { font-size: 15.5px; font-weight: 800; color: #f6b13b; margin-bottom: 6px; line-height: 1.35; }
+    .syni-banner .syni-t { font-size: 15.5px; font-weight: 800; color: var(--gold); margin-bottom: 6px; line-height: 1.35; }
     .syni-banner p { font-size: 13px; color: var(--ink); margin: 0 0 12px; line-height: 1.5; }
     .syni-btns { display: flex; gap: 8px; flex-wrap: wrap; }
-    .syni-main { background: #f6b13b; color: var(--surface); font-weight: 800; padding: 9px 20px; border-radius: 9px; text-decoration: none; font-size: 13.5px; }
+    .syni-main { background: var(--gold); color: var(--surface); font-weight: 800; padding: 9px 20px; border-radius: 9px; text-decoration: none; font-size: 13.5px; }
     .syni-main:hover { filter: brightness(1.07); }
     .syni-sec { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.18); color: var(--ink); padding: 9px 18px; border-radius: 9px; text-decoration: none; font-size: 13.5px; }
     .syni-card { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.09); border-radius: 13px; padding: 15px 16px; margin: 0 0 14px; }
@@ -1274,7 +1274,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
         + `<div class="syni-card"><div class="syni-lbl">Nýleg umfjöllun (dæmi)</div><div class="live" style="column-count:1">${rows}</div></div>`
         + (full
           ? `<div class="syni-banner"><div class="syni-t">Viltu greina þitt fyrirtæki?</div><p>Þetta sýnishorn notar tilbúin gögn. Skráðu þig inn til að vakta raunverulega umfjöllun um hvaða aðila sem er.</p>${cta}</div>`
-          : `<p style="font-size:12.5px;color:#8fa0ba;margin:2px 0 0"><a href="/frettir/?syni=1" style="color:#f6b13b">Sjá fullt sýnishorn →</a> · leitin og opnu fyrirsagnirnar eru alltaf aðgengilegar hér að neðan.</p>`);
+          : `<p style="font-size:12.5px;color:#8fa0ba;margin:2px 0 0"><a href="/frettir/?syni=1" style="color:var(--gold)">Sjá fullt sýnishorn →</a> · leitin og opnu fyrirsagnirnar eru alltaf aðgengilegar hér að neðan.</p>`);
     }
     document.addEventListener('astro:page-load', () => {
       const m = document.querySelector('main[data-pg="frettir"]');

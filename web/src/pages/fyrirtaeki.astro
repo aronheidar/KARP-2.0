@@ -16,7 +16,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
   <main data-pg="fyrirtaeki">
     <p class="kicker">Karp+ · Atvinnulíf</p>
     <h1>Fyrirtækjaskrá</h1>
-    <p>Flettu upp hvaða íslenska félagi sem er — beint úr opinberri fyrirtækjaskrá Skattsins. <a href="/lausnir/fyrirtaekjaskyrsla/" style="color:#f6b13b">Um Fyrirtækjaskýrsluna →</a></p>
+    <p>Flettu upp hvaða íslenska félagi sem er — beint úr opinberri fyrirtækjaskrá Skattsins. <a href="/lausnir/fyrirtaekjaskyrsla/" style="color:var(--gold)">Um Fyrirtækjaskýrsluna →</a></p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Uppfletting í opinberri fyrirtækjaskrá Skattsins (skatturinn.is) — engin gögn geymd hjá Karp, hver leit sótt beint (24 klst skyndiminni). Sýnir skráð grunngögn: heiti, kennitölu, heimilisfang, rekstrarform, ÍSAT-atvinnugrein, VSK-númer og skil ársreikninga. Staðfest vottorð fást hjá Skattinum.">ⓘ</i> Um gögnin á síðunni</p>
 
     <form id="fs-form" autocomplete="off">
@@ -37,9 +37,9 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     #fs-form { display: flex; gap: 8px; margin: 18px 0 14px; }
     #fs-q { flex: 1; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 11px 14px; color: var(--ink); font-size: 15px; }
     #fs-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
-    #fs-btn { background: #f6b13b; color: #101623; border: 0; border-radius: 10px; padding: 0 18px; font-size: 14px; font-weight: 700; cursor: pointer; }
+    #fs-btn { background: var(--gold); color: var(--surface); border: 0; border-radius: 10px; padding: 0 18px; font-size: 14px; font-weight: 700; cursor: pointer; }
     #fs-btn:hover { filter: brightness(1.08); }
-    .note { font-size: 12.5px; color: var(--muted); margin-top: 22px; } .note a { color: #f6b13b; }
+    .note { font-size: 12.5px; color: var(--muted); margin-top: 22px; } .note a { color: var(--gold); }
     .foot { font-size: 12px; color: var(--faint); margin-top: 14px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 12px; }
   </style>
 
@@ -60,7 +60,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-card { border: 1px solid rgba(246,177,59,.35); border-radius: 14px; padding: 18px 20px; background: rgba(255,255,255,.02); }
     .fs-card h2 { font-size: 21px; margin: 0; color: var(--ink); display: inline; }
     .fs-card .kt { color: var(--faint); font-size: 13px; margin-left: 10px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-    .fs-back { background: none; border: 0; color: #f6b13b; font-size: 12.5px; cursor: pointer; padding: 0; margin: 0 0 10px; }
+    .fs-back { background: none; border: 0; color: var(--gold); font-size: 12.5px; cursor: pointer; padding: 0; margin: 0 0 10px; }
     .fs-back:hover { text-decoration: underline; }
     .fs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px 18px; margin: 14px 0 4px; }
     .fs-f { font-size: 13px; }
@@ -69,19 +69,19 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-sub { font-size: 11.5px; color: var(--faint); text-transform: uppercase; letter-spacing: .05em; margin: 14px 0 6px; }
     .fs-chips { display: flex; flex-wrap: wrap; gap: 6px; }
     .fs-chip { font-size: 12px; color: var(--ink); background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 9px; padding: 3px 9px; }
-    .fs-chip b { color: #f6b13b; font-weight: 600; }
+    .fs-chip b { color: var(--gold); font-weight: 600; }
     .fs-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 16px; }
     .fs-link { display: block; text-decoration: none; border: 1px solid rgba(255,255,255,.12); border-radius: 11px; padding: 10px 13px; background: rgba(255,255,255,.03); }
     .fs-link:hover { border-color: rgba(246,177,59,.5); }
     .fs-link .t { color: var(--ink); font-size: 13.5px; font-weight: 600; }
     .fs-link .s { color: var(--muted); font-size: 11.5px; margin-top: 2px; }
     .fs-link.on { border-color: rgba(246,177,59,.45); background: rgba(246,177,59,.06); }
-    .fs-link.on .s { color: #f6b13b; }
+    .fs-link.on .s { color: var(--gold); }
     /* Pro-gátt (LOTA 63) */
     .fs-tease { background: rgba(255,255,255,.04); border: 1px solid rgba(246,177,59,.35); border-radius: 13px; padding: 16px 18px; font-size: 14px; color: #dfe7f4; line-height: 1.55; }
-    .fs-tease b { color: #f6b13b; }
+    .fs-tease b { color: var(--gold); }
     .fs-tease-btns { display: flex; gap: 8px; margin-top: 12px; }
-    .fs-tease-main { background: #f6b13b; color: var(--surface); font-weight: 800; font-size: 13px; text-decoration: none; padding: 9px 15px; border-radius: 9px; }
+    .fs-tease-main { background: var(--gold); color: var(--surface); font-weight: 800; font-size: 13px; text-decoration: none; padding: 9px 15px; border-radius: 9px; }
     .fs-tease-sec { border: 1px solid rgba(255,255,255,.2); color: var(--ink); font-size: 13px; text-decoration: none; padding: 9px 15px; border-radius: 9px; }
     /* Vanskilamerki + firmavakt (LOTA 73) */
     .fs-topbtns { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
@@ -89,7 +89,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-follow { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .fs-mailopt { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); cursor: pointer; user-select: none; }
     .fs-mailopt input { accent-color: var(--gold); cursor: pointer; margin: 0; }
-    .fs-vakta { background: none; border: 1px solid rgba(246,177,59,.5); color: #f6b13b; font-size: 12.5px; font-weight: 700; border-radius: 9px; padding: 6px 12px; cursor: pointer; margin: 0 0 10px; }
+    .fs-vakta { background: none; border: 1px solid rgba(246,177,59,.5); color: var(--gold); font-size: 12.5px; font-weight: 700; border-radius: 9px; padding: 6px 12px; cursor: pointer; margin: 0 0 10px; }
     .fs-vakta:hover { background: rgba(246,177,59,.1); }
     .fs-vakta.on { background: rgba(66,208,134,.12); border-color: rgba(66,208,134,.5); color: #42d086; }
     .fs-vakta:disabled { opacity: .6; cursor: default; }
@@ -107,7 +107,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-vm { display: inline-flex; align-items: center; gap: 8px; max-width: 320px; border: 1px solid rgba(246,177,59,.30); border-radius: 10px; padding: 5px 9px 5px 6px; background: rgba(255,255,255,.02); text-decoration: none; color: var(--ink); }
     .fs-vm:hover { border-color: rgba(246,177,59,.65); }
     .fs-vm-i { width: 30px; height: 30px; flex: 0 0 30px; border-radius: 6px; object-fit: contain; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 15px; }
-    .fs-vm-ph { background: rgba(246,177,59,.14); color: #f6b13b; }
+    .fs-vm-ph { background: rgba(246,177,59,.14); color: var(--gold); }
     .fs-vm-n { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 190px; }
     .fs-vm-s { font-size: 11px; padding: 1px 6px; border-radius: 999px; white-space: nowrap; }
     .fs-vm-s.ok { background: rgba(70,190,120,.18); color: #6fd39b; }
@@ -122,13 +122,13 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-lob-i { flex: 0 0 58px; font-size: 10px; line-height: 19px; text-transform: uppercase; letter-spacing: .05em; color: var(--faint); font-weight: 700; }
     .fs-lob-t { flex: 1 1 auto; font-size: 12.5px; color: var(--ink); min-width: 0; line-height: 1.45; }
     .fs-lob-t a { color: var(--ink); text-decoration: none; font-weight: 600; }
-    .fs-lob-t a:hover { color: #f6b13b; text-decoration: underline; }
+    .fs-lob-t a:hover { color: var(--gold); text-decoration: underline; }
     .fs-lob-stig { display: inline-block; font-size: 10px; padding: 0 6px; border-radius: 999px; white-space: nowrap; margin-left: 6px; vertical-align: 1px; }
     .fs-lob-stig.mikil { background: rgba(231,130,132,.16); color: #e78284; }
     .fs-lob-stig.midlungs { background: rgba(240,136,62,.16); color: #f0a35e; }
     .fs-lob-stig.litil { background: rgba(126,140,166,.16); color: var(--muted); }
     .fs-lob-meta { color: var(--muted); font-size: 11.5px; display: block; margin-top: 1px; }
-    .fs-lob-cta { display: block; margin-top: 8px; color: #f6b13b; font-size: 12px; text-decoration: none; font-weight: 600; }
+    .fs-lob-cta { display: block; margin-top: 8px; color: var(--gold); font-size: 12px; text-decoration: none; font-weight: 600; }
     .fs-lob-cta:hover { text-decoration: underline; }
     .fs-lob-note { font-size: 10.5px; color: var(--faint); margin-top: 6px; font-style: italic; }
     body.fs-printing #fs-report .fs-lob-t, body.fs-printing #fs-report .fs-lob-t a { color: #123 !important; }
@@ -142,16 +142,16 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-ef-t b { color: var(--ink); }
     .fs-ef-l { color: var(--muted); font-size: 11.5px; }
     .fs-ef-d { flex: 0 0 auto; font-size: 11px; color: var(--faint); white-space: nowrap; text-align: right; line-height: 1.4; }
-    .fs-ef-d a { color: #f6b13b; }
+    .fs-ef-d a { color: var(--gold); }
     @media (max-width: 560px) { .fs-ef-d { display: none; } }
     body.fs-printing #fs-report .fs-ef-t, body.fs-printing #fs-report .fs-ef-t b { color: #123 !important; }
     body.fs-printing #fs-report .fs-ef-l { color: #445 !important; }
     .fs-styrkir { margin-top: 10px; }
     .fs-st-sum { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 6px; }
-    .fs-st-chip { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: rgba(246,177,59,.12); color: #f6b13b; border: 1px solid rgba(246,177,59,.28); white-space: nowrap; }
+    .fs-st-chip { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: rgba(246,177,59,.12); color: var(--gold); border: 1px solid rgba(246,177,59,.28); white-space: nowrap; }
     .fs-st-row { display: flex; align-items: baseline; gap: 10px; padding: 7px 0; border-top: 1px solid rgba(255,255,255,.06); }
     .fs-st-row:first-of-type { border-top: 0; }
-    .fs-st-y { flex: 0 0 40px; font-size: 12px; font-weight: 700; color: #f6b13b; }
+    .fs-st-y { flex: 0 0 40px; font-size: 12px; font-weight: 700; color: var(--gold); }
     .fs-st-t { flex: 1 1 auto; font-size: 12.5px; color: var(--ink); min-width: 0; line-height: 1.4; }
     .fs-st-t b { color: var(--ink); }
     .fs-st-s { color: var(--muted); font-size: 11.5px; }
@@ -173,7 +173,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-lb-t b { color: var(--ink); }
     .fs-lb-l { color: var(--muted); font-size: 11.5px; }
     .fs-lb-d { flex: 0 0 auto; font-size: 11px; color: var(--faint); white-space: nowrap; text-align: right; line-height: 1.4; }
-    .fs-lb-d a { color: #f6b13b; }
+    .fs-lb-d a { color: var(--gold); }
     @media (max-width: 560px) { .fs-lb-d { display: none; } }
     body.fs-printing #fs-report .fs-lb-t, body.fs-printing #fs-report .fs-lb-t b { color: #123 !important; }
     body.fs-printing #fs-report .fs-lb-l { color: #445 !important; }
@@ -195,13 +195,13 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-ph { border: 1.5px dashed rgba(255,255,255,.22); border-radius: 11px; padding: 11px 13px; background: rgba(255,255,255,.02); }
     .fs-ph b { display: block; color: var(--muted); font-size: 13px; margin-bottom: 4px; }
     .fs-ph span { color: var(--faint); font-size: 11.5px; line-height: 1.5; }
-    .fs-ph a { color: #f6b13b; }
+    .fs-ph a { color: var(--gold); }
     .fs-ph.filled { border-style: solid; border-color: rgba(66,208,134,.32); background: rgba(66,208,134,.05); }
     .fs-ph.filled b { color: var(--ink); }
     .fs-eig { font-size: 12.5px; color: var(--ink); padding: 5px 0; border-top: 1px solid rgba(255,255,255,.06); }
     .fs-eig:first-of-type { border-top: none; }
     .fs-eig > b { display: inline; color: var(--ink); font-size: 13px; }
-    .fs-eig-h { color: #f6b13b; font-weight: 700; }
+    .fs-eig-h { color: var(--gold); font-weight: 700; }
     .fs-eig-s { display: block; color: var(--faint); font-size: 11px; margin-top: 1px; }
     .fs-ph-src { display: block; color: #6b7688; font-size: 10.5px; margin-top: 8px; font-style: italic; }
     .fs-stj-list { display: flex; flex-direction: column; gap: 4px; margin: 6px 0 2px; }
@@ -209,7 +209,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-stj-n { color: var(--ink); }
     .fs-stj-h { color: var(--muted); white-space: nowrap; }
     .fs-stj-fr { display: block; color: var(--muted); font-size: 11px; margin-top: 4px; }
-    .fs-pdf-dl { float: right; color: #f6b13b; font-size: 12px; font-weight: 600; text-decoration: none; }
+    .fs-pdf-dl { float: right; color: var(--gold); font-size: 12px; font-weight: 600; text-decoration: none; }
     .fs-pdf-dl:hover { text-decoration: underline; }
     body.fs-printing #fs-report .fs-ph.filled { border-color: #9ad9b5 !important; background: #f2fbf6 !important; }
     body.fs-printing #fs-report .fs-eig, body.fs-printing #fs-report .fs-eig > b { color: #222 !important; }
@@ -225,7 +225,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-ar-veik { margin-top: .4rem; opacity: .85; font-size: .92em; color: var(--muted); }
     .fs-ar-detail:empty { display: none; }
     .fs-ar-role { color: var(--muted); font-weight: 400; }
-    .fs-ar-more { margin-top: 5px; } .fs-ar-more a { color: #f6b13b; text-decoration: none; font-size: 12px; } .fs-ar-more a:hover { text-decoration: underline; }
+    .fs-ar-more { margin-top: 5px; } .fs-ar-more a { color: var(--gold); text-decoration: none; font-size: 12px; } .fs-ar-more a:hover { text-decoration: underline; }
     /* Chart 2 — fjölmiðla-tímalína */
     .fs-media-tl { margin: 4px 0 8px; }
     .fs-media-tl-h { font-size: 11px; color: var(--muted); margin-bottom: 3px; } .fs-media-tl-h span { color: #7f8da3; }
@@ -259,24 +259,24 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     body.fs-printing #fs-report .fs-ar-detail { color: #8a6d00 !important; }
     .fs-note2 { font-size: 11.5px; color: var(--faint); margin-top: 14px; line-height: 1.5; border-top: 1px solid rgba(255,255,255,.07); padding-top: 10px; }
     .fs-buyrow { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
-    .fs-buy { background: #f6b13b; color: var(--surface); border: 0; border-radius: 10px; padding: 10px 16px; font-size: 13.5px; font-weight: 800; cursor: pointer; }
+    .fs-buy { background: var(--gold); color: var(--surface); border: 0; border-radius: 10px; padding: 10px 16px; font-size: 13.5px; font-weight: 800; cursor: pointer; }
     .fs-buy:hover { filter: brightness(1.08); } .fs-buy:disabled { opacity: .7; cursor: default; }
     .fs-buynote { font-size: 11px; color: var(--faint); }
     .fs-gate { max-width: 480px; margin: 18px auto; background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.35); border-radius: 16px; padding: 26px 24px; text-align: center; }
     .fs-gate h2.fsg-nafn { font-size: 20px; color: var(--ink); margin: 0 0 2px; display: inline; }
     .fs-gate .kt { color: var(--muted); font-size: 13px; }
-    .fsg-lockrow { margin: 16px 0 8px; color: #f6b13b; font-weight: 800; font-size: 14px; }
+    .fsg-lockrow { margin: 16px 0 8px; color: var(--gold); font-weight: 800; font-size: 14px; }
     .fsg-lock { display: inline-flex; vertical-align: -.2em; margin-right: 4px; }
     .fsg-b { color: var(--ink); font-size: 13.5px; line-height: 1.55; margin: 0 0 18px; }
     .fsg-btns { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
-    .fsg-main { background: #f6b13b; color: var(--surface); font-weight: 800; font-size: 13.5px; border: 0; border-radius: 11px; padding: 11px 18px; cursor: pointer; }
+    .fsg-main { background: var(--gold); color: var(--surface); font-weight: 800; font-size: 13.5px; border: 0; border-radius: 11px; padding: 11px 18px; cursor: pointer; }
     .fsg-main:hover { filter: brightness(1.08); }
     .fsg-main:disabled { opacity: .7; cursor: default; }
     .fsg-sample { font-size: 13px; color: var(--muted); text-decoration: none; border-bottom: 1px dotted rgba(159,176,200,.5); }
-    .fsg-sample:hover { color: #f6b13b; border-color: #f6b13b; }
+    .fsg-sample:hover { color: var(--gold); border-color: var(--gold); }
     .fsg-note { color: var(--muted); font-size: 11.5px; margin-top: 16px; }
     .fsg-sub { color: var(--muted); font-size: 12.5px; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.08); }
-    .fsg-sub a { color: #f6b13b; text-decoration: none; font-weight: 600; }
+    .fsg-sub a { color: var(--gold); text-decoration: none; font-weight: 600; }
     /* 📊 KPI-mælaborð (runtime-innerHTML → global) */
     .kpi-sum { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 8px; margin: 8px 0 4px; }
     .kpi-s { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 9px 12px; }
@@ -285,7 +285,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .kpi-yoy { font-size: 11px; font-weight: 700; margin-left: 4px; }
     .kpi-yoy.up { color: #42d086; } .kpi-yoy.dn { color: #ef6a6a; }
     .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 8px; margin-top: 8px; }
-    .kpi-cat { grid-column: 1 / -1; color: #f6b13b; font-weight: 800; font-size: 12px; letter-spacing: .03em; margin-top: 6px; }
+    .kpi-cat { grid-column: 1 / -1; color: var(--gold); font-weight: 800; font-size: 12px; letter-spacing: .03em; margin-top: 6px; }
     .kpi-c { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-left: 3px solid #6b7688; border-radius: 10px; padding: 9px 12px; }
     .kpi-c.g { border-left-color: #42d086; } .kpi-c.o { border-left-color: #e8b84b; } .kpi-c.b { border-left-color: #ef6a6a; }
     .kpi-l { color: var(--muted); font-size: 11.5px; line-height: 1.3; }
@@ -296,7 +296,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .kpi-soon { background: rgba(255,255,255,.03); border: 1px dashed rgba(255,255,255,.15); border-radius: 12px; padding: 16px; }
     .kpi-soon b { color: var(--ink); font-size: 14px; display: block; }
     .kpi-soon span { color: var(--muted); font-size: 12.5px; display: block; margin-top: 5px; line-height: 1.5; }
-    .kpi-soon a { color: #f6b13b; text-decoration: none; }
+    .kpi-soon a { color: var(--gold); text-decoration: none; }
     .kpi-top { display: flex; align-items: center; gap: 14px; margin: 8px 0 4px; flex-wrap: wrap; }
     .kpi-health { display: flex; align-items: center; gap: 10px; }
     .kpi-health-l { color: var(--ink); font-size: 13px; font-weight: 700; line-height: 1.2; }
@@ -304,14 +304,14 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .kpi-top .kpi-sum { flex: 1; min-width: 230px; margin: 0; }
     .kpi-chart { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 12px 14px 6px; margin-top: 6px; }
     .kpi-chart-leg { display: flex; gap: 14px; font-size: 11px; margin-top: 2px; }
-    .kpi-chart-leg .lg-t { color: #f6b13b; } .kpi-chart-leg .lg-h { color: #42d086; }
+    .kpi-chart-leg .lg-t { color: var(--gold); } .kpi-chart-leg .lg-h { color: #42d086; }
     .kpi-chart-leg span::before { content: '▮ '; }
     /* 🏭 Samanburður við atvinnugrein (F2) */
     .fs-sector { margin-top: 8px; }
     .fs-sec-rank { font-size: 13px; color: #eaf1fb; margin: 5px 0 3px; }
-    .fs-sec-rank b { color: #f6b13b; }
+    .fs-sec-rank b { color: var(--gold); }
     .fs-sec-h { display: block; color: #8595ad; font-size: 11px; margin-top: 1px; }
-    .fs-sec-link { display: inline-block; margin-top: 7px; color: #f6b13b; text-decoration: none; font-size: 13px; font-weight: 600; }
+    .fs-sec-link { display: inline-block; margin-top: 7px; color: var(--gold); text-decoration: none; font-size: 13px; font-weight: 600; }
     .fs-sec-link:hover { text-decoration: underline; }
     .fs-sec-grid { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
     .fs-sec-r { display: grid; grid-template-columns: minmax(84px,108px) minmax(46px,1fr) auto auto; align-items: center; gap: 10px; padding: 6px 11px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 8px; font-size: 13px; }
@@ -347,7 +347,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     body.fs-printing #fs-report .fs-sec-r { background: #f6f8fb !important; border-color: #dbe3ee !important; }
     .kpi-fst { display: grid; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); gap: 12px; margin-top: 6px; }
     .fst { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-    .fst caption { text-align: left; color: #f6b13b; font-weight: 800; font-size: 12px; padding-bottom: 6px; }
+    .fst caption { text-align: left; color: var(--gold); font-weight: 800; font-size: 12px; padding-bottom: 6px; }
     .fst th { color: var(--muted); font-size: 11px; text-align: right; padding: 3px 8px; border-bottom: 1px solid rgba(255,255,255,.12); }
     .fst th:first-child { text-align: left; }
     .fst td { color: var(--ink); text-align: right; padding: 4px 8px; border-bottom: 1px solid rgba(255,255,255,.05); }
@@ -361,22 +361,22 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-demonote { margin: 0 0 14px; padding: 10px 12px; border: 1px solid rgba(246,177,59,.4); border-radius: 10px; background: rgba(246,177,59,.08); color: #f6d9a6; font-size: 13px; line-height: 1.45; }
     .kpi-pend { background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.3); border-radius: 12px; padding: 16px 18px; }
     .kpi-pend-hd { display: flex; align-items: flex-start; gap: 12px; }
-    .kpi-pend-spin { width: 20px; height: 20px; border: 3px solid rgba(246,177,59,.25); border-top-color: #f6b13b; border-radius: 50%; animation: kpiSpin .8s linear infinite; flex: none; margin-top: 2px; }
+    .kpi-pend-spin { width: 20px; height: 20px; border: 3px solid rgba(246,177,59,.25); border-top-color: var(--gold); border-radius: 50%; animation: kpiSpin .8s linear infinite; flex: none; margin-top: 2px; }
     @keyframes kpiSpin { to { transform: rotate(360deg); } }
     .kpi-pend-hd b { color: var(--ink); font-size: 14px; display: block; }
     .kpi-pend-s { color: var(--muted); font-size: 12.5px; display: block; margin-top: 4px; }
-    .kpi-pend-s i { color: #f6b13b; font-style: normal; font-weight: 700; }
+    .kpi-pend-s i { color: var(--gold); font-style: normal; font-weight: 700; }
     .kpi-pend-track { height: 6px; background: rgba(255,255,255,.08); border-radius: 99px; overflow: hidden; margin: 14px 0 10px; }
     .kpi-pend-bar { height: 100%; width: 0; background: linear-gradient(90deg, #f6b13b, #ffd27a); border-radius: 99px; transition: width 1s linear; }
     .kpi-pend-note { color: var(--muted); font-size: 12px; }
-    .kpi-pend-note a { color: #f6b13b; text-decoration: none; }
+    .kpi-pend-note a { color: var(--gold); text-decoration: none; }
     body.fs-printing #fs-report .kpi-s, body.fs-printing #fs-report .kpi-c { background: #f6f8fb !important; border-color: #dbe3ee !important; }
     body.fs-printing #fs-report .kpi-s b, body.fs-printing #fs-report .kpi-v { color: #111 !important; }
     body.fs-printing #fs-report .kpi-s span, body.fs-printing #fs-report .kpi-l { color: #555 !important; }
     body.fs-printing #fs-report .kpi-cat { color: #b07500 !important; }
     body.fs-printing #fs-report .fs-demonote { display: none !important; }
     .fs-sample { font-size: 12.5px; color: var(--muted); text-decoration: none; border-bottom: 1px dotted rgba(159,176,200,.5); }
-    .fs-sample:hover { color: #f6b13b; border-color: #f6b13b; }
+    .fs-sample:hover { color: var(--gold); border-color: var(--gold); }
     @media print {
       body.fs-printing * { visibility: hidden; }
       body.fs-printing #fs-report, body.fs-printing #fs-report * { visibility: visible; }
@@ -409,7 +409,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-lh-main { display: flex; align-items: center; gap: 14px; }
     .fs-lh-ring { flex: 0 0 auto; line-height: 0; }
     .fs-lh-head { min-width: 0; }
-    .fs-lh-t { font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #f6b13b; }
+    .fs-lh-t { font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--gold); }
     .fs-lh-band { font-size: 16px; font-weight: 800; margin-top: 2px; line-height: 1.1; }
     .fs-lh-sub { font-size: 11.5px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
     .fs-lh-factors { display: flex; flex-direction: column; gap: 5px; margin-top: 13px; }
@@ -1261,7 +1261,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       if (FS_AREID) { try { document.title = 'Áreiðanleikamat (KYC) | Karp'; } catch (e) {} }
       if (FS_AREID) {
         const h1 = document.querySelector('main[data-pg="fyrirtaeki"] h1');
-        if (h1) { h1.textContent = 'Áreiðanleikamat'; const lead = h1.nextElementSibling; if (lead && lead.tagName === 'P') lead.innerHTML = 'Áreiðanleikakönnun (KYC) á íslensku félagi — skráning, ársreikningsskil, fjárhagsheilsa, eignarhald, PEP-skimun og Lögbirtingablaðið. <a href="/lausnir/areidanleikamat/" style="color:#f6b13b">Um Áreiðanleikamatið →</a>'; }
+        if (h1) { h1.textContent = 'Áreiðanleikamat'; const lead = h1.nextElementSibling; if (lead && lead.tagName === 'P') lead.innerHTML = 'Áreiðanleikakönnun (KYC) á íslensku félagi — skráning, ársreikningsskil, fjárhagsheilsa, eignarhald, PEP-skimun og Lögbirtingablaðið. <a href="/lausnir/areidanleikamat/" style="color:var(--gold)">Um Áreiðanleikamatið →</a>'; }
         const inpEl = document.getElementById('fs-q'); if (inpEl) inpEl.setAttribute('placeholder', 'Nafn félags eða kennitala — áreiðanleikamat…');
       }
       const skila = (html) => { out.innerHTML = html; };

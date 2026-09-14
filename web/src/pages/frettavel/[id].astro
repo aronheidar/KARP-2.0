@@ -192,13 +192,13 @@ const jsonLd = [
     .fv-meta .fv-dot { opacity: .5; }
     main[data-pg="fv-art"] h1 { font-size: clamp(24px, 5vw, 33px); line-height: 1.18; letter-spacing: -.01em; margin: 4px 0 14px; color: var(--ink); }
     .fv-body { font-size: 17px; line-height: 1.7; color: var(--ink); margin: 0 0 20px; }
-    .fv-samhengi { background: color-mix(in srgb, var(--c, #f6b13b) 8%, transparent); border: 1px solid color-mix(in srgb, var(--c, #f6b13b) 28%, transparent); border-radius: 12px; padding: 13px 16px; margin: 0 0 22px; }
-    .fv-samhengi strong { display: block; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--c, #f6b13b); margin-bottom: 3px; }
+    .fv-samhengi { background: color-mix(in srgb, var(--c, #f6b13b) 8%, transparent); border: 1px solid color-mix(in srgb, var(--c, var(--gold)) 28%, transparent); border-radius: 12px; padding: 13px 16px; margin: 0 0 22px; }
+    .fv-samhengi strong { display: block; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--c, var(--gold)); margin-bottom: 3px; }
     .fv-samhengi p { font-size: 14.5px; line-height: 1.55; color: var(--ink); margin: 0; }
     .r-ras-wrap { margin: 0 0 22px; }
     .r-ras-wrap :global(.r-ras) { border: 1px solid color-mix(in srgb, #6ea8fe 30%, transparent); background: color-mix(in srgb, #6ea8fe 7%, transparent); border-radius: 12px; padding: 14px 16px; }
     .r-ras-wrap :global(.r-ras-h) { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: #9db6e6; font-weight: 700; margin-bottom: 8px; }
-    .r-ras-wrap :global(.r-ras-badge) { font-size: 10.5px; text-transform: none; letter-spacing: 0; background: #3a2a12; color: #f6b13b; border-radius: 6px; padding: 1px 6px; margin-left: 4px; }
+    .r-ras-wrap :global(.r-ras-badge) { font-size: 10.5px; text-transform: none; letter-spacing: 0; background: #3a2a12; color: var(--gold) /* flöturinn er harðkóðaður dökkur → gullið fast líka (var(--gold) yrði 2,4:1 í ljósu þema) */; border-radius: 6px; padding: 1px 6px; margin-left: 4px; }
     .r-ras-wrap :global(.r-ras-per) { font-size: 10.5px; text-transform: none; letter-spacing: 0; color: var(--muted, #9fb0c8); }
     .r-ras-wrap :global(.r-ras-in) { font-size: 13.5px; font-weight: 600; color: var(--ink); margin-bottom: 8px; }
     .r-ras-wrap :global(.r-ras-row) { display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px; padding: 3px 0; border-top: 1px solid rgba(255,255,255,.06); }

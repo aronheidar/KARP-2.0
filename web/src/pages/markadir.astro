@@ -254,7 +254,7 @@ const jsonLd = {
     h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
     p { color: var(--ink); }
     h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 10px; }
-    .note { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 14px 0; }
+    .note { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid var(--gold); padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 14px 0; }
     .idx { display: flex; flex-wrap: wrap; gap: 12px; margin: 18px 0 4px; }
     .idx-c { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 12px 16px; min-width: 180px; }
     .idx-n { font-size: 12px; color: var(--muted); }
@@ -267,7 +267,7 @@ const jsonLd = {
     #stk-table th, #stk-table td { text-align: right; padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,.07); white-space: nowrap; }
     #stk-table th { color: var(--faint); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
     #stk-table th.srt { cursor: pointer; user-select: none; }
-    #stk-table th.srt:hover, #stk-table th.srt.on { color: #f6b13b; }
+    #stk-table th.srt:hover, #stk-table th.srt.on { color: var(--gold); }
     #stk-table td.l, #stk-table th.l { text-align: left; }
     .strow { cursor: pointer; }
     .strow:hover td { background: rgba(255,255,255,.03); }
@@ -283,7 +283,7 @@ const jsonLd = {
     .ktable th, .ktable td { text-align: right; padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,.07); white-space: nowrap; }
     .ktable th { color: var(--faint); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
     .ktable th.srt { cursor: pointer; user-select: none; }
-    .ktable th.srt:hover, .ktable th.srt.on { color: #f6b13b; }
+    .ktable th.srt:hover, .ktable th.srt.on { color: var(--gold); }
     .ktable td.l, .ktable th.l { text-align: left; }
     .sjorow { cursor: pointer; }
     .sjorow:hover td { background: rgba(255,255,255,.03); }
@@ -292,7 +292,7 @@ const jsonLd = {
     @media (max-width: 760px) { .ppair { grid-template-columns: 1fr; } }
     .mini-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
     .mini { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 10px 11px; cursor: pointer; transition: border-color .12s; }
-    .mini:hover { border-color: #f6b13b; }
+    .mini:hover { border-color: var(--gold); }
     .mini-top { display: flex; justify-content: space-between; gap: 6px; align-items: baseline; }
     .mini-n { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .mini-ch { font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -311,7 +311,7 @@ const jsonLd = {
     .stk-x { position: absolute; top: 10px; right: 12px; background: none; border: 0; color: var(--faint); font-size: 24px; cursor: pointer; line-height: 1; }
     .stk-x:hover { color: var(--ink); }
     .stk-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
-    #stk-sym { font-size: 22px; font-weight: 800; color: #f6b13b; }
+    #stk-sym { font-size: 22px; font-weight: 800; color: var(--gold); }
     #stk-name { font-size: 14px; color: var(--muted); }
     .stk-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; margin-bottom: 10px; }
     .stk-t { background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.08); border-radius: 9px; padding: 8px 10px; }
@@ -320,15 +320,15 @@ const jsonLd = {
     .stk-t .v.up { color: #46e08a; } .stk-t .v.dn { color: #ff6d7a; }
     #stk-chart { width: 100%; height: 380px; }
     .stk-yh { display: inline-block; margin-top: 8px; font-size: 12.5px; color: var(--muted); }
-    .stk-yh:hover { color: #f6b13b; }
-    .stk-sec { font-size: 13px; font-weight: 800; color: #f6b13b; text-transform: uppercase; letter-spacing: .04em; margin: 14px 0 6px; }
+    .stk-yh:hover { color: var(--gold); }
+    .stk-sec { font-size: 13px; font-weight: 800; color: var(--gold); text-transform: uppercase; letter-spacing: .04em; margin: 14px 0 6px; }
     .stk-sec2 { font-size: 11px; font-weight: 700; color: #19d3c5; text-transform: uppercase; letter-spacing: .04em; margin: 10px 0 4px; }
     .stk-tone { text-transform: none; letter-spacing: 0; font-size: 12px; }
     .stk-tn { text-transform: none; letter-spacing: 0; font-size: 11.5px; color: var(--faint); font-weight: 400; }
     .stk-sbar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin: 4px 0 8px; }
     .stk-sbar i { display: block; height: 100%; }
     .stk-news { display: block; font-size: 12.5px; color: var(--ink); text-decoration: none; padding: 5px 2px; border-bottom: 1px solid rgba(255,255,255,.05); line-height: 1.35; }
-    .stk-news:hover { color: #f6b13b; }
+    .stk-news:hover { color: var(--gold); }
     .stk-nd { margin-left: 8px; font-size: 10.5px; color: var(--faint); }
     .stk-livewrap { margin-top: 4px; }
   </style>

@@ -4,7 +4,7 @@
 .ls-hero h1 { font-size: 34px; line-height: 1.1; margin: 0 0 10px; color: var(--ink); }
 .ls-hero .lead { font-size: 16px; color: var(--ink); line-height: 1.6; max-width: 640px; }
 .ls-cta-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0 8px; }
-.ls-btn { background: #f6b13b; color: #101623; border: 0; border-radius: 10px; padding: 12px 22px; font-size: 15px; font-weight: 700; text-decoration: none; display: inline-block; cursor: pointer; }
+.ls-btn { background: var(--gold); color: var(--surface); border: 0; border-radius: 10px; padding: 12px 22px; font-size: 15px; font-weight: 700; text-decoration: none; display: inline-block; cursor: pointer; }
 .ls-btn:hover { filter: brightness(1.08); }
 .ls-btn.ghost { background: var(--panel); color: var(--ink); border: 1px solid rgba(246,177,59,.35); }
 .ls-sec-h { font-size: 20px; color: var(--gold); margin: 40px 0 14px; }
@@ -30,7 +30,7 @@
 .vt .tier-pr { font-size: 22px; font-weight: 800; color: var(--gold); } .vt .tier-pr small { font-size: 11px; color: var(--muted); font-weight: 600; display: block; }
 .vt .col-hi { background: rgba(246,177,59,.06); }
 .vt .yes { color: #6ee7b7; font-weight: 700; } .vt .no { color: #54607a; } .vt .neg { color: var(--muted); font-style: italic; font-size: 12px; }
-.vt-cta { background: #f6b13b; color: #101623; border: 0; border-radius: 9px; padding: 9px 14px; font-weight: 700; font-size: 13px; cursor: pointer; margin-top: 8px; }
+.vt-cta { background: var(--gold); color: var(--surface); border: 0; border-radius: 9px; padding: 9px 14px; font-weight: 700; font-size: 13px; cursor: pointer; margin-top: 8px; }
 .vt-wrap { overflow-x: auto; }
 
 /* Hub */

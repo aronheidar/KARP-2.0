@@ -41,7 +41,7 @@ import Layout from '../layouts/Layout.astro';
     .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
     h1 { font-size: 30px; margin: 0 0 10px; }
     .lead { color: var(--ink); }
-    .pep-note { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 8px 12px; border-radius: 0 8px 8px 0; }
+    .pep-note { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid var(--gold); padding: 8px 12px; border-radius: 0 8px 8px 0; }
     .kv-add { display: flex; gap: 8px; margin: 18px 0 6px; flex-wrap: wrap; }
     .kv-add input { flex: 1; min-width: 220px; padding: 11px 13px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
     .kv-add button { padding: 11px 18px; border-radius: 10px; border: 0; background: var(--gold); color: #1a1205; font-weight: 700; cursor: pointer; }
@@ -50,7 +50,7 @@ import Layout from '../layouts/Layout.astro';
     .kv-tbl { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 12px; }
     .kv-tbl th, .kv-tbl td { text-align: left; padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,.08); }
     .kv-tbl th { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--faint); }
-    .risk-Há { color: #ff6d7a; font-weight: 700; } .risk-Venjuleg { color: #f6b13b; } .risk-Lág { color: #46e08a; } .risk-— { color: var(--faint); }
+    .risk-Há { color: #ff6d7a; font-weight: 700; } .risk-Venjuleg { color: var(--gold); } .risk-Lág { color: #46e08a; } .risk-— { color: var(--faint); }
     .kv-empty { color: var(--muted); margin-top: 14px; }
     .kv-rm { background: none; border: 0; color: var(--faint); cursor: pointer; }
     .kv-open { background: #ff6d7a; color: #1a1205; border-radius: 999px; padding: 1px 8px; font-weight: 700; font-size: 12px; }
@@ -60,7 +60,7 @@ import Layout from '../layouts/Layout.astro';
     .kf-risk, .kf-note { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
     .kf-risk select, .kf-risk input, .kf-note input { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
     .kf-ev { border-left: 3px solid #ff6d7a; padding: 6px 10px; margin: 6px 0; background: rgba(255,109,122,.08); border-radius: 0 6px 6px 0; }
-    .kf-ev.sev-info { border-color: #7e8ca6; background: rgba(255,255,255,.04); } .kf-ev.sev-high { border-color: #f6b13b; }
+    .kf-ev.sev-info { border-color: #7e8ca6; background: rgba(255,255,255,.04); } .kf-ev.sev-high { border-color: var(--gold); }
     .kf-audit { font-size: 13px; color: var(--muted); padding-left: 18px; } .kf-audit li { margin: 4px 0; }
     .kf-ubo { margin: 12px 0 2px; }
     /* FATF adverse media (10. merkið) — innerHTML-hnútar, style er is:global */
@@ -82,9 +82,9 @@ import Layout from '../layouts/Layout.astro';
     .kf-ubo-list li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 7px 11px; margin: 4px 0; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
     .kf-ubo-nm { font-weight: 600; }
     .kf-ubo-pct { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--gold); }
-    .kf-ubo-inc { color: #f6b13b; cursor: help; }
+    .kf-ubo-inc { color: var(--gold); cursor: help; }
     .kf-ubo-empty { color: var(--muted); font-size: 13px; margin: 4px 0; }
-    .kf-ubo-caveat { font-size: 12.5px; color: #f6b13b; background: rgba(246,177,59,.08); border-left: 3px solid #f6b13b; padding: 7px 11px; border-radius: 0 8px 8px 0; margin: 8px 0 0; }
+    .kf-ubo-caveat { font-size: 12.5px; color: var(--gold); background: rgba(246,177,59,.08); border-left: 3px solid var(--gold); padding: 7px 11px; border-radius: 0 8px 8px 0; margin: 8px 0 0; }
     @media print {
       body * { visibility: hidden; }
       #kv-file, #kv-file * { visibility: visible; }

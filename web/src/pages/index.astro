@@ -140,34 +140,34 @@ const updated = '2026-07-01';
 
   <style>
     .vikan { background: rgba(246,177,59,.05); border: 1px solid rgba(246,177,59,.22); border-radius: 13px; padding: 14px 18px; margin: 16px 0 6px; }
-    .v-h { font-size: 13px; font-weight: 800; color: #f6b13b; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+    .v-h { font-size: 13px; font-weight: 800; color: var(--gold); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
     .vikan ul { margin: 0; padding-left: 4px; list-style: none; }
     .vikan li { font-size: 14px; color: #dfe7f4; line-height: 1.6; padding: 3px 0; }
-    .kicker { font-size: 13px; letter-spacing: .22em; text-transform: uppercase; color: #f6b13b; font-weight: 700; margin: 0 0 6px; }
+    .kicker { font-size: 13px; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); font-weight: 700; margin: 0 0 6px; }
     h1 { font-size: 38px; line-height: 1.1; margin: 0 0 10px; }
     .lead { color: var(--ink); font-size: 18px; max-width: 620px; }
     .b2b-hero { background: linear-gradient(180deg,rgba(246,177,59,.10),rgba(246,177,59,.04)); border: 1px solid rgba(246,177,59,.30); border-radius: 16px; padding: 20px 22px; margin: 20px 0 8px; }
-    .bh-kick { font-size: 11.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #f6b13b; margin-bottom: 6px; }
+    .bh-kick { font-size: 11.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
     .b2b-hero h2 { font-size: 23px; margin: 0 0 6px; color: var(--ink); line-height: 1.2; }
     .bh-txt p { color: var(--ink); font-size: 14.5px; line-height: 1.55; margin: 0; max-width: 60ch; }
     .bh-search { display: flex; gap: 8px; margin: 14px 0 0; max-width: 520px; }
     .bh-search input { flex: 1; font: inherit; font-size: 16px; padding: 11px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(0,0,0,.25); color: var(--ink); }
-    .bh-search button { font: inherit; font-weight: 700; font-size: 15px; border: 0; border-radius: 10px; padding: 11px 18px; background: #f6b13b; color: var(--surface); cursor: pointer; white-space: nowrap; }
+    .bh-search button { font: inherit; font-weight: 700; font-size: 15px; border: 0; border-radius: 10px; padding: 11px 18px; background: var(--gold); color: var(--surface); cursor: pointer; white-space: nowrap; }
     .bh-links { display: flex; gap: 18px; margin-top: 12px; flex-wrap: wrap; }
-    .bh-links a { color: #f6b13b; text-decoration: none; font-weight: 600; font-size: 13.5px; }
+    .bh-links a { color: var(--gold); text-decoration: none; font-weight: 600; font-size: 13.5px; }
     @media (max-width: 560px) { .bh-search { flex-direction: column; } .bh-search button { width: 100%; } }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin: 32px 0 8px; }
     /* flex-dálkur + margin-top:auto á .c-go: „Skoða →" situr neðst í öllum flísum í sömu röð, hvort sem
        flísin ber tölu eða ekki — annars staflast efnið ofan frá og skilur eftir autt svæði neðst. */
     .card { display: flex; flex-direction: column; text-decoration: none; color: inherit; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 16px; padding: 22px; transition: border-color .15s, transform .15s, background .15s; }
-    .card:hover { border-color: #f6b13b; transform: translateY(-2px); background: rgba(246,177,59,.06); }
+    .card:hover { border-color: var(--gold); transform: translateY(-2px); background: rgba(246,177,59,.06); }
     /* var(--gold) en ekki #f6b13b: ljósa þemað skilgreinir --gold #8a5e00 svo talan haldi birtuskilum á rjóma. */
     .c-num b { display: block; font-size: 27px; font-weight: 800; color: var(--gold); letter-spacing: -.01em; line-height: 1.1; font-variant-numeric: tabular-nums; }
     .c-num span { display: block; font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: .06em; margin-top: 3px; }
     .c-title { font-size: 19px; font-weight: 700; margin: 10px 0 4px; }
     .card > .c-title:first-child { margin-top: 0; }
     .c-desc { font-size: 14px; color: var(--muted); }
-    .c-go { font-size: 13px; color: #f6b13b; font-weight: 600; margin-top: auto; padding-top: 12px; }
+    .c-go { font-size: 13px; color: var(--gold); font-weight: 600; margin-top: auto; padding-top: 12px; }
     .foot { font-size: 12px; color: var(--faint); margin-top: 34px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
     .foot a { color: var(--muted); }
   </style>

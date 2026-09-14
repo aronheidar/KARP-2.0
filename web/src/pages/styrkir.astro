@@ -140,17 +140,17 @@ const desc = `Styrkjavaktin — ${fmtISK(count)} opinberir styrkir úr ${nFunds}
     main { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
     .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
     h1 { font-size: 32px; margin: 0 0 10px; }
-    p { color: var(--ink); } p a { color: #f6b13b; }
+    p { color: var(--ink); } p a { color: var(--gold); }
     .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: var(--ink); }
     h2 { font-size: 17px; color: var(--ink); margin: 38px 0 4px; }
     .sub { font-size: 13.5px; color: var(--muted); margin: 0 0 14px; line-height: 1.55; }
     .datainfo { font-size: 12.5px; color: var(--faint); margin: 6px 0 4px; }
-    .tip { font-style: normal; cursor: help; color: #f6b13b; border: 1px solid rgba(246,177,59,.4); border-radius: 50%; padding: 0 5px; font-size: 11px; }
+    .tip { font-style: normal; cursor: help; color: var(--gold); border: 1px solid rgba(246,177,59,.4); border-radius: 50%; padding: 0 5px; font-size: 11px; }
 
     .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 18px 0 6px; }
     .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
     .k-l { font-size: 12px; color: var(--muted); }
-    .k-v { font-size: 24px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-v { font-size: 24px; font-weight: 800; color: var(--gold); margin-top: 2px; font-variant-numeric: tabular-nums; }
     .k-s { font-size: 11px; color: var(--faint); }
 
     .cwrap { background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; padding: 12px 10px 8px; }
@@ -164,7 +164,7 @@ const desc = `Styrkjavaktin — ${fmtISK(count)} opinberir styrkir úr ${nFunds}
     .fund-n { color: var(--ink); font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .fund-bar-wrap { height: 8px; background: rgba(255,255,255,.05); border-radius: 4px; overflow: hidden; }
     .fund-bar { display: block; height: 100%; border-radius: 4px; }
-    .fund-t { color: #f6b13b; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+    .fund-t { color: var(--gold); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
     .fund-c { color: var(--muted); font-size: 11.5px; white-space: nowrap; text-align: right; }
     .fund-y { color: var(--faint); font-size: 11.5px; white-space: nowrap; text-align: right; }
     @media (max-width: 640px) {
@@ -175,12 +175,12 @@ const desc = `Styrkjavaktin — ${fmtISK(count)} opinberir styrkir úr ${nFunds}
     /* Topp-styrkþegar */
     .top-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 9px; margin-top: 4px; }
     .top-card { display: flex; align-items: center; gap: 11px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 10px 13px; }
-    .top-rank { flex: 0 0 26px; width: 26px; height: 26px; border-radius: 7px; background: rgba(246,177,59,.14); color: #f6b13b; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+    .top-rank { flex: 0 0 26px; width: 26px; height: 26px; border-radius: 7px; background: rgba(246,177,59,.14); color: var(--gold); font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; }
     .top-t { flex: 1 1 auto; min-width: 0; }
     .top-n { font-size: 13.5px; font-weight: 700; color: var(--ink); text-decoration: none; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .top-n:hover { color: #f6b13b; }
+    .top-n:hover { color: var(--gold); }
     .top-meta { font-size: 11.5px; color: var(--faint); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .top-v { flex: 0 0 auto; color: #f6b13b; font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .top-v { flex: 0 0 auto; color: var(--gold); font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
     /* Leitarstýringar */
     .st-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 4px 0 10px; }
@@ -205,11 +205,11 @@ const desc = `Styrkjavaktin — ${fmtISK(count)} opinberir styrkir úr ${nFunds}
     .st-badge { font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 6px; color: #0a0e14; white-space: nowrap; align-self: center; }
     .st-main { min-width: 0; }
     .st-name { font-size: 13.5px; font-weight: 700; color: var(--ink); text-decoration: none; }
-    .st-name:hover { color: #f6b13b; }
+    .st-name:hover { color: var(--gold); }
     .st-vil { font-size: 10px; font-weight: 700; color: #f0883e; border: 1px solid rgba(240,136,62,.4); border-radius: 5px; padding: 0 5px; margin-left: 6px; vertical-align: middle; }
     .st-proj { font-size: 12px; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .st-sub { font-size: 11px; color: var(--faint); margin-top: 2px; }
-    .st-amt { font-size: 13.5px; font-weight: 700; color: #f6b13b; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; align-self: center; }
+    .st-amt { font-size: 13.5px; font-weight: 700; color: var(--gold); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; align-self: center; }
     .st-yr { display: block; font-size: 11px; color: var(--faint); font-weight: 400; margin-top: 1px; }
   </style>
 

@@ -52,8 +52,8 @@ export function wireFylgja() {
       // Fylgju-hámarki náð → skýr melding + upsell (áður flippaði hnappurinn þögult til baka)
       u.follows = Array.isArray(res.follows) ? res.follows : cur;
       const n = document.createElement('span');
-      n.style.cssText = 'display:block;font-size:11.5px;color:#f6b13b;margin-top:4px';
-      n.innerHTML = 'Hámarki náð (' + (res.limit || '') + ' félög) — <a href="/karp-pro/#verd" style="color:#f6b13b;text-decoration:underline">stækkaðu áskriftina →</a>';
+      n.style.cssText = 'display:block;font-size:11.5px;color:var(--gold);margin-top:4px';
+      n.innerHTML = 'Hámarki náð (' + (res.limit || '') + ' félög) — <a href="/karp-pro/#verd" style="color:var(--gold);text-decoration:underline">stækkaðu áskriftina →</a>';
       wrap.appendChild(n); setTimeout(() => n.remove(), 7000);
     } else if (res) {
       u.follows = Array.isArray(res.follows) ? res.follows : next;
