@@ -153,6 +153,16 @@ test('slökkt á Hrafni stöðvar CTO-ræsingu — engin dispatch fer út', asyn
   assert.equal(state.tickets[1].stada, 'stadfest', 'staðan hreyfist ekki');
 });
 
+test('rofi Hrafns stöðvar sjálfstæða vinnu en ekki samþykki Arons sjálfs á tillögu sem liggur fyrir', async (t) => {
+  const state = mkState({ stada: 'tillaga' }); state.sync.rofi_hrafn = '1';
+  const env = mkEnv(state); const log = stubFetch(t);
+  const C = { Cookie: await cookieFor(env, 8) };
+  const r = await js(await adminTicketHandler(req({ action: 'samthykkja', id: 1 }, C), env, {}));
+  assert.equal(r.ok, true, 'Aron má samþykkja þótt slökkt sé á Hrafni — hann les tillöguna sjálfur');
+  assert.deepEqual(dispatches(log).map((d) => d.event_type), ['cto_merge']);
+  assert.equal(state.tickets[1].stada, 'samthykkt');
+});
+
 // ── ticketsOverview: sjalfvirk ───────────────────────────────────────────────────────────────────────────────────
 test('sjalfvirk telur mál sem agentinn kláraði — ekki þau sem fengu bara staðfestingu, og ekki þau sem Aron svaraði', async () => {
   const state = mkState();

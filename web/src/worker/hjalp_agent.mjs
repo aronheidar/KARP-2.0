@@ -3,8 +3,10 @@
 // Hrein rökfræði (flokkun, gátun, KB, efnislínur) er í ../lib/hjalp_agent.mjs (prófuð); hér er aðeins I/O.
 //
 // Reglur: agentinn sendir sjálfur AÐEINS staðfestingu og orðrétt KB-svar. Allt sem AI semur bíður Arons.
-// Neyðarrofi: stjorn_sync k='hjalp_agent_off' = '1' → engin AI-greining og enginn sjálfvirkur póstur á notanda
-// (ticket skráist samt og innri tilkynning fer). CTO-dispatch (Fasi 2) = repository_dispatch 'cto' með ticket-nr.
+// Neyðarrofi: stjorn_sync k=<lykill> = '1' → engin AI-greining og enginn sjálfvirkur póstur á notanda
+// (ticket skráist samt og innri tilkynning fer). Rofar eru NÚ PER STARFSMAÐUR — lykillinn kemur úr
+// rofiLykill() í ../lib/personur.mjs (Sigrún='hjalp_agent_off', Hrafn='rofi_hrafn', …), sjá _rofiOff/_rofiA.
+// CTO-dispatch (Fasi 2) = repository_dispatch 'cto' með ticket-nr.
 import { _ajson, _emailTpl, _esc, sendGmail } from './felag.mjs';
 import { renderEmail } from '../lib/emails.mjs';
 import { readSession } from './auth.mjs';
@@ -160,7 +162,10 @@ export async function processNewTicket(env, t) {
   return { g, auto: auto ? auto.id : null, off };
 }
 
-/** repository_dispatch á KARP-2.0. Virðir rofa starfsmannsins: slökkt á Hrafni ⇒ engin keyrsla ræst. */
+/** repository_dispatch á KARP-2.0.
+ *  ⚠ Rofinn `rofi_hrafn` stöðvar AÐEINS 'cto' — sjálfstæða vinnu Hrafns. Hann stöðvar EKKI 'cto_merge':
+ *  það er merge á tillögu sem liggur þegar fyrir og krefst innskráðrar lotu Arons (`samthykkja` hafnar
+ *  X-Admin-Key). Rofinn ver gegn því að agentinn vinni upp á sitt eindæmi, ekki gegn Aroni sjálfum. */
 export async function _ghDispatch(env, eventType, payload) {
   if (!env.GITHUB_DISPATCH_TOKEN) return { ok: false, error: 'unconfigured' };
   if (eventType === 'cto' && await _rofiA(env, 'rofi_hrafn')) return { ok: false, error: 'rofi' };
