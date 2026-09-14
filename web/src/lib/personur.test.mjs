@@ -195,11 +195,14 @@ test('Hrafn er forritari, ekki CTO — titill og undirskrift fylgjast að', () =
   assert.ok(!JSON.stringify(PERSONUR).includes('CTO'), 'ekkert „CTO" eftir í persónuskránni');
 });
 
-test('ROFAR: aðeins starfsmenn með vél fá rofa; Sigrún heldur gamla lyklinum', () => {
+test('ROFAR: aðeils starfsmenn með vél fá rofa; Sigrún heldur gamla lyklinum', () => {
   assert.equal(rofiLykill('sigrun'), 'hjalp_agent_off');   // ⚠ ekkert endurnefnt — flæðið í loftinu les þennan lykil
   assert.equal(rofiLykill('hrafn'), 'rofi_hrafn');
   assert.equal(rofiLykill('kari'), null);
   assert.equal(rofiLykill('ekki-til'), null);
   assert.equal(rofiLykill(null), null);
   for (const id of Object.keys(ROFAR)) assert.ok(PERSONA_IDS.includes(id), id + ' er til');
+  // Erfðir eiginleikar mega ALDREI skila lykli — annars gæti `?starfsmadur=__proto__` slökkt á einhverju
+  for (const gildra of ['__proto__', 'constructor', 'toString', 'hasOwnProperty']) assert.equal(rofiLykill(gildra), null, gildra);
+  for (const rusl of [undefined, 42, {}, [], true]) assert.equal(rofiLykill(rusl), null, String(rusl));
 });
