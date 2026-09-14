@@ -23,6 +23,7 @@ import { FRETTA_TYPES, _mentions, _rssItems, digestRun, eftirlitCriticalCron, fe
 import { adminEmailHandler, adminOverviewHandler, adminRefreshHandler, adminSendHandler, adminSetTypeHandler, adminSyncHandler, adminUserHandler } from './src/worker/stjornbord.mjs';
 import { adminTicketHandler, createTicket, processNewTicket } from './src/worker/hjalp_agent.mjs';   // 🎫 þjónustufulltrúi: ticket → greining → svar/tillaga
 import { adminMootHandler } from './src/worker/moot.mjs';   // 🏛️ Moot: ráðsfundur persónanna um eitt ticket — tillaga sem Aron greiðir atkvæði um
+import { adminGmailHandler, gmailIntakeCron } from './src/worker/gmail_intake.mjs';   // 📥 póstur beint á hjalp@ → ticket (3-tíma cron + hnappur á /stjorn/)
 import { augGet } from './src/worker/felag.mjs';
 import { _kycGate, _searchVariants, kycVikuDigest, rg } from './src/worker/veitur.mjs';
 import { authMeHandler, karpUserId } from './src/worker/auth.mjs';
@@ -2782,7 +2783,10 @@ export default {
     // RÁS-Leikurinn ASYNC-HAMUR („eitt kjörtímabil á dag í viku"): leikir með config.async ganga sjálfkrafa áfram —
     // SÉR waitUntil (sama mynstur og leikurPruneCron) svo frétta-pípan og leikirnir felli aldrei hvor annan.
     // ⚠ 3-tíma upplausn: lota opnast innan ≤3 klst frá völdum <hour> (nógu gott fyrir daglegan/vikulegan kennslu-takt).
-    else { ctx.waitUntil(newsIngest(env).then(() => frettavaktCron(env)).then(() => kycCriticalCron(env)).then(() => eftirlitCriticalCron(env)).then(() => logbirtingCriticalCron(env))); ctx.waitUntil(leikurAsyncCron(env).then((r) => leikurAsyncPostur(env, r && r.tilkynna))); }
+    else { ctx.waitUntil(newsIngest(env).then(() => frettavaktCron(env)).then(() => kycCriticalCron(env)).then(() => eftirlitCriticalCron(env)).then(() => logbirtingCriticalCron(env)));
+      // 📥 Póstur beint á hjalp@ → ticket. SÉR waitUntil: frétta-pípan má aldrei fella innlesturinn (né öfugt),
+      //    og hann er ódýr (ein Gmail-leit; Claude-kall aðeins fyrir erindi sem raunverulega bárust).
+      ctx.waitUntil(gmailIntakeCron(env, { dagar: 2, max: 10 })); ctx.waitUntil(leikurAsyncCron(env).then((r) => leikurAsyncPostur(env, r && r.tilkynna))); }
   },
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -2833,6 +2837,7 @@ export default {
     if (url.pathname === '/api/admin/email') return adminEmailHandler(request, env, ctx);   // stjórnborð: vista/endurstilla póst-sniðmát
     if (url.pathname === '/api/admin/ticket') return adminTicketHandler(request, env, ctx);   // 🎫 hjálparbeiðnir: listi/þráður/svara/CTO/rofi
     if (url.pathname === '/api/admin/moot') return adminMootHandler(request, env, ctx);   // 🏛️ Moot: GET nýjasti fundur · POST halda/atkvaedi (breytir aldrei stöðu, sendir aldrei póst)
+    if (url.pathname === '/api/admin/gmail') return adminGmailHandler(request, env, ctx);   // 📥 innlestur pósts á hjalp@: GET síðasta keyrsla · POST sækja núna
     if (url.pathname === '/api/villa') return villaHandler(request, ctx);
     if (url.pathname === '/api/domar') return domarHandler(ctx);
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);

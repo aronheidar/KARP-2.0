@@ -67,7 +67,7 @@ export async function logMsg(env, ticketId, m) {
   return { ok, ts };
 }
 
-async function setTicket(env, id, fields) {
+export async function setTicket(env, id, fields) {
   const keys = Object.keys(fields).filter((k) => /^[a-z_]+$/.test(k));
   if (!keys.length) return;
   const sql = 'UPDATE tickets SET ' + keys.map((k) => k + '=?').join(', ') + ', updated=? WHERE id=?';

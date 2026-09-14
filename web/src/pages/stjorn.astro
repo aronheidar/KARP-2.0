@@ -106,6 +106,8 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
           <label class="stj-note" style="margin:0"><input type="checkbox" id="stj-tix-allir"> sýna lokaðar</label>
           <button type="button" class="stj-btn stj-btn-sm" id="stj-tix-nyr">✉️ Nýr póstur</button>
+          <button type="button" class="stj-btn stj-btn-sm" id="stj-tix-saekja" title="Les póst sem barst BEINT á hjalp@karp.is og býr til beiðnir. Keyrir líka sjálfkrafa á 3 klst fresti.">📥 Sækja póst</button>
+          <span class="stj-note" id="stj-tix-postur" style="margin:0;align-self:center"></span>
         </div>
         <div id="stj-tix-compose" class="stj-tix-compose" hidden>
           <input id="stj-tix-c-til" placeholder="Netfang viðtakanda" type="email">
@@ -658,6 +660,24 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       }).join('') : '<div class="stj-kv-empty">' + (tixAllir ? 'Engar beiðnir skráðar enn.' : 'Engar opnar beiðnir. 🎉') + '</div>';
       $('stj-tix').querySelectorAll('details.stj-tix-row').forEach((d) => d.addEventListener('toggle', () => { if (d.open) loadTicket(d); }));
       if (location.hash.startsWith('#ticket-')) { const d = document.getElementById(location.hash.slice(1)); if (d) { d.open = true; d.scrollIntoView({ block: 'start' }); } }
+      // 📥 Innlestur pósts sem berst BEINT á hjalp@ (cron á 3 klst fresti — hnappurinn keyrir strax).
+      //    „scope" = refresh-tokeninn hefur aðeins send-heimild: þá þarf einskiptis-samþykki Arons á gmail.readonly.
+      const saekja = $('stj-tix-saekja'), postStada = $('stj-tix-postur');
+      const postTexti = (r2, uppfaert) => {
+        if (!r2) return 'engin keyrsla enn';
+        if (!r2.ok) return '⚠ ' + (r2.error === 'scope' ? 'Gmail-lesheimild vantar — einskiptis samþykki þarf' : r2.error === 'token' ? 'Gmail-tenging óstillt' : 'villa: ' + (r2.error || ''));
+        return 'síðast ' + dIS(uppfaert || r2.ts) + ': ' + (r2.ny || 0) + ' ný · ' + (r2.svor || 0) + ' svör';
+      };
+      fetch('/api/admin/gmail', { credentials: 'include' }).then((r2) => r2.json()).then((r2) => { if (r2 && r2.ok) postStada.textContent = '· ' + postTexti(r2.sidast, r2.uppfaert); }).catch(() => {});
+      saekja.onclick = async () => {
+        saekja.disabled = true; postStada.textContent = '· sæki…';
+        const r2 = await fetch('/api/admin/gmail', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ dagar: 7 }) }).then((x) => x.json()).catch(() => null);
+        saekja.disabled = false;
+        if (!r2) { postStada.textContent = '· villa — reyndu aftur'; return; }
+        if (!r2.ok) { postStada.textContent = '· ' + postTexti(r2); return; }
+        postStada.textContent = '· ' + (r2.bid ? ' nýkeyrt — ' + postTexti(r2.sidast) : (r2.ny || 0) + ' ný · ' + (r2.svor || 0) + ' svör');
+        if (r2.ny || r2.svor) boot();
+      };
       // ✉️ Nýr póstur (verður ticket með uppruna 'stjorn', sendist frá hjalp@)
       const comp = $('stj-tix-compose');
       $('stj-tix-nyr').onclick = () => { comp.hidden = !comp.hidden; };

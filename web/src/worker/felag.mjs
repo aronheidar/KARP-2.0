@@ -46,7 +46,7 @@ export const _esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => 
 export const _tokenHex = () => Array.from(crypto.getRandomValues(new Uint8Array(32)), (x) => x.toString(16).padStart(2, '0')).join('');
 
 const _b64std = (u8) => btoa(String.fromCharCode(...new Uint8Array(u8)));   // stöðluð base64 (encoded-word/MIME-body)
-async function _gmailToken(env) {
+export async function _gmailToken(env) {
   const r = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({ client_id: env.GMAIL_CLIENT_ID, client_secret: env.GMAIL_CLIENT_SECRET, refresh_token: env.GMAIL_REFRESH_TOKEN, grant_type: 'refresh_token' }).toString(),
