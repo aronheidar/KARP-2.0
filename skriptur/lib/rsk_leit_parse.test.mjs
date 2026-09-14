@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { parseLeit, flokkaLeit, parseStakt } from './rsk_leit_parse.mjs';
+import { parseLeit, flokkaLeit, parseStakt, teljaRadir } from './rsk_leit_parse.mjs';
 
 // ⚠ ÞRIÐJA síðugerðin: skili leitin NÁKVÆMLEGA einu félagi vísar skatturinn.is beint á
 // félagssíðuna — engin leitartafla, engin „Leit eftir …“-lína. Sweepið tók það fyrir
@@ -74,6 +74,23 @@ test('röð án póstfangs fellur ekki á gólfið', () => {
 test('aðeins lögaðila-kennitölur skila sér (einstaklingar síaðir burt)', () => {
   const h = `<tr><td><a href="/fyrirtaekjaskra/leit/kennitala/1203894569">1203894569</a></td><td>Einstaklingur</td></tr>`;
   assert.deepEqual(parseLeit(h), []);
+});
+
+// ⚠ Mettunarprófið MÁ EKKI nota lögaðila-síaða talningu: skili leitin 100 röðum þar sem
+// hluti eru einstaklingar lítur forskeytið út fyrir að vera ómettað, dýpkunin stöðvast og
+// öll greinin undir því tapast þögult. teljaRadir telur ÓSÍAÐ.
+test('teljaRadir telur allar niðurstöðuraðir, líka einstaklinga', () => {
+  const rod = (kt, nafn) => `<tr><td><a href="/fyrirtaekjaskra/leit/kennitala/${kt}">${kt}</a></td><td>${nafn}</td><td>X</td></tr>`;
+  const html = rod('4905220500', 'Dæmi ehf') + rod('1203894569', 'Jón Jónsson') + rod('5509110940', 'Slæging ehf');
+  assert.equal(teljaRadir(html), 3, 'allar raðir eiga að teljast');
+  assert.equal(parseLeit(html).length, 2, 'aðeins lögaðilar skila sér í gögnin');
+});
+
+test('teljaRadir telur hverja kt einu sinni og hunsar hausinn', () => {
+  const rod = `<tr><td><a href="/fyrirtaekjaskra/leit/kennitala/4905220500">x</a></td><td>Dæmi ehf</td></tr>`;
+  assert.equal(teljaRadir('<tr><th>Kennitala</th></tr>' + rod + rod), 1);
+  assert.equal(teljaRadir(''), 0);
+  assert.equal(teljaRadir(null), 0);
 });
 
 test('tvítekin kt skilar sér einu sinni', () => {

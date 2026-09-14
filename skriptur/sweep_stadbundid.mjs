@@ -26,7 +26,8 @@ import { readFileSync, writeFileSync, existsSync, renameSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { SWEEP_ALPHABET, nextPrefixes } from './lib/sweep.mjs';
-import { parseLeit, flokkaLeit, parseStakt } from './lib/rsk_leit_parse.mjs';
+
+import { parseLeit, flokkaLeit, parseStakt, teljaRadir } from './lib/rsk_leit_parse.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SKRA = join(ROOT, 'gogn', 'sweep_felog.json');
@@ -75,6 +76,21 @@ const vista = () => {
 
 // Öll ókláruð forskeyti. `hjaLagt` (fyllt í lotunni sjálfri) heldur utan um þau sem
 // brugðust hér og nú — þau eru sniðgengin svo eitt vandræða-forskeyti stöðvi ekki lotuna.
+// Stækki SWEEP_ALPHABET (t.d. þegar greinarmerki bættust við 14.9) eiga mettuð forskeyti
+// sem þegar voru klárað börn sem aldrei voru reynd. Þetta bætir þeim við — hugfast (idempotent),
+// svo hver keyrsla lokar gatinu afturvirkt án sérstakrar aðgerðar.
+const endurdypka = () => {
+  let baett = 0;
+  for (const [p, v] of Object.entries(S.forskeyti)) {
+    if (!v.done || !(v.hits >= CAP)) continue;
+    for (const c of SWEEP_ALPHABET) {
+      if (!S.forskeyti[p + c]) { S.forskeyti[p + c] = { done: 0 }; baett++; }
+    }
+  }
+  if (baett) { console.error(`Stafróf stækkað → ${baett} ný forskeyti undir mettuðum greinum.`); vista(); }
+  return baett;
+};
+
 const bidaSkra = (sniðganga) => Object.keys(S.forskeyti)
   .filter((p) => !S.forskeyti[p].done && !(sniðganga && sniðganga.get(p) >= PFX_TILRAUNIR))
   .sort((a, b) => a.length - b.length || a.localeCompare(b));
@@ -89,6 +105,22 @@ if (STATUS_ONLY) {
   process.exit(0);
 }
 
+// --endurmeta <n>: opnar aftur forskeyti sem voru merkt búin með SÍAÐRI talningu (fyrir
+// 14.9). Skili leit 100 röðum þar sem hluti eru einstaklingar var `hits` skráð lægra en
+// raunfjöldinn og forskeytið taldist ómettað — greinin undir því var aldrei dýpkuð.
+// Einskiptis-aðgerð: `--endurmeta 50` opnar allt sem gæti hafa verið truflað.
+const ENDURMETA = parseInt(arg('endurmeta', '0'), 10);
+if (ENDURMETA > 0) {
+  let opnud = 0;
+  for (const [p, v] of Object.entries(S.forskeyti)) {
+    if (v.done && (v.hits || 0) >= ENDURMETA && (v.hits || 0) < CAP) { S.forskeyti[p] = { done: 0 }; opnud++; }
+  }
+  vista();
+  console.error(`Endurmat: ${opnud} forskeyti með hits ≥ ${ENDURMETA} opnuð aftur (síuð talning gat hafa falið mettun).`);
+}
+
+endurdypka();
+
 // ── Sókn ──────────────────────────────────────────────────────────────────────
 async function saekja(pfx) {
   try {
@@ -101,7 +133,8 @@ async function saekja(pfx) {
     const flokkur = flokkaLeit(html);
     // 'stakt' = leitin fann NÁKVÆMLEGA eitt félag og RSK vísaði beint á félagssíðuna.
     const stakt = flokkur === 'stakt' ? parseStakt(html) : null;
-    return { flokkur, radir: stakt ? [stakt] : parseLeit(html) };
+    // `alls` er ÓSÍAÐ og stýrir mettunarprófinu; `radir` er lögaðila-síað og fer í gögnin.
+    return { flokkur, radir: stakt ? [stakt] : parseLeit(html), alls: stakt ? 1 : teljaRadir(html) };
   } catch (e) {
     return { villa: e && e.name === 'TimeoutError' ? 'timeout' : 'net' };
   }
@@ -127,7 +160,7 @@ while (true) {
   const pfx = bid.find((p) => !hjaLagt.has(p)) || bid[0];
 
   if (sott) await sleep(DELAY);
-  const { radir, villa, flokkur } = await saekja(pfx);
+  const { radir, villa, flokkur, alls } = await saekja(pfx);
   sott++;
 
   // Forskeyti sem á RAUNVERULEGA engin félög (síðan segir „skilaði engri niðurstöðu“)
@@ -181,10 +214,11 @@ while (true) {
     if (!S.felog[f.kt]) nyFelog++;
     S.felog[f.kt] = { nafn: f.nafn, postfang: f.postfang, ...(f.merki ? { merki: f.merki } : {}) };
   }
-  S.forskeyti[pfx] = { done: 1, hits: radir.length };
+  S.forskeyti[pfx] = { done: 1, hits: alls };
 
   // Mettað forskeyti (≥100) → leitin faldi restina; dýpka með næsta staf.
-  const { children } = nextPrefixes(pfx, radir.length, CAP);
+  // ⚠ `alls` (ÓSÍAÐ) — ekki radir.length. Sjá teljaRadir í lib/rsk_leit_parse.mjs.
+  const { children } = nextPrefixes(pfx, alls, CAP);
   for (const c of children) if (!S.forskeyti[c]) { S.forskeyti[c] = { done: 0 }; dypkud++; }
 
   vista();

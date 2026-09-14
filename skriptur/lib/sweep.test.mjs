@@ -14,6 +14,22 @@ test('nextPrefixes: saturated prefix deepens', () => {
   assert.ok(r.children.every((c) => c.startsWith('a') && c.length === 2));
 });
 
+// ⚠ Mælt 14.9 á 6.522 sóttum nöfnum: greinarmerki koma fyrir í ÖÐRU sæti félagsnafna
+// (. 113 · - 45 · & 3 · / 2 · , 2). Vantaði þau í stafrófið duttu heilar greinar úr
+// dýpkuninni — „a.“ eitt og sér skilar 99 félögum sem sweepið hefði aldrei séð.
+test('SWEEP_ALPHABET nær greinarmerkjunum sem sjást í félagsnöfnum', () => {
+  for (const c of ['.', ',', '-', '&', '/', "'", '(', '+', '%']) {
+    assert.ok(SWEEP_ALPHABET.includes(c), `stafrófið vantar ${JSON.stringify(c)}`);
+  }
+});
+
+test('SWEEP_ALPHABET heldur bókstöfum, tölum og bili — og er án tvítekninga', () => {
+  for (const c of ['a', 'ö', 'þ', 'æ', 'ð', 'á', '0', '9', ' ']) {
+    assert.ok(SWEEP_ALPHABET.includes(c), `stafrófið vantar ${JSON.stringify(c)}`);
+  }
+  assert.equal(new Set(SWEEP_ALPHABET).size, SWEEP_ALPHABET.length, 'tvítekinn stafur í stafrófinu');
+});
+
 test('nextPrefixes: unsaturated prefix is done', () => {
   const r = nextPrefixes('xq', 12, 100);
   assert.equal(r.done, true);

@@ -70,6 +70,23 @@ export function parseStakt(html) {
 }
 
 /**
+ * Fjöldi niðurstöðuraða — ÓSÍAÐ (einstaklingar taldir með).
+ *
+ * ⚠ Mettunarprófið (≥100 = leitin faldi restina → dýpka) VERÐUR að nota þessa tölu,
+ * ekki parseLeit().length. Skili leitin 100 röðum þar sem hluti eru einstaklingar
+ * lítur forskeytið út fyrir að vera ómettað, dýpkunin stöðvast og öll greinin undir
+ * því tapast þögult.
+ */
+export function teljaRadir(html) {
+  const sed = new Set();
+  for (const m of String(html || '').matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)) {
+    const kt = (m[1].match(/kennitala\/(\d{10})/) || [])[1];
+    if (kt) sed.add(kt);
+  }
+  return sed.size;
+}
+
+/**
  * @param {string} html  Heil niðurstöðusíða EÐA brot með <tr>-röðum.
  * @returns {{kt: string, nafn: string, postfang: string, merki: string}[]}
  */
