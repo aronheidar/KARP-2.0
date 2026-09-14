@@ -58,6 +58,16 @@ const SPURNINGAR = [
   ['hvernig kaus Kristrún Frostadóttir?', 'atkvaedi.json'],
   ['hvaða fjölmiðill er hlutdrægastur?', 'midlavog.json'],
   ['hver er þyngsti liðurinn í vísitölu neysluverðs?', 'verdlag.json'],
+  // AUG-lota 2 (14.9)
+  ['hvað eru margir með háskólamenntun?', 'menntun.json'],
+  ['hvað komu margir ferðamenn?', 'audlindir.json'],
+  ['hvaða reglugerðir voru birtar nýlega?', 'stjornartidindi.json'],
+  ['hver er formaður fjárlaganefndar?', 'nefndir.json'],
+  ['hvar rekur Ísland sendiráð?', 'sendirad.json'],
+  ['hversu margir rafbílar eru á Íslandi?', 'rafbilar.json'],
+  ['hvað fóru margir farþegar um Keflavíkurflugvöll?', 'umferd.json'],
+  ['hvað hefur hækkað mest síðan 2000?', 'furduhagfraedi.json'],
+  ['hver talaði um fjárlögin?', 'raedur_nylegar.json'],
   // Eldri færslur — vörn gegn því að nýju regexin steli spurningum frá þeim.
   ['hverjir eru stýrivextirnir?', 'sedlabanki.json'],
   ['hvert er atvinnuleysið?', 'atvinnuleysi.json'],

@@ -462,6 +462,106 @@ export const AUG = [
       + 'Stærstu útflutningsliðir: ' + topp(e) + '. Stærstu innflutningsliðir: ' + topp(im) + '.'
       + (bl.utTop ? ' Mest flutt út til ' + bl.utTop.name + ', mest flutt inn frá ' + (bl.innTop || {}).name + '.' : '');
   } },
+  // ── AUG-LOTA 2 (14.9.2026): tíu gagnasett til viðbótar ──────────────────────────────────────
+  // ⚠ ÖLL ÚR OPNUM, ÓGIRTUM SÍÐUM — engin skörun við greiddar vörur. Fyrirtækjatengd gögn
+  //   (rekstrarleyfi, ársreikninga-KPI, lánshæfismat) eru VILJANDI SLEPPT: þau eru kjarninn í
+  //   990 kr fyrirtækjaskýrslunni og tilheyra vörustefnu, ekki þessari lotu.
+  // ⚠ numbeo.json er ekki hér þótt hún sé á RAG-skyldulistanum: hún er TÓM (items: [], prices: {})
+  //   og hefur verið síðan 22.8. Færsla sem les tóma skrá skilar engu — en verra, hún lætur líta út
+  //   fyrir að veitan sé í lagi. Hún kemur inn þegar veitan er löguð og komin í heilsu-vöktun.
+  // ── menntun ──
+  { rx: /menntun|háskóla|framhaldsskól|brautskrá|nemend|skólasókn|menntunarstig/i, file: 'menntun.json', pg: '/menntun/', fn: (j) => {
+    const e = j.EDU || {}, en = j.ENROLL || {};
+    if (e.uniPct == null && en.totN == null) return '';
+    return 'MENNTUN: ' + (e.uniPct != null ? 'háskólamenntun ' + is(e.uniPct) + '% fólks á aldrinum 25–64 ára (' + (e.uniY || '') + ')'
+      + (e.uniK != null && e.uniM != null ? ' — konur ' + is(e.uniK) + '%, karlar ' + is(e.uniM) + '%' : '') + '.' : '')
+      + (en.totN ? ' Nemendur alls ' + thus(en.totN) + (en.haskN ? ', þar af ' + thus(en.haskN) + ' á háskólastigi' : '') + ' (' + (en.enrollY || '') + ').' : '');
+  } },
+  // ── auðlindir: ferðamenn + losun ──
+  { rx: /ferðamenn|ferðamann|losun|kolefni|\bco2\b|gróðurhúsaloft|auðlind/i, file: 'audlindir.json', pg: '/audlindir/', fn: (j) => {
+    const c = (j.CO2 || {}).last || {};
+    if (!j.ferda12 && c.v == null) return '';
+    return 'AUÐLINDIR OG LOSUN: ' + (j.ferda12 ? 'erlendir ferðamenn ' + thus(j.ferda12) + ' síðustu 12 mánuði.' : '')
+      + (c.v != null ? ' Losun gróðurhúsalofttegunda ' + is(Math.round(c.v * 10) / 10) + ' tonn CO₂-ígilda á íbúa (' + c.y + ').' : '');
+  } },
+  // ── Stjórnartíðindi: ný lög og reglugerðir ──
+  { rx: /stjórnartíðind|ný lög|nýjar reglur|reglugerð|lagasetning|auglýsing.*ráðuneyt|gjaldskrá/i, file: 'stjornartidindi.json', pg: '/stjornartidindi/', fn: (j) => {
+    const a = j.adverts || [];
+    if (!a.length) return '';
+    const teg = Object.entries(j.byType || {}).sort((x, y) => y[1] - x[1]).slice(0, 4).map(([k, v]) => k.toLowerCase() + ' ' + v);
+    return 'STJÓRNARTÍÐINDI (' + ((j.range || {}).from || '') + '–' + ((j.range || {}).to || '') + '): ' + thus(j.totalItems || a.length)
+      + ' birtingar. Tegundir: ' + teg.join(', ') + '. Nýjust: '
+      + a.slice(0, 3).map((x) => '„' + String(x.titill || '').slice(0, 55) + '" (' + (x.tegund || '') + ', ' + String(x.dags || '').slice(0, 10) + ')').join('; ') + '.';
+  } },
+  // ── heilbrigðiseftirlit (aðeins Reykjavík) ──
+  { rx: /heilbrigðiseftirlit|hreinlæti|úttekt.*veitingast|veitingastað.*eftirlit|matvælaeftirlit.*reykjavík|eftirlitsúttekt/i, file: 'eftirlit.json', pg: '/eftirlit/', fn: (j, q) => {
+    const s = j.stadir || [];
+    if (!s.length) return '';
+    const ql = q.toLowerCase();
+    const hit = s.find((x) => x.name && x.name.length >= 5 && ql.includes(x.name.toLowerCase()));
+    if (hit) return 'HEILBRIGÐISEFTIRLIT — ' + hit.name + (hit.street ? ', ' + hit.street : '') + ': '
+      + (hit.ratingLabel || '?') + (hit.lastInspectionISO ? ' (úttekt ' + hit.lastInspectionISO + ')' : '') + '. ⚠ Aðeins Reykjavík.';
+    return 'HEILBRIGÐISEFTIRLIT: ' + thus(j.count || s.length) + ' staðir með opinbera úttekt, meðaleinkunn ' + is(j.avg)
+      + ' af 5. ⚠ Nær AÐEINS til Reykjavíkur — Heilbrigðiseftirlit Reykjavíkur birtir eitt opin gögn. Nefndu stað. Sjá /eftirlit/.';
+  } },
+  // ── þingnefndir ──
+  { rx: /þingnefnd|fjárlaganefnd|utanríkismálanefnd|allsherjarnefnd|velferðarnefnd|atvinnuveganefnd|nefndarmenn|situr í nefnd|formaður nefndar/i, file: 'nefndir.json', pg: '/althingi/nefndir/', fn: (j, q) => {
+    const arr = Array.isArray(j) ? j : [], ql = q.toLowerCase();
+    const hit = arr.find((n) => { const h = String(n.heiti || '').toLowerCase(); return h.length >= 6 && ql.includes(h.slice(0, 9)); });
+    if (hit) {
+      const form = (hit.members || []).find((m) => /formað/i.test(m.stada || ''));
+      return 'ÞINGNEFND — ' + hit.heiti + ': ' + (hit.members || []).length + ' nefndarmenn'
+        + (form ? ', formaður ' + form.nafn + ' (' + (form.flokkur || '') + ')' : '') + '. '
+        + (hit.members || []).slice(0, 8).map((m) => m.nafn + ' (' + (m.flokkur || '') + ')').join(', ') + '.';
+    }
+    return 'ÞINGNEFNDIR: Alþingi starfar í ' + arr.length + ' nefndum. Nefndu nefndina. Sjá /althingi/nefndir/.';
+  } },
+  // ── sendiráð ──
+  { rx: /sendiráð|ræðismað|ræðisskrifstof|utanríkisþjónust|sendiherr/i, file: 'sendirad.json', pg: '/sendirad/', fn: (j, q) => {
+    const ut = j.abroad || [], inn = j.iceland || [], ql = q.toLowerCase();
+    const f = ut.find((x) => ql.includes(String(x.is || '').toLowerCase()));
+    if (f) return 'SENDIRÁÐ ÍSLANDS Í ' + f.is.toUpperCase() + ': ' + (f.type || 'Sendiráð') + (f.city ? ' í ' + f.city : '') + '.';
+    return 'UTANRÍKISÞJÓNUSTAN: Ísland rekur ' + ut.length + ' sendiskrifstofur erlendis ('
+      + ut.slice(0, 6).map((x) => x.is).join(', ') + ' o.fl.), og ' + inn.length + ' ríki reka sendiskrifstofu á Íslandi. Sjá /sendirad/.';
+  } },
+  // ── rafbílar ──
+  { rx: /rafbíl|rafmagnsbíl|\bbev\b|orkuskipti.*bíl|bílaflot|nýorkubíl/i, file: 'rafbilar.json', pg: '/rafbilar/', fn: (j) => {
+    const c = j.CARS || {};
+    if (c.total == null) return '';
+    return 'RAFBÍLAR (' + (c.lastY || '') + '): ' + thus(c.bev) + ' hreinir rafbílar af ' + thus(c.total)
+      + ' fólksbílum á skrá — ' + is(c.rafPct) + '%. Þróun frá 2005 er á /rafbilar/.';
+  } },
+  // ── umferð um Keflavíkurflugvöll ──
+  { rx: /keflavíkurflugvöll|\bkef\b|farþeg|flugvöll|flugumferð/i, file: 'umferd.json', pg: '/umferd/', fn: (j) => {
+    const k = j.KEF || {};
+    if (k.now == null) return '';
+    return 'KEFLAVÍKURFLUGVÖLLUR: ' + thus(k.now) + ' farþegar (' + (k.nowLbl || '') + ')'
+      + (k.yoy != null ? ', ' + pm(k.yoy) + '% milli ára' : '') + '. Mánaðarröð frá 2006 er á /umferd/.';
+  } },
+  // ── furðuhagfræði: kapphlaupið laun/húsnæði/verðlag ──
+  { rx: /kapphlaup|hvað hefur hækkað mest|húsnæðisverð.*laun|laun.*húsnæðisverð|furðuhagfræði|dregist aftur úr/i, file: 'furduhagfraedi.json', pg: '/furduhagfraedi/', fn: (j) => {
+    const r = j.RACE || {};
+    if (r.fW == null) return '';
+    return 'KAPPHLAUPIÐ frá ' + (r.baseY || '') + ' (margföldun, 100 = grunnár): laun ' + is(r.fW) + '×, húsnæðisverð '
+      + is(r.fH) + '×, verðlag ' + is(r.fC) + '×. Húsnæði hefur því hækkað ' + is(Math.round(r.fH / r.fW * 100) / 100)
+      + '× á við laun og ' + is(Math.round(r.fH / r.fC * 100) / 100) + '× á við almennt verðlag. Sjá /furduhagfraedi/.';
+  } },
+  // ── ræður á Alþingi ──
+  { rx: /ræð(a|u|ur|um)|hver talaði|talaði um|í pontu|þingræð|andsvar/i, file: 'raedur_nylegar.json', pg: '/althingi/', fn: (j, q) => {
+    const r = j.raedur || [];
+    if (!r.length) return '';
+    const ql = q.toLowerCase();
+    const nafn = nmBest(ql, r, 'nafn');
+    if (nafn) {
+      const hans = r.filter((x) => x.nafn === nafn.nafn);
+      return 'RÆÐUR — ' + nafn.nafn + ' (síðustu ' + (j.dagar || 30) + ' daga): ' + hans.length + ' ræður. Nýjust: '
+        + hans.slice(0, 3).map((x) => '„' + (x.malsheiti || '') + '" ' + String(x.dags || '').slice(0, 10)).join('; ') + '.';
+    }
+    const mal = {}; r.forEach((x) => { if (x.malsheiti) mal[x.malsheiti] = (mal[x.malsheiti] || 0) + 1; });
+    const topp = Object.entries(mal).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, v]) => '„' + k + '" (' + v + ')');
+    return 'RÆÐUR Á ALÞINGI (' + (j.thing || '') + '. þing, síðustu ' + (j.dagar || 30) + ' daga): ' + r.length
+      + ' ræður skráðar. Mest rætt: ' + topp.join(', ') + '. Nefndu þingmann eða mál. Sjá /althingi/.';
+  } },
 ];
 export const AUG_MAX = 5;
 // Hversu vel á færslan við spurninguna? Summa lengda ALLRA samsvarana regexins — löng og/eða
