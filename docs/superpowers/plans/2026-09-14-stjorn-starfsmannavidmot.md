@@ -170,7 +170,7 @@ test('ein lína á hverja beiðni — sértækasta ástandið ræður', () => {
     list: [t(1, 'stadfest', NU - 100), t(2, 'stadfest', NU - 200), t(3, 'stadfest', NU - 300)],
     moot_osent: [2], moot_bida: [3],
   } });
-  assert.deepEqual(r.map((x) => [x.id === undefined ? x.tegund : x.tegund, x.titill]), [
+  assert.deepEqual(r.map((x) => [x.tegund, x.titill]), [
     ['moot', '#3 — Moot bíður atkvæðis'],
     ['moot_osent', '#2 — samþykkt svar ósent'],
     ['svar', '#1 — bíður svars'],
@@ -522,7 +522,10 @@ test('staða og tölur eru reiknaðar úr yfirlitinu', () => {
 test('miðgildi svartíma er reiknað úr svar_sent − created, aðeins af svöruðum beiðnum', () => {
   const g = sigrunGogn(OV, [], NU);
   const t = g.tolur.find((x) => x.l === 'miðgildi svartíma');
-  assert.equal(t.n, '24 klst');   // miðgildi af (86400, 4000) → 86400 og 4000 ⇒ meðal-miðgildi tveggja = 45200? sjá útreikning
+  // Svöruðu beiðnirnar eru #2 (86.400 sek) og #3 (4.000 sek). Miðgildi tveggja gilda = meðaltal
+  // þeirra = 45.200 sek ⇒ round(45200/3600) = 13 klst. #1 er ósvarað og telur ekki með.
+  assert.equal(t.n, '13 klst');
+  assert.equal(t.s, '2 svöruð');
 });
 
 test('engin svöruð beiðni → miðgildi sýnir striklu en fellur ekki', () => {
@@ -556,7 +559,7 @@ test('tóm gögn fella ekki spjaldið', () => {
 });
 ```
 
-⚠ Reiknaðu miðgildið rétt í Step 3 og leiðréttu væntinguna í öðru prófinu við keyrslu: svartímar eru `86400` (#2) og `4000` (#3); miðgildi tveggja gilda er meðaltal þeirra = `45200` sek ⇒ `13 klst`. Uppfærðu prófið í `assert.equal(t.n, '13 klst')` þegar þú hefur staðfest útreikninginn.
+⚠ Væntingarnar hér að ofan eru réttar eins og þær standa — **ekki breyta prófi til að passa við útfærslu** sem skilar öðru. Skili útfærslan ekki `13 klst` er útfærslan röng, ekki prófið.
 
 - [ ] **Step 2: Keyrðu prófið og staðfestu að það falli**
 
@@ -623,7 +626,6 @@ export function sigrunGogn(overview = {}, bidurListi = [], now = 0) {
 - [ ] **Step 4: Keyrðu prófið, leiðréttu miðgildis-væntinguna og staðfestu**
 
 Run: `cd web && node --test src/lib/stjorn/sigrun.test.mjs`
-Expected: eitt próf fellur á miðgildinu — uppfærðu væntinguna í `'13 klst'` (45200 sek) og keyrðu aftur.
 Expected: PASS — `pass 7`
 
 - [ ] **Step 5: Skrifaðu fallandi próf fyrir `sjalfvirk` í worker**
@@ -1242,7 +1244,8 @@ export function hrafnGogn(overview = {}, bilanirSvar = {}, bidurListi = [], now 
       'aldrei migrations, wrangler, .github, leyndarmál eða greiðslukóði',
       'merge aðeins eftir þitt samþykki',
     ],
-    rofi: { lykill: 'rofi_hrafn', off: !!(overview.rofar && overview.rofar.rofi_hrafn) },
+    // Rofa-staðan kemur með yfirlitinu (tickets.rofar) — sjá Step 5, sem bætir henni við ticketsOverview.
+    rofi: { lykill: 'rofi_hrafn', off: !!(tx.rofar && tx.rofar.rofi_hrafn) },
   };
 }
 ```
@@ -1261,13 +1264,7 @@ Expected: PASS — `pass 7`
   const rofar = {}; for (const r of (rofaRadir.results || [])) rofar[r.k] = String(r.v) === '1';
 ```
 
-og bættu `rofar,` við hlutinn sem skilað er. Í `web/src/worker/stjornbord.mjs` er `tickets` þegar skilað — bættu `rofar: (await ticketsOverview(env)).rofar` **ekki** við (það myndi kalla tvisvar); í staðinn les `hrafn.mjs` úr `overview.tickets.rofar`. Breyttu því síðustu línu `hrafnGogn`:
-
-```js
-    rofi: { lykill: 'rofi_hrafn', off: !!(tx.rofar && tx.rofar.rofi_hrafn) },
-```
-
-og bættu prófi við `hrafn.test.mjs`:
+og bættu `rofar,` við hlutinn sem skilað er. `hrafnGogn` les það þegar úr `overview.tickets.rofar` (Step 3) — engin breyting þar. Bættu prófi við `hrafn.test.mjs`:
 
 ```js
 test('rofa-staða kemur úr tickets.rofar', () => {
