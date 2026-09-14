@@ -8,6 +8,7 @@
 // tölfræði), uppbod.json (sýslumenn). #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 const updated = '2026-07-04';
 const desc = 'Fasteignavaktin — sjáðu hvað seldist í götunni þinni og á hvaða verði, fáðu tölvupóst við nýja sölu, áætlaðu virði eignar úr kaupskrá HMS og fylgstu með nauðungarsölum.';
 const jsonLd = {
@@ -19,10 +20,10 @@ const jsonLd = {
 
 <Layout title="Fasteignavaktin — gata, verðmat & uppboð | Karp" description={desc} canonical="https://karp.is/fasteignavakt/" jsonLd={jsonLd} ogTitle="Fasteignavaktin">
   <main data-pg="fastvakt">
-    <p class="kicker">Karp · Fasteignir</p>
-    <h1>Fasteignavaktin</h1>
-    <p>Öll þinglýst kaup á íbúðarhúsnæði — leitaðu að götunni þinni, settu hana á vakt og fáðu tölvupóst þegar ný sala þinglýsist. <a class="xlink" href="/fasteignir/">Verðþróun markaðarins er á Fasteignir →</a></p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Kaupskrá HMS: öll þinglýst kaup á íbúðarhúsnæði (nothæfir samningar), uppfærð daglega. Þinglýsing berst með nokkurra daga/vikna töf. Uppboðsauglýsingar eru opinberar auglýsingar sýslumanna af island.is.">ⓘ</i> Um gögnin á síðunni</p>
+    <SiduHaus kicker="Karp · Fasteignir" titill="Fasteignavaktin"
+      tip="Kaupskrá HMS: öll þinglýst kaup á íbúðarhúsnæði (nothæfir samningar), uppfærð daglega. Þinglýsing berst með nokkurra daga/vikna töf. Uppboðsauglýsingar eru opinberar auglýsingar sýslumanna af island.is.">
+      <p>Öll þinglýst kaup á íbúðarhúsnæði — leitaðu að götunni þinni, settu hana á vakt og fáðu tölvupóst þegar ný sala þinglýsist. <a class="xlink" href="/fasteignir/">Verðþróun markaðarins er á Fasteignir →</a></p>
+    </SiduHaus>
 
     <div id="fv-market" class="fv-market" hidden></div>
 
@@ -59,8 +60,7 @@ const jsonLd = {
 
   <style>
     main { max-width: 880px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; } p { color: var(--ink); }
+    p { color: var(--ink); }
     h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
     .hint { font-size: 12px; color: var(--faint); text-transform: none; letter-spacing: 0; font-weight: 400; }
     .xlink { font-size: 13px; color: var(--gold); text-decoration: none; }

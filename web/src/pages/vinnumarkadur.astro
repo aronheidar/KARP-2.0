@@ -6,6 +6,7 @@
 // (build_vinnumarkadur.mjs; áður sótt beint á Hagstofu í frontmatter). Í Layout. #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import { fmtNum, monthLabel } from '@lib/format.mjs';
 import ATV from '@gogn/atvinnuleysi.json';
 import DATA from '@gogn/vinnumarkadur.json';
@@ -48,11 +49,11 @@ const jsonLd = {
 
 <Layout  title={`Vinnumarkaður — atvinnuleysi ${fmtNum(latest, 1)}% | Karp`} description={desc} canonical="https://karp.is/vinnumarkadur/" jsonLd={jsonLd} ogTitle="Atvinnuleysi á Íslandi">
   <main data-pg="vinnumarkadur">
-    <p class="kicker">Hagvísir Íslands · Samfélag</p>
-    <h1>Vinnumarkaður</h1>
-    <div class="big">{fmtNum(latest, 1)}%<span>skráð atvinnuleysi · {updLabel}</span></div>
-    <p>Skráð atvinnuleysi hjá Vinnumálastofnun. Hæst á {hi?.name} ({fmtNum(hi?.v, 1)}%), lægst á {lo?.name} ({fmtNum(lo?.v, 1)}%).</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Vinnumarkaðstölur: launavísitala og vinnumarkaðsrannsókn Hagstofunnar; kaupmátt reiknar Karp sem launavísitölu deilt með verðvísitölu.">ⓘ</i> Um gögnin á síðunni</p>
+    <SiduHaus kicker="Hagvísir Íslands · Samfélag" titill="Vinnumarkaður"
+      tip="Vinnumarkaðstölur: launavísitala og vinnumarkaðsrannsókn Hagstofunnar; kaupmátt reiknar Karp sem launavísitölu deilt með verðvísitölu.">
+      <div slot="tala" class="big">{fmtNum(latest, 1)}%<span>skráð atvinnuleysi · {updLabel}</span></div>
+      <p>Skráð atvinnuleysi hjá Vinnumálastofnun. Hæst á {hi?.name} ({fmtNum(hi?.v, 1)}%), lægst á {lo?.name} ({fmtNum(lo?.v, 1)}%).</p>
+    </SiduHaus>
 
     <div class="kpis">
       <div class="kpi"><div class="k-l">Karlar</div><div class="k-v">{fmtNum(sex.karlar, 1)}%</div></div>
@@ -113,8 +114,6 @@ const jsonLd = {
 
   <style>
     main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 6px; }
     .big { font-size: 48px; font-weight: 800; color: var(--gold); line-height: 1; margin: 4px 0 2px; font-variant-numeric: tabular-nums; }
     .big span { font-size: 14px; font-weight: 500; color: var(--muted); margin-left: 8px; }
     p { color: var(--ink); }

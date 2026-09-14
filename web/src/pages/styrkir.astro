@@ -4,6 +4,7 @@
 // Client: leitanleg/síanleg heildarskrá (sækir /gogn/styrkir.json), sía eftir sjóði/ári/nafni.
 // Gögn: build_styrkir.js → gogn/styrkir.json (dual-write í web/public/gogn/). ENGIN kt (nafn-lyklað).
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import STYRKIR from '@gogn/styrkir.json';
 
 const rows = Array.isArray(STYRKIR.styrkir) ? STYRKIR.styrkir : [];
@@ -68,10 +69,10 @@ const desc = `Styrkjavaktin — ${fmtISK(count)} opinberir styrkir úr ${nFunds}
 ---
 <Layout title="Styrkjavaktin — opinberir styrkir úr 6 sjóðum | Karp" description={desc} canonical="https://karp.is/styrkir/" ogTitle="Styrkjavaktin — opinberir styrkir Íslands">
   <main data-pg="styrkir">
-    <p class="kicker">Hagvísir Íslands · Styrkir</p>
-    <h1>Styrkjavaktin</h1>
-    <p class="lead">Opinberir styrkir úr <strong>{nFunds} sjóðum</strong> — <strong>{fmtISK(count)}</strong> styrkveitingar að fjárhæð samtals <strong>{shortKr(grandTotal)}</strong> á árunum <strong>{minYear}–{maxYear}</strong>. Kvikmyndasjóður, Matvælasjóður, Orkusjóður, Tækniþróunarsjóður og uppbyggingarsjóðir landshlutanna birta styrkþega hver í sínu lagi — hér má leita í þeim öllum á einum stað. Fletta má upp einstöku fyrirtæki á <a href="/fyrirtaeki/">fyrirtækjaprófílum</a>.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Heimildir: Kvikmyndasjóður (kmi.payload.is), Matvælasjóður (stjórnarráðið), Orkusjóður (Orkustofnun), Tækniþróunarsjóður (Rannís), Uppbyggingarsjóðir Vesturlands og Suðurnesja. Upphæðir eru samþykktir/greiddir styrkir; vilyrði merkt sérstaklega þar sem við á. ⚠ Engin kennitala fylgir — styrkþegar eru nafn-lyklaðir og fyrirtæki og einstaklingar geta borið sama eða líkt nafn.">ⓘ</i> Um sjóðina og gögnin · ⚠ nafn-lyklað (engin kennitala)</p>
+    <SiduHaus kicker="Hagvísir Íslands · Styrkir" titill="Styrkjavaktin">
+      <p class="lead">Opinberir styrkir úr <strong>{nFunds} sjóðum</strong> — <strong>{fmtISK(count)}</strong> styrkveitingar að fjárhæð samtals <strong>{shortKr(grandTotal)}</strong> á árunum <strong>{minYear}–{maxYear}</strong>. Kvikmyndasjóður, Matvælasjóður, Orkusjóður, Tækniþróunarsjóður og uppbyggingarsjóðir landshlutanna birta styrkþega hver í sínu lagi — hér má leita í þeim öllum á einum stað. Fletta má upp einstöku fyrirtæki á <a href="/fyrirtaeki/">fyrirtækjaprófílum</a>.</p>
+      <p class="datainfo"><i class="tip" tabindex="0" data-tip="Heimildir: Kvikmyndasjóður (kmi.payload.is), Matvælasjóður (stjórnarráðið), Orkusjóður (Orkustofnun), Tækniþróunarsjóður (Rannís), Uppbyggingarsjóðir Vesturlands og Suðurnesja. Upphæðir eru samþykktir/greiddir styrkir; vilyrði merkt sérstaklega þar sem við á. ⚠ Engin kennitala fylgir — styrkþegar eru nafn-lyklaðir og fyrirtæki og einstaklingar geta borið sama eða líkt nafn.">ⓘ</i> Um sjóðina og gögnin · ⚠ nafn-lyklað (engin kennitala)</p>
+    </SiduHaus>
 
     <div class="kpis">
       <div class="kpi"><div class="k-l">Heildarupphæð</div><div class="k-v">{shortKr(grandTotal)}</div><div class="k-s">{minYear}–{maxYear}</div></div>
@@ -138,10 +139,8 @@ const desc = `Styrkjavaktin — ${fmtISK(count)} opinberir styrkir úr ${nFunds}
 
   <style>
     main { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; }
     p { color: var(--ink); } p a { color: var(--gold); }
-    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: var(--ink); }
+    .lead strong { color: var(--ink); }
     h2 { font-size: 17px; color: var(--ink); margin: 38px 0 4px; }
     .sub { font-size: 13.5px; color: var(--muted); margin: 0 0 14px; line-height: 1.55; }
     .datainfo { font-size: 12.5px; color: var(--faint); margin: 6px 0 4px; }

@@ -6,14 +6,15 @@
 // Fylgigögn með beiðninni: ?fra= (eða referrer), innskráningarstaða og vafri.
 // Spam-vörn framenda-megin: honeypot-reitur (#hj-hp) + lágmarkslengd lýsingar.
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 const desc = 'Þarftu aðstoð með Karp? Sendu okkur línu — greiðslur, innskráning, villur í gögnum eða hvað sem er — og við svörum á netfangið þitt.';
 const FLOKKAR = ['Greiðslur & áskrift', 'Innskráning & aðgangur', 'Villa í gögnum', 'Annað'];
 ---
 <Layout title="Þarftu aðstoð? — Hjálp | Karp" description={desc} canonical="https://karp.is/hjalp/" ogTitle="Hjálp — Karp">
   <main data-pg="hjalp">
-    <p class="kicker">Karp · Aðstoð</p>
-    <h1>Þarftu aðstoð?</h1>
-    <p class="hj-intro">Lýstu vandamálinu hér að neðan og við svörum á netfangið þitt — yfirleitt samdægurs á virkum dögum.</p>
+    <SiduHaus kicker="Karp · Aðstoð" titill="Þarftu aðstoð?">
+      <p class="hj-intro">Lýstu vandamálinu hér að neðan og við svörum á netfangið þitt — yfirleitt samdægurs á virkum dögum.</p>
+    </SiduHaus>
 
     <div class="hj-card">
       <form id="hj-form" autocomplete="on" novalidate>

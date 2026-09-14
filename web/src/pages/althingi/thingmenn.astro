@@ -4,6 +4,7 @@
 // (MpModal) með lykilupplýsingum + hlekk á fullu SEO-síðuna. #2 LOTA 7.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../../layouts/Layout.astro';
+import SiduHaus from '../../components/SiduHaus.astro';
 import ThingTabs from '../../components/ThingTabs.astro';
 import MpModal from '../../components/MpModal.astro';
 import THINGMENN from '@gogn/althingi.json';
@@ -21,10 +22,10 @@ const desc = `Allir ${mps.length} þingmenn Alþingis með mynd, flokki og kjör
 
 <Layout title="Þingmenn Alþingis | Karp" description={desc} canonical="https://karp.is/althingi/thingmenn/" ogTitle="Þingmenn Alþingis">
   <main>
-    <p class="kicker">Hagvísir Íslands · Alþingi</p>
-    <ThingTabs active="thingmenn" />
-    <h1>Þingmenn ({mps.length})</h1>
-    <p>Smelltu á þingmann fyrir lykilupplýsingar í glugga — eða opnaðu fulla síðu hans þaðan.</p>
+    <SiduHaus kicker="Hagvísir Íslands · Alþingi" titill={`Þingmenn (${mps.length})`}>
+      <ThingTabs slot="flipar" active="thingmenn" />
+      <p>Smelltu á þingmann fyrir lykilupplýsingar í glugga — eða opnaðu fulla síðu hans þaðan.</p>
+    </SiduHaus>
 
     <div class="tk-promo"><b>Nýtt — Þingmannaskýrslan:</b> ítarleg greining á hverjum þingmanni (atkvæðaferill, uppreisnar-atkvæði,
       málaflokkar, AI-ræðugreining, fyrirspurnir, umfjöllun) á 990 kr — eða 20 skýrslur/mán í áskrift á 3.900 kr.
@@ -48,8 +49,7 @@ const desc = `Allir ${mps.length} þingmenn Alþingis með mynd, flokki og kjör
 
   <style>
     main { max-width: 900px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; } p { color: var(--ink); }
+    p { color: var(--ink); }
     .tk-promo { background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.3); border-radius: 12px; padding: 11px 15px; font-size: 13px; color: #c7d2e4; line-height: 1.55; margin-top: 12px; }
     .tk-promo b { color: var(--gold); }
     .tk-promo a { color: var(--gold); text-decoration: none; font-weight: 700; white-space: nowrap; }

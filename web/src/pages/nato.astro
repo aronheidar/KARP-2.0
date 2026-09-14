@@ -5,6 +5,7 @@
 // Í app-skelinni (Layout). #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import { fmtNum } from '@lib/format.mjs';
 import NATO from '@gogn/natoexp.json';
 import SENDIRAD from '@gogn/sendirad.json';
@@ -26,9 +27,9 @@ const jsonLd = {
 
 <Layout title="Utanríkis & varnir | Karp" description={desc} canonical="https://karp.is/nato/" jsonLd={jsonLd} ogTitle="Utanríkismál Íslands">
   <main data-pg="nato">
-    <p class="kicker">Hagvísir Íslands · Útlönd</p>
-    <h1>NATO</h1>
-    <p>Varnarútgjöld NATO-ríkja og sendiráðanet Íslands. {overTarget} af {rikin.length} ríkjum náðu 2%-markmiðinu {natoYear}.</p>
+    <SiduHaus kicker="Hagvísir Íslands · Útlönd" titill="NATO">
+      <p>Varnarútgjöld NATO-ríkja og sendiráðanet Íslands. {overTarget} af {rikin.length} ríkjum náðu 2%-markmiðinu {natoYear}.</p>
+    </SiduHaus>
 
     <div class="kpis">
       <div class="kpi"><div class="k-l">2%-markmið NATO</div><div class="k-v">{overTarget}/{rikin.length}</div><div class="k-s">ríki yfir markmiði {natoYear}</div></div>
@@ -52,8 +53,6 @@ const jsonLd = {
 
   <style>
     main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
     p { color: var(--ink); }
     h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
     .note { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid var(--gold); padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0; }

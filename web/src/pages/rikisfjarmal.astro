@@ -4,6 +4,7 @@
 // útgjöld eftir málefnasviðum + tekjur eftir flokkum. Í app-skelinni (Layout). #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import { fmtNum } from '@lib/format.mjs';
 import UTGJOLD from '@gogn/utgjold.json';
 import SKATTAR from '@gogn/skattar.json';
@@ -51,10 +52,10 @@ const jsonLd = {
 
 <Layout title={`Ríkisfjármál ${ar} — tekjur & útgjöld | Karp`} description={desc} canonical="https://karp.is/rikisfjarmal/" jsonLd={jsonLd} ogTitle={`Ríkisfjármál ${ar}`}>
   <main data-pg="rikisfjarmal">
-    <p class="kicker">Hagvísir Íslands · Ríkisfjármál</p>
-    <h1>Ríkisfjármál {ar}</h1>
-    <p>Fjárlög {ar} — heildartekjur og útgjöld A1-hluta ríkissjóðs. Stærsti útgjaldaflokkur: <strong>{topUtg?.label}</strong> ({ma(topUtg?.v)} ma.kr). Heimild: Frumvarp til fjárlaga.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Ríkisfjármálatölur: fjármál hins opinbera frá Hagstofunni (PxWeb) og fjárlög. Sankey-flæðiritin eru einfölduð framsetning Karp á tekju- og útgjaldaliðum.">ⓘ</i> Um gögnin á síðunni</p>
+    <SiduHaus kicker="Hagvísir Íslands · Ríkisfjármál" titill={`Ríkisfjármál ${ar}`} heimild="Frumvarp til fjárlaga"
+      tip="Ríkisfjármálatölur: fjármál hins opinbera frá Hagstofunni (PxWeb) og fjárlög. Sankey-flæðiritin eru einfölduð framsetning Karp á tekju- og útgjaldaliðum.">
+      <p>Fjárlög {ar} — heildartekjur og útgjöld A1-hluta ríkissjóðs. Stærsti útgjaldaflokkur: <strong>{topUtg?.label}</strong> ({ma(topUtg?.v)} ma.kr).</p>
+    </SiduHaus>
 
     <div class="kpis">
       <div class="kpi"><div class="k-l">Heildartekjur</div><div class="k-v">{ma(heildTekjur)}</div><div class="k-s">ma.kr</div></div>
@@ -86,8 +87,6 @@ const jsonLd = {
 
   <style>
     main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
     p { color: var(--ink); }
     h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
     .note { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid var(--gold); padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0; }

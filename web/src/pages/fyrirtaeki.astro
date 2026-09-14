@@ -8,16 +8,17 @@
 // tree-shakast ef klasinn er bara í innerHTML).
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import '../styles/ubo.css';
 const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: nafn, kennitala, heimilisfang, rekstrarform, ÍSAT-atvinnugrein, VSK-númer og skil ársreikninga, ásamt umfjöllun fjölmiðla, greiðslum frá ríkinu og útboðum.';
 ---
 
 <Layout title="Fyrirtækjaskrá — ókeypis uppfletting | Karp" description={desc} canonical="https://karp.is/fyrirtaeki/" ogTitle="Fyrirtækjaskrá — ókeypis uppfletting félaga">
   <main data-pg="fyrirtaeki">
-    <p class="kicker">Karp+ · Atvinnulíf</p>
-    <h1>Fyrirtækjaskrá</h1>
-    <p>Flettu upp hvaða íslenska félagi sem er — beint úr opinberri fyrirtækjaskrá Skattsins. <a href="/lausnir/fyrirtaekjaskyrsla/" style="color:var(--gold)">Um Fyrirtækjaskýrsluna →</a></p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Uppfletting í opinberri fyrirtækjaskrá Skattsins (skatturinn.is) — engin gögn geymd hjá Karp, hver leit sótt beint (24 klst skyndiminni). Sýnir skráð grunngögn: heiti, kennitölu, heimilisfang, rekstrarform, ÍSAT-atvinnugrein, VSK-númer og skil ársreikninga. Staðfest vottorð fást hjá Skattinum.">ⓘ</i> Um gögnin á síðunni</p>
+    <SiduHaus kicker="Karp+ · Atvinnulíf" titill="Fyrirtækjaskrá"
+      tip="Uppfletting í opinberri fyrirtækjaskrá Skattsins (skatturinn.is) — engin gögn geymd hjá Karp, hver leit sótt beint (24 klst skyndiminni). Sýnir skráð grunngögn: heiti, kennitölu, heimilisfang, rekstrarform, ÍSAT-atvinnugrein, VSK-númer og skil ársreikninga. Staðfest vottorð fást hjá Skattinum.">
+      <p>Flettu upp hvaða íslenska félagi sem er — beint úr opinberri fyrirtækjaskrá Skattsins. <a href="/lausnir/fyrirtaekjaskyrsla/" style="color:var(--gold)">Um Fyrirtækjaskýrsluna →</a></p>
+    </SiduHaus>
 
     <form id="fs-form" autocomplete="off">
       <input id="fs-q" type="search" placeholder="Nafn félags eða kennitala…" autocomplete="off" aria-label="Leit í fyrirtækjaskrá" />
@@ -32,8 +33,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
 
   <style>
     main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; } p { color: var(--ink); }
+    p { color: var(--ink); }
     #fs-form { display: flex; gap: 8px; margin: 18px 0 14px; }
     #fs-q { flex: 1; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 11px 14px; color: var(--ink); font-size: 15px; }
     #fs-q:focus { outline: none; border-color: rgba(246,177,59,.55); }

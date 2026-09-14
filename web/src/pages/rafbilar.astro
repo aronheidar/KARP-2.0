@@ -6,6 +6,7 @@
 // (áður sótt beint á Hagstofu í frontmatter á hverri byggingu → seigla + saga). #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import { fmtNum, groupThousands } from '@lib/format.mjs';
 import DATA from '@gogn/rafbilar.json';
 
@@ -16,10 +17,10 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ra
 
 <Layout title="Rafbílar & bílafloti | Karp" description={desc} canonical="https://karp.is/rafbilar/" jsonLd={jsonLd} ogTitle="Rafbílar á Íslandi">
   <main data-pg="rafbilar">
-    <p class="kicker">Hagvísir Íslands · Samfélag</p>
-    <h1>Rafbílar &amp; bílafloti</h1>
-    <p>Heildarfloti fólksbíla í árslok eftir orkugjafa — bensín og dísil á móti rafmagni, tengiltvinn og tvinn. Heimild: Hagstofa Íslands (skráð ökutæki).</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Bílaflotatölur: nýskráningar og samsetning flotans úr tölum Samgöngustofu (um Hagstofu).">ⓘ</i> Um gögnin á síðunni</p>
+    <SiduHaus kicker="Hagvísir Íslands · Samfélag" titill="Rafbílar & bílafloti" heimild="Hagstofa Íslands (skráð ökutæki)"
+      tip="Bílaflotatölur: nýskráningar og samsetning flotans úr tölum Samgöngustofu (um Hagstofu).">
+      <p>Heildarfloti fólksbíla í árslok eftir orkugjafa — bensín og dísil á móti rafmagni, tengiltvinn og tvinn.</p>
+    </SiduHaus>
 
     {CARS && (
       <div class="kpis">
@@ -50,8 +51,6 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ra
 
   <style>
     main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
     p { color: var(--ink); }
     h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
     .note { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid var(--gold); padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0; }

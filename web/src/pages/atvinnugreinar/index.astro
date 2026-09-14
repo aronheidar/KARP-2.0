@@ -4,6 +4,7 @@
 // (framlegð) + hlekk á hverja grein-síðu. Hreint SSG úr bökuðu sector_kpi.json — engin gátt hér, allur
 // hub-urinn er frír. Sjá docs/superpowers/plans/2026-07-27-atvinnugreinar.md (Verk 3).
 import Layout from '../../layouts/Layout.astro';
+import SiduHaus from '../../components/SiduHaus.astro';
 import SK from '../../../public/gogn/sector_kpi.json';
 import { sectorsFromMap, fmtPct } from '../../lib/atvinnugrein.mjs';
 
@@ -26,9 +27,9 @@ const desc = `Fjárhagur og afkoma ${nf(sectors.length)} íslenskra atvinnugrein
   ogTitle="Atvinnugreinar — fjárhagur og afkoma eftir ÍSAT-grein"
 >
   <main data-pg="atvinnugreinar-hub">
-    <p class="kicker">Hagvísir Íslands · Efnahagur</p>
-    <h1>Atvinnugreinar</h1>
-    <p class="lead">Fjárhagsform <strong>{nf(sectors.length)}</strong> íslenskra atvinnugreina — framlegð, hagnaðarhlutfall, eiginfjárhlutfall, skuldsetning og fleiri viðmið úr opinberum ársreikningum, borin saman við íslenska viðskiptahagkerfið í heild. Veldu grein til að sjá öll 8 viðmiðin — og, fyrir <a href="/karp-pro/#verd">Fyrirtæki+</a> áskrifendur, röðuðu stærstu félögin og samþjöppun greinarinnar.</p>
+    <SiduHaus kicker="Hagvísir Íslands · Efnahagur" titill="Atvinnugreinar">
+      <p class="lead">Fjárhagsform <strong>{nf(sectors.length)}</strong> íslenskra atvinnugreina — framlegð, hagnaðarhlutfall, eiginfjárhlutfall, skuldsetning og fleiri viðmið úr opinberum ársreikningum, borin saman við íslenska viðskiptahagkerfið í heild. Veldu grein til að sjá öll 8 viðmiðin — og, fyrir <a href="/karp-pro/#verd">Fyrirtæki+</a> áskrifendur, röðuðu stærstu félögin og samþjöppun greinarinnar.</p>
+    </SiduHaus>
     <p class="fyrirvari">⚠ Leiðbeinandi úr opinberum ársreikningum og Hagstofu (FYR08010); ekki fjárfestingar- eða lánshæfisráðgjöf.</p>
 
     <h2>Allar greinar</h2>
@@ -53,9 +54,6 @@ const desc = `Fjárhagur og afkoma ${nf(sectors.length)} íslenskra atvinnugrein
 
   <style>
     main[data-pg="atvinnugreinar-hub"] { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; }
-    .lead { font-size: 15px; line-height: 1.6; color: var(--ink); }
     .lead strong { color: var(--ink); }
     .lead a { color: var(--gold); font-weight: 700; text-decoration: none; }
     .fyrirvari { font-size: 12.5px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid var(--gold); padding: 8px 12px; border-radius: 0 8px 8px 0; margin: 12px 0 4px; line-height: 1.5; }

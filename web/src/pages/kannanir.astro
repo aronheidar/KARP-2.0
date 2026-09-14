@@ -6,6 +6,7 @@
 // Í app-skelinni (Layout). #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import Saetaspa from '../components/Saetaspa.astro';
 import { partyName, partyColor } from '@lib/parties.mjs';
 import { fmtNum, MON } from '@lib/format.mjs';
@@ -68,14 +69,14 @@ const jsonLd = {
   ogTitle="Kannanir — fylgi flokka á Íslandi"
 >
   <main data-pg="kannanir">
-    <p class="kicker">Hagvísir Íslands · Kannanir</p>
-    <h1>Fylgi flokka í könnunum</h1>
-    <p>
-      Þróun fylgis frá Alþingiskosningum 2024 til <strong>{latest.date}</strong> — {polls.length} kannanir.
-      Nýjust: <strong>{latest.pollster}</strong>, þar sem <strong style={`color:${top.color}`}>{top.name}</strong> er
-      stærst með {fmtNum(top.now, 1)}%. Heimild: {POLLS.source}{POLLS.sourceUrl ? <> (<a href={POLLS.sourceUrl}>Wikipedia</a>)</> : null}.
-    </p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Fylgistölur: birtar skoðanakannanir settar á tímalínu. Meðaltalslínur reiknar Karp; aðferðafræði einstakra kannana er hjá útgefendum þeirra. Sætaspáin er vélræn D'Hondt-nálgun Karp.">ⓘ</i> Um gögnin á síðunni</p>
+    <SiduHaus kicker="Hagvísir Íslands · Kannanir" titill="Fylgi flokka í könnunum"
+      tip="Fylgistölur: birtar skoðanakannanir settar á tímalínu. Meðaltalslínur reiknar Karp; aðferðafræði einstakra kannana er hjá útgefendum þeirra. Sætaspáin er vélræn D'Hondt-nálgun Karp.">
+      <p>
+        Þróun fylgis frá Alþingiskosningum 2024 til <strong>{latest.date}</strong> — {polls.length} kannanir.
+        Nýjust: <strong>{latest.pollster}</strong>, þar sem <strong style={`color:${top.color}`}>{top.name}</strong> er
+        stærst með {fmtNum(top.now, 1)}%. Heimild: {POLLS.source}{POLLS.sourceUrl ? <> (<a href={POLLS.sourceUrl}>Wikipedia</a>)</> : null}.
+      </p>
+    </SiduHaus>
 
     <Saetaspa />
 
@@ -115,8 +116,6 @@ const jsonLd = {
 
   <style>
     main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
     p { color: var(--ink); }
     p a { color: var(--muted); }
     h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }

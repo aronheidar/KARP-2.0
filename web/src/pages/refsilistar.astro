@@ -6,6 +6,7 @@
 // Client: LEIT að nafni — sækir /gogn/sanctions.json löt (aðeins þegar notandi leitar).
 // ⚠ Nafnasamsvörun er EKKI úrskurður: nöfn geta verið algeng — staðfestu sjálfstætt.
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 // Vite leysir JSON-innflutninginn á byggingartíma fyrir SSR-tölurnar (per-lista fjölda).
 // Þetta er AÐEINS í frontmatter (þjónshlið) → 5 MB skráin fer EKKI í client-HTML;
 // leitin sækir /gogn/sanctions.json löt í <script> hlutanum.
@@ -35,9 +36,9 @@ const desc = `Refsilistar ESB, Sameinuðu þjóðanna og OFAC — ${fmt(nTotal)}
 ---
 <Layout title="Refsilistar & þvingunaraðgerðir — leit að nafni | Karp" description={desc} canonical="https://karp.is/refsilistar/" ogTitle="Refsilistar & þvingunaraðgerðir">
   <main data-pg="refsilistar">
-    <p class="kicker">Hagvísir Íslands · Gagnsæi</p>
-    <h1>Refsilistar &amp; þvingunaraðgerðir</h1>
-    <p class="lead">Nafnaleit í þremur opinberum refsilistum — <strong>{fmt(nTotal)} nöfn</strong> af þvingunarlistum <strong>Evrópusambandsins</strong>, <strong>Sameinuðu þjóðanna</strong> og <strong>OFAC</strong> (fjármálaráðuneytis Bandaríkjanna). Þessi listi er notaður í áreiðanleika-skimun fyrirtækja á <a href="/fyrirtaeki/">Karp</a> — hér má fletta upp nafni beint.</p>
+    <SiduHaus kicker="Hagvísir Íslands · Gagnsæi" titill={'Refsilistar & þvingunaraðgerðir'}>
+      <p class="lead">Nafnaleit í þremur opinberum refsilistum — <strong>{fmt(nTotal)} nöfn</strong> af þvingunarlistum <strong>Evrópusambandsins</strong>, <strong>Sameinuðu þjóðanna</strong> og <strong>OFAC</strong> (fjármálaráðuneytis Bandaríkjanna). Þessi listi er notaður í áreiðanleika-skimun fyrirtækja á <a href="/fyrirtaeki/">Karp</a> — hér má fletta upp nafni beint.</p>
+    </SiduHaus>
 
     <div class="warn">
       <b>⚠ Nafnasamsvörun er ekki úrskurður.</b> Þetta eru opinberir refsilistar; samsvörun við nafn þýðir <em>ekki</em> að tiltekinn einstaklingur eða fyrirtæki sé á lista — algeng nöfn geta borið saman. Staðfestu ávallt sjálfstætt í frumheimild (ESB, SÞ, OFAC) áður en niðurstaða er notuð. Karp veitir enga lögfræðilega ráðgjöf.
@@ -78,10 +79,8 @@ const desc = `Refsilistar ESB, Sameinuðu þjóðanna og OFAC — ${fmt(nTotal)}
 
   <style>
     main { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; }
     p { color: var(--ink); } p a { color: var(--gold); }
-    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: var(--ink); }
+    .lead strong { color: var(--ink); }
     h2 { font-size: 17px; color: var(--ink); margin: 38px 0 4px; }
     .sub { font-size: 13.5px; color: var(--muted); margin: 0 0 14px; line-height: 1.55; }
 

@@ -11,6 +11,7 @@
 // data-pg situr á HLUTUNUM (ekki <main>) svo skrifturnar og is:global-reglurnar úr
 // upprunasíðunum haldist óbreyttar — valdararnir eru [data-pg="…"] í stað main[data-pg="…"].
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import EF from '@gogn/eftirlit.json';
 import VAKT from '@gogn/byggingarleyfi_vakt.json';
 import { felagHref } from '../lib/fyrirtaeki-slod.mjs';
@@ -50,10 +51,10 @@ const desc = `Opinber gögn Reykjavíkurborgar um staði og hús: matvæla- og h
 ---
 <Layout title="Eftirlit & byggingarleyfi í Reykjavík — hreinlætiseinkunnir og afgreiðslur byggingarfulltrúa | Karp" description={desc} canonical="https://karp.is/eftirlit-byggingar/" ogTitle="Eftirlit & byggingarleyfi í Reykjavík">
   <main class="eb">
-    <p class="kicker">Hagvísir Íslands · Reykjavík</p>
-    <h1>Eftirlit &amp; byggingarleyfi</h1>
-    <p class="lead">Tvær opinberar skrár Reykjavíkurborgar um staði og hús: <strong>hreinlætiseinkunn</strong> veitinga- og matvælastaða úr heilbrigðiseftirliti, og <strong>afgreiðslur byggingarfulltrúa</strong> á byggingarleyfum. Hvort tveggja er opið og uppfært daglega.</p>
-    <p class="datainfo">⚠ Aðeins Reykjavík — önnur sveitarfélög birta hvorugt á sambærilegu formi.</p>
+    <SiduHaus kicker="Hagvísir Íslands · Reykjavík" titill="Eftirlit & byggingarleyfi">
+      <p class="lead">Tvær opinberar skrár Reykjavíkurborgar um staði og hús: <strong>hreinlætiseinkunn</strong> veitinga- og matvælastaða úr heilbrigðiseftirliti, og <strong>afgreiðslur byggingarfulltrúa</strong> á byggingarleyfum. Hvort tveggja er opið og uppfært daglega.</p>
+      <p class="datainfo">⚠ Aðeins Reykjavík — önnur sveitarfélög birta hvorugt á sambærilegu formi.</p>
+    </SiduHaus>
 
     <div class="eb-tabs" role="tablist" aria-label="Veldu gagnaskrá">
       <button class="eb-tab" data-t="eftirlit" type="button" role="tab" aria-controls="tab-eftirlit">Heilbrigðiseftirlit <span>{count} staðir</span></button>
@@ -178,8 +179,6 @@ const desc = `Opinber gögn Reykjavíkurborgar um staði og hús: matvæla- og h
 
   <style>
     main { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; }
     p { color: var(--ink); } p a { color: var(--gold); }
     .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: var(--ink); }
     h2 { font-size: 17px; color: var(--ink); margin: 38px 0 4px; }

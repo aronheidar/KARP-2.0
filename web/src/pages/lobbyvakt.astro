@@ -6,15 +6,16 @@
 // fetch hér, ekkert build-tíma gagnainnlestur. Taxonomy = EIN uppspretta: SECTORS úr lib/lobbyvakt.mjs
 // (sama fasti og build_lobbyvakt.mjs + worker.js nota — ekkert harðkóðað hér).
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import { SECTORS } from '../lib/lobbyvakt.mjs';
 
 const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og Landsréttar, samráðsgátt stjórnvalda og greiðslur ríkisins eru opin öllum; vaktaðu leitarorð og atvinnugreinar fyrir fréttir, og þingmál með AI-áhrifa-brief, relevans-stigi og fresti fyrir Fyrirtæki+.';
 ---
 <Layout title="Lobbývakt — dómar, samráð, greiðslur & reglur í pípunni | Karp" description={desc} canonical="https://karp.is/lobbyvakt/">
   <main class="lv-wrap" data-pg="lobbyvakt">
-    <p class="kicker">Karp · Vöktun</p>
-    <h1>Lobbývakt</h1>
-    <p class="lead">Vöktunarmiðstöð Karp. Dómar, samráðsgátt og greiðslur ríkisins eru <b>opin öllum</b> neðst á síðunni. Skráðu þig inn til að vakta leitarorð og fá fréttir sem nefna þau; þingmál og samráðsmál með áhrifa-briefi eru Fyrirtæki+.</p>
+    <SiduHaus kicker="Karp · Vöktun" titill="Lobbývakt">
+      <p class="lead">Vöktunarmiðstöð Karp. Dómar, samráðsgátt og greiðslur ríkisins eru <b>opin öllum</b> neðst á síðunni. Skráðu þig inn til að vakta leitarorð og fá fréttir sem nefna þau; þingmál og samráðsmál með áhrifa-briefi eru Fyrirtæki+.</p>
+    </SiduHaus>
     <p class="lv-note">⚠ Sjálfvirk túlkun með gervigreind — til glöggvunar, ekki lögfræðiráðgjöf. Staðfestu í frumtextanum.</p>
 
     <div id="lv-gate" hidden>
@@ -112,9 +113,6 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
        → Astro-scoped stílar giltu ekki á þá hnúta. Sjá [[karp-dev-verify]]. -->
   <style is:global>
     .lv-wrap { max-width: 900px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 30px; margin: 0 0 10px; }
-    .lead { color: var(--ink); font-size: 15px; line-height: 1.6; }
     .lv-note { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid var(--gold); padding: 8px 12px; border-radius: 0 8px 8px 0; margin: 10px 0 22px; line-height: 1.5; }
 
     #lv-gate { font-size: 14px; color: var(--muted); line-height: 1.6; }

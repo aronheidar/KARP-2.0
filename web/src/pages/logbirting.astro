@@ -6,6 +6,7 @@
 // Client: leit eftir félagsnafni/kt + sía eftir tegund (sækir /gogn/logbirting.json).
 // ⚠ PERSÓNUVERND: aðeins lögaðilar (gögnin þegar síuð); félagsnafn+kt+tegund+dags leyfilegt.
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import LB from '@gogn/logbirting.json';
 import { felagHref } from '../lib/fyrirtaeki-slod.mjs';
 
@@ -121,10 +122,10 @@ const jsonLd = {
 ---
 <Layout title="Gjaldþrota- & félagavakt — Lögbirtingablaðið | Karp" description={desc} canonical="https://karp.is/logbirting/" jsonLd={jsonLd} ogTitle="Gjaldþrota- og félagavakt">
   <main data-pg="logbirting">
-    <p class="kicker">Hagvísir Íslands · Gagnsæi</p>
-    <h1>Gjaldþrota- &amp; félagavakt</h1>
-    <p class="lead">Landsyfirlit yfir <strong>{totalNotices.toLocaleString('is-IS')}</strong> lögformlegar tilkynningar sem varða <strong>{totalCompanies.toLocaleString('is-IS')} lögaðila</strong> í Lögbirtingablaðinu árið 2026 — gjaldþrotaskiptabeiðnir, innkallanir þrotabúa, skiptalok og félagsslit. Fletta má upp einstöku félagi á <a href="/fyrirtaeki/">fyrirtækjaprófílum</a>.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Heimild: Lögbirtingablaðið (logbirtingablad.is), unnið úr opinberum PDF-tölublöðum skv. lögum nr. 15/2005. Tegundir: Gjaldþrotaskiptabeiðni · Skiptabeiðni (fyrirtaka) · Innköllun þrotabús (kröfulýsing) · Skiptafundur · Skiptalok þrotabús · Félagsslit / afskráning. Aðeins lögaðilar — einstaklingar, sakamál, dómsmál og nauðungarsölur eru undanskilin.">ⓘ</i> Um gögnin · ⚠ aðeins lögaðilar</p>
+    <SiduHaus kicker="Hagvísir Íslands · Gagnsæi" titill="Gjaldþrota- & félagavakt">
+      <p class="lead">Landsyfirlit yfir <strong>{totalNotices.toLocaleString('is-IS')}</strong> lögformlegar tilkynningar sem varða <strong>{totalCompanies.toLocaleString('is-IS')} lögaðila</strong> í Lögbirtingablaðinu árið 2026 — gjaldþrotaskiptabeiðnir, innkallanir þrotabúa, skiptalok og félagsslit. Fletta má upp einstöku félagi á <a href="/fyrirtaeki/">fyrirtækjaprófílum</a>.</p>
+      <p class="datainfo"><i class="tip" tabindex="0" data-tip="Heimild: Lögbirtingablaðið (logbirtingablad.is), unnið úr opinberum PDF-tölublöðum skv. lögum nr. 15/2005. Tegundir: Gjaldþrotaskiptabeiðni · Skiptabeiðni (fyrirtaka) · Innköllun þrotabús (kröfulýsing) · Skiptafundur · Skiptalok þrotabús · Félagsslit / afskráning. Aðeins lögaðilar — einstaklingar, sakamál, dómsmál og nauðungarsölur eru undanskilin.">ⓘ</i> Um gögnin · ⚠ aðeins lögaðilar</p>
+    </SiduHaus>
 
     <div class="kpis">
       <div class="kpi"><div class="k-l">Tilkynningar</div><div class="k-v">{totalNotices.toLocaleString('is-IS')}</div><div class="k-s">alls · 2026</div></div>
@@ -189,10 +190,8 @@ const jsonLd = {
 
   <style>
     main { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; }
     p { color: var(--ink); } p a { color: var(--gold); }
-    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: var(--ink); }
+    .lead strong { color: var(--ink); }
     h2 { font-size: 17px; color: var(--ink); margin: 38px 0 4px; }
     .sub { font-size: 13.5px; color: var(--muted); margin: 0 0 14px; line-height: 1.55; }
     .datainfo { font-size: 12.5px; color: var(--faint); margin: 6px 0 4px; }

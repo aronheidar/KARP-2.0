@@ -6,6 +6,7 @@
 // vaktir, aðgangur). Allt bakað + localStorage; innskráð efni um auth.js. #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import THINGMENN from '@gogn/althingi.json';
 import ATV from '@gogn/atvinnuleysi.json';
 import POLLS from '@gogn/polls.json';
@@ -83,8 +84,7 @@ const updated = '2026-07-02';
 
 <Layout title="Mitt svæði | Karp" noindex={true}>
   <main data-pg="mitt-svaedi">
-    <p class="kicker">Karp</p>
-    <h1>Mitt svæði</h1>
+    <SiduHaus kicker="Karp" titill="Mitt svæði" />
     <div class="tabs"><button class="tab on" data-t="dash">Mælaborð</button><button class="tab" data-t="still">Stillingar</button></div>
 
     <!-- ── MÆLABORÐ ── -->
@@ -258,8 +258,6 @@ const updated = '2026-07-02';
     @container (min-width: 700px) { #p-dash, #p-still { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     #gate-note, #w-traffic-box, .w[data-w="sveit"], .w[data-w="vaktir"] { grid-column: 1 / -1; }
     #gate-note:empty { display: none; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 30px; margin: 0 0 12px; }
     .tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--line); margin-bottom: 16px; }
     .tab { background: none; border: 0; color: var(--muted); font-size: 15px; font-weight: 700; padding: 10px 14px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
     .tab.on { color: var(--gold); border-bottom-color: var(--gold); }
@@ -300,6 +298,8 @@ const updated = '2026-07-02';
 
   <!-- is:global: klasar sem birtast (líka) í runtime-innerHTML → annars tréhristast (Astro-gildra) -->
   <style is:global>
+    /* h1 víkur frá SiduHaus-grunninum (30px, 12px botn) — njörvað hér svo reglan nái h1 einingarinnar. */
+    main[data-pg="mitt-svaedi"] h1 { font-size: 30px; margin: 0 0 12px; }
     main[data-pg="mitt-svaedi"] .tgl-list { display: grid; gap: 10px; }
     main[data-pg="mitt-svaedi"] .tgl { display: flex; align-items: center; gap: 11px; cursor: pointer; }
     main[data-pg="mitt-svaedi"] .tgl > input { position: absolute; opacity: 0; width: 0; height: 0; }

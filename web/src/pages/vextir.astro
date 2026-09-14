@@ -3,6 +3,7 @@
 // (opinn XML-tímaraðaþjónn SÍ, bakað 1×/dag). Meginvaxtasaga vs verðbólga, ríkis-vaxtaferill
 // + verðbólguálag, gengisvísitala, gengi, REIBOR, dráttarvextir, peningamagn. Opin síða.
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import SB from '@gogn/sedlabanki.json';
 
 const ds = SB.datasets || {}, H = SB.headline || {};
@@ -53,10 +54,10 @@ const desc = `Vextir, gengi og verðbólga á Íslandi — lifandi frá Seðlaba
 ---
 <Layout title="Vextir, gengi & verðbólga — Seðlabanki | Karp" description={desc} canonical="https://karp.is/vextir/" ogTitle="Vextir & gengi á Íslandi">
   <main data-pg="vextir">
-    <p class="kicker">Hagvísir Íslands · Efnahagur</p>
-    <h1>Vextir, gengi & verðbólga</h1>
-    <p class="lead">Peningamál Íslands beint frá <strong>Seðlabanka</strong>: stýrivextir og saga þeirra á móti verðbólgu, ríkis-vaxtaferillinn sem sýnir <strong>verðbólguálag markaðarins</strong>, gengi krónunnar, millibankavextir og peningamagn. Verðbólgan sjálf og neyslukarfan: sjá <a href="/verdlag/">Verðlag</a>.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Meginvextir = stýrivextir SÍ (vextir á 7 daga bundnum innlánum). Raunstýrivextir = meginvextir − verðbólga. Verðbólguálag = óverðtryggðir − verðtryggðir ríkisvextir (mat markaðarins á meðalverðbólgu næstu ára). Gengisvísitala: hærri tala = veikari króna.">ⓘ</i> Um hugtökin</p>
+    <SiduHaus kicker="Hagvísir Íslands · Efnahagur" titill="Vextir, gengi & verðbólga">
+      <p class="lead">Peningamál Íslands beint frá <strong>Seðlabanka</strong>: stýrivextir og saga þeirra á móti verðbólgu, ríkis-vaxtaferillinn sem sýnir <strong>verðbólguálag markaðarins</strong>, gengi krónunnar, millibankavextir og peningamagn. Verðbólgan sjálf og neyslukarfan: sjá <a href="/verdlag/">Verðlag</a>.</p>
+      <p class="datainfo"><i class="tip" tabindex="0" data-tip="Meginvextir = stýrivextir SÍ (vextir á 7 daga bundnum innlánum). Raunstýrivextir = meginvextir − verðbólga. Verðbólguálag = óverðtryggðir − verðtryggðir ríkisvextir (mat markaðarins á meðalverðbólgu næstu ára). Gengisvísitala: hærri tala = veikari króna.">ⓘ</i> Um hugtökin</p>
+    </SiduHaus>
 
     <div class="kpis">
       <div class="kpi"><div class="k-l">Meginvextir</div><div class="k-v">{c(meginv)}%</div><div class="k-s">stýrivextir{H.meginvextir ? ' · frá ' + isoIs(H.meginvextir.date) : ''}</div></div>
@@ -122,10 +123,8 @@ const desc = `Vextir, gengi og verðbólga á Íslandi — lifandi frá Seðlaba
 
   <style>
     main { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; }
     p { color: var(--ink); } p a { color: var(--gold); }
-    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: var(--ink); }
+    .lead strong { color: var(--ink); }
     h2 { font-size: 17px; color: var(--ink); margin: 38px 0 4px; letter-spacing: .01em; }
     .sub { font-size: 13.5px; color: var(--muted); margin: 0 0 14px; line-height: 1.55; } .sub strong { color: var(--ink); }
     .datainfo { font-size: 12.5px; color: var(--faint); margin: 6px 0 4px; }

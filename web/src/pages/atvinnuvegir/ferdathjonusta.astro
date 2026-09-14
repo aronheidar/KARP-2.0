@@ -1,6 +1,7 @@
 ---
 // Ferðaþjónusta: erlendir farþegar um KEF (SAM02001) + gistinætur (SAM01601) — daglegt gagna-snapshot úr skriptur/build_ferdathjonusta.mjs → gogn/ferdathjonusta.json (áður byggingartíma-PxWeb í frontmatter á hverri byggingu). #2 LOTA 10.
 import Layout from '../../layouts/Layout.astro';
+import SiduHaus from '../../components/SiduHaus.astro';
 import { fmtNum, groupThousands } from '@lib/format.mjs';
 import { monthLabel } from '@lib/format.mjs';
 import DATA from '@gogn/ferdathjonusta.json';
@@ -9,10 +10,10 @@ const desc = `Ferðaþjónustan — ${kefL ? groupThousands(kefL.v) + ' erlendir
 ---
 <Layout title="Ferðaþjónusta | Karp" description={desc} canonical="https://karp.is/atvinnuvegir/ferdathjonusta/" ogTitle="Ferðaþjónusta">
   <main data-pg="atvinnuvegir-ferdathjonusta">
-    <p class="kicker">Hagvísir Íslands · Atvinnuvegir</p>
-    <h1>Ferðaþjónusta</h1>
-    <p>Stærsta gjaldeyrislind þjóðarinnar — erlendir farþegar um Keflavík og gistinætur um allt land. Sjá einnig <a href="/umferd/">Umferð</a>.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Ferðaþjónustutölur: hagvísar ferðaþjónustu frá Hagstofu Íslands og farþegatölur um Keflavíkurflugvöll.">ⓘ</i> Um gögnin á síðunni</p>
+    <SiduHaus kicker="Hagvísir Íslands · Atvinnuvegir" titill="Ferðaþjónusta"
+      tip="Ferðaþjónustutölur: hagvísar ferðaþjónustu frá Hagstofu Íslands og farþegatölur um Keflavíkurflugvöll.">
+      <p>Stærsta gjaldeyrislind þjóðarinnar — erlendir farþegar um Keflavík og gistinætur um allt land. Sjá einnig <a href="/umferd/">Umferð</a>.</p>
+    </SiduHaus>
     <div class="kpis">
       {kefL && <div class="kpi"><div class="k-l">Erlendir farþegar</div><div class="k-v">{groupThousands(kefL.v)}</div><div class="k-s">{kefL.t} · um KEF</div></div>}
       {gistL && <div class="kpi"><div class="k-l">Gistinætur</div><div class="k-v">{String(gistL.v).replace('.', ',')}</div><div class="k-s">millj. · {gistL.y}</div></div>}
@@ -26,8 +27,7 @@ const desc = `Ferðaþjónustan — ${kefL ? groupThousands(kefL.v) + ' erlendir
 
   <style>
     main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; } p { color: var(--ink); } p a { color: var(--gold); }
+    p { color: var(--ink); } p a { color: var(--gold); }
     h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 28px 0 8px; }
     .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 16px 0 6px; }
     .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }

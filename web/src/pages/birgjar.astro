@@ -5,6 +5,7 @@
 // ~2,6 m færslur samandregnar í topplista birgja/kaupenda/tegunda + mánaðaröð).
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import BIRGJAR from '@gogn/birgjar.json';
 import { fmtNum, groupThousands } from '@lib/format.mjs';
 
@@ -19,10 +20,10 @@ const desc = `Hverjir fá greitt frá ríkinu? Topplisti birgja ríkisins síðu
 
 <Layout title="Birgjar ríkisins — hverjir fá greitt? | Karp" description={desc} canonical="https://karp.is/birgjar/" ogTitle="Birgjar ríkisins">
   <main data-pg="birgjar">
-    <p class="kicker">Karp · Ríkisfjármál</p>
-    <h1>Birgjar ríkisins</h1>
-    <p>Hverjir fá greitt frá ríkinu — og hve mikið? Allar bókfærðar greiðslur ríkisins til birgja síðustu 12 mánuði, samandregnar úr opnum reikningum Fjársýslunnar.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Samandregið af Karp úr opnirreikningar.is (Fjársýsla ríkisins): allar birtar greiðslufærslur tímabilsins, néttaðar (bakfærslur dragast frá). Nær til stofnana í opnu bókhaldi ríkisins — ekki t.d. launa eða tilfærslna til einstaklinga.">ⓘ</i> Um gögnin á síðunni</p>
+    <SiduHaus kicker="Karp · Ríkisfjármál" titill="Birgjar ríkisins"
+      tip="Samandregið af Karp úr opnirreikningar.is (Fjársýsla ríkisins): allar birtar greiðslufærslur tímabilsins, néttaðar (bakfærslur dragast frá). Nær til stofnana í opnu bókhaldi ríkisins — ekki t.d. launa eða tilfærslna til einstaklinga.">
+      <p>Hverjir fá greitt frá ríkinu — og hve mikið? Allar bókfærðar greiðslur ríkisins til birgja síðustu 12 mánuði, samandregnar úr opnum reikningum Fjársýslunnar.</p>
+    </SiduHaus>
 
     <div class="grid">
       <div class="tile hero"><div class="t-top">Greitt alls</div><div class="t-v">{ma(G.grandTotal)} ma.kr</div><div class="t-s">{G.fra} til {G.til}</div></div>
@@ -76,8 +77,7 @@ const desc = `Hverjir fá greitt frá ríkinu? Topplisti birgja ríkisins síðu
 
   <style>
     main { max-width: 1040px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; } p { color: var(--ink); }
+    p { color: var(--ink); }
     h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 26px 0 8px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-top: 14px; }
     .tile { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 12px 14px; }

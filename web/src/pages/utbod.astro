@@ -10,6 +10,7 @@
 // og 📅 ICS-dagatal á fresti.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import UTBOD from '@gogn/utbod.json';
 import URSLIT from '@gogn/utbod_urslit.json';
 import { slugify } from '@lib/format.mjs';
@@ -36,10 +37,10 @@ const SRCMETA = { rk: ['Útboðsvefur', 'IS'], ted: ['TED (EES)', 'EES'], rvk: [
 
 <Layout title="Útboðsgátt — Ríkiskaup, TED, Reykjavíkurborg, Faxaflóahafnir, Landsvirkjun | Karp" description={desc} canonical="https://karp.is/utbod/" ogTitle="Útboðsgátt Karp">
   <main data-pg="utbod">
-    <p class="kicker">Karp+ · Útboð</p>
-    <h1>Útboðsgátt</h1>
-    <p>Útboð Ríkiskaupa, TED, Reykjavíkurborgar, Faxaflóahafna og Landsvirkjunar — sótt daglega. Leitaðu, síaðu eftir flokki og láttu <a href="/lobbyvakt/">leitarorðavaktina</a> senda þér póst um leið og nýtt útboð passar við þína verktöku.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Grunngögnin eru sótt daglega kl. 6 af öllum gáttum sem Karp nær í: Útboðsvefur Ríkiskaupa (API), TED — EES-útboð á Íslandi (API), Reykjavíkurborg, Faxaflóahafnir og Landsvirkjun (vef-scrape) — og Útboðsvefurinn er auk þess sóttur í hverri heimsókn. Flokkun er vélræn: TED eftir CPV-innkaupakóðum, annað eftir lykilorðum í heiti. Fit-einkunnin er reiknuð í vafranum þínum úr vaktinni þinni og verktaka-prófílnum. Hæfiskröfur EES-útboða eru dregnar út úr tilkynningunum með gervigreind — leiðbeinandi, sannreyndu alltaf í útboðsgögnunum sjálfum.">ⓘ</i> Um gögnin á síðunni</p>
+    <SiduHaus kicker="Karp+ · Útboð" titill="Útboðsgátt"
+      tip="Grunngögnin eru sótt daglega kl. 6 af öllum gáttum sem Karp nær í: Útboðsvefur Ríkiskaupa (API), TED — EES-útboð á Íslandi (API), Reykjavíkurborg, Faxaflóahafnir og Landsvirkjun (vef-scrape) — og Útboðsvefurinn er auk þess sóttur í hverri heimsókn. Flokkun er vélræn: TED eftir CPV-innkaupakóðum, annað eftir lykilorðum í heiti. Fit-einkunnin er reiknuð í vafranum þínum úr vaktinni þinni og verktaka-prófílnum. Hæfiskröfur EES-útboða eru dregnar út úr tilkynningunum með gervigreind — leiðbeinandi, sannreyndu alltaf í útboðsgögnunum sjálfum.">
+      <p>Útboð Ríkiskaupa, TED, Reykjavíkurborgar, Faxaflóahafna og Landsvirkjunar — sótt daglega. Leitaðu, síaðu eftir flokki og láttu <a href="/lobbyvakt/">leitarorðavaktina</a> senda þér póst um leið og nýtt útboð passar við þína verktöku.</p>
+    </SiduHaus>
 
     <div id="uv-panel" class="uv">
       <div class="uv-head">
@@ -143,8 +144,7 @@ const SRCMETA = { rk: ['Útboðsvefur', 'IS'], ted: ['TED (EES)', 'EES'], rvk: [
 
   <style>
     main { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; } p { color: var(--ink); }
+    p { color: var(--ink); }
     h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
     .ut-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 16px 0 4px; }
     @media (max-width: 640px) { .ut-stats { grid-template-columns: 1fr 1fr; } }

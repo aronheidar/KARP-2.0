@@ -4,15 +4,16 @@
 // Persónulegur höfundar-kafli fjarlægður (LOTA 116) → fagmannleg/stofnanaleg framsetning.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 const updated = '2026-07-11';
 const desc = 'Um Karp — Hagvísir Íslands: sjálfstætt mælaborð sem safnar, greinir og birtir opinber gögn um íslenskt samfélag, efnahag og stjórnmál á mannamáli.';
 ---
 
 <Layout title="Um Karp | Karp" description={desc} canonical="https://karp.is/um-karp/" ogTitle="Um Karp">
   <main data-pg="um-karp">
-    <p class="kicker">Karp · Hagvísir Íslands</p>
-    <h1>Um Karp</h1>
-    <p class="lead">Karp er sjálfstætt mælaborð sem safnar, tengir og birtir opinber gögn um íslenskt samfélag — efnahag, Alþingi, sveitarfélög, markaði og fjölmiðlaumfjöllun — á mannamáli.</p>
+    <SiduHaus kicker="Karp · Hagvísir Íslands" titill="Um Karp">
+      <p class="lead">Karp er sjálfstætt mælaborð sem safnar, tengir og birtir opinber gögn um íslenskt samfélag — efnahag, Alþingi, sveitarfélög, markaði og fjölmiðlaumfjöllun — á mannamáli.</p>
+    </SiduHaus>
 
     <h2>Hvað gerir Karp?</h2>
     <p class="tech">Karp sækir gögn beint úr opinberum veitum — Hagstofu, Alþingi, Seðlabanka, HMS, Vinnumálastofnun, Ríkislögreglustjóra, Umhverfisstofnun og kauphöllinni — og uppfærir þau reglulega. Hver tala vísar í uppruna sinn.</p>
@@ -41,8 +42,8 @@ const desc = 'Um Karp — Hagvísir Íslands: sjálfstætt mælaborð sem safnar
 
   <style>
     main { max-width: 780px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 34px; margin: 0 0 10px; }
+    /* Víkur frá .sh-sjálfgefnu (34px h1) — :global() svo reglan nái inn í SiduHaus. */
+    main[data-pg="um-karp"] :global(.sh h1) { font-size: 34px; margin: 0 0 10px; }
     .lead { font-size: 17px; color: #dfe7f4; line-height: 1.6; }
     p { color: var(--ink); }
     h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 10px; }

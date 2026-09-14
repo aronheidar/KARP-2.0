@@ -3,6 +3,7 @@
 // svo spjaldið sé gagnaskjár en ekki nafnalisti (afvélvæðing fasi 4a, 14.9.2026). Hausinn er
 // vinstrijafnaður eins og undirsíðurnar fimm: kicker → h1 → inngangur → datainfo, 860px.
 import Layout from '../../layouts/Layout.astro';
+import SiduHaus from '../../components/SiduHaus.astro';
 import { groupThousands } from '@lib/format.mjs';
 import VID from '@gogn/vidskipti.json';
 import FERD from '@gogn/ferdathjonusta.json';
@@ -31,10 +32,10 @@ const subs = [
 ---
 <Layout title="Atvinnuvegir | Karp" description="Sjávarútvegur, ferðaþjónusta, landbúnaður, stóriðja og hugverkaiðnaður — lykiltölur atvinnuveganna." canonical="https://karp.is/atvinnuvegir/">
   <main data-pg="atvinnuvegir">
-    <p class="kicker">Hagvísir Íslands · Atvinnuvegir</p>
-    <h1>Atvinnuvegir</h1>
-    <p>Lykiltölur atvinnuveganna — tölur frá Hagstofu um hverja grein. Sjá einnig <a href="/atvinnugreinar/">fjárhag og afkomu per ÍSAT-grein</a> ({nGreinar} greinar með viðmið + stærstu félög).</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Yfirlit atvinnuvega: samsett af Karp úr útflutnings-, veltu- og vinnumarkaðstölum Hagstofunnar. Talan á hverju spjaldi er sú sama og efst á undirsíðunni.">ⓘ</i> Um gögnin á síðunni</p>
+    <SiduHaus kicker="Hagvísir Íslands · Atvinnuvegir" titill="Atvinnuvegir"
+      tip="Yfirlit atvinnuvega: samsett af Karp úr útflutnings-, veltu- og vinnumarkaðstölum Hagstofunnar. Talan á hverju spjaldi er sú sama og efst á undirsíðunni.">
+      <p>Lykiltölur atvinnuveganna — tölur frá Hagstofu um hverja grein. Sjá einnig <a href="/atvinnugreinar/">fjárhag og afkomu per ÍSAT-grein</a> ({nGreinar} greinar með viðmið + stærstu félög).</p>
+    </SiduHaus>
     <div class="grid">
       {subs.map(([href, t, v, s]) => (
         <a class="c" href={href}>
@@ -47,8 +48,7 @@ const subs = [
   </main>
   <style>
     main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; } p { color: var(--ink); } p a { color: var(--gold); }
+    p { color: var(--ink); } p a { color: var(--gold); }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-top: 20px; }
     .c { display: flex; flex-direction: column; gap: 2px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 12px; padding: 14px 16px; color: var(--ink); text-decoration: none; }
     .c:hover { border-color: var(--gold); }

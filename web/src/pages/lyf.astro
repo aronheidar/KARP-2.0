@@ -6,6 +6,7 @@
 // Grunngögn (heiti, ATC, virk efni, LYFJASKORTUR) heil fyrir öll lyf; verð þar sem það er sótt.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import LYF from '@gogn/lyf.json';
 import { groupThousands, lyfUrlSlug } from '@lib/format.mjs';
 
@@ -21,10 +22,10 @@ const desc = `Uppfletting í sérlyfjaskrá Lyfjastofnunar: ${count} markaðsset
 
 <Layout title="Lyf & lyfjaverð — sérlyfjaskrá | Karp" description={desc} canonical="https://karp.is/lyf/" ogTitle="Lyf & lyfjaverð">
   <main data-pg="lyf">
-    <p class="kicker">Karp · Verðlag & neytendur</p>
-    <h1>Lyf &amp; lyfjaverð</h1>
-    <p>Öll lyf sem eru markaðssett á Íslandi — leitaðu að lyfi, virku efni eða ATC-kóða og sjáðu verð, greiðsluþátttöku, heildsala og hvort lyf er í skorti. Byggt á opnum gögnum sérlyfjaskrár Lyfjastofnunar.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Grunngögn (heiti, styrkur, lyfjaform, virk efni, ATC-flokkur, markaðsleyfishafi og staða lyfjaskorts) koma úr leitarskrá sérlyfjaskrár (serlyfjaskra.is) og ná til allra markaðssettra lyfja. Verð (smásölu- og viðmiðunarverð, greiðsluþátttaka, heildsali) er sótt af lyfjasíðum serlyfjaskrár og uppfært reglulega af Lyfjastofnun/Sjúkratryggingum.">ⓘ</i> Um gögnin á síðunni</p>
+    <SiduHaus kicker={"Karp · Verðlag & neytendur"} titill={"Lyf & lyfjaverð"}
+      tip="Grunngögn (heiti, styrkur, lyfjaform, virk efni, ATC-flokkur, markaðsleyfishafi og staða lyfjaskorts) koma úr leitarskrá sérlyfjaskrár (serlyfjaskra.is) og ná til allra markaðssettra lyfja. Verð (smásölu- og viðmiðunarverð, greiðsluþátttaka, heildsali) er sótt af lyfjasíðum serlyfjaskrár og uppfært reglulega af Lyfjastofnun/Sjúkratryggingum.">
+      <p>Öll lyf sem eru markaðssett á Íslandi — leitaðu að lyfi, virku efni eða ATC-kóða og sjáðu verð, greiðsluþátttöku, heildsala og hvort lyf er í skorti. Byggt á opnum gögnum sérlyfjaskrár Lyfjastofnunar.</p>
+    </SiduHaus>
 
     <div class="grid">
       <div class="tile hero"><div class="t-top">Markaðssett lyf</div><div class="t-v">{groupThousands(count)}</div><div class="t-s">í sérlyfjaskrá</div></div>
@@ -67,8 +68,7 @@ const desc = `Uppfletting í sérlyfjaskrá Lyfjastofnunar: ${count} markaðsset
 
   <style>
     main { max-width: 1040px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; } p { color: var(--ink); }
+    p { color: var(--ink); }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-top: 14px; }
     .tile { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 12px 14px; }
     .tile.hero { border-color: rgba(246,177,59,.4); }

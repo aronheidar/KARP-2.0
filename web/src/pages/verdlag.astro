@@ -8,6 +8,7 @@
 // ─────────────────────────────────────────────────────────────
 import { monthLabel, fmtNum, MON_LONG } from '@lib/format.mjs';
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import ATV from '@gogn/atvinnuleysi.json';
 import NUMBEO from '@gogn/numbeo.json';
 import SB from '@gogn/sedlabanki.json';
@@ -119,16 +120,16 @@ const jsonLd = {
   ogTitle={`Verðbólga á Íslandi — ${latestPct}%`}
 >
   <main data-pg="verdlag">
-    <p class="kicker">Hagvísir Íslands · Verðlag</p>
-    <h1>Verðlag</h1>
-    <div class="big">{latestPct}%{latest && <span>ársverðbólga · {monthLabel(latest.t)}</span>}</div>
-    <p>
-      Ársverðbólga — 12-mánaða breyting vísitölu neysluverðs — mælist nú <strong>{latestPct}%</strong>{
-        latest ? `, í ${monthLabel(latest.t)}` : ''
-      }. Grafið sýnir þróunina síðustu {rows.length} mánuði; strikalínan markar 2,5% verðbólgumarkmið
-      Seðlabanka Íslands. Heimild: Hagstofa Íslands.
-    </p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Verðlagstölur: vísitala neysluverðs Hagstofunnar og verðsamanburður frá Numbeo (hópöflun — nálgun). Borgarsamanburðurinn notar Numbeo-verð.">ⓘ</i> Um gögnin á síðunni</p>
+    <SiduHaus kicker="Hagvísir Íslands · Verðlag" titill="Verðlag" heimild="Hagstofa Íslands"
+      tip="Verðlagstölur: vísitala neysluverðs Hagstofunnar og verðsamanburður frá Numbeo (hópöflun — nálgun). Borgarsamanburðurinn notar Numbeo-verð.">
+      <div slot="tala" class="big">{latestPct}%{latest && <span>ársverðbólga · {monthLabel(latest.t)}</span>}</div>
+      <p>
+        Ársverðbólga — 12-mánaða breyting vísitölu neysluverðs — mælist nú <strong>{latestPct}%</strong>{
+          latest ? `, í ${monthLabel(latest.t)}` : ''
+        }. Grafið sýnir þróunina síðustu {rows.length} mánuði; strikalínan markar 2,5% verðbólgumarkmið
+        Seðlabanka Íslands.
+      </p>
+    </SiduHaus>
 
     <h2>Lykiltölur</h2>
     <div class="kpis">
@@ -259,8 +260,6 @@ const jsonLd = {
 
   <style>
     main { max-width: 760px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
     .big { font-size: 52px; font-weight: 800; color: var(--gold); line-height: 1; margin: 6px 0 2px; }
     .big span { font-size: 15px; font-weight: 500; color: var(--muted); margin-left: 6px; }
     p { color: var(--ink); }

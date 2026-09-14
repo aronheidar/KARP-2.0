@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 import Layout from '../../layouts/Layout.astro';
 import ThingTabs from '../../components/ThingTabs.astro';
+import SiduHaus from '../../components/SiduHaus.astro';
 import NEFNDIR from '@gogn/nefndir.json';
 import DAGATAL from '@gogn/dagatal.json';
 import THINGMENN from '@gogn/althingi.json';
@@ -33,11 +34,11 @@ const desc = `Fastanefndir Alþingis (${NEFNDCARDS.length}) með formönnum og f
 
 <Layout title="Nefndir Alþingis & þingdagatal | Karp" description={desc} canonical="https://karp.is/althingi/nefndir/" ogTitle="Nefndir Alþingis">
   <main data-pg="althingi-nefndir">
-    <p class="kicker">Hagvísir Íslands · Alþingi</p>
-    <ThingTabs active="nefndir" />
-    <h1>Nefndir</h1>
-    <p>Fastanefndir fjalla um þingmál hvert á sínu sviði áður en þau koma til atkvæða í þingsal. Smelltu á nefnd fyrir fulltrúalistann.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Nefndarskipan og dagatal: opin XML-gögn Alþingis, sótt við hverja byggingu síðunnar.">ⓘ</i> Um gögnin á síðunni</p>
+    <SiduHaus kicker="Hagvísir Íslands · Alþingi" titill="Nefndir"
+      tip="Nefndarskipan og dagatal: opin XML-gögn Alþingis, sótt við hverja byggingu síðunnar.">
+      <ThingTabs slot="flipar" active="nefndir" />
+      <p>Fastanefndir fjalla um þingmál hvert á sínu sviði áður en þau koma til atkvæða í þingsal. Smelltu á nefnd fyrir fulltrúalistann.</p>
+    </SiduHaus>
 
     <div class="nf-grid">
       {NEFNDCARDS.map((n) => (
@@ -73,8 +74,7 @@ const desc = `Fastanefndir Alþingis (${NEFNDCARDS.length}) með formönnum og f
 
   <style>
     main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; } p { color: var(--ink); }
+    p { color: var(--ink); }
     h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 28px 0 8px; }
     .nf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; margin-top: 14px; }
     .nf { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; }

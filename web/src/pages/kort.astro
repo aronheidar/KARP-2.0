@@ -7,6 +7,7 @@
 // BYGGINGARTÍMA úr sameiginlega @lib (muniIndex/muniStats/geo). #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import { computeMuniIndex } from '@lib/muniIndex.mjs';
 import { makeMuniStats } from '@lib/muniStats.mjs';
 import { makeRegionOf, makeLifsQ } from '@lib/geo.mjs';
@@ -108,10 +109,10 @@ const MODEGROUPS = [
 
 <Layout title="Íslandskortið — hagvísar sveitarfélaga | Karp" description={desc} canonical="https://karp.is/kort/" jsonLd={jsonLd} ogTitle="Íslandskortið">
   <main data-pg="kort">
-    <p class="kicker">Hagvísir Íslands · Kort</p>
-    <h1>Íslandskortið</h1>
-    <p>Veldu hvaða upplýsingar lita kortið — smelltu á <strong>sveitarfélag</strong> fyrir nánari síðu, eða á <strong>landshluta</strong> til að þysja inn.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Kortagögnin: samsettar vísitölur sem Karp reiknar úr opinberum tölum (fjárhagur, atvinna, vöxtur o.fl.); kortagrunnur frá geoBoundaries. Litirnir sýna innbyrðis röð sveitarfélaga.">ⓘ</i> Um gögnin á síðunni</p>
+    <SiduHaus kicker="Hagvísir Íslands · Kort" titill="Íslandskortið"
+      tip="Kortagögnin: samsettar vísitölur sem Karp reiknar úr opinberum tölum (fjárhagur, atvinna, vöxtur o.fl.); kortagrunnur frá geoBoundaries. Litirnir sýna innbyrðis röð sveitarfélaga.">
+      <p>Veldu hvaða upplýsingar lita kortið — smelltu á <strong>sveitarfélag</strong> fyrir nánari síðu, eða á <strong>landshluta</strong> til að þysja inn.</p>
+    </SiduHaus>
 
     <div class="modes">
       {MODEGROUPS.map(([grp, modes]) => (
@@ -156,8 +157,6 @@ const MODEGROUPS = [
        → Astro-scoped stílar giltu ekki á þá hnúta. Sjá [[karp-dev-verify]]. -->
   <style is:global>
     main { max-width: 980px; margin: 0 auto; padding: 40px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 8px; }
     p { color: var(--ink); }
     .modes { display: flex; flex-direction: column; gap: 6px; margin: 14px 0 10px; }
     .mg { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }

@@ -1,0 +1,43 @@
+---
+// SiduHaus — RÍKJANDI síðuhausinn á karp.is, tekinn saman í eina einingu (afvélvæðing fasi 4c, 14.9.2026).
+//
+// Af hverju: 74 síður endurtóku sama haus (kicker → h1 → inngangur → p.datainfo) og 68 þeirra
+// endurskilgreindu ORÐRÉTT sömu .kicker-reglu í eigin <style>. Þetta er mátun á því sem fyrir er —
+// ekki nýtt útlit. Útlitið er skilgreint einu sinni í Layout.astro (is:global, .sh-*), svo síður
+// mega fella sínar afritsreglur.
+//
+// Breidd/max-width er ÁFRAM á <main> hverrar síðu — hausinn tekur ekki yfir umgjörð síðunnar.
+//
+// props:
+//   titill   (skylda) — h1
+//   kicker   — lítil hástafalína fyrir ofan h1. Beri hún HLEKK, notaðu slot="kicker" í staðinn.
+//   lysing   — inngangsmálsgrein (p.lead). Þurfi inngangurinn <strong>/<a>, notaðu sjálfgefna rifuna.
+//   heimild  — „Heimild: …" í p.datainfo
+//   uppfaert — „Uppfært …" í p.datainfo
+//   tip      — texti í ⓘ-bóluna fremst í p.datainfo (sama mynstur og fyrir)
+//   datainfo — settu false til að sleppa p.datainfo þótt tip/heimild séu gefin
+// slots:
+//   kicker — í stað kicker-prop (t.d. brauðmylsna með hlekkjum)
+//   flipar — milli kicker og h1 (ThingTabs, RSS-hlekkur)
+//   tala   — milli h1 og lýsingar (stór lykiltala, .big)
+//   (sjálfgefin) — frjáls inngangur undir lýsingu
+const { titill, kicker, lysing, heimild, uppfaert, tip, datainfo = true } = Astro.props;
+const synaDatainfo = datainfo && (heimild || uppfaert || tip);
+---
+<header class="sh">
+  {Astro.slots.has('kicker') ? <slot name="kicker" /> : kicker && <p class="kicker">{kicker}</p>}
+  <slot name="flipar" />
+  <h1>{titill}</h1>
+  <slot name="tala" />
+  {lysing && <p class="lead">{lysing}</p>}
+  <slot />
+  {synaDatainfo && (
+    <p class="datainfo">
+      {tip && <i class="tip" tabindex="0" data-tip={tip}>ⓘ</i>}
+      {heimild ? <>Heimild: {heimild}</> : null}
+      {heimild && uppfaert ? ' · ' : null}
+      {uppfaert ? <>Uppfært {uppfaert}</> : null}
+      {!heimild && !uppfaert ? 'Um gögnin á síðunni' : null}
+    </p>
+  )}
+</header>

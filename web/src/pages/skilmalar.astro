@@ -4,6 +4,7 @@
 // úr gamla mælaborðinu (skilmalar.json, dreginn vélrænt út). Statísk. #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import SK from '../data/skilmalar.json';
 
 const updated = '2026-08-02';
@@ -12,8 +13,7 @@ const desc = 'Skilmálar og persónuverndarstefna Karp (karp.is) — notkunarski
 
 <Layout title="Skilmálar & persónuvernd | Karp" description={desc} canonical="https://karp.is/skilmalar/">
   <main>
-    <p class="kicker">Karp</p>
-    <h1>Skilmálar &amp; persónuvernd</h1>
+    <SiduHaus kicker="Karp" titill={'Skilmálar & persónuvernd'} />
 
     <h2>Notkunarskilmálar</h2>
     {SK.terms.map((s) => (
@@ -45,8 +45,7 @@ const desc = 'Skilmálar og persónuverndarstefna Karp (karp.is) — notkunarski
 
   <style>
     main { max-width: 720px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 30px; line-height: 1.15; margin: 0 0 14px; }
+    /* VIK (fasi 4c): eigin h1-stig — 30px og 14px spassia, EKKI jafngilt global .sh h1 (32px / 10px). Stendur. */
     h2 { font-size: 16px; color: var(--gold); text-transform: uppercase; letter-spacing: .05em; margin: 28px 0 10px; }
     .sec h3 { font-size: 14.5px; color: var(--ink); margin: 14px 0 4px; }
     .sec :global(p) { font-size: 13.5px; color: var(--ink); line-height: 1.6; margin: 0 0 6px; }

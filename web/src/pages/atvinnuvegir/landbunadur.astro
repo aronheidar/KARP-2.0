@@ -4,6 +4,7 @@
 // Hagstofu-hlutar: daglegt snapshot úr skriptur/build_landbunadur.mjs → gogn/landbunadur.json
 // (áður sótt beint á Hagstofu í frontmatter á hverri byggingu → seigla per hluta). Styrkir áfram bakað-inn import. #2 LOTA 10.
 import Layout from '../../layouts/Layout.astro';
+import SiduHaus from '../../components/SiduHaus.astro';
 import { fmtNum, groupThousands } from '@lib/format.mjs';
 import STYRKIR from '@gogn/styrkir.json';
 import DATA from '@gogn/landbunadur.json';
@@ -31,10 +32,10 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'La
 ---
 <Layout title="Landbúnaður | Karp" description={desc} canonical="https://karp.is/atvinnuvegir/landbunadur/" jsonLd={jsonLd} ogTitle="Landbúnaður">
   <main data-pg="atvinnuvegir-landbunadur">
-    <p class="kicker">Hagvísir Íslands · Atvinnuvegir</p>
-    <h1>Landbúnaður</h1>
-    <p>Íslenskur landbúnaður er sjálfum sér nógur um mjólk, egg og lambakjöt en flytur inn stóran hluta korns og grænmetis. Hér er framleiðslan eftir tegundum, þróun bústofnsins, útflutningur búvara og úthlutanir <a href="/styrkir/">Matvælasjóðs</a>.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Landbúnaðartölur: framleiðslu-, búfjár- og uppskerutölur Hagstofunnar (LAN), útflutningur úr utanríkisverslun (UTA06105) og styrkir úr úthlutunarskrá Matvælasjóðs.">ⓘ</i> Um gögnin á síðunni</p>
+    <SiduHaus kicker="Hagvísir Íslands · Atvinnuvegir" titill="Landbúnaður"
+      tip="Landbúnaðartölur: framleiðslu-, búfjár- og uppskerutölur Hagstofunnar (LAN), útflutningur úr utanríkisverslun (UTA06105) og styrkir úr úthlutunarskrá Matvælasjóðs.">
+      <p>Íslenskur landbúnaður er sjálfum sér nógur um mjólk, egg og lambakjöt en flytur inn stóran hluta korns og grænmetis. Hér er framleiðslan eftir tegundum, þróun bústofnsins, útflutningur búvara og úthlutanir <a href="/styrkir/">Matvælasjóðs</a>.</p>
+    </SiduHaus>
 
     <div class="kpis">
       {kjotL && <div class="kpi"><div class="k-l">Kjötframleiðsla</div><div class="k-v">{groupThousands(kjotL.v)}</div><div class="k-s">tonn · {kjotL.y}</div></div>}
@@ -81,8 +82,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'La
 
   <style>
     main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; } p { color: var(--ink); } p a { color: var(--gold); }
+    p { color: var(--ink); } p a { color: var(--gold); }
     h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 28px 0 8px; }
     .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 16px 0 6px; }
     .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }

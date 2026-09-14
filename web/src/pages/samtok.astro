@@ -4,6 +4,7 @@
 // (18 færslur, portað úr gamla mælaborðinu). Statísk — fullkomlega bökuð. #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import SAMTOK from '../data/samtok.json';
 // Þvingunaraðgerðir/refsilistar — þjónshlið-innflutningur AÐEINS fyrir fjöldann;
 // 5MB skráin fer EKKI í client-HTML (sbr. refsilistar.astro). Full leit er á /refsilistar/.
@@ -20,10 +21,10 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Al
 
 <Layout title="Alþjóðasamstarf — samtök & samningar | Karp" description={desc} canonical="https://karp.is/samtok/" jsonLd={jsonLd} ogTitle="Alþjóðasamstarf Íslands">
   <main>
-    <p class="kicker">Hagvísir Íslands · Útlönd</p>
-    <h1>Alþjóðasamstarf</h1>
-    <p>Samtökin og samningarnir sem móta stöðu Íslands í heiminum — frá SÞ og NATO til EES og Parísarsamningsins. Smelltu á spjald fyrir nánari lýsingu.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Samtakayfirlit: opinberir listar og vefir samtakanna sjálfra.">ⓘ</i> Um gögnin á síðunni</p>
+    <SiduHaus kicker="Hagvísir Íslands · Útlönd" titill="Alþjóðasamstarf"
+      tip="Samtakayfirlit: opinberir listar og vefir samtakanna sjálfra.">
+      <p>Samtökin og samningarnir sem móta stöðu Íslands í heiminum — frá SÞ og NATO til EES og Parísarsamningsins. Smelltu á spjald fyrir nánari lýsingu.</p>
+    </SiduHaus>
 
     <h2>Alþjóðasamtök ({orgs.length})</h2>
     <div class="grid">
@@ -62,8 +63,6 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Al
 
   <style>
     main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
     p { color: var(--ink); }
     h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 10px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }

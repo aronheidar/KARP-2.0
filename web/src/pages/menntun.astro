@@ -7,6 +7,7 @@
 // (áður sótt beint á Hagstofu í frontmatter á hverri byggingu → seigla per hluta). PISA er harðkóðuð heimild. #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import { fmtNum, groupThousands } from '@lib/format.mjs';
 import DATA from '@gogn/menntun.json';
 
@@ -31,10 +32,10 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Me
 ---
 <Layout title="Menntun — menntunarstaða, nemendur & PISA | Karp" description={desc} canonical="https://karp.is/menntun/" jsonLd={jsonLd} ogTitle="Menntun á Íslandi">
   <main data-pg="menntun">
-    <p class="kicker">Hagvísir Íslands · Samfélag</p>
-    <h1>Menntun</h1>
-    <p>Frá menntunarstöðu þjóðar til nemendafjölda, brautskráninga eftir fræðasviði, opinberra fræðsluútgjalda og PISA-samanburðar við hin Norðurlöndin. Heimildir: Hagstofa Íslands og OECD.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Menntunartölur: menntunarstaða, skólahald og brautskráningar Hagstofunnar (SKO), fræðsluútgjöld hins opinbera (THJ056xx) og PISA-niðurstöður OECD 2022.">ⓘ</i> Um gögnin á síðunni</p>
+    <SiduHaus kicker="Hagvísir Íslands · Samfélag" titill="Menntun"
+      tip="Menntunartölur: menntunarstaða, skólahald og brautskráningar Hagstofunnar (SKO), fræðsluútgjöld hins opinbera (THJ056xx) og PISA-niðurstöður OECD 2022.">
+      <p>Frá menntunarstöðu þjóðar til nemendafjölda, brautskráninga eftir fræðasviði, opinberra fræðsluútgjalda og PISA-samanburðar við hin Norðurlöndin. Heimildir: Hagstofa Íslands og OECD.</p>
+    </SiduHaus>
 
     <div class="kpis">
       {uniPct != null && <div class="kpi"><div class="k-l">Háskólamenntun</div><div class="k-v">{fmtNum(uniPct, 0)}%</div><div class="k-s">25–64 ára · {uniY}</div></div>}
@@ -66,8 +67,6 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Me
 
   <style>
     main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
     p { color: var(--ink); } p a { color: var(--gold); }
     h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
     .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 18px 0 6px; }

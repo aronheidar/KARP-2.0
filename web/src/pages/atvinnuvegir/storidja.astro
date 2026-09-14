@@ -4,6 +4,7 @@
 // og framleiðslugeta álveranna þriggja. Gögn: daglegt snapshot úr skriptur/build_storidja.mjs → gogn/storidja.json
 // (áður byggingartíma-sókn á hverri byggingu → nú seigla + saga). Framleiðslugeta álvera er harðkóðuð hér. #2 LOTA 10 → auðgað.
 import Layout from '../../layouts/Layout.astro';
+import SiduHaus from '../../components/SiduHaus.astro';
 import { fmtNum, groupThousands } from '@lib/format.mjs';
 import DATA from '@gogn/storidja.json';
 
@@ -18,10 +19,10 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'St
 ---
 <Layout title="Stóriðja & orka | Karp" description={desc} canonical="https://karp.is/atvinnuvegir/storidja/" jsonLd={jsonLd} ogTitle="Stóriðja & orka">
   <main data-pg="atvinnuvegir-storidja">
-    <p class="kicker">Hagvísir Íslands · Atvinnuvegir</p>
-    <h1>Stóriðja &amp; orka</h1>
-    <p>Álverin þrjú og kísilverin breyta endurnýjanlegri raforku í útflutningsverðmæti — stóriðjan notar um 80% raforkunnar. Afkoman ræðst mjög af heimsmarkaðsverði á áli. Sjá einnig <a href="/orka/">Raforku</a> fyrir framleiðsluhliðina.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Álverð: framvirkt LME-verð gegnum Yahoo Finance. Útflutningsverðmæti: utanríkisverslun Hagstofunnar (UTA06105). Raforkunotkun: Orkustofnun/Hagstofa (IDN02103, til 2019). Losun: gróðurhúsalofttegundabókhald Íslands (UMH31107). Framleiðslugeta álvera: uppgefin af fyrirtækjunum.">ⓘ</i> Um gögnin á síðunni</p>
+    <SiduHaus kicker="Hagvísir Íslands · Atvinnuvegir" titill={'Stóriðja & orka'}
+      tip="Álverð: framvirkt LME-verð gegnum Yahoo Finance. Útflutningsverðmæti: utanríkisverslun Hagstofunnar (UTA06105). Raforkunotkun: Orkustofnun/Hagstofa (IDN02103, til 2019). Losun: gróðurhúsalofttegundabókhald Íslands (UMH31107). Framleiðslugeta álvera: uppgefin af fyrirtækjunum.">
+      <p>Álverin þrjú og kísilverin breyta endurnýjanlegri raforku í útflutningsverðmæti — stóriðjan notar um 80% raforkunnar. Afkoman ræðst mjög af heimsmarkaðsverði á áli. Sjá einnig <a href="/orka/">Raforku</a> fyrir framleiðsluhliðina.</p>
+    </SiduHaus>
 
     <div class="kpis">
       {priceL && <div class="kpi"><div class="k-l">Álverð (LME)</div><div class="k-v">{groupThousands(priceL.v)}</div><div class="k-s">USD/tonn</div></div>}
@@ -55,8 +56,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'St
 
   <style>
     main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; } p { color: var(--ink); } p a { color: var(--gold); }
+    p { color: var(--ink); } p a { color: var(--gold); }
     h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 28px 0 8px; }
     .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 16px 0 6px; }
     .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }

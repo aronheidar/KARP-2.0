@@ -8,6 +8,7 @@
 // ⚠ Lifandi vegaumferð/flug eru áfram sótt á keyrslutíma í <script>-eyjum — ekki í snapshot. #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import { fmtNum, groupThousands } from '@lib/format.mjs';
 import DATA from '@gogn/umferd.json';
 
@@ -18,10 +19,10 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Um
 
 <Layout title="Umferð — flug & vegir | Karp" description={desc} canonical="https://karp.is/umferd/" jsonLd={jsonLd} ogTitle="Umferð á Íslandi">
   <main data-pg="umferd">
-    <p class="kicker">Hagvísir Íslands · Samfélag</p>
-    <h1>Umferð</h1>
-    <p>Farþegar um Keflavíkurflugvöll (allir farþegar, mánaðarlega) og vegaumferð af teljurum Vegagerðarinnar. Heimildir: Hagstofa, Vegagerðin.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Umferðartölur: teljarar Vegagerðarinnar (um veitu Karp) og farþegatölur um Keflavíkurflugvöll frá Hagstofu.">ⓘ</i> Um gögnin á síðunni</p>
+    <SiduHaus kicker="Hagvísir Íslands · Samfélag" titill="Umferð"
+      tip="Umferðartölur: teljarar Vegagerðarinnar (um veitu Karp) og farþegatölur um Keflavíkurflugvöll frá Hagstofu.">
+      <p>Farþegar um Keflavíkurflugvöll (allir farþegar, mánaðarlega) og vegaumferð af teljurum Vegagerðarinnar. Heimildir: Hagstofa, Vegagerðin.</p>
+    </SiduHaus>
 
     {KEF && (
       <div class="kpis">
@@ -57,8 +58,6 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Um
 
   <style>
     main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
     p { color: var(--ink); }
     h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
     .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 18px 0 6px; }

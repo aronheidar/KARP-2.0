@@ -8,6 +8,7 @@
 // eða {ok:false,error:'login'|'tier'|'notfound'}.
 // ⚠ RAUNVERULEGT paywall: félagaröðun+samþjöppun eru AÐEINS í gátaða API-svarinu — aldrei bökuð í þetta SSG-HTML.
 import Layout from '../../layouts/Layout.astro';
+import SiduHaus from '../../components/SiduHaus.astro';
 import SK from '../../../public/gogn/sector_kpi.json';
 import { sectorsFromMap, vsHeild, RATIO_META, RATIO_ORDER, fmtPct, fmtRatio } from '../../lib/atvinnugrein.mjs';
 
@@ -69,9 +70,10 @@ const rows = RATIO_ORDER.map((key) => {
 ---
 <Layout title={title} description={desc} canonical={canonical} jsonLd={jsonLd} ogTitle={`${displayName} — Karp`}>
   <main data-pg="atvinnugrein" data-slug={sector.slug}>
-    <p class="kicker"><a href="/atvinnugreinar/">Atvinnugreinar</a> · {isatSub}</p>
-    <h1>{displayName}</h1>
-    <p class="lead">Fjárhagsform greinarinnar — framlegð, arðsemi, skuldsetning og fleiri viðmið — borin saman við <strong>íslenska viðskiptahagkerfið</strong> í heild, unnið úr opinberum ársreikningum og Hagstofu Íslands (FYR08010, {heild ? heild.ar : ''}).</p>
+    <SiduHaus titill={displayName}>
+      <Fragment slot="kicker"><p class="kicker"><a href="/atvinnugreinar/">Atvinnugreinar</a> · {isatSub}</p></Fragment>
+      <p class="lead">Fjárhagsform greinarinnar — framlegð, arðsemi, skuldsetning og fleiri viðmið — borin saman við <strong>íslenska viðskiptahagkerfið</strong> í heild, unnið úr opinberum ársreikningum og Hagstofu Íslands (FYR08010, {heild ? heild.ar : ''}).</p>
+    </SiduHaus>
     <p class="fyrirvari">⚠ Leiðbeinandi úr opinberum ársreikningum og Hagstofu (FYR08010); ekki fjárfestingar- eða lánshæfisráðgjöf.</p>
 
     <h2>8 lykilviðmið vs. hagkerfið</h2>
@@ -123,7 +125,8 @@ const rows = RATIO_ORDER.map((key) => {
     .kicker { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); margin: 0 0 6px; }
     .kicker a { color: var(--faint); text-decoration: none; }
     .kicker a:hover { color: var(--gold); }
-    h1 { font-size: 30px; margin: 0 0 10px; }
+    /* Víkur frá .sh-sjálfgefnu (30px h1) — :global() svo reglan nái inn í SiduHaus. */
+    main[data-pg="atvinnugrein"] :global(.sh h1) { font-size: 30px; margin: 0 0 10px; }
     .lead { color: var(--ink); font-size: 15px; line-height: 1.6; margin: 0 0 10px; }
     .lead strong { color: var(--ink); }
     .fyrirvari { font-size: 12.5px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid var(--gold); padding: 8px 12px; border-radius: 0 8px 8px 0; margin: 10px 0 22px; line-height: 1.5; }

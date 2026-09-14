@@ -6,6 +6,7 @@
 // hér á build-tíma; reiknivélin sækir sömu skrá í vafranum og keyrir SÖMU föllin (ein aðferð, ein sannleikur).
 // ⚠ Sumarhús eru misleit — bakpróf 19% miðgildisskekkja, jafngilt opinberu mati HMS (18%). Sýnt heiðarlega.
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import SH from '../../public/gogn/hms/sumarhus_2027.json';
 import { groupThousands } from '@lib/format.mjs';
 import { svaedaYfirlit, arsVisitala, bakprofSumarhus, landshluti, nothaef, tsOf } from '../lib/sumarhusamat.mjs';
@@ -47,9 +48,10 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'WebApplication', na
 ---
 <Layout title={title} description={desc} canonical="https://karp.is/sumarhus/" jsonLd={jsonLd} ogTitle="Sumarhúsamat — verð sumarhúsa eftir svæðum">
   <main data-pg="sumarhus">
-    <p class="kicker"><a href="/fasteignir/">Fasteignaverð</a> · Sumarhús</p>
-    <h1>Sumarhúsamat — hvað kostar sumarhúsið?</h1>
-    <p class="lead">Áætlað söluverð sumarhúss út frá <strong>{groupThousands(solur.length)} þinglýstum sumarhúsasölum</strong> í gagnasafni HMS fyrir sumarhúsamat 2027, skipt í 142 matssvæði. Verð sambærilegra sala er fært til verðlags {nyjasta} með árs-vísitölu sumarhúsa og leiðrétt fyrir hitaveitu og eignarlóð þegar þú gefur þær upp. Ókeypis, engin innskráning.</p>
+    <SiduHaus titill="Sumarhúsamat — hvað kostar sumarhúsið?">
+      <Fragment slot="kicker"><p class="kicker"><a href="/fasteignir/">Fasteignaverð</a> · Sumarhús</p></Fragment>
+      <p class="lead">Áætlað söluverð sumarhúss út frá <strong>{groupThousands(solur.length)} þinglýstum sumarhúsasölum</strong> í gagnasafni HMS fyrir sumarhúsamat 2027, skipt í 142 matssvæði. Verð sambærilegra sala er fært til verðlags {nyjasta} með árs-vísitölu sumarhúsa og leiðrétt fyrir hitaveitu og eignarlóð þegar þú gefur þær upp. Ókeypis, engin innskráning.</p>
+    </SiduHaus>
 
     <section class="mat" id="mat">
       <h2>Reiknivél</h2>

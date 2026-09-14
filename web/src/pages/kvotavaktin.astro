@@ -6,6 +6,7 @@
 // vanti (404 → „Gögn í vinnslu"). ?syni=1 = opið sýnishorn (sölutól, sama mynstur og fasteignavakt/utbod).
 // Gátun: subGate 'kvoti' — virk AÐEINS þegar greiðsluveggur (KARP_USER.paywall) er á (sama og utbod).
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 
 const desc = 'Kvótavaktin — aflamark Fiskistofu í þorskígildum per útgerð og eigendahóp. Samþjöppun í sjávarútvegi (HHI, hlutdeild 10 stærstu), tegundagreining og eigendahópar raktir gegnum eignarhaldskeðjur með nálgun við 12%-þak laganna. Fyrir fjölmiðla, banka, útgerðir og greinendur.';
 
@@ -31,10 +32,10 @@ const jsonLd = {
 
 <Layout title="Kvótavaktin — aflamark, eigendur og samþjöppun | Karp" description={desc} canonical="https://karp.is/kvotavaktin/" ogTitle="Kvótavaktin — Karp" jsonLd={jsonLd}>
   <main data-pg="kvotavaktin">
-    <p class="kicker">Karp+ · Sjávarútvegur</p>
-    <h1>Kvótavaktin</h1>
-    <p class="lead">Hver heldur kvótanum? <strong>Aflamark, eigendur og samþjöppun</strong> — rakin gegnum eignarhaldskeðjur. Þorskígildi allra útgerða, tengd við ársreikninga, endanlega eigendur og 12%-þak laganna.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Aflamark og krókaaflamark frá Fiskistofu, umreiknað í þorskígildi. Eigendahópar eru raktir gegnum eignarhaldsnet Karps (hluthafaskrár ársreikninga + fyrirtækjaskrá). Áætlun Karps byggð á opinberum skrám — ekki úrskurður um tengda aðila skv. lögum.">ⓘ</i> Heimild: <span id="kv-heimild">Fiskistofa — aflamark í þorskígildum</span> · uppfært <span id="kv-uppfaert">—</span><span id="kv-timabil"></span></p>
+    <SiduHaus kicker="Karp+ · Sjávarútvegur" titill="Kvótavaktin">
+      <p class="lead">Hver heldur kvótanum? <strong>Aflamark, eigendur og samþjöppun</strong> — rakin gegnum eignarhaldskeðjur. Þorskígildi allra útgerða, tengd við ársreikninga, endanlega eigendur og 12%-þak laganna.</p>
+      <p class="datainfo"><i class="tip" tabindex="0" data-tip="Aflamark og krókaaflamark frá Fiskistofu, umreiknað í þorskígildi. Eigendahópar eru raktir gegnum eignarhaldsnet Karps (hluthafaskrár ársreikninga + fyrirtækjaskrá). Áætlun Karps byggð á opinberum skrám — ekki úrskurður um tengda aðila skv. lögum.">ⓘ</i> Heimild: <span id="kv-heimild">Fiskistofa — aflamark í þorskígildum</span> · uppfært <span id="kv-uppfaert">—</span><span id="kv-timabil"></span></p>
+    </SiduHaus>
 
     <!-- Sýnishorns-borði (?syni=1) — fyllt í runtime -->
     <div id="kv-syni"></div>
@@ -77,10 +78,8 @@ const jsonLd = {
 
   <style>
     main { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; }
     p { color: var(--ink); } p a { color: var(--gold); }
-    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: var(--ink); }
+    .lead strong { color: var(--ink); }
     h2 { font-size: 17px; color: var(--ink); margin: 38px 0 4px; }
     .sub { font-size: 13.5px; color: var(--muted); margin: 0 0 14px; line-height: 1.55; }
     .datainfo { font-size: 12.5px; color: var(--faint); margin: 6px 0 4px; }

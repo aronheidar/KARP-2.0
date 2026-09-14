@@ -2,6 +2,7 @@
 // Hagspár (#2 LOTA 9) — almennings-spárnar úr gamla: spáðu um lykilhagtölur
 // ársloka og sjáðu meðalspá lesenda (GET/POST /spa per topic gegnum auth.js).
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 const TOPICS = [
   { t: 'verdb_arslok26', l: 'Verðbólga í árslok 2026', u: '%', min: 0, max: 20, step: 0.1, hint: 'Ársverðbólga (VNV) í desember 2026' },
   { t: 'styriv_arslok26', l: 'Stýrivextir í árslok 2026', u: '%', min: 0, max: 14, step: 0.25, hint: 'Meginvextir Seðlabankans eftir síðustu ákvörðun ársins' },
@@ -13,10 +14,10 @@ const desc = 'Hagspár lesenda Karp — spáðu um verðbólgu, stýrivexti og h
 
 <Layout title="Hagspár — spáðu um hagtölurnar | Karp" description={desc} canonical="https://karp.is/hagspar/" ogTitle="Hagspár Karp">
   <main data-pg="hagspar">
-    <p class="kicker">Hagvísir Íslands · Efnahagur</p>
-    <h1>Hagspár</h1>
-    <p>Hvað heldur <strong>þú</strong>? Spáðu um lykilhagtölur ársloka — og sjáðu meðalspá lesenda Karp. Spáin þín er nafnlaus í samtölunni.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Spátölur: DataMapper-veita Alþjóðagjaldeyrissjóðsins (IMF) og birtar spár greiningaraðila. Spárnar eru mat útgefenda, ekki Karp.">ⓘ</i> Um gögnin á síðunni</p>
+    <SiduHaus kicker="Hagvísir Íslands · Efnahagur" titill="Hagspár"
+      tip="Spátölur: DataMapper-veita Alþjóðagjaldeyrissjóðsins (IMF) og birtar spár greiningaraðila. Spárnar eru mat útgefenda, ekki Karp.">
+      <p>Hvað heldur <strong>þú</strong>? Spáðu um lykilhagtölur ársloka — og sjáðu meðalspá lesenda Karp. Spáin þín er nafnlaus í samtölunni.</p>
+    </SiduHaus>
     <div id="sp-list">{TOPICS.map((t) => <div class="spa-card" data-topic={t.t} data-l={t.l} data-u={t.u} data-min={t.min} data-max={t.max} data-step={t.step} data-hint={t.hint}>Hleð…</div>)}</div>
     <p class="note">ⓘ Óformlegar spár lesenda — ekki opinberar spár. Berðu saman við <a href="/verdlag/">verðbólguna núna</a> og <a href="/hagvoxtur/">hagvöxtinn</a>.</p>
     <p class="foot">Forþjónað (SSG) {updated}. Spár vistast um <code>/spa</code>-endapunktinn (innskráning þarf til að senda). #2.</p>
@@ -24,8 +25,7 @@ const desc = 'Hagspár lesenda Karp — spáðu um verðbólgu, stýrivexti og h
 
   <style>
     main { max-width: 680px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; } p { color: var(--ink); } p a { color: var(--gold); }
+    p { color: var(--ink); } p a { color: var(--gold); }
     .note { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid var(--gold); padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 18px 0 0; }
     .foot { font-size: 12px; color: var(--faint); margin-top: 22px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>

@@ -5,6 +5,7 @@
 // Gögnin eru TÖFÐ/lokagildi (ekki rauntími). Í app-skelinni (Layout). #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import { fmtNum } from '@lib/format.mjs';
 import MARKADIR from '@gogn/markadir.json';
 import RAUNVIRDI from '@gogn/raunvirdi.json';
@@ -88,10 +89,10 @@ const jsonLd = {
 
 <Layout title="Markaðir — hlutabréf & ríkisbréf | Karp" description={desc} canonical="https://karp.is/markadir/" jsonLd={jsonLd} ogTitle="Markaðir á Íslandi">
   <main data-pg="markadir">
-    <p class="kicker">Hagvísir Íslands · Markaðir</p>
-    <h1>Markaðir</h1>
-    <p>Íslenskur hlutabréfamarkaður — úrvalsvísitala, {stocks.length} skráð félög og ávöxtunarferill ríkisbréfa.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Markaðsgögn: verð um opna veitu Yahoo Finance (allt að 15 mín töf) og opinber viðmiðunargengi — upplýsingar, ekki viðskiptaráðgjöf. Bókfært gengi er úr síðustu birtu ársreikningum félaganna.">ⓘ</i> Um gögnin á síðunni</p>
+    <SiduHaus kicker="Hagvísir Íslands · Markaðir" titill="Markaðir"
+      tip="Markaðsgögn: verð um opna veitu Yahoo Finance (allt að 15 mín töf) og opinber viðmiðunargengi — upplýsingar, ekki viðskiptaráðgjöf. Bókfært gengi er úr síðustu birtu ársreikningum félaganna.">
+      <p>Íslenskur hlutabréfamarkaður — úrvalsvísitala, {stocks.length} skráð félög og ávöxtunarferill ríkisbréfa.</p>
+    </SiduHaus>
     <p class="note">ⓘ Gögnin eru <strong>töfð lokagildi</strong> (EOD), ekki rauntími — rauntímagögn kauphallar eru leyfisbundin. Ekki fjárfestingarráðgjöf.</p>
 
     <div class="idx">
@@ -250,8 +251,6 @@ const jsonLd = {
 
   <style>
     main { max-width: 980px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
     p { color: var(--ink); }
     h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 10px; }
     .note { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid var(--gold); padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 14px 0; }

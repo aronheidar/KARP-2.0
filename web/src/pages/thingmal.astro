@@ -6,6 +6,7 @@
 // Í app-skelinni (Layout). #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import ThingTabs from '../components/ThingTabs.astro';
 import { partyName } from '@lib/parties.mjs';
 import FRUMVORP from '@gogn/frumvorp.json';
@@ -105,15 +106,15 @@ const jsonLd = {
   ogTitle="Þingmál á Alþingi"
 >
   <main data-pg="thingmal">
-    <p class="kicker">Hagvísir Íslands · Alþingi</p>
-    <ThingTabs active="mal" />
-    <h1>Þingmál</h1>
-    <p>
-      {bills.length} nýjustu efnismál á Alþingi — frumvörp og þingsályktunartillögur með niðurstöðu
-      atkvæðagreiðslu. {nPassed} þeirra voru samþykkt. <strong>Kjóstu þína eigin skoðun</strong> á hverju máli
-      og sjáðu hvernig aðrir lesendur Karp greiða atkvæði.
-    </p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Þingmál: opin XML-gögn Alþingis, listi uppfærður á ~10 mín fresti um veitu Karp. Staða máls fylgir flokkun Alþingis.">ⓘ</i> Um gögnin á síðunni</p>
+    <SiduHaus kicker="Hagvísir Íslands · Alþingi" titill="Þingmál"
+      tip="Þingmál: opin XML-gögn Alþingis, listi uppfærður á ~10 mín fresti um veitu Karp. Staða máls fylgir flokkun Alþingis.">
+      <ThingTabs slot="flipar" active="mal" />
+      <p>
+        {bills.length} nýjustu efnismál á Alþingi — frumvörp og þingsályktunartillögur með niðurstöðu
+        atkvæðagreiðslu. {nPassed} þeirra voru samþykkt. <strong>Kjóstu þína eigin skoðun</strong> á hverju máli
+        og sjáðu hvernig aðrir lesendur Karp greiða atkvæði.
+      </p>
+    </SiduHaus>
     <p class="note">
       ⓘ „Alþingi" sýnir raunatkvæði þingmanna (með–á móti · fjarvist). „Þín skoðun" er óformleg könnun meðal
       innskráðra lesenda Karp — ekki þingatkvæði. Gögn frá althingi.is.
@@ -179,8 +180,6 @@ const jsonLd = {
   </style>
   <style>
     main { max-width: 1020px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
     p { color: var(--ink); }
     .note { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid var(--gold); padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0 22px; }
     .lm-h { font-size: 15px; color: #ff6d7a; text-transform: uppercase; letter-spacing: .05em; margin: 4px 0 8px; }

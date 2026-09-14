@@ -5,6 +5,7 @@
 // Gögn: web/public/gogn/hms/matssvaedi_2027.json (build_hms_2027.py, árlegt) + gogn/matssvaedi_solur.json
 // (build_fasteignaskra.js, nætur-keyrsla). Svæðið á hverju heimilisfangi er k-NN úr sölu-úrtaki HMS — leiðbeinandi.
 import Layout from '../../layouts/Layout.astro';
+import SiduHaus from '../../components/SiduHaus.astro';
 import MS from '../../../public/gogn/hms/matssvaedi_2027.json';
 import ZS from '@gogn/matssvaedi_solur.json';
 import HL from '../../../public/gogn/hms/mat_hlutfall.json';   // kaupverð/fasteignamat sl. 12 mán per svæði (build_fasteignaskra.js)
@@ -51,9 +52,12 @@ const pc1 = (x) => (x * 100).toFixed(1).replace('.', ',') + '%';
 ---
 <Layout title={title} description={desc} canonical={canonical}>
   <main data-pg="fasteignaverd">
-    <p class="kicker"><a href="/fasteignir/">Fasteignaverð</a> · <a href="/fasteignaverd/">Matssvæði HMS</a> · svæði {nr}</p>
-    <h1>Fasteignaverð — {heiti}</h1>
-    <p>Þinglýst kaup íbúðarhúsnæðis í matssvæðinu <strong>{heiti}</strong> (matssvæði HMS nr. {nr}) úr kaupskrá HMS, ásamt opinberu meðalverði og breytingu fasteignamats 2027. Vilt þú <a href="/fasteignavakt/">verðmeta eign í svæðinu</a>? Fasteignavaktin notar sömu sölur, stærðarleiðréttar, og sýnir matssvæðið á hverri eign.</p>
+    <SiduHaus titill={`Fasteignaverð — ${heiti}`}>
+      <Fragment slot="kicker">
+        <p class="kicker"><a href="/fasteignir/">Fasteignaverð</a> · <a href="/fasteignaverd/">Matssvæði HMS</a> · svæði {nr}</p>
+      </Fragment>
+      <p>Þinglýst kaup íbúðarhúsnæðis í matssvæðinu <strong>{heiti}</strong> (matssvæði HMS nr. {nr}) úr kaupskrá HMS, ásamt opinberu meðalverði og breytingu fasteignamats 2027. Vilt þú <a href="/fasteignavakt/">verðmeta eign í svæðinu</a>? Fasteignavaktin notar sömu sölur, stærðarleiðréttar, og sýnir matssvæðið á hverri eign.</p>
+    </SiduHaus>
 
     <div class="kpis">
       <div class="kpi"><div class="k-l">Fjölbýli — Karp, sl. 12 mán</div><div class="k-v">{z && z.medFjol ? groupThousands(z.medFjol) : '–'}</div><div class="k-s">þús.kr/m² miðgildi · {z ? z.nFjol : 0} sölur{z && z.prevFjol && z.medFjol ? <> · <span class={brey(z.medFjol, z.prevFjol) >= 0 ? 'up' : 'dn'}>{pcS(brey(z.medFjol, z.prevFjol))}</span> frá fyrra ári</> : ''}</div></div>

@@ -5,6 +5,7 @@
 // SSR: KPIs + dreifing eftir leyfistegund + dreifing eftir svæði. Client: leitanleg skrá.
 // Sniðið eltir eftirlit.astro (vakt-stíll). Enginn sértök persónuvernd — lögaðila-rekstrarleyfi, opinbert.
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 // Gögnin liggja í public/gogn (þaðan sækir client-hlutinn þau líka um /gogn/…);
 // Vite leysir þessa JSON-innflutninga á byggingartíma (path-óháð) fyrir SSR-tölurnar.
 import REK from '../../public/gogn/rekstrarleyfi.json';
@@ -108,10 +109,10 @@ const desc = `Leyfaskrá — vafrað yfirlit yfir ${nf(totalHafar)} handhafa rek
   ogTitle="Leyfaskrá — hverjir hafa rekstrar- og ferðaþjónustuleyfi?"
 >
   <main data-pg="leyfi">
-    <p class="kicker">Hagvísir Íslands · Atvinnuleyfi</p>
-    <h1>Leyfaskrá</h1>
-    <p class="lead">Vafrað yfirlit yfir <strong>{nf(totalHafar)}</strong> handhafa opinberra rekstrarleyfa — gisti-, veitinga- og vínveitingaleyfa <strong>Sýslumanna</strong>, <strong>ferðaþjónustuleyfa Ferðamálastofu</strong> (ferðaskrifstofur og dagsferðasalar) og <strong>apótekaleyfa Lyfjastofnunar</strong> (apótek og lyfjasölur). Samtals <strong>{nf(totalLeyfi)}</strong> útgefin leyfi. Fletta má upp einstöku fyrirtæki á <a href="/fyrirtaeki/">fyrirtækjaprófílum</a> þar sem leyfin birtast einnig per-kennitölu.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Heimildir: Rekstrarleyfi veitinga- og gististaða + vínveitingaleyfi frá Sýslumönnum (island.is). Ferðaskrifstofu- og dagsferðasalaleyfi frá Ferðamálastofu. Apóteka- og lyfjasöluleyfi frá Lyfjastofnun. Rekstrarleyfi tilgreina rekstrarstað (heimilisfang) en ekki nafn leyfishafa; ferðaþjónustuleyfi og apótek tilgreina nafn. Aðeins gild/útgefin leyfi.">ⓘ</i> Um gögnin og heimildir</p>
+    <SiduHaus kicker="Hagvísir Íslands · Atvinnuleyfi" titill="Leyfaskrá">
+      <p class="lead">Vafrað yfirlit yfir <strong>{nf(totalHafar)}</strong> handhafa opinberra rekstrarleyfa — gisti-, veitinga- og vínveitingaleyfa <strong>Sýslumanna</strong>, <strong>ferðaþjónustuleyfa Ferðamálastofu</strong> (ferðaskrifstofur og dagsferðasalar) og <strong>apótekaleyfa Lyfjastofnunar</strong> (apótek og lyfjasölur). Samtals <strong>{nf(totalLeyfi)}</strong> útgefin leyfi. Fletta má upp einstöku fyrirtæki á <a href="/fyrirtaeki/">fyrirtækjaprófílum</a> þar sem leyfin birtast einnig per-kennitölu.</p>
+      <p class="datainfo"><i class="tip" tabindex="0" data-tip="Heimildir: Rekstrarleyfi veitinga- og gististaða + vínveitingaleyfi frá Sýslumönnum (island.is). Ferðaskrifstofu- og dagsferðasalaleyfi frá Ferðamálastofu. Apóteka- og lyfjasöluleyfi frá Lyfjastofnun. Rekstrarleyfi tilgreina rekstrarstað (heimilisfang) en ekki nafn leyfishafa; ferðaþjónustuleyfi og apótek tilgreina nafn. Aðeins gild/útgefin leyfi.">ⓘ</i> Um gögnin og heimildir</p>
+    </SiduHaus>
 
     <div class="kpis">
       <div class="kpi"><div class="k-l">Leyfishafar</div><div class="k-v">{nf(totalHafar)}</div><div class="k-s">kennitölur með leyfi</div></div>
@@ -170,10 +171,8 @@ const desc = `Leyfaskrá — vafrað yfirlit yfir ${nf(totalHafar)} handhafa rek
 
   <style is:global>
     main[data-pg="leyfi"] { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
-    main[data-pg="leyfi"] .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    main[data-pg="leyfi"] h1 { font-size: 32px; margin: 0 0 10px; }
     main[data-pg="leyfi"] p { color: var(--ink); } main[data-pg="leyfi"] p a { color: var(--gold); }
-    main[data-pg="leyfi"] .lead { font-size: 15px; line-height: 1.6; } main[data-pg="leyfi"] .lead strong { color: var(--ink); }
+    main[data-pg="leyfi"] .lead strong { color: var(--ink); }
     main[data-pg="leyfi"] h2 { font-size: 17px; color: var(--ink); margin: 38px 0 4px; }
     main[data-pg="leyfi"] .sub { font-size: 13.5px; color: var(--muted); margin: 0 0 14px; line-height: 1.55; }
     main[data-pg="leyfi"] .datainfo { font-size: 12.5px; color: var(--faint); margin: 6px 0 4px; }

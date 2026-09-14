@@ -8,6 +8,7 @@ import { partyName, colorByName } from '@lib/parties.mjs';
 import { slugify } from '@lib/format.mjs';
 import Layout from '../layouts/Layout.astro';
 import ThingTabs from '../components/ThingTabs.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 
 import MpModal from '../components/MpModal.astro';
 import THINGMENN from '@gogn/althingi.json';
@@ -84,10 +85,11 @@ const dIS = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.` : '');
   ogTitle={`Alþingi — Þingið ${LTHING}`}
 >
   <main data-pg="althingi">
-    <p class="kicker">Hagvísir Íslands · Alþingi</p>
-    <ThingTabs active="salur" />
-    <h1>Þingið {LTHING}{GOV.length > 0 ? ` — ${govNum} flokka meirihlutastjórn` : ''}</h1>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Ráðherrar, sætakort, atkvæði og mál: opin XML-gögn Alþingis. Sætaspá (fylgi→þingsæti) er á /kannanir/.">ⓘ</i> Um gögnin á síðunni</p>
+    <SiduHaus kicker="Hagvísir Íslands · Alþingi" titill={`Þingið ${LTHING}`}
+      lysing={GOV.length > 0 ? `${govNum} flokka meirihlutastjórn` : undefined}
+      tip="Ráðherrar, sætakort, atkvæði og mál: opin XML-gögn Alþingis. Sætaspá (fylgi→þingsæti) er á /kannanir/.">
+      <ThingTabs slot="flipar" active="salur" />
+    </SiduHaus>
     {PM && <div class="cab">
       <button class="cab-pm cab-clk" data-id={PM.id} type="button" style={`--pc:${colorByName(PM.flokur)}`}>
         {PM.mynd && <img src={PM.mynd} alt={PM.nafn} loading="lazy" />}
@@ -254,8 +256,6 @@ const dIS = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.` : '');
     .dg-d-t b { color: var(--gold); } .dg-d-u b { color: #c95cf7; }
     .dg-d-h { font-size: 11px; color: #19d3c5; text-transform: uppercase; letter-spacing: .04em; margin: 10px 0 2px; }
     .dg-none { color: var(--faint); font-size: 12.5px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
     p { color: var(--ink); }
     .tiles { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0 6px; }
     .tile { flex: 1; min-width: 150px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 14px 16px; }

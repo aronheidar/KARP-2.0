@@ -3,6 +3,7 @@
 // (lifandi fyrirsagnir /frettir) + „Eftir fyrirtæki" (35 félög: lifandi
 // umfjöllun /frettir?q= + BAKAÐ viðhorf (sentiment.json) + kennitölur).
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import FYRIRTAEKI from '../data/fyrirtaeki.json';
 import SENTIMENT from '@gogn/sentiment.json';
 import RAUNVIRDI from '@gogn/raunvirdi.json';
@@ -58,10 +59,10 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
 
 <Layout title="Vöktun — fjölmiðlaumfjöllun | Karp" description={desc} canonical="https://karp.is/frettir/" ogTitle="Fjölmiðlavöktun Karp">
   <main data-pg="frettir">
-    <p class="kicker">Hagvísir Íslands · Umfjöllun</p>
-    <h1>Vöktun</h1>
-    <p>Nýjustu fyrirsagnir íslenskra miðla eftir málefnum — og greining á hvaða aðila sem er í Fjölmiðlavakt. Leitin er alltaf opin.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Fréttavöktunin birtir aðeins fyrirsagnir og tengla úr opnum RSS-veitum íslenskra miðla (og Bing News fyrir erlenda umfjöllun um Ísland). Tónn og viðhorf eru vélrænt mat á fyrirsögnum — nálgun, ekki ritstjórnarmat.">ⓘ</i> Um gögnin á síðunni</p>
+    <SiduHaus kicker="Hagvísir Íslands · Umfjöllun" titill="Vöktun"
+      tip="Fréttavöktunin birtir aðeins fyrirsagnir og tengla úr opnum RSS-veitum íslenskra miðla (og Bing News fyrir erlenda umfjöllun um Ísland). Tónn og viðhorf eru vélrænt mat á fyrirsögnum — nálgun, ekki ritstjórnarmat.">
+      <p>Nýjustu fyrirsagnir íslenskra miðla eftir málefnum — og greining á hvaða aðila sem er í Fjölmiðlavakt. Leitin er alltaf opin.</p>
+    </SiduHaus>
 
     <div class="fy-search">
       <input id="fy-q" type="text" placeholder="Leitaðu að hvaða fyrirtæki, stofnun eða einstaklingi sem er…" autocomplete="off" aria-label="Leita að fyrirtæki, stofnun eða einstaklingi" />
@@ -189,8 +190,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
        → Astro-scoped stílar (.rel-l[data-astro-cid-…]) giltu ekki á þá hnúta. Sjá [[karp-dev-verify]]. -->
   <style is:global>
     main { max-width: 980px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 12px; } p { color: var(--ink); }
+    p { color: var(--ink); }
     .chip-sep { width: 1px; align-self: stretch; background: rgba(255,255,255,.14); margin: 0 4px; }
     .rel { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 2px 0 8px; }
     .rel-l { font-size: 11.5px; color: var(--faint); }

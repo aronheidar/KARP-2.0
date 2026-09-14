@@ -6,6 +6,7 @@
 // Bara tölurnar með heimildum — engin afstaða. #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import { fmtNum, groupThousands } from '@lib/format.mjs';
 import SKATTAR from '@gogn/skattar.json';
 import ORKA from '@gogn/orka.json';
@@ -38,9 +39,9 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Au
 
 <Layout title="Auðlindir Íslands — hver nýtir og hvað borgar hver? | Karp" description={desc} canonical="https://karp.is/audlindir/" jsonLd={jsonLd} ogTitle="Auðlindir Íslands í tölum">
   <main data-pg="audlindir">
-    <p class="kicker">Hagvísir Íslands · Atvinnuvegir</p>
-    <h1>Auðlindir Íslands</h1>
-    <p>Fiskurinn, orkan, náttúran — og gjöldin sem renna til samfélagsins fyrir nýtinguna. Hér eru tölurnar hlið við hlið, með heimildum. Karp tekur ekki afstöðu; það gera lesendur.</p>
+    <SiduHaus kicker="Hagvísir Íslands · Atvinnuvegir" titill="Auðlindir Íslands">
+      <p>Fiskurinn, orkan, náttúran — og gjöldin sem renna til samfélagsins fyrir nýtinguna. Hér eru tölurnar hlið við hlið, með heimildum. Karp tekur ekki afstöðu; það gera lesendur.</p>
+    </SiduHaus>
 
     <div class="kpis">
       {veidigjald != null && <div class="kpi"><div class="k-l">Veiðigjald <i class="tip" tabindex="0" data-tip={`Gjald útgerða fyrir aðgang að fiskveiðiauðlindinni, skv. tekjuáætlun fjárlaga ${SKATTAR.ar}. Heimild: fjárlög.`}>ⓘ</i></div><div class="k-v">{fmtNum(veidigjald, 1)}</div><div class="k-s">ma.kr · fjárlög {SKATTAR.ar}</div></div>}
@@ -78,8 +79,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Au
 
   <style>
     main { max-width: 940px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; } p { color: var(--ink); }
+    p { color: var(--ink); }
     h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 28px 0 8px; }
     .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 18px 0 6px; }
     .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }

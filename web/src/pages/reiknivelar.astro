@@ -5,6 +5,7 @@
 // 2026-fastar úr minni „karp-reiknivelar" (Skatturinn / markaðsvextir mið-2026).
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import SVFIN from '@gogn/sveitarfelog_fin.json';
 import FASTEIGNIR from '@gogn/fasteignir.json';
 
@@ -44,8 +45,8 @@ const jsonLd = {
   ogTitle="Reiknivélar 2026"
 >
   <main data-pg="reiknivelar">
-    <p class="kicker">Hagvísir Íslands · Reiknivélar</p>
-    <h1>Reiknivélar</h1>
+    <SiduHaus kicker="Hagvísir Íslands · Reiknivélar" titill="Reiknivélar"
+      tip="Reiknivélarnar nota skatta- og lífeyrisfasta ársins 2026 úr lögum og reglugerðum. Niðurstöðurnar eru leiðbeinandi nálgun — ekki fjármála- eða skattaráðgjöf." />
 
     <div class="tabs" role="tablist">
       <button class="tab on" data-t="laun">Laun</button>
@@ -57,7 +58,6 @@ const jsonLd = {
     <!-- ── LAUN ── -->
     <section id="p-laun" class="panel">
       <p>Reiknaðu <strong>útborguð laun</strong> úr brúttólaunum með skattþrepum 2026 og <strong>réttu útsvari</strong> þíns sveitarfélags.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Reiknivélarnar nota skatta- og lífeyrisfasta ársins 2026 úr lögum og reglugerðum. Niðurstöðurnar eru leiðbeinandi nálgun — ekki fjármála- eða skattaráðgjöf.">ⓘ</i> Um gögnin á síðunni</p>
       <div class="calc">
         <div class="form">
           <label>Brúttólaun á mánuði
@@ -154,8 +154,6 @@ const jsonLd = {
 
   <style>
     main { max-width: 760px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 14px; }
     p { color: var(--ink); }
     .tabs { display: flex; gap: 6px; border-bottom: 1px solid rgba(255,255,255,.1); margin-bottom: 18px; }
     .tab { background: none; border: 0; color: var(--muted); font-size: 15px; font-weight: 700; padding: 10px 14px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }

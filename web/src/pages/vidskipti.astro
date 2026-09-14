@@ -7,6 +7,7 @@
 // ATH: heimskorta-GeoJSON helst RUNTIME-sótt í vafra (client-eyja). Í app-skelinni. #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
 import { fmtNum, groupThousands } from '@lib/format.mjs';
 import DATA from '@gogn/vidskipti.json';
 
@@ -18,10 +19,10 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ut
 
 <Layout title="Utanríkisverslun — út- og innflutningur | Karp" description={desc} canonical="https://karp.is/vidskipti/" jsonLd={jsonLd} ogTitle="Utanríkisverslun Íslands">
   <main data-pg="vidskipti">
-    <p class="kicker">Hagvísir Íslands · Efnahagur</p>
-    <h1>Utanríkisverslun</h1>
-    <p>Hvað flytur Ísland út og inn — sjávarafurðir og ál á móti vélum og eldsneyti. Heimild: Hagstofa Íslands (vöruviðskipti).</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Utanríkisverslun: inn- og útflutningstölur Hagstofunnar (PxWeb) eftir vöruflokkum.">ⓘ</i> Um gögnin á síðunni</p>
+    <SiduHaus kicker="Hagvísir Íslands · Efnahagur" titill="Utanríkisverslun" heimild="Hagstofa Íslands (vöruviðskipti)"
+      tip="Utanríkisverslun: inn- og útflutningstölur Hagstofunnar (PxWeb) eftir vöruflokkum.">
+      <p>Hvað flytur Ísland út og inn — sjávarafurðir og ál á móti vélum og eldsneyti.</p>
+    </SiduHaus>
 
     <div class="kpis">
       {EXP && <div class="kpi"><div class="k-l">Útflutningur</div><div class="k-v">{groupThousands(EXP.total)}</div><div class="k-s">ma.kr · {EXP.year}</div></div>}
@@ -79,8 +80,6 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ut
 
   <style>
     main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
     p { color: var(--ink); }
     h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
     .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 18px 0 6px; }
