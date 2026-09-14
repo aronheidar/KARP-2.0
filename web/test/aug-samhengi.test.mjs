@@ -68,6 +68,10 @@ const SPURNINGAR = [
   ['hvað fóru margir farþegar um Keflavíkurflugvöll?', 'umferd.json'],
   ['hvað hefur hækkað mest síðan 2000?', 'furduhagfraedi.json'],
   ['hver talaði um fjárlögin?', 'raedur_nylegar.json'],
+  // Sveitarfélaga-fjárhagur: NAFNGREINT sveitarfélag — orðalagið sem féll ígegn í fyrstu atrennu
+  ['hvað skuldar Kópavogsbær á hvern íbúa?', 'sveitarfelog_fin.json'],
+  ['hvernig stendur Reykjavíkurborg fjárhagslega?', 'sveitarfelog_fin.json'],
+  ['hvaða sveitarfélög eru skuldsettust?', 'sveitarfelog_fin.json'],
   // Eldri færslur — vörn gegn því að nýju regexin steli spurningum frá þeim.
   ['hverjir eru stýrivextirnir?', 'sedlabanki.json'],
   ['hvert er atvinnuleysið?', 'atvinnuleysi.json'],

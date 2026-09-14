@@ -471,7 +471,13 @@ export const AUG = [
   // ⚠⚠ GRUNNURINN ER A-HLUTI, ekki samstæða. Tölurnar eru því LÆGRI en samstæðuskuldir sem
   //   sveitarfélögin sjálf birta oft. Grúnnurinn er sagður berum orðum í svarinu — sama regla og
   //   gildir um þeirra ÞRÍÁ grunna í ríkisfjármálum: aldrei bera saman á milli grunna.
-  { rx: /sveitarfélag.*(skuld|fjárhag|rekstr|afkom)|skuldir.*sveitarf|fjárhagur.*sveitarf|útsvar|hvernig stæður.*(bær|sveitarf)|skuldsett/i, file: 'sveitarfelog_fin.json', pg: '/sveitarfelog/', fn: (j, q) => {
+  // ⚠ REGEXIÐ VAR OF ÞRÖNGT Í FYRSTU ATRENNU (og hafði innsláttarvillu: „stæður“ f. „stendur“).
+  //   Yfirlits-spurningin virkaði en þau orðalög sem fólk notar í raun — sveitarfélagið NAFNGREINT —
+  //   féllu ígegn: „Hvað skuldar Kópavogsbær…“, „Hvernig stendur Reykjavíkurborg fjárhagslega?“.
+  //   Fannst í LIFANDI prófun, ekki í prófinu — próftaðlan náði aðeins yfirlits-orðalaginu.
+  //   Nú: fjármálaorð NÁLÆGT sveitarfélaga-endingu, í hvorri röð sem er. Endingin er lykillinn —
+  //   „KópavogsBÆR“, „ReykjavíkurBORG“ — svo regexið þarf ekki að telja upp 62 nöfn.
+  { rx: /(skuld|fjárhag|fjárhagslega|rekstrarniðurstöð|afkom|útsvar|ársreikning|hallarekstr)[^?.]{0,45}(bær|bæjar|bæjarins|borg|borgar|hrepp|sveitarfélag|byggð|kaupstað)|(bær|bæjar|bæjarins|borg|borgar|hrepp|sveitarfélag|byggð|kaupstað)[^?.]{0,45}(skuld|fjárhag|fjárhagslega|rekstrarniðurstöð|afkom|útsvar|ársreikning|hallarekstr)|skuldsett|útsvar/i, file: 'sveitarfelog_fin.json', pg: '/sveitarfelog/', fn: (j, q) => {
     const m = j._meta || {}, ql = q.toLowerCase();
     const nofn = Object.keys(j).filter((k) => !k.startsWith('_'));
     if (!nofn.length) return '';
