@@ -303,5 +303,8 @@ export async function ticketsOverview(env) {
     if (!meta || meta.atkvaedi !== 'ja' || !['svara', 'meira'].includes(meta.adgerd)) continue;
     if (!x.svar_sent || Number(x.svar_sent) < Number(x.ts)) moot_osent.push(x.ticket_id);
   }
-  return { list, open: list.filter((t) => OPNAR_STODUR.includes(t.stada)).length, by, off, moot_bida, moot_osent };
+  // „Leyst án þín": beiðnir þar sem agentinn sendi sjálfur efnislegt svar (KB orðrétt). Ein talning
+  // yfir alla sögu — mælikvarði á hvort sjálfvirknin sé raunverulega að létta af Aroni.
+  const sjalfv = await env.TENGSL.prepare("SELECT COUNT(DISTINCT ticket_id) n FROM ticket_msgs WHERE dir='out' AND sent_by='agent'").first().catch(() => null);
+  return { list, open: list.filter((t) => OPNAR_STODUR.includes(t.stada)).length, by, off, moot_bida, moot_osent, sjalfvirk: Number(sjalfv && sjalfv.n) || 0 };
 }

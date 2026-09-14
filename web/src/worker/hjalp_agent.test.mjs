@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { adminTicketHandler, sendSvar } from './hjalp_agent.mjs';
+import { adminTicketHandler, sendSvar, ticketsOverview } from './hjalp_agent.mjs';
 import { _hmac } from './felag.mjs';
 
 // ── Fölsuð D1: tickets + ticket_msgs + users + stjorn_sync — nóg fyrir svara/samthykkja/nota/stada ─────────────────
@@ -19,6 +19,11 @@ function fakeDb(state) {
     if (/^INSERT INTO ticket_msgs/.test(sql)) { state.msgs.push({ dir: args[2], sent_by: args[3], til: args[5], efni: args[6], texti: args[7] }); return { meta: {} }; }
     if (/SELECT is_admin FROM users WHERE id=\?/.test(sql)) return state.users[args[0]] || null;
     if (/SELECT v FROM stjorn_sync/.test(sql)) return null;
+    // ── ticketsOverview ──────────────────────────────────────────────────────────────────────────────────────────
+    if (/^SELECT id, created, updated, uppruni, nafn, netfang, flokkur, tegund, forgangur, efni, lysing, stada, ack_sent, svar_sent, cto_pr FROM tickets ORDER BY created DESC LIMIT 60$/.test(sql)) return { results: Object.values(state.tickets) };
+    if (/^SELECT m\.ticket_id, MAX\(CASE WHEN m\.sent_by='moot' THEN m\.ts END\) t_moot, MAX\(CASE WHEN m\.sent_by='aron' THEN m\.ts END\) t_atkv FROM ticket_msgs m JOIN tickets t ON t\.id=m\.ticket_id WHERE m\.dir='moot' AND t\.stada IN \([?,]+\) GROUP BY m\.ticket_id$/.test(sql)) return { results: [] };
+    if (/^SELECT m\.ticket_id, m\.ts, m\.meta, t\.svar_sent FROM ticket_msgs m JOIN tickets t ON t\.id=m\.ticket_id WHERE m\.dir='moot' AND m\.sent_by='aron' AND t\.stada IN \([?,]+\) ORDER BY m\.ts DESC, m\.id DESC$/.test(sql)) return { results: [] };
+    if (/^SELECT COUNT\(DISTINCT ticket_id\) n FROM ticket_msgs WHERE dir='out' AND sent_by='agent'$/.test(sql)) return { n: state.sjalfvirk || 0 };
     throw new Error('fakeDb: óþekkt SQL: ' + sql);
   };
   return {
@@ -123,4 +128,13 @@ test('cto: dispatch ber event_type cto {ticket} (óbreytt eftir _ghDispatch-samr
   assert.deepEqual(await js(await adminTicketHandler(req({ action: 'cto', id: 1 }, { 'X-Admin-Key': 'adm-key' }), env, {})), { ok: true, status: 204 });
   assert.deepEqual(dispatches(log), [{ event_type: 'cto', client_payload: { ticket: 1 } }]);
   assert.equal(state.tickets[1].stada, 'cto');
+});
+
+// ── ticketsOverview: sjalfvirk ───────────────────────────────────────────────────────────────────────────────────
+test('ticketsOverview skilar sjalfvirk: fjölda mála sem agentinn svaraði sjálfur', async () => {
+  const state = mkState();
+  state.tickets[1].stada = 'svarad';
+  state.sjalfvirk = 2;
+  const r = await ticketsOverview(mkEnv(state));
+  assert.equal(r.sjalfvirk, 2);
 });
