@@ -1228,7 +1228,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
         if (!lockedTier(2) || hasSub('frettir') || document.getElementById('plus-gate-box')) return;
         [...m.children].forEach((c) => { c.style.display = 'none'; });
         const g = document.createElement('div'); g.id = 'plus-gate-box'; m.appendChild(g);
-        subGate(g, { service: 'frettir', price: 3900, trialDays: 30, title: 'Fjölmiðlavakt — Vöktun & umfjöllun', blurb: 'Umfjöllun um fyrirtæki, fólk og málefni úr 35+ íslenskum miðlum — leitarorðavaktir, tónn og hlutdeild umfjöllunar. Innifalin í Fyrirtæki- og Fyrirtæki+ þrepum Karp+.' });
+        subGate(g, { service: 'frettir', title: 'Fjölmiðlavakt — Vöktun & umfjöllun', blurb: 'Umfjöllun um fyrirtæki, fólk og málefni úr 35+ íslenskum miðlum — leitarorðavaktir, tónn og hlutdeild umfjöllunar. Innifalin í Fyrirtæki- og Fyrirtæki+ þrepum Karp+.' });
       });
     });
   </script>

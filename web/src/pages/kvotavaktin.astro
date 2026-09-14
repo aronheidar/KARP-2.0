@@ -608,7 +608,7 @@ const jsonLd = {
         }
         [...m.children].forEach((c) => { c.style.display = 'none'; });
         const g = document.createElement('div'); g.id = 'plus-gate-box'; m.appendChild(g);
-        subGate(g, { service: 'kvoti', price: 9900, trialDays: 14, title: 'Kvótavaktin', blurb: 'Aflamark alls flotans samlagt per útgerð og eigendahóp — samþjöppun, 12%-þaks nálgun, tegundagreining og tengsl við ársreikninga og eigendur. Fyrir fjölmiðla, banka, útgerðir og greinendur.' });
+        subGate(g, { service: 'kvoti', title: 'Kvótavaktin', blurb: 'Aflamark alls flotans samlagt per útgerð og eigendahóp — samþjöppun, 12%-þaks nálgun, tegundagreining og tengsl við ársreikninga og eigendur. Fyrir fjölmiðla, banka, útgerðir og greinendur.' });
         g.insertAdjacentHTML('beforeend', '<div class="kv-samplerow"><a href="/kvotavaktin/?syni=1">Sjá sýnishorn Kvótavaktarinnar</a></div>');
       });
     });

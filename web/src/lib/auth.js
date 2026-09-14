@@ -6,7 +6,7 @@
 
 // ATH: karp.is (apex, EKKI www) — WP-canonical hýsillinn þar sem innskráningar-kakan lifir.
 // Að sækja www hér skilar „útskráð" því kakan (host-only karp.is) berst ekki til www.
-import { tierLevelOf, limitsFor, THREP } from '../data/lausnir.js';
+import { tierLevelOf, limitsFor, THREP, SERLAUSNIR } from '../data/lausnir.js';
 const TIER_NAME = { 1: 'Grunnur', 2: 'Fyrirtæki', 3: 'Fyrirtæki+' };
 
 // WP→Cloudflare (F6): períferu notenda-gögn (vaktir/kvóti/samfélag) flutt í karp21-worker + D1
@@ -412,14 +412,14 @@ export async function karpCheckout(body, gateEl) {
 
 const GATE_CSS = '.plus-gate{max-width:520px;margin:24px auto;background:rgba(246,177,59,.06);border:1px solid rgba(246,177,59,.35);border-radius:16px;padding:24px 26px;text-align:center}'
   + '.pg-badge{display:inline-block;background:var(--gold);color:var(--surface);font-weight:800;font-size:12px;letter-spacing:.05em;padding:4px 12px;border-radius:999px}'
-  + '.pg-h{font-size:21px;color:#eaf1fb;margin:12px 0 6px}.pg-b{color:#cdd6e6;font-size:14px;line-height:1.55;margin:0 0 16px}'
+  + '.pg-h{font-size:21px;color:var(--ink);margin:12px 0 6px}.pg-b{color:var(--muted);font-size:14px;line-height:1.55;margin:0 0 16px}'
   + '.pg-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}'
   + '.pg-main{background:var(--gold);color:var(--surface);font-weight:800;font-size:14px;text-decoration:none;padding:11px 20px;border-radius:11px;border:0;cursor:pointer}'
-  + '.pg-sec{border:1px solid rgba(255,255,255,.2);color:#cdd6e6;font-size:14px;text-decoration:none;padding:11px 20px;border-radius:11px}'
-  + '.pg-note{color:#8fa0b8;font-size:12px;margin-top:12px}'
-  + '.sg-kt{padding:11px 14px;border:1px solid rgba(255,255,255,.2);border-radius:11px;background:rgba(255,255,255,.05);color:#eaf1fb;font:inherit;font-size:14px;width:200px;text-align:center;letter-spacing:.06em}'
+  + '.pg-sec{border:1px solid var(--line);color:var(--muted);font-size:14px;text-decoration:none;padding:11px 20px;border-radius:11px}'
+  + '.pg-note{color:var(--faint);font-size:12px;margin-top:12px}'
+  + '.sg-kt{padding:11px 14px;border:1px solid var(--line);border-radius:11px;background:var(--panel);color:var(--ink);font:inherit;font-size:14px;width:200px;text-align:center;letter-spacing:.06em}'
   + '.sg-kt:focus{outline:none;border-color:var(--gold)}'
-  + '.sg-err{color:#ff8a8a;font-size:12.5px;margin-top:10px}'
+  + '.sg-err{color:var(--slaemt);font-size:12.5px;margin-top:10px}'
   + '.sg-err a.pg-help,.pg-note a.pg-help{color:var(--gold);text-decoration:none}'
   + '.sg-checkout{margin-top:14px;text-align:left;min-height:60px}'
   + '.sg-frame{width:100%;min-height:540px;border:0;border-radius:12px;background:#fff;margin-top:12px}';
@@ -437,18 +437,39 @@ export function helpNote(el, fra) {
   n.innerHTML = 'Gengur ekki? ' + helpA('Fáðu aðstoð', fra) + ' — við svörum á netfangið þitt.';
 }
 
+// ── ProGate: EIN beinagrind undir allar sölugáttir (fasi 4d, 14.9.2026) ──────────────
+// Áður endurtóku plusGate/tierGate/subGate sömu uppbyggingu með þremur orðalögum. Þær eru nú
+// þunn hulstur utan um gateRender; öll þrjú halda sér á window.karpAuth (ytra viðmót).
+// Orðalagsreglan: VERÐIÐ FREMST í merkinu, engar upphrópanir, ein nóta.
+//   cfg = { merki, titill, lysing, adal:{txt,id|href}, auka:{txt,href}, nota }
+function gateRender(el, cfg) {
+  el.innerHTML = '<div class="plus-gate"><div class="pg-badge">' + esc(cfg.merki) + '</div>'
+    + '<h2 class="pg-h">' + esc(cfg.titill) + '</h2>'
+    + (cfg.lysing ? '<p class="pg-b">' + esc(cfg.lysing) + '</p>' : '')
+    + '<div class="pg-btns">'
+    + (cfg.adal.href ? '<a class="pg-main" href="' + esc(cfg.adal.href) + '">' + esc(cfg.adal.txt) + '</a>'
+                     : '<button class="pg-main" id="' + cfg.adal.id + '" type="button">' + esc(cfg.adal.txt) + '</button>')
+    + (cfg.auka ? '<a class="pg-sec" href="' + esc(cfg.auka.href) + '">' + esc(cfg.auka.txt) + '</a>' : '')
+    + '</div>'
+    + '<div class="pg-note">' + cfg.nota + ' · ' + helpA('Þarftu aðstoð?') + '</div></div>';
+}
+// Verð og prufudagar þjónustu-áskrifta koma ÚR data/lausnir.js (SERLAUSNIR) — aldrei handskrifuð
+// á kallstað, svo verðbreyting lendi ekki í fjórum útgáfum.
+const _serl = (s) => (SERLAUSNIR || []).find((x) => x.service === s) || {};
+
 // Teiknar Karp+ gátt-teaser inn í el (t.d. í stað læsts efnis). Innskráð → „Prófa frítt í mánuð"
 // (POST /plus/trial → reload); útskráð → innskráning (1 mánuður frír eftir á).
 export function plusGate(el, opts) {
   if (!el) return; injectGateCss(); opts = opts || {};
   const u = _u();
-  el.innerHTML = '<div class="plus-gate"><div class="pg-badge">Karp+</div>'
-    + '<h2 class="pg-h">' + esc(opts.title || 'Þetta er hluti af Karp+') + '</h2>'
-    + '<p class="pg-b">' + esc(opts.blurb || '') + '</p>'
-    + '<div class="pg-btns">'
-    + (u.loggedIn ? '<button class="pg-main" id="pg-trial" type="button">Prófa frítt í mánuð</button>' : '<a class="pg-main" href="' + esc(loginHref()) + '">Skráðu þig inn — 1 mánuður frír</a>')
-    + '<a class="pg-sec" href="/karp-pro/">Sjá Karp+</a></div>'
-    + '<div class="pg-note">Ókeypis fyrsta mánuðinn' + (opts.price ? ', svo ' + esc(opts.price) : '') + '. Hættu hvenær sem er. · ' + helpA('Þarftu aðstoð?') + '</div></div>';
+  gateRender(el, {
+    merki: 'Fyrsti mánuður frír',
+    titill: opts.title || 'Hluti af Karp+',
+    lysing: opts.blurb || '',
+    adal: u.loggedIn ? { txt: 'Prófa frítt í mánuð', id: 'pg-trial' } : { txt: 'Skrá inn', href: loginHref() },
+    auka: { txt: 'Sjá þrep og verð', href: '/karp-pro/#verd' },
+    nota: 'Fyrsti mánuðurinn er frír' + (opts.price ? ', svo ' + esc(opts.price) : '') + '. Engin binding.',
+  });
   const t = el.querySelector('#pg-trial');
   if (t) t.onclick = async () => { t.disabled = true; t.textContent = 'Virkja…'; const r = await karpPost('/plus/trial', {}); if (r && r.ok) location.reload(); else { t.disabled = false; t.textContent = 'Náði ekki — reyndu aftur'; helpNote(t); } };
 }
@@ -457,12 +478,15 @@ export function plusGate(el, opts) {
 export function tierGate(el, opts) {
   if (!el) return; injectGateCss(); opts = opts || {};
   const need = TIER_NAME[opts.minTier] || 'Karp+'; const u = _u();
-  el.innerHTML = '<div class="plus-gate"><div class="pg-badge">' + esc(need) + '-þrep</div>'
-    + '<h2 class="pg-h">' + esc(opts.title || 'Hluti af Karp+') + '</h2>'
-    + '<p class="pg-b">' + esc(opts.blurb || '') + '</p>'
-    + '<div class="pg-btns"><a class="pg-main" href="/karp-pro/#verd">Sjá þrep & verð</a>'
-    + (u.loggedIn ? '' : '<a class="pg-sec" href="' + esc(loginHref()) + '">Skrá inn</a>')
-    + '</div><div class="pg-note">Innifalið í ' + esc(need) + '-þrepi Karp+. Fyrsti mánuður frír. · ' + helpA('Þarftu aðstoð?') + '</div></div>';
+  const threp = (THREP || []).find((t) => t.heiti === need);
+  gateRender(el, {
+    merki: need + (threp && threp.verd ? ' · ' + krFmt(threp.verd) + ' kr/mán' : '-þrep'),
+    titill: opts.title || 'Hluti af Karp+',
+    lysing: opts.blurb || '',
+    adal: { txt: 'Sjá þrep og verð', href: '/karp-pro/#verd' },
+    auka: u.loggedIn ? null : { txt: 'Skrá inn', href: loginHref() },
+    nota: 'Innifalið í ' + esc(need) + '-þrepi Karp+. Fyrsti mánuðurinn er frír.',
+  });
 }
 
 // Þjónustu-gátt: efni sem fæst annaðhvort með sér-áskrift (opts.service + opts.price kr./mán. um Áskell)
@@ -470,17 +494,19 @@ export function tierGate(el, opts) {
 export function subGate(el, opts) {
   if (!el) return; injectGateCss(); opts = opts || {};
   const u = _u();
-  const verd = krFmt(opts.price) + ' kr./mán.';   // ⚠ EKKI toLocaleString('is-IS') — vafrar hafa oft enga íslenska staðfærslu
-  const trial = opts.trialDays > 0;
-  const cta = trial ? 'Prófa frítt í ' + opts.trialDays + ' daga' : 'Gerast áskrifandi — ' + verd;
-  const badge = trial ? opts.trialDays + ' daga frítt' : (opts.title || 'Karp+');
-  el.innerHTML = '<div class="plus-gate"><div class="pg-badge">' + esc(badge) + '</div>'
-    + '<h2 class="pg-h">' + esc(opts.title || 'Hluti af Karp+') + '</h2>'
-    + '<p class="pg-b">' + esc(opts.blurb || '') + '</p>'
-    + '<div class="pg-btns">'
-    + (u.loggedIn ? '<button class="pg-main" id="sg-sub" type="button">' + esc(cta) + '</button>' : '<a class="pg-main" href="' + esc(loginHref()) + '">Skrá inn til að ' + (trial ? 'prófa frítt' : 'gerast áskrifandi') + '</a>')
-    + '</div>'
-    + '<div class="pg-note">' + (trial ? '<b style="color:#6ee7b7">Fyrstu ' + opts.trialDays + ' dagana fría</b>, svo ' + esc(verd) : 'Áskrift á ' + esc(verd)) + ' Engin binding, segðu upp hvenær sem er. · ' + helpA('Þarftu aðstoð?') + '</div></div>';
+  const sl = _serl(opts.service);
+  const kr = opts.price != null ? opts.price : sl.verd;            // kallstaður má yfirskrifa; annars úr SERLAUSNIR
+  const dagar = opts.trialDays != null ? opts.trialDays : sl.trialDays;
+  const verd = krFmt(kr) + ' kr/mán';   // ⚠ EKKI toLocaleString('is-IS') — vafrar hafa oft enga íslenska staðfærslu
+  const trial = dagar > 0;
+  gateRender(el, {
+    merki: verd + (trial ? ' · ' + dagar + ' daga frítt' : ''),
+    titill: opts.title || sl.heiti || 'Hluti af Karp+',
+    lysing: opts.blurb || '',
+    adal: u.loggedIn ? { txt: trial ? 'Prófa frítt í ' + dagar + ' daga' : 'Gerast áskrifandi', id: 'sg-sub' }
+                     : { txt: 'Skrá inn', href: loginHref() },
+    nota: (trial ? 'Fyrstu ' + dagar + ' dagana fría, svo ' + esc(verd) : 'Áskrift á ' + esc(verd)) + '. Engin binding.',
+  });
   const b = el.querySelector('#sg-sub');
   if (b) b.onclick = () => karpAskellSubscribe(opts.service, el.querySelector('.plus-gate') || el);
 }

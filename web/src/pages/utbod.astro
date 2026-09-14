@@ -587,7 +587,7 @@ const SRCMETA = { rk: ['Útboðsvefur', 'IS'], ted: ['TED (EES)', 'EES'], rvk: [
         if (isAdmin() || hasSub('utbod') || !(u && u.paywall === true) || document.getElementById('plus-gate-box')) return;
         [...m.children].forEach((c) => { c.style.display = 'none'; });
         const g = document.createElement('div'); g.id = 'plus-gate-box'; m.appendChild(g);
-        subGate(g, { service: 'utbod', price: 1900, trialDays: 30, title: 'Útboðsvaktin', blurb: 'Útboð Ríkiskaupa, TED, Reykjavíkurborgar, Faxaflóahafna og Landsvirkjunar — leit, flokkar, frestir, úrslit og dagleg tölvupósts-vakt sniðin að þinni verktöku.' });
+        subGate(g, { service: 'utbod', title: 'Útboðsvaktin', blurb: 'Útboð Ríkiskaupa, TED, Reykjavíkurborgar, Faxaflóahafna og Landsvirkjunar — leit, flokkar, frestir, úrslit og dagleg tölvupósts-vakt sniðin að þinni verktöku.' });
       });
     });
   </script>
