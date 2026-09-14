@@ -367,7 +367,7 @@ function digestBuild(name, prefs, sh) {
   const fmv = prefs.firmavakt;
   if (fmv && fmv.on && Array.isArray(fmv.felog) && fmv.felog.length && Object.keys(sh.vm).length) {
     let sec = '', nvm = 0;
-    for (const co of fmv.felog) { if (!co || !co.kt) continue; const kt = String(co.kt).replace(/\D/g, ''); const list = sh.vm[kt]; if (!Array.isArray(list) || !list.length) continue; const nafn = co.nafn || kt; for (const m of list.slice(0, 4)) { nvm++; if (nvm <= 10) { const ti = m.titill || m.id || ''; const sub = nafn + ' · ' + (m.tegund || 'vörumerki') + (m.skrad ? ' · skráð ' + m.skrad : ''); sec += li('🅡 ' + ti, sub, 'https://www.hugverk.is/leit/trademark/' + encodeURIComponent(m.id || '')); } } }
+    for (const co of fmv.felog) { if (!co || !co.kt) continue; const kt = String(co.kt).replace(/\D/g, ''); const list = sh.vm[kt]; if (!Array.isArray(list) || !list.length) continue; const nafn = co.nafn || kt; for (const m of list.slice(0, 4)) { nvm++; if (nvm <= 10) { const ti = m.titill || m.id || ''; const sub = nafn + ' · ' + (m.tegund || 'vörumerki') + (m.skrad ? ' · skráð ' + m.skrad : ''); sec += li('Ⓡ ' + ti, sub, 'https://www.hugverk.is/leit/trademark/' + encodeURIComponent(m.id || '')); } } }
     if (sec) { rows += H('Ný vörumerki hjá félögum á vaktinni') + sec; personal = true; }
   }
   // ── 🍽️ Heilbrigðiseftirlit — ÁTTAVÍS einkunna-breyting hjá vökuðum félögum (firmavakt → eftirlit_last díff) ──
@@ -381,7 +381,7 @@ function digestBuild(name, prefs, sh) {
       for (const mv of (sh.eftMoves[kt] || [])) {
         n++; if (n > 10) break;
         const bad = (mv.to != null && mv.to <= 1);
-        sec += li((bad ? '⚠️ ' : '') + (mv.name || co.nafn || kt) + ' — ' + mv.badge + (mv.ratingLabel ? ' (' + mv.ratingLabel + ')' : ''), (co.nafn || '') + (mv.street ? ' · ' + mv.street : ''), mv.reportUrl || '');
+        sec += li((bad ? '⚠ ' : '') + (mv.name || co.nafn || kt) + ' — ' + mv.badge + (mv.ratingLabel ? ' (' + mv.ratingLabel + ')' : ''), (co.nafn || '') + (mv.street ? ' · ' + mv.street : ''), mv.reportUrl || '');
       }
       if (n > 10) break;
     }
@@ -407,7 +407,7 @@ function digestBuild(name, prefs, sh) {
       if (!co || !co.kt) continue;
       const mv = sh.rankMoves[String(co.kt).replace(/\D/g, '')];
       if (!mv) continue;
-      sec += li('🏭 ' + (co.nafn || co.kt) + ' — ' + mv.badge, 'færðist úr #' + mv.fromRank + ' í #' + mv.toRank + ' af ' + mv.total + ' í ' + (mv.label || 'greininni'), 'https://karp.is/atvinnugreinar/' + (mv.slug ? mv.slug + '/' : ''));
+      sec += li((co.nafn || co.kt) + ' — ' + mv.badge, 'færðist úr #' + mv.fromRank + ' í #' + mv.toRank + ' af ' + mv.total + ' í ' + (mv.label || 'greininni'), 'https://karp.is/atvinnugreinar/' + (mv.slug ? mv.slug + '/' : ''));
     }
     if (sec) { rows += H('Röð í atvinnugrein breyttist') + sec; personal = true; }
   }
@@ -419,14 +419,14 @@ function digestBuild(name, prefs, sh) {
   const lobbyNew = Array.isArray(prefs._lobbyNew) ? prefs._lobbyNew : [];   // aðeins Fyrirtæki+ (digestRun gátar)
   {
     let sec = '';
-    for (const w of efniOrd.slice(0, 12)) { const hit = _newsHits(sh.news, w, 2); if (!hit.n) continue; sec += li('🔎 „' + w + '" — ' + hit.n + ' ' + (hit.n === 1 ? 'frétt' : 'fréttir') + ' í vikunni', '', 'https://karp.is/frettir/'); for (const r of hit.rows) sec += li('· ' + r.title.slice(0, 90), r.source || '', _u(r.url)); }
+    for (const w of efniOrd.slice(0, 12)) { const hit = _newsHits(sh.news, w, 2); if (!hit.n) continue; sec += li('„' + w + '" — ' + hit.n + ' ' + (hit.n === 1 ? 'frétt' : 'fréttir') + ' í vikunni', '', 'https://karp.is/frettir/'); for (const r of hit.rows) sec += li('· ' + r.title.slice(0, 90), r.source || '', _u(r.url)); }
     const stigCol = (s) => ({ 'Mikil': '#ff6b6b', 'Miðlungs': '#f6b13b', 'Lítil': '#7fb2ff' }[s] || '#f6b13b');
     for (const it of lobbyNew) {
       const badge = '<span style="display:inline-block;background:#141c2b;border:1px solid ' + stigCol(it.stig) + ';border-radius:7px;padding:1px 7px;margin-right:6px;color:' + stigCol(it.stig) + ';font-size:11px;font-weight:700">' + _esc(it.stig || 'Miðlungs') + '</span>';
-      const bits = [];
+      const bits = [it.kind === 'samrad' ? 'Samráð' : 'Þingmál'];
       if (it.frestur) bits.push('Frestur ' + dIS(it.frestur));
       if (it.stada) bits.push(_esc(it.stada));
-      const title = '<a href="' + _esc(_u(it.hlekkur)) + '" style="color:#eaf1fb;font-size:14.5px;text-decoration:none;font-weight:600">' + (it.kind === 'samrad' ? '💬 ' : '📜 ') + _esc(it.titill) + '</a>';
+      const title = '<a href="' + _esc(_u(it.hlekkur)) + '" style="color:#eaf1fb;font-size:14.5px;text-decoration:none;font-weight:600">' + _esc(it.titill) + '</a>';
       sec += '<tr><td style="padding:8px 20px;border-bottom:1px solid #1d2733">' + title + '<br>' + badge + (bits.length ? '<span style="color:#8a93a8;font-size:12px">' + bits.join(' · ') + '</span>' : '') + (it.brief ? '<div style="color:#b6c0d4;font-size:12.5px;margin-top:5px;line-height:1.5">' + _esc(it.brief) + '</div>' : '') + '</td></tr>';
     }
     if (sec) {
@@ -438,7 +438,7 @@ function digestBuild(name, prefs, sh) {
   if (!personal && !sh.tolur.length) return '';
   if (!personal) rows += '<tr><td style="padding:14px 20px;color:#8a93a8;font-size:13px;line-height:1.6">Engin persónuleg treff í vikunni — settu upp <a href="https://karp.is/lobbyvakt/" style="color:#f6b13b">leitarorða-, útboðs- eða fasteignavakt</a> eða fylgstu með fyrirtækjum og þingmönnum til að fá vikuna þína hér.</td></tr>';
   const nm = name ? _esc(name) : '';
-  return '<div style="background:#0a0e14;padding:28px 0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif"><div style="max-width:600px;margin:0 auto;background:#0e1420;border:1px solid #1d2733;border-radius:16px;overflow:hidden"><div style="padding:22px 24px 8px"><div style="color:#f6b13b;font-weight:800;font-size:13px;letter-spacing:1px">🐟 KARP VIKUYFIRLIT</div><div style="color:#eaf1fb;font-size:21px;font-weight:800;margin-top:6px">' + (nm ? 'Vikan þín, ' + nm : 'Vikan þín á Karp') + '</div><div style="color:#8a93a8;font-size:13.5px;margin-top:4px">Það sem gerðist í vikunni á vöktunum þínum og hjá þeim sem þú fylgist með.</div></div><table style="width:100%;border-collapse:collapse;margin-top:6px">' + rows + '</table><div style="padding:18px 24px 24px"><a href="https://karp.is/mitt-svaedi/" style="display:inline-block;background:#f6b13b;color:#131a29;font-weight:800;font-size:15px;text-decoration:none;padding:12px 22px;border-radius:10px">Opna Mitt svæði →</a><div style="color:#5c6678;font-size:12px;margin-top:18px;line-height:1.5">Þú færð þennan póst því vikuyfirlitið er virkt á aðganginum þínum. Slökktu á <a href="https://karp.is/lobbyvakt/" style="color:#8a93a8">karp.is/vaktir</a> — „📬 Vikuyfirlitið".</div></div></div></div>';
+  return '<div style="background:#0a0e14;padding:28px 0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif"><div style="max-width:600px;margin:0 auto;background:#0e1420;border:1px solid #1d2733;border-radius:16px;overflow:hidden"><div style="padding:22px 24px 8px"><div style="color:#f6b13b;font-weight:800;font-size:13px;letter-spacing:1px">KARP VIKUYFIRLIT</div><div style="color:#eaf1fb;font-size:21px;font-weight:800;margin-top:6px">' + (nm ? 'Vikan þín, ' + nm : 'Vikan þín á Karp') + '</div><div style="color:#8a93a8;font-size:13.5px;margin-top:4px">Það sem gerðist í vikunni á vöktunum þínum og hjá þeim sem þú fylgist með.</div></div><table style="width:100%;border-collapse:collapse;margin-top:6px">' + rows + '</table><div style="padding:18px 24px 24px"><a href="https://karp.is/mitt-svaedi/" style="display:inline-block;background:#f6b13b;color:#131a29;font-weight:800;font-size:15px;text-decoration:none;padding:12px 22px;border-radius:10px">Opna Mitt svæði →</a><div style="color:#5c6678;font-size:12px;margin-top:18px;line-height:1.5">Þú færð þennan póst því vikuyfirlitið er virkt á aðganginum þínum. Slökktu á <a href="https://karp.is/lobbyvakt/" style="color:#8a93a8">karp.is/vaktir</a> — „Vikuyfirlitið".</div></div></div></div>';
 }
 
 export async function digestRun(env) {

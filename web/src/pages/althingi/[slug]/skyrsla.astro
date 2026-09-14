@@ -58,14 +58,14 @@ const pctBadge = (p) => (p == null ? null : Math.min(99, p));
 
 // KPI-röðin: gildi + samanburður
 const kpis = [
-  { e: '🤝', l: 'Flokkshollusta', v: m.hollusta != null ? fmtP(m.hollusta) + '%' : '–', s: FLAVG.hollusta != null ? 'flokksmeðaltal ' + fmtP(FLAVG.hollusta) + '%' : '' },
-  { e: '⚡', l: 'Gegn eigin flokki', v: String(t.rebel.length) + '×', s: 'þingmeðaltal ' + fmtP(AVG.uppreisn) + '×' },
-  { e: '🪑', l: 'Mæting í atkvgr.', v: t.maeting != null ? fmtP(t.maeting) + '%' : '–', s: AVG.maeting != null ? 'þingmeðaltal ' + fmtP(AVG.maeting) + '%' : '' },
-  { e: '🗣️', l: 'Ræðutími', v: m.raedumin != null ? fmtP(Math.round(m.raedumin / 6) / 10) + ' klst' : '–', s: t.pct.raedumin != null ? 'meira en ' + pctBadge(t.pct.raedumin) + '% þingmanna' : '' },
-  { e: '↩️', l: 'Andsvör', v: RD ? String(RD.andsvor) : '–', s: t.pct.andsvor != null ? 'meira en ' + pctBadge(t.pct.andsvor) + '% þingmanna' : '' },
-  { e: '❓', l: 'Fyrirspurnir', v: String(t.fyrirspurnir.length), s: `til ráðherra á ${THING_TXT}` },
-  { e: '📜', l: 'Flutt mál', v: String(t.flutt.length), s: 'fyrsti flutningsm. · meðflm. á ' + t.medflutt },
-  { e: '✅', l: 'Greidd atkvæði', v: m.greidd != null ? groupThousands(m.greidd) : '–', s: 'af ' + groupThousands(m.recVotes || 0) + ' skráðum' },
+  { l: 'Flokkshollusta', v: m.hollusta != null ? fmtP(m.hollusta) + '%' : '–', s: FLAVG.hollusta != null ? 'flokksmeðaltal ' + fmtP(FLAVG.hollusta) + '%' : '' },
+  { l: 'Gegn eigin flokki', v: String(t.rebel.length) + '×', s: 'þingmeðaltal ' + fmtP(AVG.uppreisn) + '×' },
+  { l: 'Mæting í atkvgr.', v: t.maeting != null ? fmtP(t.maeting) + '%' : '–', s: AVG.maeting != null ? 'þingmeðaltal ' + fmtP(AVG.maeting) + '%' : '' },
+  { l: 'Ræðutími', v: m.raedumin != null ? fmtP(Math.round(m.raedumin / 6) / 10) + ' klst' : '–', s: t.pct.raedumin != null ? 'meira en ' + pctBadge(t.pct.raedumin) + '% þingmanna' : '' },
+  { l: 'Andsvör', v: RD ? String(RD.andsvor) : '–', s: t.pct.andsvor != null ? 'meira en ' + pctBadge(t.pct.andsvor) + '% þingmanna' : '' },
+  { l: 'Fyrirspurnir', v: String(t.fyrirspurnir.length), s: `til ráðherra á ${THING_TXT}` },
+  { l: 'Flutt mál', v: String(t.flutt.length), s: 'fyrsti flutningsm. · meðflm. á ' + t.medflutt },
+  { l: 'Greidd atkvæði', v: m.greidd != null ? groupThousands(m.greidd) : '–', s: 'af ' + groupThousands(m.recVotes || 0) + ' skráðum' },
 ];
 
 // Mánaðarleg mæting → CSS-súlur
@@ -124,7 +124,7 @@ const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}`
     <a class="back" href={`/althingi/${slug}/`}>← {m.nafn}</a>
 
     {IS_SAMPLE && (
-      <div class="tk-sample">👁️ <b>Sýnishorn</b> — þessi skýrsla er opin öllum svo þú sjáir hvað Þingmannaskýrsla Karp inniheldur.
+      <div class="tk-sample"><b>Sýnishorn</b> — þessi skýrsla er opin öllum svo þú sjáir hvað Þingmannaskýrsla Karp inniheldur.
         Skýrslur um aðra þingmenn: <b>990 kr stök</b> eða <b>3.900 kr/mán áskrift</b> með 10 skýrslum innifaldar.</div>
     )}
 
@@ -132,17 +132,17 @@ const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}`
     {!IS_SAMPLE && (
       <div id="tk-gate" data-key={KEY} data-title={TITLE} data-nafn={m.nafn}>
         <div class="tkg">
-          <div class="tkg-badge">📊 Þingmannaskýrsla</div>
+          <div class="tkg-badge">Þingmannaskýrsla</div>
           <h2 class="tkg-h">{m.nafn} — ítarleg greining</h2>
           <p class="tkg-b">Atkvæðaferill og uppreisnar-atkvæði · mæting mánuð fyrir mánuð · afstaða eftir málaflokkum ·
-            ræðugreining og 🤖 tónn &amp; áherslur með gervigreind · fyrirspurnir og flutt mál · nefndavald · fjölmiðlaumfjöllun með viðhorfsmati — allt í einni skýrslu með PDF-útprentun.</p>
+            ræðugreining og tónn &amp; áherslur með gervigreind · fyrirspurnir og flutt mál · nefndavald · fjölmiðlaumfjöllun með viðhorfsmati — allt í einni skýrslu með PDF-útprentun.</p>
           <div class="pg-btns" id="tkg-btns">
             <button class="pg-main" id="tk-buy" type="button">Kaupa skýrsluna — 990 kr</button>
             <button class="pg-sec" id="tk-sub" type="button">Áskrift — 3.900 kr/mán · 10 skýrslur</button>
           </div>
           <div id="tk-qnote"></div>
           <div class="tkg-note">Innifalið í <a href="/karp-pro/">Karp+ þingskýrslu-áskriftinni</a> · engin binding ·
-            <a href={`/althingi/${slugify('Jón Pétur Zimsen')}/skyrsla/`}>👁️ Sjá sýnishorn af skýrslu</a></div>
+            <a href={`/althingi/${slugify('Jón Pétur Zimsen')}/skyrsla/`}>Sjá sýnishorn af skýrslu</a></div>
         </div>
       </div>
     )}
@@ -159,11 +159,11 @@ const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}`
           <h1>{m.nafn}</h1>
           <div class="hero-chips">
             <span class="party">{m.flokkur}</span>
-            {minister && <span class="min-chip">⭐ {(minister.emb || ['Ráðherra']).join(' · ')}</span>}
+            {minister && <span class="min-chip">{(minister.emb || ['Ráðherra']).join(' · ')}</span>}
           </div>
           <div class="meta">{roleTxt} · {m.kjordaemi}{m.aldur != null && ` · ${m.aldur} ára`}{yearFrom && ` · á þingi frá ${yearFrom}`}{m.fjoldiThinga ? ` (${m.fjoldiThinga} þing)` : ''}</div>
           <div class="actions no-print">
-            <button class="act-btn" id="tk-pdf" type="button">🖨️ Sækja PDF</button>
+            <button class="act-btn" id="tk-pdf" type="button"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:inline-block;vertical-align:-.2em;flex:none"><path d="M6 9V3h12v6"/><rect x="4" y="9" width="16" height="8" rx="1.5"/><path d="M7 14h10v7H7z"/></svg> Sækja PDF</button>
             <div id="follow" class="follow-wrap" data-key={`mp:${m.id}`}></div>
           </div>
         </div>
@@ -172,18 +172,18 @@ const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}`
       <div class="kpi-grid">
         {kpis.map((k) => (
           <div class="kpi">
-            <div class="k-top">{k.e} {k.l}</div>
+            <div class="k-top">{k.l}</div>
             <div class="k-v">{k.v}</div>
             {k.s && <div class="k-s">{k.s}</div>}
           </div>
         ))}
       </div>
 
-      <h2>🧭 Pólitískt kort þingsins <i class="tip" tabindex="0" data-tip="Vélrænn útreikningur úr ÖLLUM nafnakalls-atkvæðagreiðslum ${THING_TXT_EF} — þingmenn sem kjósa líkt lenda nálægt hver öðrum (lárétt: stjórn ↔ stjórnarandstaða). Nálgun Karp, ekki opinber flokkun. ÞÚ-punkturinn reiknast úr stefnuprófs-svörum þínum og vistast aðeins í vafranum.">ⓘ</i></h2>
+      <h2>Pólitískt kort þingsins <i class="tip" tabindex="0" data-tip="Vélrænn útreikningur úr ÖLLUM nafnakalls-atkvæðagreiðslum ${THING_TXT_EF} — þingmenn sem kjósa líkt lenda nálægt hver öðrum (lárétt: stjórn ↔ stjórnarandstaða). Nálgun Karp, ekki opinber flokkun. ÞÚ-punkturinn reiknast úr stefnuprófs-svörum þínum og vistast aðeins í vafranum.">ⓘ</i></h2>
       <div id="tk-polmap" class="no-print"></div>
       <p class="src no-print">{m.nafn} er <b style={`color:${color}`}>auðkennd(ur)</b> á kortinu. Smelltu á aðra þingmenn til að skoða skýrslur þeirra.</p>
 
-      <h2>🗳️ Atkvæðahegðun</h2>
+      <h2>Atkvæðahegðun</h2>
       <div class="card">
         <div class="c-sub">Uppreisnar-atkvæði — kaus gegn meirihluta eigin flokks <i class="tip" tabindex="0" data-tip="Skráð já/nei-nafnaköll þar sem atkvæði þingmannsins fór gegn meirihluta annarra þingmanna sama flokks í sömu atkvæðagreiðslu. Heimild: XML Alþingis.">ⓘ</i></div>
         {t.rebel.length === 0 ? (
@@ -219,7 +219,7 @@ const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}`
 
       {vaRows.length > 0 && (
         <>
-          <h2>🧩 Afstaða eftir málaflokkum <i class="tip" tabindex="0" data-tip="Já/nei-atkvæði þingmannsins flokkuð eftir OPINBERUM efnisflokkum Alþingis (mál getur átt fleiri en einn flokk). Grænt = já, rautt = nei.">ⓘ</i></h2>
+          <h2>Afstaða eftir málaflokkum <i class="tip" tabindex="0" data-tip="Já/nei-atkvæði þingmannsins flokkuð eftir OPINBERUM efnisflokkum Alþingis (mál getur átt fleiri en einn flokk). Grænt = já, rautt = nei.">ⓘ</i></h2>
           <div class="card">
             {vaRows.map((r) => (
               <div class="va-row">
@@ -237,7 +237,7 @@ const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}`
 
       {MALROF && MALROF.n > 3 && (
         <>
-          <h2>🗣️ Málróf — hvernig talar þingmaðurinn? <i class="tip" tabindex="0" data-tip="Tölfræðileg talning úr ræðulista Alþingis (${THING_TXT_EF}) — fjöldi, tími og tegundir ræðna. Hrein talning úr opinberu XML-i.">ⓘ</i></h2>
+          <h2>Málróf — hvernig talar þingmaðurinn? <i class="tip" tabindex="0" data-tip="Tölfræðileg talning úr ræðulista Alþingis (${THING_TXT_EF}) — fjöldi, tími og tegundir ræðna. Hrein talning úr opinberu XML-i.">ⓘ</i></h2>
           <div class="mr-tiles">
             <span class="mrt"><b>{MALROF.n}</b><i>ræður alls</i></span>
             <span class="mrt"><b>{MALROF.klst >= 1 ? fmtP(MALROF.klst) + ' klst' : MALROF.min + ' mín'}</b><i>ræðutími</i></span>
@@ -267,7 +267,7 @@ const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}`
 
       {(t.flutt.length > 0 || t.fyrirspurnir.length > 0) && (
         <>
-          <h2>📜 Þingmál sem {m.nafn.split(' ')[0]} flytur</h2>
+          <h2>Þingmál sem {m.nafn.split(' ')[0]} flytur</h2>
           {t.flutt.length > 0 && (
             <div class="card">
               <div class="c-sub">Fyrsti flutningsmaður að {t.flutt.length} málum{t.medflutt ? ` · meðflutningsmaður á ${t.medflutt} til viðbótar` : ''}</div>
@@ -297,7 +297,7 @@ const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}`
         </>
       )}
 
-      <h2>🤖 Tónn og áherslur — AI-greining <i class="tip" tabindex="0" data-tip="Gervigreind (Claude) las brot úr raunverulegum þingræðum þingmannsins, valin þvert á málefni, og lýsti tón, rökstuðningi og áherslum — EINGÖNGU út frá textunum sjálfum. Vélrænt mat til fróðleiks, ekki dómur Karp og ekki staðreyndafullyrðing.">ⓘ</i></h2>
+      <h2>Tónn og áherslur — AI-greining <i class="tip" tabindex="0" data-tip="Gervigreind (Claude) las brot úr raunverulegum þingræðum þingmannsins, valin þvert á málefni, og lýsti tón, rökstuðningi og áherslum — EINGÖNGU út frá textunum sjálfum. Vélrænt mat til fróðleiks, ekki dómur Karp og ekki staðreyndafullyrðing.">ⓘ</i></h2>
       {AI ? (
         <>
           <div class="aim">
@@ -335,7 +335,7 @@ const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}`
 
       {committees.length > 0 && (
         <>
-          <h2>📋 Nefndavald</h2>
+          <h2>Nefndavald</h2>
           <div class="nefndir">{committees.map((n) => {
             const arr = Array.isArray(n) ? n : [n, ''];
             const forysta = /formaður/i.test(arr[1] || '');
@@ -344,14 +344,14 @@ const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}`
         </>
       )}
 
-      <h2>💰 Laun og kostnaður</h2>
+      <h2>Laun og kostnaður</h2>
       <div class="kpi-grid kpi-3">
-        <div class="kpi"><div class="k-top">💰 Mánaðarlaun</div><div class="k-v">{m.laun != null ? groupThousands(m.laun) + ' kr' : '–'}</div><div class="k-s">skv. launatöflu Alþingis</div></div>
-        <div class="kpi"><div class="k-top">🧾 Starfskostnaður</div><div class="k-v">{m.kostn != null ? groupThousands(m.kostn) + ' kr' : '–'}</div><div class="k-s">á mánuði</div></div>
-        <div class="kpi"><div class="k-top">⚖️ Meðallaun þingmanna</div><div class="k-v">{AVG.laun != null ? groupThousands(Math.round(AVG.laun)) + ' kr' : '–'}</div><div class="k-s">til samanburðar</div></div>
+        <div class="kpi"><div class="k-top">Mánaðarlaun</div><div class="k-v">{m.laun != null ? groupThousands(m.laun) + ' kr' : '–'}</div><div class="k-s">skv. launatöflu Alþingis</div></div>
+        <div class="kpi"><div class="k-top">Starfskostnaður</div><div class="k-v">{m.kostn != null ? groupThousands(m.kostn) + ' kr' : '–'}</div><div class="k-s">á mánuði</div></div>
+        <div class="kpi"><div class="k-top">Meðallaun þingmanna</div><div class="k-v">{AVG.laun != null ? groupThousands(Math.round(AVG.laun)) + ' kr' : '–'}</div><div class="k-s">til samanburðar</div></div>
       </div>
 
-      <h2 class="no-print">📰 Fjölmiðlaumfjöllun <i class="tip" tabindex="0" data-tip="Leit í fréttasafni Karp eftir fullu nafni þingmannsins — viðhorf metið vélrænt. Getur vanmetið þá sem oft eru nefndir með fornafni.">ⓘ</i></h2>
+      <h2 class="no-print">Fjölmiðlaumfjöllun <i class="tip" tabindex="0" data-tip="Leit í fréttasafni Karp eftir fullu nafni þingmannsins — viðhorf metið vélrænt. Getur vanmetið þá sem oft eru nefndir með fornafni.">ⓘ</i></h2>
       <div id="tk-umf" class="no-print">Sæki umfjöllun…</div>
 
       <div class="tk-foot">
@@ -541,7 +541,7 @@ const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}`
         const rem = thingQuotaKnown() ? thingRemaining() : null;
         const openBtn = document.createElement('button');
         openBtn.className = 'pg-main'; openBtn.type = 'button';
-        openBtn.textContent = '📖 Opna með áskriftinni' + (rem != null && rem >= 0 ? ' — ' + rem + ' af 10 eftir í mánuðinum' : '');
+        openBtn.textContent = 'Opna með áskriftinni' + (rem != null && rem >= 0 ? ' — ' + rem + ' af 10 eftir í mánuðinum' : '');
         btns.prepend(openBtn);
         openBtn.onclick = async () => {
           openBtn.disabled = true; openBtn.textContent = 'Opna…';

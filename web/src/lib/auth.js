@@ -291,7 +291,7 @@ export function reportQuotaNoteHtml() {
     ? '⚠ Mánaðarkvóti skýrslna fullnýttur — næsta skýrsla á 990 kr'
     : '<b>' + rem + '</b> ' + (rem === 1 ? 'skýrsla' : 'skýrslur') + ' eftir í mánuðinum';
   const nt = nextTierUp();
-  const up = nt ? ' <a class="krq-up" href="/karp-pro/#verd">⬆ Uppfærðu í ' + esc(nt.heiti) + ' fyrir fleiri skýrslur →</a>' : '';
+  const up = nt ? ' <a class="krq-up" href="/karp-pro/#verd">↑ Uppfærðu í ' + esc(nt.heiti) + ' fyrir fleiri skýrslur →</a>' : '';
   return '<div class="' + cls + '">' + txt + up + '</div>';
 }
 
@@ -358,7 +358,7 @@ export async function karpStakAskell({ key, ref, gateEl }) {
         if (lokid || !s) return;
         if (s.state === 'settled') {
           hreinsa();
-          body.innerHTML = '<div class="pg-note">✅ Greiðsla móttekin — opna skýrsluna þína…</div>';
+          body.innerHTML = '<div class="pg-note">Greiðsla móttekin — opna skýrsluna þína…</div>';
           let m = 0;
           const t2 = setInterval(async () => {
             const u2 = await freshMe().catch(() => null);
@@ -442,7 +442,7 @@ export function helpNote(el, fra) {
 export function plusGate(el, opts) {
   if (!el) return; injectGateCss(); opts = opts || {};
   const u = _u();
-  el.innerHTML = '<div class="plus-gate"><div class="pg-badge">⭐ Karp+</div>'
+  el.innerHTML = '<div class="plus-gate"><div class="pg-badge">Karp+</div>'
     + '<h2 class="pg-h">' + esc(opts.title || 'Þetta er hluti af Karp+') + '</h2>'
     + '<p class="pg-b">' + esc(opts.blurb || '') + '</p>'
     + '<div class="pg-btns">'
@@ -457,7 +457,7 @@ export function plusGate(el, opts) {
 export function tierGate(el, opts) {
   if (!el) return; injectGateCss(); opts = opts || {};
   const need = TIER_NAME[opts.minTier] || 'Karp+'; const u = _u();
-  el.innerHTML = '<div class="plus-gate"><div class="pg-badge">⭐ ' + esc(need) + '-þrep</div>'
+  el.innerHTML = '<div class="plus-gate"><div class="pg-badge">' + esc(need) + '-þrep</div>'
     + '<h2 class="pg-h">' + esc(opts.title || 'Hluti af Karp+') + '</h2>'
     + '<p class="pg-b">' + esc(opts.blurb || '') + '</p>'
     + '<div class="pg-btns"><a class="pg-main" href="/karp-pro/#verd">Sjá þrep & verð</a>'
@@ -473,7 +473,7 @@ export function subGate(el, opts) {
   const verd = krFmt(opts.price) + ' kr./mán.';   // ⚠ EKKI toLocaleString('is-IS') — vafrar hafa oft enga íslenska staðfærslu
   const trial = opts.trialDays > 0;
   const cta = trial ? 'Prófa frítt í ' + opts.trialDays + ' daga' : 'Gerast áskrifandi — ' + verd;
-  const badge = trial ? '🎁 ' + opts.trialDays + ' daga frítt' : '⭐ ' + (opts.title || 'Karp+');
+  const badge = trial ? opts.trialDays + ' daga frítt' : (opts.title || 'Karp+');
   el.innerHTML = '<div class="plus-gate"><div class="pg-badge">' + esc(badge) + '</div>'
     + '<h2 class="pg-h">' + esc(opts.title || 'Hluti af Karp+') + '</h2>'
     + '<p class="pg-b">' + esc(opts.blurb || '') + '</p>'
@@ -533,7 +533,7 @@ async function karpSubIframe(container, opts) {
         if (lokid || !s) return;
         if (s.state === 'active') {
           hreinsa();
-          body.innerHTML = '<div class="pg-note">✅ Áskrift virk — opna aðganginn þinn…</div>';
+          body.innerHTML = '<div class="pg-note">Áskrift virk — opna aðganginn þinn…</div>';
           let m = 0;
           const t2 = setInterval(async () => { const u2 = await freshMe().catch(() => null); if (doneHas(u2) || ++m > 8) { clearInterval(t2); location.reload(); } }, 2500);
         } else if (s.state === 'failed' || s.error === 'contract' || s.error === 'noprice' || s.error === 'login' || s.error === 'input' || s.error === 'unconfigured') {

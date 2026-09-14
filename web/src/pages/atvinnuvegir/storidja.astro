@@ -19,16 +19,16 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'St
 <Layout title="Stóriðja & orka | Karp" description={desc} canonical="https://karp.is/atvinnuvegir/storidja/" jsonLd={jsonLd} ogTitle="Stóriðja & orka">
   <main data-pg="atvinnuvegir-storidja">
     <p class="kicker">Hagvísir Íslands · Atvinnuvegir</p>
-    <h1>Stóriðja &amp; orka 🏗️</h1>
+    <h1>Stóriðja &amp; orka</h1>
     <p>Álverin þrjú og kísilverin breyta endurnýjanlegri raforku í útflutningsverðmæti — stóriðjan notar um 80% raforkunnar. Afkoman ræðst mjög af heimsmarkaðsverði á áli. Sjá einnig <a href="/orka/">Raforku</a> fyrir framleiðsluhliðina.</p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Álverð: framvirkt LME-verð gegnum Yahoo Finance. Útflutningsverðmæti: utanríkisverslun Hagstofunnar (UTA06105). Raforkunotkun: Orkustofnun/Hagstofa (IDN02103, til 2019). Losun: gróðurhúsalofttegundabókhald Íslands (UMH31107). Framleiðslugeta álvera: uppgefin af fyrirtækjunum.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div class="kpis">
-      {priceL && <div class="kpi"><div class="k-l">📈 Álverð (LME)</div><div class="k-v">{groupThousands(priceL.v)}</div><div class="k-s">USD/tonn</div></div>}
-      {alL && alL.al != null && <div class="kpi"><div class="k-l">🥫 Ál — útflutningur</div><div class="k-v">{fmtNum(alL.al, 0)}</div><div class="k-s">ma.kr · {alL.y}</div></div>}
-      {heavyPct && <div class="kpi"><div class="k-l">⚡ Stóriðja af raforku</div><div class="k-v">{fmtNum(heavyPct, 0)}%</div><div class="k-s">{useY}</div></div>}
-      <div class="kpi"><div class="k-l">🏭 Framleiðslugeta áls</div><div class="k-v">{groupThousands(smeltTot)}</div><div class="k-s">þús. tonn/ári</div></div>
-      {emisL && <div class="kpi"><div class="k-l">🌫️ Ferlalosun (2.C)</div><div class="k-v">{fmtNum(emisL.v, 0)}</div><div class="k-s">kt CO₂-íg · {emisL.y}</div></div>}
+      {priceL && <div class="kpi"><div class="k-l">Álverð (LME)</div><div class="k-v">{groupThousands(priceL.v)}</div><div class="k-s">USD/tonn</div></div>}
+      {alL && alL.al != null && <div class="kpi"><div class="k-l">Ál — útflutningur</div><div class="k-v">{fmtNum(alL.al, 0)}</div><div class="k-s">ma.kr · {alL.y}</div></div>}
+      {heavyPct && <div class="kpi"><div class="k-l">Stóriðja af raforku</div><div class="k-v">{fmtNum(heavyPct, 0)}%</div><div class="k-s">{useY}</div></div>}
+      <div class="kpi"><div class="k-l">Framleiðslugeta áls</div><div class="k-v">{groupThousands(smeltTot)}</div><div class="k-s">þús. tonn/ári</div></div>
+      {emisL && <div class="kpi"><div class="k-l">Ferlalosun (2.C)</div><div class="k-v">{fmtNum(emisL.v, 0)}</div><div class="k-s">kt CO₂-íg · {emisL.y}</div></div>}
     </div>
 
     {C_price && <><h2>Álverð — LME framvirkt (10 ár)</h2><div id="cPrice"></div></>}

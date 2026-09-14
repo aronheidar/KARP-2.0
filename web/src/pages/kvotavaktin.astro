@@ -29,14 +29,14 @@ const jsonLd = {
 };
 ---
 
-<Layout title="Kvótavaktin — aflamark, eigendur og samþjöppun | Karp" description={desc} canonical="https://karp.is/kvotavaktin/" ogTitle="⚓ Kvótavaktin — Karp" jsonLd={jsonLd}>
+<Layout title="Kvótavaktin — aflamark, eigendur og samþjöppun | Karp" description={desc} canonical="https://karp.is/kvotavaktin/" ogTitle="Kvótavaktin — Karp" jsonLd={jsonLd}>
   <main data-pg="kvotavaktin">
     <p class="kicker">Karp+ · Sjávarútvegur</p>
-    <h1>⚓ Kvótavaktin</h1>
+    <h1>Kvótavaktin</h1>
     <p class="lead">Hver heldur kvótanum? <strong>Aflamark, eigendur og samþjöppun</strong> — rakin gegnum eignarhaldskeðjur. Þorskígildi allra útgerða á einum stað, tengd við ársreikninga, endanlega eigendur og 12%-þak laganna.</p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Aflamark og krókaaflamark frá Fiskistofu, umreiknað í þorskígildi. Eigendahópar eru raktir gegnum eignarhaldsnet Karps (hluthafaskrár ársreikninga + fyrirtækjaskrá). Áætlun Karps byggð á opinberum skrám — ekki úrskurður um tengda aðila skv. lögum.">ⓘ</i> Heimild: <span id="kv-heimild">Fiskistofa — aflamark í þorskígildum</span> · uppfært <span id="kv-uppfaert">—</span><span id="kv-timabil"></span></p>
 
-    <!-- 👁️ Sýnishorns-borði (?syni=1) — fyllt í runtime -->
+    <!-- Sýnishorns-borði (?syni=1) — fyllt í runtime -->
     <div id="kv-syni"></div>
 
     <h2>Yfirlit</h2>
@@ -45,12 +45,12 @@ const jsonLd = {
     <h2>Heildarmyndin <i class="tip" tabindex="0" data-tip="Allur úthlutaði kvótinn í einni mynd. Sólgeisli: smelltu á tegund til að þysja inn. Strengir: flæðin milli tegunda og stærstu útgerða. Skip: hver hringur er skip, stærð eftir þorskígildum.">ⓘ</i></h2>
     <p class="sub">Allur kvótinn í einni mynd — eftir tegundum, útgerðum og skipum. Smelltu til að kafa dýpra.</p>
     <div class="kv-graftabs" id="kv-graftabs">
-      <button type="button" class="kv-gtab kv-gtab-on" data-graf="sol">☀️ Sólgeisli</button>
-      <button type="button" class="kv-gtab" data-graf="strengir">🎻 Strengir</button>
-      <button type="button" class="kv-gtab" data-graf="skip">⚓ Skipin</button>
-      <button type="button" class="kv-gtab" data-graf="nyting">📊 Nýting</button>
-      <button type="button" class="kv-gtab" data-graf="greining">🎯 Greining</button>
-      <button type="button" class="kv-gtab" data-graf="throun">📈 Þróun</button>
+      <button type="button" class="kv-gtab kv-gtab-on" data-graf="sol">Sólgeisli</button>
+      <button type="button" class="kv-gtab" data-graf="strengir">Strengir</button>
+      <button type="button" class="kv-gtab" data-graf="skip">Skipin</button>
+      <button type="button" class="kv-gtab" data-graf="nyting">Nýting</button>
+      <button type="button" class="kv-gtab" data-graf="greining">Greining</button>
+      <button type="button" class="kv-gtab" data-graf="throun">Þróun</button>
     </div>
     <div id="kv-graf"><div class="kv-empty">Hleð heildarmyndinni…</div></div>
 
@@ -68,7 +68,7 @@ const jsonLd = {
 
     <h2>Útgerðar-leit</h2>
     <p class="sub">Flettu upp hvaða handhafa aflamarks sem er — eftir nafni eða kennitölu.</p>
-    <div id="kv-leitbox"><input id="kv-q" type="search" placeholder="🔎 Leitaðu að útgerð — nafn eða kennitala…" autocomplete="off" /></div>
+    <div id="kv-leitbox"><input id="kv-q" type="search" placeholder="Leitaðu að útgerð — nafn eða kennitala…" autocomplete="off" /></div>
     <div id="kv-lres"></div>
     <div id="kv-detail"></div>
 
@@ -230,6 +230,7 @@ const jsonLd = {
     // tegundir og leit; eigendahópurinn kemur lifandi frá workernum (/api/kvoti/hopur).
     import { loginHref } from '../lib/auth.js';
     import { felagHref } from '../lib/fyrirtaeki-slod.mjs';
+    import { takn } from '../lib/takn.mjs';
     import { teiknaSolgeisla, teiknaStrengi, teiknaPakka, teiknaNyting, teiknaDreifirit, teiknaThroun } from '../lib/kvotagraf.mjs';
 
     document.addEventListener('astro:page-load', () => {
@@ -253,7 +254,7 @@ const jsonLd = {
       const hhiMerki = (h) => (h > 2500 ? ['mikil samþjöppun', 'kv-b-red'] : h >= 1500 ? ['nokkur samþjöppun', 'kv-b-yel'] : ['lítil samþjöppun', 'kv-b-grn']);
       // "2526" → „fiskveiðiárið 2025/2026"
       const fiskar = (tb) => { const t = String(tb || ''); return t.length === 4 ? 'fiskveiðiárið 20' + t.slice(0, 2) + '/20' + t.slice(2) : ''; };
-      const VINNSLA = '<div class="kv-empty">🛠 Gögn í vinnslu — kíktu við á eftir.</div>';
+      const VINNSLA = '<div class="kv-empty">Gögn í vinnslu — kíktu við á eftir.</div>';
       const FYRIRVARI = 'Áætlun Karps byggð á opinberum skrám — ekki úrskurður um tengda aðila skv. lögum.';
 
       const ktLink = (kt, nafn) => '<a class="kv-n" href="' + esc(felagHref(kt)) + '" title="Fyrirtækjaprófíll á Karp">' + esc(nafn) + '</a><span class="kv-kt">' + esc(kt) + '</span>';
@@ -289,7 +290,7 @@ const jsonLd = {
 
       // Yfirlag sýnishornsins ofan á blur-aðar raðir.
       const syniOverlay = (html) => '<div class="kv-syniwrap">' + html
-        + '<div class="kv-syni-ol"><div class="kv-syni-card"><b>⭐ Full aðgangur með Kvótavaktinni</b>'
+        + '<div class="kv-syni-ol"><div class="kv-syni-card"><b>Full aðgangur með Kvótavaktinni</b>'
         + '<span>9.900 kr./mán. · 14 daga frítt · engin binding</span>'
         + '<a href="/lausnir/kvotavaktin/">Kynntu þér Kvótavaktina →</a></div></div></div>';
 
@@ -310,10 +311,10 @@ const jsonLd = {
             + ' sambærileg við fyrri ár fyrr en úthlutun lýkur.">í úthlutun</span>'
           : '';
         $('kv-stats').innerHTML =
-          '<div class="kv-kpi"><div class="kv-kl">🐟 Þorskígildi alls</div><div class="kv-kv">' + thusTonn + '</div><div class="kv-ks">þús. tonn · ' + esc(fiskar(D.timabil) || 'úthlutað aflamark') + '</div></div>'
-          + '<div class="kv-kpi"><div class="kv-kl">🏢 Útgerðir</div><div class="kv-kv">' + nIS(h.nHafar) + '</div><div class="kv-ks">handhafar aflamarks' + uthMerki + '</div></div>'
-          + '<div class="kv-kpi"><div class="kv-kl">🚢 Skip</div><div class="kv-kv">' + nIS(h.nSkip) + '</div><div class="kv-ks">með úthlutað aflamark</div></div>'
-          + '<div class="kv-kpi"><div class="kv-kl">📊 Samþjöppun</div><div class="kv-kv">' + pctIS(h.top10pct) + '</div><div class="kv-ks">hlutdeild 10 stærstu · <span class="kv-badge ' + hc + '" data-tip="HHI ' + nIS(h.hhi) + ' — Herfindahl–Hirschman kvarðinn: yfir 2500 telst mikil samþjöppun, 1500–2500 nokkur, undir 1500 lítil.">' + ht + '</span>' + uthMerki + '</div></div>';
+          '<div class="kv-kpi"><div class="kv-kl">Þorskígildi alls</div><div class="kv-kv">' + thusTonn + '</div><div class="kv-ks">þús. tonn · ' + esc(fiskar(D.timabil) || 'úthlutað aflamark') + '</div></div>'
+          + '<div class="kv-kpi"><div class="kv-kl">Útgerðir</div><div class="kv-kv">' + nIS(h.nHafar) + '</div><div class="kv-ks">handhafar aflamarks' + uthMerki + '</div></div>'
+          + '<div class="kv-kpi"><div class="kv-kl">Skip</div><div class="kv-kv">' + nIS(h.nSkip) + '</div><div class="kv-ks">með úthlutað aflamark</div></div>'
+          + '<div class="kv-kpi"><div class="kv-kl">Samþjöppun</div><div class="kv-kv">' + pctIS(h.top10pct) + '</div><div class="kv-ks">hlutdeild 10 stærstu · <span class="kv-badge ' + hc + '" data-tip="HHI ' + nIS(h.hhi) + ' — Herfindahl–Hirschman kvarðinn: yfir 2500 telst mikil samþjöppun, 1500–2500 nokkur, undir 1500 lítil.">' + ht + '</span>' + uthMerki + '</div></div>';
       }
 
       // ── Heildarmyndin: þrjú D3-gröf (kvotagraf.mjs, lazy CDN) — flipa-skipt ─
@@ -323,7 +324,7 @@ const jsonLd = {
         if (!box || !tabs) return;
         const teikna = (hvad) => {
           if (SYNI && hvad !== 'sol') {
-            box.innerHTML = '<div class="kv-locked">🔐 Strengja- og skipa-gröfin fylgja fullri áskrift — sólgeislinn hér sýnir tegunda-stigið eitt.</div>';
+            box.innerHTML = '<div class="kv-locked">' + takn('laest') + 'Strengja- og skipa-gröfin fylgja fullri áskrift — sólgeislinn hér sýnir tegunda-stigið eitt.</div>';
             return;
           }
           box.innerHTML = '<div class="kv-empty">Teikna…</div>';
@@ -349,7 +350,7 @@ const jsonLd = {
         if (!el) return;
         const b = D.breytingar;
         if (b && b.arskil) {
-          el.innerHTML = '<div class="kv-empty">📅 <b>Fiskveiðiárið skipti um áramót</b> ('
+          el.innerHTML = '<div class="kv-empty"><b>Fiskveiðiárið skipti um áramót</b> ('
             + esc(fiskar(b.fraTimabil) || b.fraTimabil) + ' → ' + esc(fiskar(b.tilTimabil) || b.tilTimabil)
             + '). Breytinga-samanburður er sleppt því tölur úr sitthvoru fiskveiðiári eru ekki'
             + ' sambærilegar — ný úthlutun liti út eins og að allar útgerðir hefðu tapað aflamarki.'
@@ -357,7 +358,7 @@ const jsonLd = {
           return;
         }
         if (!b || !Array.isArray(b.staerstu)) {
-          el.innerHTML = '<div class="kv-empty">📅 Fyrsta viðmiðunarmæling skráð ' + (D.uppfaert ? esc(D.uppfaert.slice(0, 10)) : '') + ' — breytingar birtast eftir næstu vikulegu uppfærslu (mánudaga).</div>';
+          el.innerHTML = '<div class="kv-empty">Fyrsta viðmiðunarmæling skráð ' + (D.uppfaert ? esc(D.uppfaert.slice(0, 10)) : '') + ' — breytingar birtast eftir næstu vikulegu uppfærslu (mánudaga).</div>';
           return;
         }
         if (!b.staerstu.length && !(b.horfnir || []).length) {
@@ -365,7 +366,7 @@ const jsonLd = {
           return;
         }
         if (SYNI) {   // sýnishorn: læst kynningarflís (breytingavaktin er áskriftar-virði)
-          el.innerHTML = '<div class="kv-locked">🔐 Breytingavaktin — hverjir bættu við sig og hverjir létu frá sér milli vikna — fylgir fullri áskrift.</div>';
+          el.innerHTML = '<div class="kv-locked">' + takn('laest') + 'Breytingavaktin — hverjir bættu við sig og hverjir létu frá sér milli vikna — fylgir fullri áskrift.</div>';
           return;
         }
         const upp = b.staerstu.filter((x) => x.d_kg > 0).slice(0, 8);
@@ -443,7 +444,7 @@ const jsonLd = {
       // ── Útgerðar-leit (nafn/kt substring í leit-lyklinum) ──────────────────
       function initLeit() {
         if (SYNI) {
-          $('kv-leitbox').innerHTML = '<div class="kv-locked">🔒 Útgerðar-leitin — uppfletting á öllum handhöfum aflamarks með skipalista, tegundagreiningu og eigendahóps-rakningu — er hluti af fullri áskrift. <a href="/lausnir/kvotavaktin/">Kynntu þér Kvótavaktina →</a></div>';
+          $('kv-leitbox').innerHTML = '<div class="kv-locked">' + takn('laest') + 'Útgerðar-leitin — uppfletting á öllum handhöfum aflamarks með skipalista, tegundagreiningu og eigendahóps-rakningu — er hluti af fullri áskrift. <a href="/lausnir/kvotavaktin/">Kynntu þér Kvótavaktina →</a></div>';
           return;
         }
         LEIT = Object.entries(D.leit || {})
@@ -506,7 +507,7 @@ const jsonLd = {
           .then((r) => r.json())
           .then((r) => {
             if (r && r.error === 'login') {
-              box.innerHTML = '<div class="kv-locked">🔐 Eigendahóps-greiningin krefst innskráningar. <a href="' + esc(loginHref()) + '">Skráðu þig inn →</a></div>';
+              box.innerHTML = '<div class="kv-locked">' + takn('laest') + 'Eigendahóps-greiningin krefst innskráningar. <a href="' + esc(loginHref()) + '">Skráðu þig inn →</a></div>';
               return;
             }
             if (!r || r.error || !Array.isArray(r.felog)) {
@@ -521,7 +522,7 @@ const jsonLd = {
             // treTil=false → workerinn kveikti sjálfkrafa á byggingu eignarhaldsnetsins (on-demand);
             // hópurinn birtist að fullu eftir ~2-5 mín — bjóðum endurtilraun í stað þess að þegja.
             const byggja = (r.byggja === true || r.treTil === false)
-              ? '<div class="kv-empty">🛠 Eignarhaldsnet þessarar útgerðar er í byggingu (fer sjálfkrafa af stað núna) — tengd félög birtast hér eftir ~2–5 mínútur. '
+              ? '<div class="kv-empty">Eignarhaldsnet þessarar útgerðar er í byggingu (fer sjálfkrafa af stað núna) — tengd félög birtast hér eftir ~2–5 mínútur. '
                 + '<button type="button" class="kv-btn kv-btn2" data-kt="' + esc(kt) + '" data-act="hopurload">Reyna aftur</button></div>'
               : '';
             box.innerHTML = '<div class="kv-dlbl">Eigendahópur' + (r.nafn ? ' — ' + esc(r.nafn) : '') + '</div>'
@@ -535,7 +536,7 @@ const jsonLd = {
 
       // ── Sýnishorns-borði efst (?syni=1) ─────────────────────────────────────
       function renderSyniBanner() {
-        $('kv-syni').innerHTML = '<div class="kv-syni-banner"><div class="kv-syni-t">⭐ Þetta er sýnishorn Kvótavaktarinnar</div>'
+        $('kv-syni').innerHTML = '<div class="kv-syni-banner"><div class="kv-syni-t">Þetta er sýnishorn Kvótavaktarinnar</div>'
           + '<p>Raungögn — yfirlitið, 5 stærstu útgerðirnar og þorskurinn eru opin. Full áskrift opnar topp-150 listann, allar tegundir, útgerðar-leitina og eigendahóps-greininguna — samanlagða kvóta-hlutdeild tengdra félaga.</p>'
           + '<div class="kv-syni-btns"><a class="kv-syni-main" href="/lausnir/kvotavaktin/">Kvótavaktin — 9.900 kr./mán., 14 daga frítt →</a>'
           + '<a class="kv-syni-sec" href="' + esc(loginHref()) + '">Skrá inn</a></div></div>';
@@ -609,7 +610,7 @@ const jsonLd = {
         [...m.children].forEach((c) => { c.style.display = 'none'; });
         const g = document.createElement('div'); g.id = 'plus-gate-box'; m.appendChild(g);
         subGate(g, { service: 'kvoti', price: 9900, trialDays: 14, title: 'Kvótavaktin', blurb: 'Aflamark alls flotans samlagt per útgerð og eigendahóp — samþjöppun, 12%-þaks nálgun, tegundagreining og tengsl við ársreikninga og eigendur. Fyrir fjölmiðla, banka, útgerðir og greinendur.' });
-        g.insertAdjacentHTML('beforeend', '<div class="kv-samplerow"><a href="/kvotavaktin/?syni=1">👁️ Sjá sýnishorn Kvótavaktarinnar</a></div>');
+        g.insertAdjacentHTML('beforeend', '<div class="kv-samplerow"><a href="/kvotavaktin/?syni=1">Sjá sýnishorn Kvótavaktarinnar</a></div>');
       });
     });
   </script>

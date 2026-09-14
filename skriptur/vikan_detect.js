@@ -11,7 +11,7 @@ function pickVikan(items, opts) {
   const perType = o.perType || 2;
   const min = o.min || 3;
   const weightOf = o.weightOf || (() => 0);
-  const catOf = o.catOf || (() => ({ label: '', emoji: '' }));
+  const catOf = o.catOf || (() => ({ label: '' }));
   const asciiId = o.asciiId || ((s) => String(s));
   const cut = new Date(new Date(o.todayISO + 'T00:00:00Z').getTime() - days * 86400000).toISOString().slice(0, 10);
 
@@ -36,7 +36,7 @@ function pickVikan(items, opts) {
 
   const mal = chosen.map((it) => {
     const c = catOf(it.type) || {};
-    return { title: it.title, slug: asciiId(it.id), cat: c.label || '', emoji: c.emoji || '', hook: String(it.text || '').slice(0, 90).trim(), dags: it.date };
+    return { title: it.title, slug: asciiId(it.id), cat: c.label || '', hook: String(it.text || '').slice(0, 90).trim(), dags: it.date };
   });
 
   return {

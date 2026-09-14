@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { CAT, SECTIONS, asciiId } from './frettavel-cat.mjs';
 export { CAT, SECTIONS, asciiId };
 
-export const catOf = (t) => CAT[t] || { label: 'Frétt', emoji: '📰', color: '#8fa0b8', img: 'annad', heimild: 'Opinber gögn', rule: 'Sjálfvirkur atburður greindur í opinberum gögnum.' };
+export const catOf = (t) => CAT[t] || { label: 'Frétt', color: '#8fa0b8', img: 'annad', heimild: 'Opinber gögn', rule: 'Sjálfvirkur atburður greindur í opinberum gögnum.' };
 
 // Yfir-deildir (fréttamiðils-flokkar) — hópa tegundir í deildir eins og MBL/Vísir (Viðskipti, Stjórnmál…).
 const SEC_OF = {}; SECTIONS.forEach((s) => s.types.forEach((t) => { SEC_OF[t] = s; }));

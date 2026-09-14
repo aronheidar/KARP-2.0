@@ -78,11 +78,11 @@ const totalLeyfi = rekLeyfi + ferLeyfi + apoLeyfi;
 
 // Dreifing eftir leyfistegund (fyrir súlurit + töflu)
 const typeRows = [
-  { key: 'gist', label: 'Gististaðir', n: gist, emoji: '🛏️', col: '#58a6ff' },
-  { key: 'veit', label: 'Veitingaleyfi', n: veit, emoji: '🍽️', col: '#3fb950' },
-  { key: 'dags', label: 'Dagsferðasalar', n: dags, emoji: '🧭', col: '#f6b13b' },
-  { key: 'ferskr', label: 'Ferðaskrifstofur', n: ferskr, emoji: '✈️', col: '#bc8cff' },
-  { key: 'apotek', label: 'Apótek & lyfjasölur', n: apoLeyfi, emoji: '💊', col: '#ff8fb0' },
+  { key: 'gist', label: 'Gististaðir', n: gist, col: '#58a6ff' },
+  { key: 'veit', label: 'Veitingaleyfi', n: veit, col: '#3fb950' },
+  { key: 'dags', label: 'Dagsferðasalar', n: dags, col: '#f6b13b' },
+  { key: 'ferskr', label: 'Ferðaskrifstofur', n: ferskr, col: '#bc8cff' },
+  { key: 'apotek', label: 'Apótek & lyfjasölur', n: apoLeyfi, col: '#ff8fb0' },
 ].sort((a, b) => b.n - a.n);
 const maxType = Math.max(...typeRows.map((r) => r.n), 1);
 
@@ -109,18 +109,18 @@ const desc = `Leyfaskrá — vafrað yfirlit yfir ${nf(totalHafar)} handhafa rek
 >
   <main data-pg="leyfi">
     <p class="kicker">Hagvísir Íslands · Atvinnuleyfi</p>
-    <h1>Leyfaskrá 📋</h1>
+    <h1>Leyfaskrá</h1>
     <p class="lead">Vafrað yfirlit yfir <strong>{nf(totalHafar)}</strong> handhafa opinberra rekstrarleyfa — gisti-, veitinga- og vínveitingaleyfa <strong>Sýslumanna</strong>, <strong>ferðaþjónustuleyfa Ferðamálastofu</strong> (ferðaskrifstofur og dagsferðasalar) og <strong>apótekaleyfa Lyfjastofnunar</strong> (apótek og lyfjasölur). Samtals <strong>{nf(totalLeyfi)}</strong> útgefin leyfi. Fletta má upp einstöku fyrirtæki á <a href="/fyrirtaeki/">fyrirtækjaprófílum</a> þar sem leyfin birtast einnig per-kennitölu.</p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Heimildir: Rekstrarleyfi veitinga- og gististaða + vínveitingaleyfi frá Sýslumönnum (island.is). Ferðaskrifstofu- og dagsferðasalaleyfi frá Ferðamálastofu. Apóteka- og lyfjasöluleyfi frá Lyfjastofnun. Rekstrarleyfi tilgreina rekstrarstað (heimilisfang) en ekki nafn leyfishafa; ferðaþjónustuleyfi og apótek tilgreina nafn. Aðeins gild/útgefin leyfi.">ⓘ</i> Um gögnin og heimildir</p>
 
     <div class="kpis">
-      <div class="kpi"><div class="k-l">🏢 Leyfishafar</div><div class="k-v">{nf(totalHafar)}</div><div class="k-s">kennitölur með leyfi</div></div>
-      <div class="kpi"><div class="k-l">🛏️ Gististaðir</div><div class="k-v">{nf(gist)}</div><div class="k-s">rekstrarleyfi gistingar</div></div>
-      <div class="kpi"><div class="k-l">🍽️ Veitingaleyfi</div><div class="k-v">{nf(veit)}</div><div class="k-s">veitingastaðir</div></div>
-      <div class="kpi"><div class="k-l">🍷 Vínveitingaleyfi</div><div class="k-v" style="color:#bc8cff">{nf(afengi)}</div><div class="k-s">af rekstrarleyfum</div></div>
-      <div class="kpi"><div class="k-l">✈️ Ferðaskrifstofur</div><div class="k-v">{nf(ferskr)}</div><div class="k-s">Ferðamálastofa</div></div>
-      <div class="kpi"><div class="k-l">🧭 Dagsferðasalar</div><div class="k-v">{nf(dags)}</div><div class="k-s">Ferðamálastofa</div></div>
-      <div class="kpi"><div class="k-l">💊 Apótek</div><div class="k-v">{nf(apoLeyfi)}</div><div class="k-s">Lyfjastofnun</div></div>
+      <div class="kpi"><div class="k-l">Leyfishafar</div><div class="k-v">{nf(totalHafar)}</div><div class="k-s">kennitölur með leyfi</div></div>
+      <div class="kpi"><div class="k-l">Gististaðir</div><div class="k-v">{nf(gist)}</div><div class="k-s">rekstrarleyfi gistingar</div></div>
+      <div class="kpi"><div class="k-l">Veitingaleyfi</div><div class="k-v">{nf(veit)}</div><div class="k-s">veitingastaðir</div></div>
+      <div class="kpi"><div class="k-l">Vínveitingaleyfi</div><div class="k-v" style="color:#bc8cff">{nf(afengi)}</div><div class="k-s">af rekstrarleyfum</div></div>
+      <div class="kpi"><div class="k-l">Ferðaskrifstofur</div><div class="k-v">{nf(ferskr)}</div><div class="k-s">Ferðamálastofa</div></div>
+      <div class="kpi"><div class="k-l">Dagsferðasalar</div><div class="k-v">{nf(dags)}</div><div class="k-s">Ferðamálastofa</div></div>
+      <div class="kpi"><div class="k-l">Apótek</div><div class="k-v">{nf(apoLeyfi)}</div><div class="k-s">Lyfjastofnun</div></div>
     </div>
 
     <h2>Dreifing eftir leyfistegund</h2>
@@ -128,7 +128,7 @@ const desc = `Leyfaskrá — vafrað yfirlit yfir ${nf(totalHafar)} handhafa rek
     <div class="bars">
       {typeRows.map((r) => (
         <div class="bar-row">
-          <div class="bar-lab">{r.emoji} {r.label}</div>
+          <div class="bar-lab">{r.label}</div>
           <div class="bar-track"><div class="bar-fill" style={`width:${Math.max(3, (r.n / maxType) * 100)}%;background:${r.col}`}></div></div>
           <div class="bar-val">{nf(r.n)}</div>
         </div>
@@ -148,17 +148,17 @@ const desc = `Leyfaskrá — vafrað yfirlit yfir ${nf(totalHafar)} handhafa rek
     </div>
 
     <h2>Leitaðu í skránni</h2>
-    <p class="sub">Sláðu inn nafn, hjáheiti eða stað — eða síaðu eftir tegund leyfis. 🍷 táknar vínveitingaleyfi. Smelltu á færslu til að opna fyrirtækjaprófíl.</p>
+    <p class="sub">Sláðu inn nafn, hjáheiti eða stað — eða síaðu eftir tegund leyfis. Smelltu á færslu til að opna fyrirtækjaprófíl.</p>
     <div class="ly-controls">
-      <input id="ly-q" type="search" placeholder="🔎 Leita að nafni, stað eða götu…" autocomplete="off" aria-label="Leita að leyfishafa eftir nafni, stað eða götu" />
+      <input id="ly-q" type="search" placeholder="Leita að nafni, stað eða götu…" autocomplete="off" aria-label="Leita að leyfishafa eftir nafni, stað eða götu" />
       <div class="ly-filt" id="ly-filt">
         <button class="ly-fb active" data-t="all">Allar</button>
-        <button class="ly-fb" data-t="gist">🛏️ Gisting</button>
-        <button class="ly-fb" data-t="veit">🍽️ Veitingar</button>
-        <button class="ly-fb" data-t="afengi">🍷 Vín</button>
-        <button class="ly-fb" data-t="ferskr">✈️ Ferðaskrifst.</button>
-        <button class="ly-fb" data-t="dags">🧭 Dagsferðir</button>
-        <button class="ly-fb" data-t="apotek">💊 Apótek</button>
+        <button class="ly-fb" data-t="gist">Gisting</button>
+        <button class="ly-fb" data-t="veit">Veitingar</button>
+        <button class="ly-fb" data-t="afengi">Vín</button>
+        <button class="ly-fb" data-t="ferskr">Ferðaskrifst.</button>
+        <button class="ly-fb" data-t="dags">Dagsferðir</button>
+        <button class="ly-fb" data-t="apotek">Apótek</button>
       </div>
     </div>
     <div id="ly-count" class="ly-cnt"></div>
@@ -204,7 +204,6 @@ const desc = `Leyfaskrá — vafrað yfirlit yfir ${nf(totalHafar)} handhafa rek
 
     main[data-pg="leyfi"] .ly-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 10px; margin-top: 4px; }
     main[data-pg="leyfi"] .ly-card { display: flex; align-items: flex-start; gap: 11px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 11px 13px; }
-    main[data-pg="leyfi"] .ly-ic { flex: 0 0 30px; width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; background: rgba(255,255,255,.06); }
     main[data-pg="leyfi"] .ly-t { flex: 1 1 auto; min-width: 0; }
     main[data-pg="leyfi"] .ly-n { font-size: 13.5px; font-weight: 700; color: var(--ink); text-decoration: none; display: block; }
     main[data-pg="leyfi"] .ly-n:hover { color: #f6b13b; }
@@ -233,7 +232,7 @@ const desc = `Leyfaskrá — vafrað yfirlit yfir ${nf(totalHafar)} handhafa rek
       const listEl = document.getElementById('ly-list'), cntEl = document.getElementById('ly-count'), moreEl = document.getElementById('ly-more'), qEl = document.getElementById('ly-q');
       let DATA = null, filtered = [], shown = 0, curT = 'all', PAGE = 60;
 
-      // Flatur listi úr öllum þremur byKt-skrám → { kt, name, place, cat, catLabel, emoji, wine, sub }
+      // Flatur listi úr öllum þremur byKt-skrám → { kt, name, place, cat, catLabel, wine, sub }
       const build = (rek, fer, apo) => {
         const out = [];
         const rb = (rek && rek.byKt) || {};
@@ -246,7 +245,7 @@ const desc = `Leyfaskrá — vafrað yfirlit yfir ${nf(totalHafar)} handhafa rek
             out.push({
               kt, name: place || (l.stadur || 'Rekstrarleyfi'),
               place, cat, catLabel: isGist ? 'Gististaður' : 'Veitingaleyfi',
-              emoji: isGist ? '🛏️' : '🍽️', wine: !!l.afengi,
+              wine: !!l.afengi,
               sub: [l.undir, (l.utg || '').replace(/^á |^í /, '')].filter(Boolean).join(' · '),
             });
           }
@@ -259,7 +258,7 @@ const desc = `Leyfaskrá — vafrað yfirlit yfir ${nf(totalHafar)} handhafa rek
             out.push({
               kt, name: l.nafn || l.hjaheiti || 'Ferðaþjónustuleyfi',
               place: l.stadur || '', cat, catLabel: isFer ? 'Ferðaskrifstofa' : 'Dagsferðasali',
-              emoji: isFer ? '✈️' : '🧭', wine: false,
+              wine: false,
               sub: [l.hjaheiti && l.nafn ? l.hjaheiti : '', l.leyfisnr ? 'Leyfi ' + l.leyfisnr : ''].filter(Boolean).join(' · '),
             });
           }
@@ -270,7 +269,7 @@ const desc = `Leyfaskrá — vafrað yfirlit yfir ${nf(totalHafar)} handhafa rek
             out.push({
               kt, name: l.nafn || 'Apótek',
               place: l.stadur || '', cat: 'apotek', catLabel: 'Apótek',
-              emoji: '💊', wine: false,
+              wine: false,
               sub: l.svaedi || '',
             });
           }
@@ -278,11 +277,11 @@ const desc = `Leyfaskrá — vafrað yfirlit yfir ${nf(totalHafar)} handhafa rek
         return out;
       };
 
-      const card = (s) => '<div class="ly-card"><span class="ly-ic">' + s.emoji + '</span>'
+      const card = (s) => '<div class="ly-card">'
         + '<div class="ly-t"><a class="ly-n" href="' + esc(felagHref(s.kt)) + '">' + esc(s.name) + '</a>'
         + (s.place && s.place !== s.name ? '<div class="ly-meta">' + esc(s.place) + '</div>' : '')
         + '<div class="ly-tags"><span class="ly-tag">' + esc(s.catLabel) + '</span>'
-        + (s.wine ? '<span class="ly-tag wine">🍷 Vínveitingaleyfi</span>' : '')
+        + (s.wine ? '<span class="ly-tag wine">Vínveitingaleyfi</span>' : '')
         + (s.sub ? '<span class="ly-tag">' + esc(s.sub) + '</span>' : '')
         + '</div></div></div>';
 

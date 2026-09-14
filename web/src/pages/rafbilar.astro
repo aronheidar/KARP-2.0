@@ -23,9 +23,9 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ra
 
     {CARS && (
       <div class="kpis">
-        <div class="kpi"><div class="k-l">⚡ Hreinir rafbílar</div><div class="k-v">{groupThousands(CARS.bev)}</div><div class="k-s">BEV · {CARS.lastY}</div></div>
-        <div class="kpi"><div class="k-l">🔌 Rafvæðing</div><div class="k-v">{fmtNum(CARS.rafPct, 1)}%</div><div class="k-s">BEV + PHEV af flota</div></div>
-        <div class="kpi"><div class="k-l">🚗 Floti alls</div><div class="k-v">{groupThousands(CARS.total)}</div><div class="k-s">ökutæki · {CARS.lastY}</div></div>
+        <div class="kpi"><div class="k-l">Hreinir rafbílar</div><div class="k-v">{groupThousands(CARS.bev)}</div><div class="k-s">BEV · {CARS.lastY}</div></div>
+        <div class="kpi"><div class="k-l">Rafvæðing</div><div class="k-v">{fmtNum(CARS.rafPct, 1)}%</div><div class="k-s">BEV + PHEV af flota</div></div>
+        <div class="kpi"><div class="k-l">Floti alls</div><div class="k-v">{groupThousands(CARS.total)}</div><div class="k-s">ökutæki · {CARS.lastY}</div></div>
       </div>
     )}
 

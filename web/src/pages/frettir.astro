@@ -64,28 +64,28 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Fréttavöktunin birtir aðeins fyrirsagnir og tengla úr opnum RSS-veitum íslenskra miðla (og Bing News fyrir erlenda umfjöllun um Ísland). Tónn og viðhorf eru vélrænt mat á fyrirsögnum — nálgun, ekki ritstjórnarmat.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div class="fy-search">
-      <input id="fy-q" type="text" placeholder="🔍 Leitaðu að hvaða fyrirtæki, stofnun eða einstaklingi sem er…" autocomplete="off" aria-label="Leita að fyrirtæki, stofnun eða einstaklingi" />
+      <input id="fy-q" type="text" placeholder="Leitaðu að hvaða fyrirtæki, stofnun eða einstaklingi sem er…" autocomplete="off" aria-label="Leita að fyrirtæki, stofnun eða einstaklingi" />
       <button id="fy-go" type="button">Greina</button>
     </div>
 
     <!-- SAMEINAÐUR flipi (LOTA 14): málefni OG aðila-hópar í einni röð -->
     <div class="chips" id="u-chips">
-      <button class="chip on" data-e="">🗞️ Allt</button>
-      <button class="chip" data-e="efnahagur">💹 Efnahagur</button>
-      <button class="chip" data-e="stjornmal">🏛️ Stjórnmál &amp; Alþingi</button>
-      <button class="chip" data-e="sveitarfelog">🏘️ Sveitarfélög</button>
-      <button class="chip" data-e="althjoda">🌍 Alþjóða</button>
-      <button class="chip" data-e="samfelag">👥 Samfélag</button>
-      <button class="chip" data-e="__erlent">🌍 Erlendir miðlar</button>
+      <button class="chip on" data-e="">Allt</button>
+      <button class="chip" data-e="efnahagur">Efnahagur</button>
+      <button class="chip" data-e="stjornmal">Stjórnmál &amp; Alþingi</button>
+      <button class="chip" data-e="sveitarfelog">Sveitarfélög</button>
+      <button class="chip" data-e="althjoda">Alþjóða</button>
+      <button class="chip" data-e="samfelag">Samfélag</button>
+      <button class="chip" data-e="__erlent">Erlendir miðlar</button>
       <span class="chip-sep"></span>
-      <button class="chip" data-g="fyr">🏢 Fyrirtæki</button>
-      <button class="chip" data-g="stofnanir">🏦 Stofnanir</button>
-      <button class="chip" data-g="flokkar">🚩 Flokkar</button>
-      <button class="chip" data-g="radherrar">🧑‍⚖️ Ráðherrar</button>
+      <button class="chip" data-g="fyr">Fyrirtæki</button>
+      <button class="chip" data-g="stofnanir">Stofnanir</button>
+      <button class="chip" data-g="flokkar">Flokkar</button>
+      <button class="chip" data-g="radherrar">Ráðherrar</button>
     </div>
 
     <div id="rel" class="rel" hidden></div>
-    <p class="rail-hint">🗞️ Fyrirsagnirnar birtast í <b>fréttastikunni hægra megin</b> og fylgja valinu hér að ofan — og reyndar síðunni sem þú ert á hverju sinni. <span class="more-link" style="display:inline">Dýpri greining: <a href="#greining">Fjölmiðlagreiningin neðar á síðunni</a>.</span></p>
+    <p class="rail-hint">Fyrirsagnirnar birtast í <b>fréttastikunni hægra megin</b> og fylgja valinu hér að ofan — og reyndar síðunni sem þú ert á hverju sinni. <span class="more-link" style="display:inline">Dýpri greining: <a href="#greining">Fjölmiðlagreiningin neðar á síðunni</a>.</span></p>
     <div id="live-wrap">
       <div id="live-list" class="live">Sæki fyrirsagnir…</div>
     </div>
@@ -109,23 +109,23 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       </div>
       <div id="co-detail" hidden></div>
 
-    <!-- ── 📊 FJÖLMIÐLAGREININGIN (LOTA 34B — sameinuð hingað úr /greining/) ──
+    <!-- ── FJÖLMIÐLAGREININGIN (LOTA 34B — sameinuð hingað úr /greining/) ──
          Sjálfgefið: heildarsafnið. Við val á aðila að ofan AÐLAGAST allt:
          KPI, gröfin, Fjölmiðlavogin og tengslanetið. -->
     <section id="greining">
-      <h2 class="fg-h">📊 Fjölmiðlagreining <i class="tip" tabindex="0" data-tip="Fréttasafn Karp greint: umfang, tónn og dreifing. Sjálfgefið sést heildarsafnið (50þ+ fyrirsagnir) — veldu aðila að ofan og öll gröfin, vogin og tengslanetið laga sig að valinu. Tónn er vélrænt mat, ekki ritstjórnardómur.">ⓘ</i> <span id="fg-selname"></span></h2>
+      <h2 class="fg-h">Fjölmiðlagreining <i class="tip" tabindex="0" data-tip="Fréttasafn Karp greint: umfang, tónn og dreifing. Sjálfgefið sést heildarsafnið (50þ+ fyrirsagnir) — veldu aðila að ofan og öll gröfin, vogin og tengslanetið laga sig að valinu. Tónn er vélrænt mat, ekki ritstjórnardómur.">ⓘ</i> <span id="fg-selname"></span></h2>
       <div id="fg-kpis">Sæki greiningu…</div>
       <div class="fg-pair">
         <div><h3 class="fg-sh" id="fg-months-h">Umfjöllun &amp; tónn eftir mánuðum</h3><div id="fg-months"></div></div>
         <div><h3 class="fg-sh" id="fg-src-h">Hlutdeild miðlanna</h3><div id="fg-src"></div></div>
       </div>
 
-      <h3 class="fg-sh">🕸️ Tengslanet umfjöllunar <i class="tip" tabindex="0" data-tip="Hverjir koma saman fyrir í fréttum? Hnútur = aðili (stærð = fjöldi frétta sl. 180 daga), brún = sameiginlegar fyrirsagnir. Netið FYLGIR VALINU efst á síðunni: Fyrirtæki-flipinn sýnir fyrirtækjanetið, Flokkar flokkanetið o.s.frv. — og valinn aðili lýsist upp.">ⓘ</i> <span class="fg-follow">fylgir valinu efst</span></h3>
+      <h3 class="fg-sh">Tengslanet umfjöllunar <i class="tip" tabindex="0" data-tip="Hverjir koma saman fyrir í fréttum? Hnútur = aðili (stærð = fjöldi frétta sl. 180 daga), brún = sameiginlegar fyrirsagnir. Netið FYLGIR VALINU efst á síðunni: Fyrirtæki-flipinn sýnir fyrirtækjanetið, Flokkar flokkanetið o.s.frv. — og valinn aðili lýsist upp.">ⓘ</i> <span class="fg-follow">fylgir valinu efst</span></h3>
       <div id="tn-graph"></div>
       <div id="tn-note" class="tn-note"></div>
       <div id="tn-pairs"></div>
 
-      <h3 class="fg-sh">📊 Fjölmiðlavogin <i class="tip" tabindex="0" data-tip="Tónn PER MIÐIL um valið málefni eða aðila — veldu flís, sláðu inn eigið efni, eða veldu aðila að ofan og vogin keyrir sjálfkrafa.">ⓘ</i></h3>
+      <h3 class="fg-sh">Fjölmiðlavogin <i class="tip" tabindex="0" data-tip="Tónn PER MIÐIL um valið málefni eða aðila — veldu flís, sláðu inn eigið efni, eða veldu aðila að ofan og vogin keyrir sjálfkrafa.">ⓘ</i></h3>
       {/* Flísarnar OG /frettir/<slug>/-síðurnar lesa SÖMU skrá (malefni.json) → ekkert misræmi.
           FLOKKAR: 119 flísar í einni röð voru ólæsilegar → flokkur valinn efst, flísar hans birtast.
           Flokkaröðin kemur úr skránni sjálfri (fyrsta-birting ræður) — engin röð harðkóðuð hér. */}
@@ -142,10 +142,10 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       <a id="fg-vogsida" href="#" hidden></a>
       <div id="fg-vog">Veldu málefni — eða aðila að ofan — til að vega miðlana.</div>
 
-      <h3 class="fg-sh">📐 Fjölmiðlavogin — hlutdrægni leiðrétt fyrir efnisvali <i class="tip" tabindex="0" data-tip="Hrár meðaltónn mælir EKKI hlutdrægni heldur hvað miðill fjallar um: íþróttamiðill lítur jákvæður út, sakamálamiðill neikvæður. Hér er borið saman EPLI VIÐ EPLI — frávik hvers miðils frá meðaltóni allra um SAMA efni.">ⓘ</i></h3>
+      <h3 class="fg-sh">Fjölmiðlavogin — hlutdrægni leiðrétt fyrir efnisvali <i class="tip" tabindex="0" data-tip="Hrár meðaltónn mælir EKKI hlutdrægni heldur hvað miðill fjallar um: íþróttamiðill lítur jákvæður út, sakamálamiðill neikvæður. Hér er borið saman EPLI VIÐ EPLI — frávik hvers miðils frá meðaltóni allra um SAMA efni.">ⓘ</i></h3>
       <div id="fg-mvog">Sæki fjölmiðlavogina…</div>
 
-      <h3 class="fg-sh">⚖️ Samanburður aðila — hlutdeild umfjöllunar <i class="tip" tabindex="0" data-tip="Share of voice: veldu tvo aðila og sjáðu hvor á meira af umfjölluninni (sl. 12 mánuði), tón hvors um sig og þróunina viku fyrir viku á sama grafi. Klassísk PR-greining.">ⓘ</i></h3>
+      <h3 class="fg-sh">Samanburður aðila — hlutdeild umfjöllunar <i class="tip" tabindex="0" data-tip="Share of voice: veldu tvo aðila og sjáðu hvor á meira af umfjölluninni (sl. 12 mánuði), tón hvors um sig og þróunina viku fyrir viku á sama grafi. Klassísk PR-greining.">ⓘ</i></h3>
       <div class="sov-row">
         <input id="sov-a" list="sov-list" placeholder="Aðili A — t.d. Icelandair" autocomplete="off" />
         <span class="sov-vs">vs</span>
@@ -157,7 +157,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
 
     </section>
 
-    <!-- 📰 Nýjasta umfjöllunin — NEÐST, fyrir neðan greininguna (ósk notanda) -->
+    <!-- Nýjasta umfjöllunin — NEÐST, fyrir neðan greininguna (ósk notanda) -->
     <div id="btm-news" hidden>
       <div class="d-sec" id="btm-sec">Nýjasta umfjöllunin</div>
       <div class="d-list" id="btm-list"></div>
@@ -168,7 +168,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
         (flísarnar að ofan eru hnappar sem keyra vogina, ekki hlekkir). Listinn er lesinn úr
         SÖMU skrá og workerinn þjónar síðurnar úr → aldrei hlekkur á 404. */}
     <section class="hub">
-      <h2 class="fg-sh">🗂️ Allar umfjöllunar-síður <span class="hub-n">{ADILAR.adilar.length}</span></h2>
+      <h2 class="fg-sh">Allar umfjöllunar-síður <span class="hub-n">{ADILAR.adilar.length}</span></h2>
       <p class="hub-sub">Hver aðili og hvert málefni á sína síðu með tón, tímalínu og miðlum — uppfært daglega. Vilt þú vakta eigin leitarorð og fá ný mál send í pósti? <a href="/lobbyvakt/">Settu upp vaktina þína →</a></p>
       {HUB.map((g) => (
         <div class="hub-g">
@@ -431,6 +431,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
   <!-- Eyja: lifandi fyrirsagnir + fyrirtækja-detail. #2 -->
   <script>
       import { KARP_MERKI } from '../lib/karp-merki.mjs';
+    import { takn } from '../lib/takn.mjs';
     import { loadUser, karpPost, loginHref } from '../lib/auth.js';
     import ALTH from '@gogn/althingi.json';
     import CAB from '@gogn/cabinet.json';
@@ -534,7 +535,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
         const pbCls = rv.pb == null ? '' : rv.pb < 1 ? 'good' : rv.pb > 2.5 ? 'bad' : 'warn';
         const pbSub = rv.pb == null ? '' : rv.pb < 1 ? 'undir bókfærðu virði' : 'yfir bókfærðu virði';
         const tile = (l, v, sub, cls) => `<div class="rv-tile ${cls || ''}"><div class="rv-v">${v}</div><div class="rv-l">${l}${sub ? `<br><span>${esc9(sub)}</span>` : ''}</div></div>`;
-        return `<div class="se-card"><div class="se-l">📊 Verðkennitölur — markaðsvirði og afkoma</div><div class="rv-grid">`
+        return `<div class="se-card"><div class="se-l">Verðkennitölur — markaðsvirði og afkoma</div><div class="rv-grid">`
           + tile('Markaðsvirði', ma(rv.mcap), ccy && ccy !== 'ISK' ? 'uppgjör í ' + ccy : '')
           + tile('V/H', rv.pe != null ? f1(rv.pe) : '—', 'verð ÷ hagnaður', peCls)
           + tile('V/I', rv.pb != null ? f1(rv.pb) : '—', pbSub, pbCls)
@@ -547,7 +548,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
         const cls = s.idx > 15 ? 'pos' : s.idx < -15 ? 'neg' : 'neu';
         const label = s.idx > 15 ? 'Jákvætt' : s.idx < -15 ? 'Neikvætt' : 'Hlutlaust';
         const tot = (s.pos + s.neu + s.neg) || 1;
-        return `<div class="se-card se-vidhorf"><div class="se-head"><div class="se-l">🤖 Viðhorf umfjöllunar <span class="se-sub">${s.scored} fyrirsagnir · gervigreind metur tón</span></div>`
+        return `<div class="se-card se-vidhorf"><div class="se-head"><div class="se-l">Viðhorf umfjöllunar <span class="se-sub">${s.scored} fyrirsagnir · gervigreind metur tón</span></div>`
           + `<div class="se-idx se-${cls}">${s.idx > 0 ? '+' : ''}${s.idx}<small>${label}</small></div></div>`
           + `<div class="se-bar"><i class="se-bneg" style="width:${((s.neg / tot) * 100).toFixed(1)}%"></i><i class="se-bneu" style="width:${((s.neu / tot) * 100).toFixed(1)}%"></i><i class="se-bpos" style="width:${((s.pos / tot) * 100).toFixed(1)}%"></i></div>`
           + `<div class="se-leg"><span class="se-neg">▼ ${s.neg} neikvæðar</span><span class="se-neu">● ${s.neu} hlutlausar</span><span class="se-pos">▲ ${s.pos} jákvæðar</span></div>`
@@ -557,14 +558,14 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
         if (!bs || bs.length < 2) return '';
         const cl = (idx) => (idx > 12 ? 'pos' : idx < -12 ? 'neg' : 'neu');
         const mx = Math.max(...bs.map((x) => x.n), 1);
-        return `<div class="se-card"><div class="se-l">📰 Tónn eftir fréttamiðli <span class="se-sub">hvernig hver miðill fjallar um félagið</span></div><div class="fy-srcrows">`
+        return `<div class="se-card"><div class="se-l">Tónn eftir fréttamiðli <span class="se-sub">hvernig hver miðill fjallar um félagið</span></div><div class="fy-srcrows">`
           + bs.map((x) => `<div class="fy-srcrow"><span class="fy-srcn">${esc9(x.s)}</span><span class="fy-srcbar"><i class="st-${cl(x.idx)}" style="width:${Math.max(6, (x.n / mx) * 100).toFixed(0)}%"></i></span><span class="fy-srcidx st-${cl(x.idx)}">${x.idx > 0 ? '+' : ''}${x.idx}</span><span class="fy-srcc">${x.n}</span></div>`).join('')
           + `</div><div class="se-note">Vísitala −100…+100 per miðli. Vélrænt mat á tóni — ekki ritstjórnardómur um hlutdrægni.</div></div>`;
       };
       const distCard = (sources, total) => {
         if (!sources || sources.length < 2) return '';
         const tot = total || sources.reduce((a, x) => a + x.n, 0) || 1;
-        return `<div class="se-card"><div class="se-l">🗞️ Dreifing milli fréttamiðla <span class="se-sub">hver fjallar mest um félagið</span></div><div class="fy-dist">`
+        return `<div class="se-card"><div class="se-l">Dreifing milli fréttamiðla <span class="se-sub">hver fjallar mest um félagið</span></div><div class="fy-dist">`
           + sources.slice(0, 8).map((x, i) => `<div class="fy-srcrow"><span class="fy-srcn">${esc9(x.s)}</span><span class="fy-srcbar"><i class="fy-d${i % 4}" style="width:${Math.max(4, (x.n / (sources[0].n || 1)) * 100).toFixed(0)}%"></i></span><span class="fy-srcc">${x.n} · ${Math.round((x.n / tot) * 100)}%</span></div>`).join('')
           + `</div></div>`;
       };
@@ -578,17 +579,17 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
         const recAvg = rec.reduce((a, b) => a + b, 0) / rec.length;
         const z = (recAvg - mean) / sd, ratio = mean > 0.3 ? recAvg / mean : recAvg > 1 ? 3 : 1;
         const sIdx = f.sentiment && f.sentiment.scored ? f.sentiment.idx : null;
-        let level, icon, label;
-        if (recAvg >= 2.5 && (z >= 2.5 || ratio >= 3)) { level = 'hi'; icon = '🔴'; label = 'Mikið frávik'; }
-        else if (recAvg >= 1.8 && (z >= 1.4 || ratio >= 1.8)) { level = 'mid'; icon = '🟠'; label = 'Aukin umfjöllun'; }
-        else if (recAvg < mean * 0.5 && mean > 1) { level = 'lo'; icon = '🔵'; label = 'Hljóðlátt'; }
-        else { level = 'ok'; icon = '🟢'; label = 'Eðlilegt'; }
+        let level, cls, label;
+        if (recAvg >= 2.5 && (z >= 2.5 || ratio >= 3)) { level = 'hi'; cls = 'k-slaemt'; label = 'Mikið frávik'; }
+        else if (recAvg >= 1.8 && (z >= 1.4 || ratio >= 1.8)) { level = 'mid'; cls = 'k-vidvorun'; label = 'Aukin umfjöllun'; }
+        else if (recAvg < mean * 0.5 && mean > 1) { level = 'lo'; cls = 'k-hlutlaust'; label = 'Hljóðlátt'; }
+        else { level = 'ok'; cls = 'k-ok'; label = 'Eðlilegt'; }
         const parts = [];
         if (level === 'hi' || level === 'mid') parts.push('Umfjöllun nýlega ' + f1(ratio) + '× yfir meðallagi síðustu mánaða');
         else if (level === 'lo') parts.push('Umfjöllun undir venju');
         else parts.push('Umfjöllun í takt við venju');
         if (sIdx != null) { if (sIdx <= -25 && level !== 'ok' && level !== 'lo') parts.push('og heildartónn neikvæður (' + sIdx + ') — fylgstu með'); else parts.push('heildartónn ' + (sIdx > 0 ? '+' : '') + sIdx); }
-        return `<div class="fy-health fy-h-${level}"><span class="fy-hb">${icon} ${label}</span><span class="fy-ht">${parts.join(' · ')}.</span></div>`;
+        return `<div class="fy-health fy-h-${level}"><span class="fy-hb ${cls}"><i class="k-punktur"></i>${label}</span><span class="fy-ht">${parts.join(' · ')}.</span></div>`;
       };
       // 📺 YouTube-markaðsgreining fyrirtækis (LOTA 33): subs + áhorf/likes per
       // myndband — keyless (RSS + rásarsíða) um /api/ytstats; ummæli með API-lykli.
@@ -609,16 +610,16 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
               const nyjustu = dated.slice(-3), fyrri = dated.slice(-6, -3);
               const a = nyjustu.reduce((s, v) => s + (v.views || 0), 0) / 3;
               const b = fyrri.reduce((s, v) => s + (v.views || 0), 0) / 3;
-              if (b > 0) { const pct = Math.round(((a - b) / b) * 100); trend = `<div class="yt-trend ${pct >= 0 ? 'up' : 'dn'}">${pct >= 0 ? '▲' : '▼'} Áhorf ${pct >= 0 ? '+' : ''}${pct}% — 3 nýjustu myndbönd (⌀ ${fmt(Math.round(a))}) borin saman við 3 þar á undan (⌀ ${fmt(Math.round(b))})</div>`; }
+              if (b > 0) { const pct = Math.round(((a - b) / b) * 100); trend = `<div class="yt-trend ${pct >= 0 ? 'up' : 'dn'}">${pct >= 0 ? '▲' : '▼'} Áhorf ${pct >= 0 ? '+' : ''}${pct}% — 3 nýjustu myndbönd (meðaltal ${fmt(Math.round(a))}) borin saman við 3 þar á undan (meðaltal ${fmt(Math.round(b))})</div>`; }
             }
             const nyjast = vids.filter((v) => v.d).sort((a, b) => String(b.d).localeCompare(String(a.d))).slice(0, 3);
-            const rows = nyjast.map((v) => `<a class="yt-row" href="${esc9(v.u)}" target="_blank" rel="noopener"><span class="yt-t">${esc9(v.t)}</span><span class="yt-m">${dIS9(v.d)} · 👁 ${fmt(v.views || 0)} áhorf · 👍 ${fmt(v.likes || 0)}${v.comments != null ? ' · 💬 ' + fmt(v.comments) : ''}</span></a>`).join('');
-            el.innerHTML = `<div class="se-card"><div class="se-l">📺 YouTube-rásin <span class="se-sub">${y.channel.subsRaw ? esc9(y.channel.subsRaw) + ' áskrifendur' : ''}</span></div>${trend}${dated.length >= 4 ? '<div id="yt-chart"></div>' : ''}${rows ? `<div class="yt-list">${rows}</div>` : ''}<div class="se-note">Áhorf per myndband yfir tíma (súlur) og like til hliðsjónar (lína) — opinber YouTube-veita rásarinnar, 6 klst skyndiminni.${y.api ? ' Ummælafjöldi um opinbert API.' : ''}</div></div>`;
+            const rows = nyjast.map((v) => `<a class="yt-row" href="${esc9(v.u)}" target="_blank" rel="noopener"><span class="yt-t">${esc9(v.t)}</span><span class="yt-m">${dIS9(v.d)} · ${fmt(v.views || 0)} áhorf · ${fmt(v.likes || 0)} like${v.comments != null ? ' · ' + fmt(v.comments) + ' ummæli' : ''}</span></a>`).join('');
+            el.innerHTML = `<div class="se-card"><div class="se-l">YouTube-rásin <span class="se-sub">${y.channel.subsRaw ? esc9(y.channel.subsRaw) + ' áskrifendur' : ''}</span></div>${trend}${dated.length >= 4 ? '<div id="yt-chart"></div>' : ''}${rows ? `<div class="yt-list">${rows}</div>` : ''}<div class="se-note">Áhorf per myndband yfir tíma (súlur) og like til hliðsjónar (lína) — opinber YouTube-veita rásarinnar, 6 klst skyndiminni.${y.api ? ' Ummælafjöldi um opinbert API.' : ''}</div></div>`;
             if (dated.length >= 4) fgChart('yt-chart', {
               backgroundColor: 'transparent',
               legend: { data: ['Áhorf', 'Like'], textStyle: { color: '#9fb0c8', fontSize: 10 }, top: 0 },
               grid: { left: 44, right: 36, top: 26, bottom: 22 },
-              tooltip: { trigger: 'axis', confine: true, formatter: (ps) => { const i = ps[0].dataIndex; const v = dated[i]; return `<b>${esc9(String(v.t).slice(0, 55))}</b><br>${dIS9(v.d)} · 👁 ${fmt(v.views || 0)} áhorf · 👍 ${fmt(v.likes || 0)}`; } },
+              tooltip: { trigger: 'axis', confine: true, formatter: (ps) => { const i = ps[0].dataIndex; const v = dated[i]; return `<b>${esc9(String(v.t).slice(0, 55))}</b><br>${dIS9(v.d)} · ${fmt(v.views || 0)} áhorf · ${fmt(v.likes || 0)} like`; } },
               xAxis: { type: 'category', data: dated.map((v) => String(v.d).slice(5)), axisLabel: { color: '#7e8ca6', fontSize: 9 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
               yAxis: [
                 { type: 'value', name: 'áhorf', nameTextStyle: { color: '#7e8ca6', fontSize: 9 }, axisLabel: { color: '#7e8ca6', fontSize: 9, formatter: (v) => (v >= 1000 ? v / 1000 + 'þ' : v) }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
@@ -653,7 +654,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
           const seinni = d.m.slice(6).reduce((a, x) => a + x, 0), fyrri = d.m.slice(0, 6).reduce((a, x) => a + x, 0);
           const trend = fyrri > 0 ? Math.round(((seinni - fyrri) / fyrri) * 100) : null;
           const orgs = (d.orgs || []).slice(0, 3).map(([o, v]) => `${esc9(o)} (${mkrB(v)})`).join(' · ');
-          el.innerHTML = `<div class="se-card"><div class="se-l">💸 Greiðslur frá ríkinu <span class="se-sub">${esc9(hit.n)} · sl. 12 mán</span></div><div class="rik-tot">${mkrB(hit.t)}${trend != null ? ` <span class="rik-tr ${trend >= 0 ? 'up' : 'dn'}">${trend >= 0 ? '▲' : '▼'} ${trend >= 0 ? '+' : ''}${trend}% seinni 6 mán vs fyrri</span>` : ''}</div>${bars}${orgs ? `<div class="rik-orgs">Stærstu kaupendur: ${orgs}</div>` : ''}<div class="se-note">Bókfærðar greiðslur ríkisins af opnirreikningar.is (Fjársýslan) — <a href="/birgjar/" style="color:#f6b13b">öll birgjagreiningin →</a></div></div>`;
+          el.innerHTML = `<div class="se-card"><div class="se-l">Greiðslur frá ríkinu <span class="se-sub">${esc9(hit.n)} · sl. 12 mán</span></div><div class="rik-tot">${mkrB(hit.t)}${trend != null ? ` <span class="rik-tr ${trend >= 0 ? 'up' : 'dn'}">${trend >= 0 ? '▲' : '▼'} ${trend >= 0 ? '+' : ''}${trend}% seinni 6 mán vs fyrri</span>` : ''}</div>${bars}${orgs ? `<div class="rik-orgs">Stærstu kaupendur: ${orgs}</div>` : ''}<div class="se-note">Bókfærðar greiðslur ríkisins af opnirreikningar.is (Fjársýslan) — <a href="/birgjar/" style="color:#f6b13b">öll birgjagreiningin →</a></div></div>`;
         }).catch(() => { el.innerHTML = ''; });
       }
       // 📢 Kauphallartilkynningar (LOTA 48): opinber OMX-veita um /api/tilkynningar
@@ -666,7 +667,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
             if (!g || !(g.items || []).length) { el.innerHTML = ''; return; }
             const dIS9 = (x) => { const m = String(x || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : ''; };
             const rows = g.items.slice(0, 5).map((x) => `<a class="yt-row" href="${esc9(x.u)}" target="_blank" rel="noopener"><span class="yt-t">${esc9(x.t)}</span><span class="yt-m">${dIS9(x.d)} · ${esc9(x.co || '')}${x.lang && x.lang !== 'is' ? ' · ' + esc9(x.lang) : ''}</span></a>`).join('');
-            el.innerHTML = `<div class="se-card"><div class="se-l">📢 Kauphallartilkynningar <span class="se-sub">opinber veita Nasdaq Iceland</span></div><div class="yt-list">${rows}</div><div class="se-note">Nýjustu tilkynningar útgefanda í Kauphöllinni — 30 mín skyndiminni.</div></div>`;
+            el.innerHTML = `<div class="se-card"><div class="se-l">Kauphallartilkynningar <span class="se-sub">opinber veita Nasdaq Iceland</span></div><div class="yt-list">${rows}</div><div class="se-note">Nýjustu tilkynningar útgefanda í Kauphöllinni — 30 mín skyndiminni.</div></div>`;
           })
           .catch(() => { el.innerHTML = ''; });
       }
@@ -683,7 +684,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
             if (!g || g.error || !(g.items || []).length) { el.innerHTML = ''; return; }
             const safeL = (u) => (/^https?:\/\//i.test(String(u || '')) ? String(u) : '#');
             const rows = g.items.slice(0, 6).map((x) => `<a class="yt-row" href="${esc9(safeL(x.l))}" target="_blank" rel="noopener"><span class="yt-t">${esc9(x.t)}</span><span class="yt-m">${esc9(x.src)}${x.sn ? ' · ' + esc9(String(x.sn).slice(0, 120)) : ''}</span></a>`).join('');
-            el.innerHTML = `<div class="se-card"><div class="se-l">🌐 Af öllum vefnum <span class="se-sub">Google-leit: „${esc9(g.q)}“</span></div><div class="yt-list">${rows}</div><div class="se-note">Efstu vefniðurstöður Google (Custom Search) — ekki bara fréttir: skýrslur, opinber skjöl, umræða. 6 klst skyndiminni.</div></div>`;
+            el.innerHTML = `<div class="se-card"><div class="se-l">Af öllum vefnum <span class="se-sub">Google-leit: „${esc9(g.q)}“</span></div><div class="yt-list">${rows}</div><div class="se-note">Efstu vefniðurstöður Google (Custom Search) — ekki bara fréttir: skýrslur, opinber skjöl, umræða. 6 klst skyndiminni.</div></div>`;
           })
           .catch(() => { el.innerHTML = ''; });
       }
@@ -700,7 +701,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
           loadUser().then((uNow) => {
           if (!uNow || !uNow.loggedIn) {
             // Kauphallartilkynningar eru opinber gögn → sýndar líka óinnskráðum (LOTA 52)
-            dm.innerHTML = `<div class="pro-tease"><div class="pt-t">⭐ Umfjöllunargreiningin er hluti af Karp+</div><p>Heilsumerki umfjöllunar, tónn yfir tíma, verðkennitölur, orðaský og miðladreifing fyrir <b>${esc9(c.n)}</b> — með ókeypis aðgangi.</p><div class="pt-btns"><a class="pt-main" href="/karp-pro/">Hvað er Karp+?</a><a class="pt-sec" href="${loginHref()}">Innskráning</a></div></div><div id="d-rik"></div><div id="d-tilk"></div>`;
+            dm.innerHTML = `<div class="pro-tease"><div class="pt-t">Umfjöllunargreiningin er hluti af Karp+</div><p>Heilsumerki umfjöllunar, tónn yfir tíma, verðkennitölur, orðaský og miðladreifing fyrir <b>${esc9(c.n)}</b> — með ókeypis aðgangi.</p><div class="pt-btns"><a class="pt-main" href="/karp-pro/">Hvað er Karp+?</a><a class="pt-sec" href="${loginHref()}">Innskráning</a></div></div><div id="d-rik"></div><div id="d-tilk"></div>`;
             dl.innerHTML = '';
             loadRikisCard(c.n);
             loadTilkCard(c.n);
@@ -721,7 +722,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
               mh += srcToneCard(se.bySource);
               if (f.words && f.words.length) {
                 const ws = f.words.slice(0, 28), mx = ws[0].n || 1;
-                mh += '<div class="se-card"><div class="se-l">💬 Algengustu orð í umfjöllun</div><div class="d-cloud">' + ws.map((w) => `<span class="d-w" style="font-size:${Math.round(11 + (w.n / mx) * 16)}px;opacity:${0.55 + (w.n / mx) * 0.45}">${esc9(w.w)}</span>`).join('') + '</div></div>';
+                mh += '<div class="se-card"><div class="se-l">Algengustu orð í umfjöllun</div><div class="d-cloud">' + ws.map((w) => `<span class="d-w" style="font-size:${Math.round(11 + (w.n / mx) * 16)}px;opacity:${0.55 + (w.n / mx) * 0.45}">${esc9(w.w)}</span>`).join('') + '</div></div>';
               }
               mh += '<div id="d-rik"></div><div id="d-tilk"></div><div id="d-yt"></div><div id="d-gl"></div>';
               dm.innerHTML = mh;
@@ -902,7 +903,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       try {
         TN_CHART.dispatchAction({ type: 'highlight', seriesIndex: 0, name });
         const note = document.getElementById('tn-note');
-        if (note) note.innerHTML = '🎯 <b>' + esc9(name) + '</b> upplýst í netinu — músin yfir hnútinn einangrar tengslin.';
+        if (note) note.innerHTML = '<b>' + esc9(name) + '</b> upplýst í netinu — músin yfir hnútinn einangrar tengslin.';
       } catch (e) {}
     }
     function tnRender(d, colorOf) {
@@ -959,10 +960,10 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
         const totN = d.months.reduce((a, m) => a + m.n, 0) || 1;
         const avgIdx = Math.round(d.months.reduce((a, m) => a + (m.idx || 0) * m.n, 0) / totN);
         kp.innerHTML = `<div class="kpis">
-          <div class="kpi"><div class="k-l">🗞️ Fréttir í safni ${d.year}</div><div class="k-v">${thF(d.total)}</div><div class="k-s">${thF(d.scored)} tón-greindar</div></div>
-          <div class="kpi"><div class="k-l">🤖 Meðaltónn ársins</div><div class="k-v" style="color:${tone(avgIdx)[1]}">${avgIdx > 0 ? '+' : ''}${avgIdx}</div><div class="k-s">${tone(avgIdx)[0]} · −100…+100</div></div>
-          ${d.best ? `<div class="kpi"><div class="k-l">☀️ Jákvæðasti mánuður</div><div class="k-v" style="color:#46e08a">${mISF(d.best.m)}</div><div class="k-s">tónn +${d.best.idx}</div></div>` : ''}
-          ${d.worst ? `<div class="kpi"><div class="k-l">🌧️ Neikvæðasti mánuður</div><div class="k-v" style="color:#ff6d7a">${mISF(d.worst.m)}</div><div class="k-s">tónn ${d.worst.idx}</div></div>` : ''}
+          <div class="kpi"><div class="k-l">Fréttir í safni ${d.year}</div><div class="k-v">${thF(d.total)}</div><div class="k-s">${thF(d.scored)} tón-greindar</div></div>
+          <div class="kpi"><div class="k-l">Meðaltónn ársins</div><div class="k-v" style="color:${tone(avgIdx)[1]}">${avgIdx > 0 ? '+' : ''}${avgIdx}</div><div class="k-s">${tone(avgIdx)[0]} · −100…+100</div></div>
+          ${d.best ? `<div class="kpi"><div class="k-l">Jákvæðasti mánuður</div><div class="k-v" style="color:#46e08a">${mISF(d.best.m)}</div><div class="k-s">tónn +${d.best.idx}</div></div>` : ''}
+          ${d.worst ? `<div class="kpi"><div class="k-l">Neikvæðasti mánuður</div><div class="k-v" style="color:#ff6d7a">${mISF(d.worst.m)}</div><div class="k-s">tónn ${d.worst.idx}</div></div>` : ''}
         </div>`;
         fgChart('fg-months', {
           backgroundColor: 'transparent', legend: { data: ['Fréttir', 'Tónn'], textStyle: { color: '#9fb0c8', fontSize: 11 }, top: 0 },
@@ -986,16 +987,16 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       const kp = document.getElementById('fg-kpis');
       if (!kp) return;
       FG_SEL = { c, f };
-      document.getElementById('fg-selname').innerHTML = '— valið: <b>' + esc9(c.n) + '</b> <button type="button" class="fg-btn" id="fg-pdf" title="Prentvæn skýrsla (vista sem PDF í prentglugganum)">🖨️ PDF-skýrsla</button> <button type="button" id="fg-clear" title="Aftur í heildina">✕ heildin</button>';
+      document.getElementById('fg-selname').innerHTML = '— valið: <b>' + esc9(c.n) + '</b> <button type="button" class="fg-btn" id="fg-pdf" title="Prentvæn skýrsla (vista sem PDF í prentglugganum)">' + takn('prenta') + 'PDF-skýrsla</button> <button type="button" id="fg-clear" title="Aftur í heildina">✕ heildin</button>';
       document.getElementById('fg-clear').onclick = () => { FG_SEL = null; fgGlobal(); };
       document.getElementById('fg-pdf').onclick = fgReport;
       document.getElementById('fg-months-h').textContent = 'Umfjöllun um ' + c.n + ' (vikur)';
       document.getElementById('fg-src-h').textContent = 'Miðlar sem fjalla um ' + c.n;
       const se = f.sentiment || {}, st = f.stats || {};
       kp.innerHTML = `<div class="kpis">
-        <div class="kpi"><div class="k-l">🗞️ Fréttir sl. 6 mán</div><div class="k-v">${thF(f.total)}</div><div class="k-s">${st.perDay != null ? String(st.perDay).replace('.', ',') + ' á dag' : ''}${f.capped ? (st.perDay != null ? ' · ' : '') + 'tónn af ' + thF(f.sample) + ' nýjustu' : ''}</div></div>
-        <div class="kpi"><div class="k-l">🤖 Tónn umfjöllunar</div><div class="k-v" style="color:${se.idx > 15 ? '#46e08a' : se.idx < -15 ? '#ff6d7a' : '#9fb0c8'}">${se.idx > 0 ? '+' : ''}${se.idx ?? '—'}</div><div class="k-s">${se.scored || 0} tón-greindar</div></div>
-        <div class="kpi"><div class="k-l">📰 Miðlar</div><div class="k-v">${(st.sources || []).length}</div><div class="k-s">fjalla um aðilann</div></div>
+        <div class="kpi"><div class="k-l">Fréttir sl. 6 mán</div><div class="k-v">${thF(f.total)}</div><div class="k-s">${st.perDay != null ? String(st.perDay).replace('.', ',') + ' á dag' : ''}${f.capped ? (st.perDay != null ? ' · ' : '') + 'tónn af ' + thF(f.sample) + ' nýjustu' : ''}</div></div>
+        <div class="kpi"><div class="k-l">Tónn umfjöllunar</div><div class="k-v" style="color:${se.idx > 15 ? '#46e08a' : se.idx < -15 ? '#ff6d7a' : '#9fb0c8'}">${se.idx > 0 ? '+' : ''}${se.idx ?? '—'}</div><div class="k-s">${se.scored || 0} tón-greindar</div></div>
+        <div class="kpi"><div class="k-l">Miðlar</div><div class="k-v">${(st.sources || []).length}</div><div class="k-s">fjalla um aðilann</div></div>
       </div>`;
       const tl = f.timeline || [];
       if (tl.length > 2) fgChart('fg-months', {
@@ -1264,16 +1265,16 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
         ['Norðurhaf og sveitarfélag undirrita samstarf um hafnaraðstöðu', 'Austurfrétt', '24.6.2026'],
       ];
       const rows = heads.slice(0, full ? 6 : 3).map((h) => `<div class="it"><span class="t">${h[0]}</span><span class="s">${h[1]} · ${h[2]}</span></div>`).join('');
-      const kpis = [['24', '📊 Greinar sl. 30 daga'], ['+18', '🙂 Tónn (jákvæður)'], ['Viðskiptabl.', '📰 Mest áberandi'], ['↑ hækkandi', '💬 Umtal']]
+      const kpis = [['24', 'Greinar sl. 30 daga'], ['+18', 'Tónn (jákvæður)'], ['Viðskiptabl.', 'Mest áberandi'], ['↑ hækkandi', 'Umtal']]
         .map((k) => `<div class="syni-kpi"><b>${k[0]}</b><span>${k[1]}</span></div>`).join('');
       const cta = `<div class="syni-btns"><a class="syni-main" href="${loginHref()}">Skráðu þig inn</a><a class="syni-sec" href="/karp-pro/">Sjá Karp+ →</a></div>`;
-      return `<div class="syni-banner"><div class="syni-t">⭐ Þetta er sýnishorn — svona lítur fjölmiðlagreining Karp+ út</div>`
+      return `<div class="syni-banner"><div class="syni-t">Þetta er sýnishorn — svona lítur fjölmiðlagreining Karp+ út</div>`
         + `<p>Tilbúin dæmigögn fyrir eitt fyrirtæki, <b>Norðurhaf Sjávarfang hf.</b> Með Karp+ vaktar þú og greinir hvaða fyrirtæki, stofnun eða einstakling sem er — heilsumerki umfjöllunar, tón yfir tíma, verðkennitölur og miðladreifingu. <b>Skráðu þig inn eða gerstu áskrifandi til að sjá allt.</b></p>${cta}</div>`
-        + `<div class="syni-card"><div class="syni-lbl">🐟 Norðurhaf Sjávarfang hf. · umfjöllunargreining (sýnishorn)</div><div class="syni-kpis">${kpis}</div></div>`
-        + `<div class="syni-card"><div class="syni-lbl">🗞️ Nýleg umfjöllun (dæmi)</div><div class="live" style="column-count:1">${rows}</div></div>`
+        + `<div class="syni-card"><div class="syni-lbl">Norðurhaf Sjávarfang hf. · umfjöllunargreining (sýnishorn)</div><div class="syni-kpis">${kpis}</div></div>`
+        + `<div class="syni-card"><div class="syni-lbl">Nýleg umfjöllun (dæmi)</div><div class="live" style="column-count:1">${rows}</div></div>`
         + (full
           ? `<div class="syni-banner"><div class="syni-t">Viltu greina þitt fyrirtæki?</div><p>Þetta sýnishorn notar tilbúin gögn. Skráðu þig inn til að vakta raunverulega umfjöllun um hvaða aðila sem er.</p>${cta}</div>`
-          : `<p style="font-size:12.5px;color:#8fa0ba;margin:2px 0 0"><a href="/frettir/?syni=1" style="color:#f6b13b">👁️ Sjá fullt sýnishorn →</a> · leitin og opnu fyrirsagnirnar eru alltaf aðgengilegar hér að neðan.</p>`);
+          : `<p style="font-size:12.5px;color:#8fa0ba;margin:2px 0 0"><a href="/frettir/?syni=1" style="color:#f6b13b">Sjá fullt sýnishorn →</a> · leitin og opnu fyrirsagnirnar eru alltaf aðgengilegar hér að neðan.</p>`);
     }
     document.addEventListener('astro:page-load', () => {
       const m = document.querySelector('main[data-pg="frettir"]');

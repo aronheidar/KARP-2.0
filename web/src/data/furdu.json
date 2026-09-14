@@ -1,1 +1,54 @@
-{"wageIdx":53,"hpm":160,"items":[{"idx":3,"e":"🍺","l":"Bjór á barnum"},{"idx":5,"e":"☕","l":"Kaffibolli"},{"idx":2,"e":"🍔","l":"Skyndibiti (McMeal)"},{"idx":40,"e":"🎬","l":"Bíómiði"},{"idx":8,"e":"🥛","l":"Mjólkurlítri"},{"idx":32,"e":"⛽","l":"Bensínlítri"},{"idx":14,"e":"🥩","l":"Kíló af nautakjöti"},{"idx":38,"e":"🏋️","l":"Mánuður í ræktinni"},{"idx":28,"e":"🚌","l":"Mánaðarkort í strætó"},{"idx":47,"e":"🏠","l":"Mánaðarleiga (1 svefnh.)"},{"idx":51,"e":"🏢","l":"Fermetri af íbúð"},{"idx":33,"e":"🚗","l":"Nýr bíll (VW Golf)"}]}
+{
+  "wageIdx": 53,
+  "hpm": 160,
+  "items": [
+    {
+      "idx": 3,
+      "l": "Bjór á barnum"
+    },
+    {
+      "idx": 5,
+      "l": "Kaffibolli"
+    },
+    {
+      "idx": 2,
+      "l": "Skyndibiti (McMeal)"
+    },
+    {
+      "idx": 40,
+      "l": "Bíómiði"
+    },
+    {
+      "idx": 8,
+      "l": "Mjólkurlítri"
+    },
+    {
+      "idx": 32,
+      "l": "Bensínlítri"
+    },
+    {
+      "idx": 14,
+      "l": "Kíló af nautakjöti"
+    },
+    {
+      "idx": 38,
+      "l": "Mánuður í ræktinni"
+    },
+    {
+      "idx": 28,
+      "l": "Mánaðarkort í strætó"
+    },
+    {
+      "idx": 47,
+      "l": "Mánaðarleiga (1 svefnh.)"
+    },
+    {
+      "idx": 51,
+      "l": "Fermetri af íbúð"
+    },
+    {
+      "idx": 33,
+      "l": "Nýr bíll (VW Golf)"
+    }
+  ]
+}

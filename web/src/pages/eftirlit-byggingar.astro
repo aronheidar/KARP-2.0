@@ -14,6 +14,8 @@ import Layout from '../layouts/Layout.astro';
 import EF from '@gogn/eftirlit.json';
 import VAKT from '@gogn/byggingarleyfi_vakt.json';
 import { felagHref } from '../lib/fyrirtaeki-slod.mjs';
+import { takn } from '../lib/takn.mjs';
+const VAKTA_TAKN = takn('vakta', 13); // bjalla (hústákn) → define:vars, því inline-skrifturnar geta ekki import-að
 
 /* ---- Eftirlit (HER) ---- */
 const stadir = EF.stadir || [];
@@ -49,13 +51,13 @@ const desc = `Opinber gögn Reykjavíkurborgar um staði og hús: matvæla- og h
 <Layout title="Eftirlit & byggingarleyfi í Reykjavík — hreinlætiseinkunnir og afgreiðslur byggingarfulltrúa | Karp" description={desc} canonical="https://karp.is/eftirlit-byggingar/" ogTitle="Eftirlit & byggingarleyfi í Reykjavík">
   <main class="eb">
     <p class="kicker">Hagvísir Íslands · Reykjavík</p>
-    <h1>Eftirlit &amp; byggingarleyfi 🏙️</h1>
+    <h1>Eftirlit &amp; byggingarleyfi</h1>
     <p class="lead">Tvær opinberar skrár Reykjavíkurborgar um staði og hús, á einum stað: <strong>hreinlætiseinkunn</strong> veitinga- og matvælastaða úr heilbrigðiseftirliti, og <strong>afgreiðslur byggingarfulltrúa</strong> á byggingarleyfum. Hvort tveggja er opið og uppfært daglega.</p>
     <p class="datainfo">⚠ Aðeins Reykjavík — önnur sveitarfélög birta hvorugt á sambærilegu formi.</p>
 
     <div class="eb-tabs" role="tablist" aria-label="Veldu gagnaskrá">
-      <button class="eb-tab" data-t="eftirlit" type="button" role="tab" aria-controls="tab-eftirlit">🍽️ Heilbrigðiseftirlit <span>{count} staðir</span></button>
-      <button class="eb-tab" data-t="bygging" type="button" role="tab" aria-controls="tab-bygging">🏗️ Byggingarleyfi <span>{nIS(counts.permits)} afgreiðslur</span></button>
+      <button class="eb-tab" data-t="eftirlit" type="button" role="tab" aria-controls="tab-eftirlit">Heilbrigðiseftirlit <span>{count} staðir</span></button>
+      <button class="eb-tab" data-t="bygging" type="button" role="tab" aria-controls="tab-bygging">Byggingarleyfi <span>{nIS(counts.permits)} afgreiðslur</span></button>
     </div>
 
     {/* ============================ FLIPI 1 — EFTIRLIT ============================ */}
@@ -64,10 +66,10 @@ const desc = `Opinber gögn Reykjavíkurborgar um staði og hús: matvæla- og h
       <p class="datainfo"><i class="tip" tabindex="0" data-tip="Heimild: Heilbrigðiseftirlit Reykjavíkur (her.reykjavik.is). Kvarði 0–5: 5 kröfur uppfylltar · 4 fáein frávik · 3 frávik/ábendingar · 2 aðkallandi frávik · 1 starfsemi takmörkuð/stöðvuð að hluta · 0 starfsemi stöðvuð. ⚠ Aðeins Reykjavík — önnur heilbrigðiseftirlitssvæði birta ekki per-stað einkunnir.">ⓘ</i> Um kvarðann og gögnin</p>
 
       <div class="kpis">
-        <div class="kpi"><div class="k-l">🏢 Metnir staðir</div><div class="k-v">{count}</div><div class="k-s">m/ birta einkunn</div></div>
-        <div class="kpi"><div class="k-l">📊 Meðaleinkunn</div><div class="k-v">{cIS(avg)}</div><div class="k-s">af 5 (hærra betra)</div></div>
-        <div class="kpi"><div class="k-l">⛔ Stöðvuð / takmörkuð</div><div class="k-v" style="color:#f85149">{nStopped}</div><div class="k-s">einkunn 0–1</div></div>
-        <div class="kpi"><div class="k-l">⭐ Til fyrirmyndar</div><div class="k-v" style="color:#3fb950">{dist[5]}</div><div class="k-s">einkunn 5</div></div>
+        <div class="kpi"><div class="k-l">Metnir staðir</div><div class="k-v">{count}</div><div class="k-s">m/ birta einkunn</div></div>
+        <div class="kpi"><div class="k-l">Meðaleinkunn</div><div class="k-v">{cIS(avg)}</div><div class="k-s">af 5 (hærra betra)</div></div>
+        <div class="kpi"><div class="k-l">Stöðvuð / takmörkuð</div><div class="k-v" style="color:#f85149">{nStopped}</div><div class="k-s">einkunn 0–1</div></div>
+        <div class="kpi"><div class="k-l">Til fyrirmyndar</div><div class="k-v" style="color:#3fb950">{dist[5]}</div><div class="k-s">einkunn 5</div></div>
       </div>
 
       <h2>Dreifing einkunna</h2>
@@ -104,7 +106,7 @@ const desc = `Opinber gögn Reykjavíkurborgar um staði og hús: matvæla- og h
       <h2>Leitaðu í skránni</h2>
       <p class="sub">Sláðu inn nafn eða götu, eða síaðu eftir einkunn. Smelltu á nafn til að sjá fyrirtækjaprófíl, eða „skýrsla" fyrir fulla eftirlitsskýrslu HER.</p>
       <div class="ef-controls">
-        <input id="ef-q" type="search" placeholder="🔎 Leita að stað eða götu…" autocomplete="off" aria-label="Leita að stað eða götu" />
+        <input id="ef-q" type="search" placeholder="Leita að stað eða götu…" autocomplete="off" aria-label="Leita að stað eða götu" />
         <div class="ef-filt" id="ef-filt">
           <button class="ef-fb active" data-r="all">Allar</button>
           <button class="ef-fb" data-r="5">5</button>
@@ -128,10 +130,10 @@ const desc = `Opinber gögn Reykjavíkurborgar um staði og hús: matvæla- og h
       <p class="datainfo"><i class="tip" tabindex="0" data-tip="Heimild: Afgreiðslufundir byggingarfulltrúa Reykjavíkur (reykjavik.is). Lyklað á heimilisfang — engar kennitölur, nöfn eða persónuupplýsingar umsækjenda. Samþykkt = leyfi veitt · Synjað = hafnað · Frestað = beðið umsagnar/athugasemda · Afgreitt/Jákvæð/Neikvæð = fyrirspurn afgreidd. ⚠ Aðeins Reykjavík — önnur sveitarfélög birta byggingarleyfi á öðru formi.">ⓘ</i> Um gögnin og ákvarðanir</p>
 
       <div class="kpis">
-        <div class="kpi"><div class="k-l">🏗️ Afgreiðslur</div><div class="k-v">{nIS(counts.permits)}</div><div class="k-s">frá 2020 ({nIS(counts.meetings)} fundir)</div></div>
-        <div class="kpi"><div class="k-l">🏠 Heimilisföng</div><div class="k-v">{nIS(counts.addresses)}</div><div class="k-s">í Reykjavík</div></div>
-        <div class="kpi"><div class="k-l">✅ Samþykkt</div><div class="k-v" style="color:#3fb950">{nIS(samth)}</div><div class="k-s">{synj} synjað / hafnað</div></div>
-        <div class="kpi"><div class="k-l">📅 Nýjasti fundur</div><div class="k-v" style="font-size:19px">{latestDate}</div><div class="k-s">uppfært {bvUpdated}</div></div>
+        <div class="kpi"><div class="k-l">Afgreiðslur</div><div class="k-v">{nIS(counts.permits)}</div><div class="k-s">frá 2020 ({nIS(counts.meetings)} fundir)</div></div>
+        <div class="kpi"><div class="k-l">Heimilisföng</div><div class="k-v">{nIS(counts.addresses)}</div><div class="k-s">í Reykjavík</div></div>
+        <div class="kpi"><div class="k-l">Samþykkt</div><div class="k-v" style="color:#3fb950">{nIS(samth)}</div><div class="k-s">{synj} synjað / hafnað</div></div>
+        <div class="kpi"><div class="k-l">Nýjasti fundur</div><div class="k-v" style="font-size:19px">{latestDate}</div><div class="k-s">uppfært {bvUpdated}</div></div>
       </div>
 
       <h2>Dreifing ákvarðana</h2>
@@ -157,12 +159,12 @@ const desc = `Opinber gögn Reykjavíkurborgar um staði og hús: matvæla- og h
       <h2>Nýjustu afgreiðslur</h2>
       <p class="sub">Sláðu inn heimilisfang eða hverfi, eða síaðu eftir niðurstöðu. Smelltu á heimilisfang fyrir verðmat og byggingarsögu, eða „fundargerð" fyrir opinberu bókunina.</p>
       <div class="bv-controls">
-        <input id="bv-q" type="search" placeholder="🔎 Leita að heimilisfangi eða hverfi…" autocomplete="off" aria-label="Leita að heimilisfangi eða hverfi" />
+        <input id="bv-q" type="search" placeholder="Leita að heimilisfangi eða hverfi…" autocomplete="off" aria-label="Leita að heimilisfangi eða hverfi" />
         <div class="bv-filt" id="bv-filt">
           <button class="bv-fb active" data-g="all">Allar</button>
-          <button class="bv-fb" data-g="samth">✅ Samþykkt</button>
-          <button class="bv-fb" data-g="synj">⛔ Synjað</button>
-          <button class="bv-fb" data-g="frest">⏸ Frestað</button>
+          <button class="bv-fb" data-g="samth">Samþykkt</button>
+          <button class="bv-fb" data-g="synj">Synjað</button>
+          <button class="bv-fb" data-g="frest">Frestað</button>
           <button class="bv-fb" data-g="annad">Annað</button>
         </div>
       </div>
@@ -311,7 +313,7 @@ const desc = `Opinber gögn Reykjavíkurborgar um staði og hús: matvæla- og h
   </script>
 
   {/* ---- Eftirlit: graf + leitanleg skrá + kort (óbreytt frá /eftirlit/, utan ef-dist + el._map) ---- */}
-  <script define:vars={{ dist, RLAB }}>
+  <script define:vars={{ dist, RLAB, VAKTA_TAKN }}>
     function initEft() {
       if (!document.querySelector('[data-pg="eftirlit"]')) return;
       const AX = '#7e8ca6', GRID = 'rgba(255,255,255,.06)', LINE = 'rgba(255,255,255,.14)';
@@ -347,7 +349,7 @@ const desc = `Opinber gögn Reykjavíkurborgar um staði og hús: matvæla- og h
         + '<div class="ef-lab">' + esc(s.ratingLabel || '') + '</div></div>'
         + '<div class="ef-r"><div class="ef-d">' + esc(s.lastInspection || '') + '</div>'
         + (s.reportUrl ? '<a class="ef-rep" href="' + esc(s.reportUrl) + '" target="_blank" rel="noopener">skýrsla ↗</a>' : '')
-        + (s.kt ? '<button type="button" class="ef-vakta" data-kt="' + esc(s.kt) + '" data-nafn="' + esc(s.name || '') + '">🔔 Vakta félagið</button>' : '')
+        + (s.kt ? '<button type="button" class="ef-vakta" data-kt="' + esc(s.kt) + '" data-nafn="' + esc(s.name || '') + '">' + VAKTA_TAKN + 'Vakta félagið</button>' : '')
         + '</div></div>';
       const apply = () => {
         const q = (qEl.value || '').toLowerCase().trim();
@@ -412,7 +414,7 @@ const desc = `Opinber gögn Reykjavíkurborgar um staði og hús: matvæla- og h
   </script>
 
   {/* ---- Byggingarleyfi: graf + leitanleg skrá + kort (óbreytt frá /byggingarvakt/, utan bv-dist + el._map) ---- */}
-  <script define:vars={{ distRows, LABELS, DCOL }}>
+  <script define:vars={{ distRows, LABELS, DCOL, VAKTA_TAKN }}>
     function initBygg() {
       if (!document.querySelector('[data-pg="byggingarvakt"]')) return;
       const AX = '#7e8ca6', GRID = 'rgba(255,255,255,.06)', LINE = 'rgba(255,255,255,.14)';
@@ -451,7 +453,7 @@ const desc = `Opinber gögn Reykjavíkurborgar um staði og hús: matvæla- og h
           + '<div class="bv-desc">' + esc(e.desc || 'Byggingarleyfi') + '</div>'
           + '<div class="bv-meta"><span>' + esc([e.hverfi, e.date].filter(Boolean).join(' · ')) + sz + '</span>'
           + (u ? '<a href="' + esc(u) + '" target="_blank" rel="noopener">fundargerð ↗</a>' : '') + '</div>'
-          + (pn ? '<button type="button" class="bv-vakta" data-pn="' + esc(pn) + '" data-addr="' + esc(e.addr || '') + '">🔔 Vakta þetta svæði</button>' : '')
+          + (pn ? '<button type="button" class="bv-vakta" data-pn="' + esc(pn) + '" data-addr="' + esc(e.addr || '') + '">' + VAKTA_TAKN + 'Vakta þetta svæði</button>' : '')
           + '</div>';
       };
       const apply = () => {
@@ -521,6 +523,7 @@ const desc = `Opinber gögn Reykjavíkurborgar um staði og hús: matvæla- og h
   {/* ---- Vakta-hnappar (þurfa import → sér blokk, event-delegation á listana) ---- */}
   <script>
     import { karpGet, karpPost, loginHref } from '../lib/auth.js';
+    import { takn } from '../lib/takn.mjs';
     function initEbVakta() {
       // 🔔 Vakta félagið → firmavakt (eftirlit). Toggle.
       const efList = document.getElementById('ef-list');
@@ -532,7 +535,7 @@ const desc = `Opinber gögn Reykjavíkurborgar um staði og hús: matvæla- og h
           const kt = b.dataset.kt || '', nafn = b.dataset.nafn || '';
           if (!kt) return;
           b.disabled = true;
-          const t0 = b.textContent;
+          const t0 = b.innerHTML;
           try {
             const cur = await karpGet('/firmavakt');
             if (!cur || !Array.isArray(cur.felog)) { location.href = loginHref(); return; }
@@ -541,10 +544,10 @@ const desc = `Opinber gögn Reykjavíkurborgar um staði og hús: matvæla- og h
             const r = await karpPost('/firmavakt', { on: true, felog });
             if (!r || r.ok !== true) throw new Error('save');
             b.classList.toggle('on', !has);
-            b.textContent = !has ? '✓ Á vaktinni · 🔕 hætta' : '🔔 Vakta félagið';
+            b.innerHTML = !has ? '✓ Á vaktinni · hætta' : takn('vakta', 13) + 'Vakta félagið';
           } catch (err) {
             b.textContent = '⚠ Villa — reyndu aftur';
-            setTimeout(() => { b.textContent = t0; }, 2400);
+            setTimeout(() => { b.innerHTML = t0; }, 2400);
           }
           b.disabled = false;
         });
@@ -560,7 +563,7 @@ const desc = `Opinber gögn Reykjavíkurborgar um staði og hús: matvæla- og h
           const q = b.dataset.pn || '';
           if (!q) return;
           b.disabled = true;
-          const t0 = b.textContent;
+          const t0 = b.innerHTML;
           try {
             const cur = await karpGet('/fastvakt');
             if (!cur || !Array.isArray(cur.vaktir)) { location.href = loginHref(); return; }
@@ -568,7 +571,7 @@ const desc = `Opinber gögn Reykjavíkurborgar um staði og hús: matvæla- og h
             if (has) { b.classList.add('on'); b.textContent = '✓ Á vaktinni'; return; }
             if (cur.vaktir.length >= 6) {
               b.textContent = 'Hámark 6 vaktir náð';
-              setTimeout(() => { b.textContent = t0; b.disabled = false; }, 2600);
+              setTimeout(() => { b.innerHTML = t0; b.disabled = false; }, 2600);
               return;
             }
             const vaktir = cur.vaktir.concat([{ q }]).slice(0, 6);
@@ -578,7 +581,7 @@ const desc = `Opinber gögn Reykjavíkurborgar um staði og hús: matvæla- og h
             b.textContent = '✓ Á vaktinni';
           } catch (err) {
             b.textContent = '⚠ Villa — reyndu aftur';
-            setTimeout(() => { b.textContent = t0; b.disabled = false; }, 2600);
+            setTimeout(() => { b.innerHTML = t0; b.disabled = false; }, 2600);
           }
         });
       }

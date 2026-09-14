@@ -144,7 +144,7 @@ const jsonLd = {
 
     <div class="ppair">
       <div>
-        <h2>💱 Gengi krónunnar <span class="hint" id="fx-note">{LIVEMK ? '' : '— töfð gögn'}</span></h2>
+        <h2>Gengi krónunnar <span class="hint" id="fx-note">{LIVEMK ? '' : '— töfð gögn'}</span></h2>
         <div id="fx-grid" class="mini-grid">
           {FX.map((c) => (
             <div class="mini" data-sym={c.sym} data-name={c.name} data-cur={c.cur || 'USD'} data-hist={JSON.stringify(c.hist || [])} role="button" tabindex="0">
@@ -173,7 +173,7 @@ const jsonLd = {
 
     {gjRows.length > 0 && (
       <>
-        <h2>🏦 Gengistöflur — hvað kostar gjaldeyririnn þig? <span class="hint">— opinbert gengi, bankagengi og kortagengi borið saman</span></h2>
+        <h2>Gengistöflur — hvað kostar gjaldeyririnn þig? <span class="hint">— opinbert gengi, bankagengi og kortagengi borið saman</span></h2>
         <div class="tw">
           <table class="ktable" id="gj-table">
             <thead>
@@ -206,7 +206,7 @@ const jsonLd = {
 
     {funds.length > 0 && (
       <>
-        <h2>📈 Sjóðir Stefnis ({funds.length}) <span class="hint">— smelltu á dálkhaus til að raða, á sjóð fyrir 13 mánaða feril</span></h2>
+        <h2>Sjóðir Stefnis ({funds.length}) <span class="hint">— smelltu á dálkhaus til að raða, á sjóð fyrir 13 mánaða feril</span></h2>
         <div class="tw">
           <table class="ktable" id="sjo-table">
             <thead>
@@ -329,7 +329,6 @@ const jsonLd = {
     .stk-sbar i { display: block; height: 100%; }
     .stk-news { display: block; font-size: 12.5px; color: var(--ink); text-decoration: none; padding: 5px 2px; border-bottom: 1px solid rgba(255,255,255,.05); line-height: 1.35; }
     .stk-news:hover { color: #f6b13b; }
-    .stk-ns { margin-right: 6px; font-size: 10.5px; }
     .stk-nd { margin-left: 8px; font-size: 10.5px; color: var(--faint); }
     .stk-livewrap { margin-top: 4px; }
   </style>
@@ -359,7 +358,7 @@ const jsonLd = {
         rv.mcap != null && { l: 'Markaðsvirði', v: ths(rv.mcap / 1e9) + ' ma' },
         rv.pe != null && { l: 'V/H', v: f1(rv.pe, 1) },
         rv.pb != null && { l: 'V/I', v: f1(rv.pb, 2) },
-        rv.bvps != null && { l: '📖 Bókfært/hlut', v: f1(rv.bvps, 1) },
+        rv.bvps != null && { l: 'Bókfært/hlut', v: f1(rv.bvps, 1) },
         rv.roe != null && { l: 'ROE', v: f1(rv.roe, 1) + '%' },
         lo60 != null && { l: '60d lægst/hæst', v: f1(lo60, 1) + ' / ' + f1(hi60, 1) },
       ].filter(Boolean);
@@ -370,7 +369,7 @@ const jsonLd = {
       const sEl = $id('stk-sent');
       if (sEl) {
         const se = d.sent;
-        let sh = '<div class="stk-sec">📰 Umfjöllun &amp; viðhorf';
+        let sh = '<div class="stk-sec">Umfjöllun &amp; viðhorf';
         if (se && se.n) {
           const tone = se.idx > 15 ? ['jákvæð', '#46e08a'] : se.idx < -15 ? ['neikvæð', '#ff6d7a'] : ['hlutlaus', '#9fb0c8'];
           sh += ` <span class="stk-tone" style="color:${tone[1]}">tónn ${se.idx > 0 ? '+' : ''}${se.idx} (${tone[0]})</span> <span class="stk-tn">· ${se.n} fréttir greindar</span>`;
@@ -381,7 +380,7 @@ const jsonLd = {
           sh += `<div class="stk-sbar"><i style="width:${(se.pos / tot) * 100}%;background:#46e08a"></i><i style="width:${(se.neu / tot) * 100}%;background:#5a6678"></i><i style="width:${(se.neg / tot) * 100}%;background:#ff6d7a"></i></div>`;
         }
         if (se && se.recent && se.recent.length) {
-          sh += se.recent.map((x) => `<a class="stk-news" href="${safeHref(x.l)}" target="_blank" rel="noopener"><span class="stk-ns">${x.s > 0 ? '🟢' : x.s < 0 ? '🔴' : '⚪'}</span>${esc(x.t)}</a>`).join('');
+          sh += se.recent.map((x) => `<a class="stk-news" href="${safeHref(x.l)}" target="_blank" rel="noopener"><i class="k-punktur ${x.s > 0 ? 'k-ok' : x.s < 0 ? 'k-slaemt' : 'k-hlutlaust'}"></i>${esc(x.t)}</a>`).join('');
         }
         sh += '<div id="stk-live" class="stk-livewrap"><span class="stk-tn">Sæki nýjustu umfjöllun…</span></div>';
         sEl.innerHTML = sh;
@@ -391,8 +390,8 @@ const jsonLd = {
           .then((g) => {
             if (!g || !(g.items || []).length || !sEl.isConnected) return;
             const dIS = (x) => { const m2 = String(x || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m2 ? `${+m2[3]}.${+m2[2]}.${m2[1]}` : ''; };
-            sEl.insertAdjacentHTML('afterbegin', '<div class="stk-sec">📢 Kauphallartilkynningar</div>'
-              + g.items.slice(0, 4).map((x) => `<a class="stk-news" href="${safeHref(x.u)}" target="_blank" rel="noopener"><span class="stk-ns">📢</span>${esc(x.t)}<span class="stk-nd">${dIS(x.d)}</span></a>`).join(''));
+            sEl.insertAdjacentHTML('afterbegin', '<div class="stk-sec">Kauphallartilkynningar</div>'
+              + g.items.slice(0, 4).map((x) => `<a class="stk-news" href="${safeHref(x.u)}" target="_blank" rel="noopener">${esc(x.t)}<span class="stk-nd">${dIS(x.d)}</span></a>`).join(''));
           })
           .catch(() => {});
         // Lifandi fyrirsagnir um félagið (frettir-endpoint, {items}-lögun!)
@@ -403,7 +402,7 @@ const jsonLd = {
             if (!lv) return;
             const items = Array.isArray(res) ? res : (res && res.items) || [];
             if (!items.length) { lv.innerHTML = '<span class="stk-tn">Engin nýleg umfjöllun fannst (leitað eftir nafni félagsins).</span>'; return; }
-            lv.innerHTML = '<div class="stk-sec2">Nýjast úr fjölmiðlum</div>' + items.slice(0, 5).map((x) => `<a class="stk-news" href="${safeHref(x.l || x.link)}" target="_blank" rel="noopener"><span class="stk-ns">🗞️</span>${esc(x.t || x.titill || '')}<span class="stk-nd">${esc(x.src || x.m || '')}</span></a>`).join('');
+            lv.innerHTML = '<div class="stk-sec2">Nýjast úr fjölmiðlum</div>' + items.slice(0, 5).map((x) => `<a class="stk-news" href="${safeHref(x.l || x.link)}" target="_blank" rel="noopener">${esc(x.t || x.titill || '')}<span class="stk-nd">${esc(x.src || x.m || '')}</span></a>`).join('');
           })
           .catch(() => { const lv = $id('stk-live'); if (lv) lv.innerHTML = ''; });
       }

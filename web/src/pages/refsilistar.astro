@@ -36,7 +36,7 @@ const desc = `Opinberir refsilistar og þvingunaraðgerðir á einum stað — $
 <Layout title="Refsilistar & þvingunaraðgerðir — leit að nafni | Karp" description={desc} canonical="https://karp.is/refsilistar/" ogTitle="Refsilistar & þvingunaraðgerðir">
   <main data-pg="refsilistar">
     <p class="kicker">Hagvísir Íslands · Gagnsæi</p>
-    <h1>Refsilistar &amp; þvingunaraðgerðir 🚫</h1>
+    <h1>Refsilistar &amp; þvingunaraðgerðir</h1>
     <p class="lead">Samsteyptur nafna-index opinberra refsilista á einum stað — <strong>{fmt(nTotal)} nöfn</strong> af þvingunarlistum <strong>Evrópusambandsins</strong>, <strong>Sameinuðu þjóðanna</strong> og <strong>OFAC</strong> (fjármálaráðuneytis Bandaríkjanna). Þessi listi er notaður í áreiðanleika-skimun fyrirtækja á <a href="/fyrirtaeki/">Karp</a> — hér má fletta upp nafni beint.</p>
 
     <div class="warn">
@@ -44,7 +44,7 @@ const desc = `Opinberir refsilistar og þvingunaraðgerðir á einum stað — $
     </div>
 
     <div class="kpis">
-      <div class="kpi"><div class="k-l">📋 Nöfn samtals</div><div class="k-v">{fmt(nTotal)}</div><div class="k-s">afmáð tvítekt</div></div>
+      <div class="kpi"><div class="k-l">Nöfn samtals</div><div class="k-v">{fmt(nTotal)}</div><div class="k-s">afmáð tvítekt</div></div>
       {lists.map((l) => (
         <div class="kpi"><div class="k-l" style={`color:${l.col}`}>● {l.id}</div><div class="k-v" style={`color:${l.col}`}>{fmt(l.count)}</div><div class="k-s">{l.nafn}</div></div>
       ))}
@@ -67,7 +67,7 @@ const desc = `Opinberir refsilistar og þvingunaraðgerðir á einum stað — $
     <h2>Leitaðu að nafni</h2>
     <p class="sub">Sláðu inn nafn einstaklings eða fyrirtækis (a.m.k. 3 stafir). Listinn (5 MB) sækist þegar þú byrjar að leita.</p>
     <div class="sc-controls">
-      <input id="sc-q" type="search" placeholder="🔎 Leita að nafni á refsilista…" autocomplete="off" aria-label="Leita að nafni á refsilista" />
+      <input id="sc-q" type="search" placeholder="Leita að nafni á refsilista…" autocomplete="off" aria-label="Leita að nafni á refsilista" />
     </div>
     <div id="sc-count" class="sc-cnt"></div>
     <div id="sc-list" class="sc-list"><div class="sc-hint">Byrjaðu að slá inn nafn til að leita.</div></div>

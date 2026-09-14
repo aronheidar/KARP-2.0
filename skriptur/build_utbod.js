@@ -19,12 +19,12 @@ const UA = { 'User-Agent': 'KARP utbodsvakt (karp.is; aronheidars@gmail.com)' };
 
 // ── Lykilorða-flokkun (verktaka-svið) ──────────────────────────
 const CATS = {
-  bygg: ['Byggingar & mannvirki', '🏗️'], jardv: ['Jarðvinna & vegir', '🚧'],
-  raf: ['Rafmagn & lýsing', '⚡'], vatn: ['Veitur & lagnir', '🚰'],
-  vel: ['Vélar & búnaður', '⚙️'], hugb: ['Upplýsingatækni', '💻'],
-  radgjof: ['Ráðgjöf & hönnun', '📐'], raesting: ['Ræsting & úrgangur', '🧹'],
-  flutn: ['Flutningar & farartæki', '🚚'], matur: ['Matvæli & veitingar', '🍽️'],
-  trygg: ['Tryggingar & fjármál', '📄'], annad: ['Annað', '📦'],
+  bygg: ['Byggingar & mannvirki'], jardv: ['Jarðvinna & vegir'],
+  raf: ['Rafmagn & lýsing'], vatn: ['Veitur & lagnir'],
+  vel: ['Vélar & búnaður'], hugb: ['Upplýsingatækni'],
+  radgjof: ['Ráðgjöf & hönnun'], raesting: ['Ræsting & úrgangur'],
+  flutn: ['Flutningar & farartæki'], matur: ['Matvæli & veitingar'],
+  trygg: ['Tryggingar & fjármál'], annad: ['Annað'],
 };
 // Lyklar tvítyngdir — TED-titlar eru á ensku („Iceland – < enskur flokkur > – …").
 const CATKW = [

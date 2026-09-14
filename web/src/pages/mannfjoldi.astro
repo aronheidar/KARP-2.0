@@ -23,10 +23,10 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ma
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Mannfjöldatölur: Hagstofa Íslands (PxWeb), þ.m.t. mannfjöldaframreikningur Hagstofunnar þar sem við á.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div class="kpis">
-      {POP && <div class="kpi"><div class="k-l">👥 Íbúar</div><div class="k-v">{groupThousands(POP.now)}</div><div class="k-s">nýjasti ársfjórðungur</div></div>}
-      {POP && POP.yoy != null && <div class="kpi"><div class="k-l">📈 Fjölgun</div><div class="k-v">{POP.yoy > 0 ? '+' : ''}{fmtNum(POP.yoy, 1)}%</div><div class="k-s">{POP.yoyAbs != null ? (POP.yoyAbs > 0 ? '+' : '') + groupThousands(POP.yoyAbs) + ' manns · ' : ''}frá fyrra ári</div></div>}
-      {IMM && <div class="kpi"><div class="k-l">🌍 Innflytjendur</div><div class="k-v">{fmtNum(IMM.now, 1)}%</div><div class="k-s">af mannfjölda</div></div>}
-      {FERT && <div class="kpi"><div class="k-l">👶 Frjósemi</div><div class="k-v">{fmtNum(FERT.now, 2)}</div><div class="k-s">börn/kona · viðhald 2,1</div></div>}
+      {POP && <div class="kpi"><div class="k-l">Íbúar</div><div class="k-v">{groupThousands(POP.now)}</div><div class="k-s">nýjasti ársfjórðungur</div></div>}
+      {POP && POP.yoy != null && <div class="kpi"><div class="k-l">Fjölgun</div><div class="k-v">{POP.yoy > 0 ? '+' : ''}{fmtNum(POP.yoy, 1)}%</div><div class="k-s">{POP.yoyAbs != null ? (POP.yoyAbs > 0 ? '+' : '') + groupThousands(POP.yoyAbs) + ' manns · ' : ''}frá fyrra ári</div></div>}
+      {IMM && <div class="kpi"><div class="k-l">Innflytjendur</div><div class="k-v">{fmtNum(IMM.now, 1)}%</div><div class="k-s">af mannfjölda</div></div>}
+      {FERT && <div class="kpi"><div class="k-l">Frjósemi</div><div class="k-v">{fmtNum(FERT.now, 2)}</div><div class="k-s">börn/kona · viðhald 2,1</div></div>}
     </div>
 
     <div class="ppair">

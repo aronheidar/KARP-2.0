@@ -37,9 +37,9 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'J�
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Jöfnunarsjóðstölur: heildaryfirlit Jöfnunarsjóðs sveitarfélaga (opinber útgáfa), sundurliðað eftir framlagsflokkum og sveitarfélögum.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div class="kpis">
-      <div class="kpi"><div class="k-l">💰 Heildarframlög {ar}</div><div class="k-v">{fmtNum(totalMa, 1)}</div><div class="k-s">ma.kr</div></div>
-      {total2Ma && <div class="kpi"><div class="k-l">📅 Áætlun {ar2}</div><div class="k-v">{fmtNum(total2Ma, 1)}</div><div class="k-s">ma.kr{JOFNUN.reform2026 ? ' · nýtt regluverk' : ''}</div></div>}
-      <div class="kpi"><div class="k-l">🏘️ Sveitarfélög</div><div class="k-v">{munis.length}</div><div class="k-s">fá framlög</div></div>
+      <div class="kpi"><div class="k-l">Heildarframlög {ar}</div><div class="k-v">{fmtNum(totalMa, 1)}</div><div class="k-s">ma.kr</div></div>
+      {total2Ma && <div class="kpi"><div class="k-l">Áætlun {ar2}</div><div class="k-v">{fmtNum(total2Ma, 1)}</div><div class="k-s">ma.kr{JOFNUN.reform2026 ? ' · nýtt regluverk' : ''}</div></div>}
+      <div class="kpi"><div class="k-l">Sveitarfélög</div><div class="k-v">{munis.length}</div><div class="k-s">fá framlög</div></div>
     </div>
 
     <h2>Eftir framlagsflokkum ({ar})</h2>

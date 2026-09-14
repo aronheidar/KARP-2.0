@@ -8,7 +8,7 @@ import ThingTabs from '../components/ThingTabs.astro';
 import IVILNANIR from '@gogn/ivilnanir.json';
 import VAKT from '@gogn/ivilnanir_vakt.json';
 
-const FLOKKAR = { atvinnulif: ['🏭', 'Atvinnulíf'], nyskopun: ['🔬', 'Nýsköpun & rannsóknir'], orkuskipti: ['⚡', 'Orkuskipti & umhverfi'], husnaedi: ['🏠', 'Húsnæði'], heimili: ['👨‍👩‍👧', 'Heimili & einstaklingar'], menning: ['🎭', 'Menning & listir'], byggd: ['🌄', 'Byggðamál'], annad: ['📦', 'Annað'] };
+const FLOKKAR = { atvinnulif: 'Atvinnulíf', nyskopun: 'Nýsköpun & rannsóknir', orkuskipti: 'Orkuskipti & umhverfi', husnaedi: 'Húsnæði', heimili: 'Heimili & einstaklingar', menning: 'Menning & listir', byggd: 'Byggðamál', annad: 'Annað' };
 const groups = {};
 (Array.isArray(IVILNANIR) ? IVILNANIR : []).forEach((x) => {
   const f = FLOKKAR[x.flokkur] ? x.flokkur : 'annad';
@@ -45,7 +45,7 @@ const desc = `Ívilnanir og stuðningur ríkisins — ${total} leiðir (${active
 
     {order.map((f) => (
       <>
-        <h2>{FLOKKAR[f][0]} {FLOKKAR[f][1]} ({groups[f].length})</h2>
+        <h2>{FLOKKAR[f]} ({groups[f].length})</h2>
         <div class="grid">
           {groups[f].map((x) => (
             <details class="iv">

@@ -64,11 +64,11 @@ const cities = order.filter((c) => idx[c]).map((c) => ({ key: c, label: (lab[c] 
 const colBars = cities.slice().sort((a, b) => (a.col || 0) - (b.col || 0)).map((c) => ({ label: c.label, v: c.col, home: c.home }));
 const ppBars = cities.slice().sort((a, b) => (b.pp || 0) - (a.pp || 0)).map((c) => ({ label: c.label, v: c.pp, home: c.home }));
 const tiles = [
-  { e: '🧾', l: 'Framfærsla', v: rvk.col, s: 'vísitala (hærra=dýrara)' },
-  { e: '🏠', l: 'Leiga', v: rvk.rent, s: 'vísitala' },
-  { e: '🛒', l: 'Matvara', v: rvk.groceries, s: 'vísitala' },
-  { e: '🍽️', l: 'Veitingar', v: rvk.restaurant, s: 'vísitala' },
-  { e: '💪', l: 'Kaupmáttur', v: rvk.pp, s: 'hærra = betri' },
+  { l: 'Framfærsla', v: rvk.col, s: 'vísitala (hærra=dýrara)' },
+  { l: 'Leiga', v: rvk.rent, s: 'vísitala' },
+  { l: 'Matvara', v: rvk.groceries, s: 'vísitala' },
+  { l: 'Veitingar', v: rvk.restaurant, s: 'vísitala' },
+  { l: 'Kaupmáttur', v: rvk.pp, s: 'hærra = betri' },
 ];
 const ppRank = ppBars.findIndex((c) => c.home) + 1;
 const RADCITIES = ['Reykjavik', 'Copenhagen', 'Oslo', 'New-York'].filter((c) => idx[c]);
@@ -132,10 +132,10 @@ const jsonLd = {
 
     <h2>Lykiltölur</h2>
     <div class="kpis">
-      <div class="kpi"><div class="k-l">📉 Verðbólga</div><div class="k-v">{latestPct}%</div><div class="k-s">ársverðbólga</div></div>
-      {fcNow != null && <div class="kpi"><div class="k-l">🔮 Verðbólguspá {forecast.splitYear}</div><div class="k-v">{fmtNum(fcNow, 1)}%</div><div class="k-s">IMF WEO · VNV</div></div>}
-      <div class="kpi"><div class="k-l">🏦 Stýrivextir</div><div class="k-v">{fmtNum(POLICY.rate, 2)}%</div><div class="k-s">frá {POLICY.from}</div></div>
-      <div class="kpi"><div class="k-l">👷 Atvinnuleysi</div><div class="k-v">{fmtNum(unemp, 1)}%</div><div class="k-s">skráð</div></div>
+      <div class="kpi"><div class="k-l">Verðbólga</div><div class="k-v">{latestPct}%</div><div class="k-s">ársverðbólga</div></div>
+      {fcNow != null && <div class="kpi"><div class="k-l">Verðbólguspá {forecast.splitYear}</div><div class="k-v">{fmtNum(fcNow, 1)}%</div><div class="k-s">IMF WEO · VNV</div></div>}
+      <div class="kpi"><div class="k-l">Stýrivextir</div><div class="k-v">{fmtNum(POLICY.rate, 2)}%</div><div class="k-s">frá {POLICY.from}</div></div>
+      <div class="kpi"><div class="k-l">Atvinnuleysi</div><div class="k-v">{fmtNum(unemp, 1)}%</div><div class="k-s">skráð</div></div>
       <div class="kpi"><div class="k-l">€ EUR/ISK</div><div class="k-v">{fx ? fmtNum(fx.eur, 1) : '–'}</div><div class="k-s">kr. per €</div></div>
       <div class="kpi"><div class="k-l">$ USD/ISK</div><div class="k-v">{fx ? fmtNum(fx.usd, 1) : '–'}</div><div class="k-s">kr. per $</div></div>
       <div class="kpi"><div class="k-l">£ GBP/ISK</div><div class="k-v">{fx ? fmtNum(fx.gbp, 1) : '–'}</div><div class="k-s">kr. per £</div></div>
@@ -146,11 +146,11 @@ const jsonLd = {
 
     <h2>Verðbólga — þróun</h2>
     <div class="kpis">
-      <div class="kpi"><div class="k-l">🏦 Stýrivextir</div><div class="k-v">{fmtNum(STYRIVEXTIR.v, 2)}%</div><div class="k-s">frá {STYRIVEXTIR.fra}</div></div>
-      {FX && <div class="kpi"><div class="k-l">💶 Evra</div><div class="k-v">{fmtNum(FX.eur, 1)}</div><div class="k-s">kr · {FX.date}</div></div>}
-      {FX && <div class="kpi"><div class="k-l">💵 Dalur</div><div class="k-v">{fmtNum(FX.usd, 1)}</div><div class="k-s">kr</div></div>}
-      {FX && <div class="kpi"><div class="k-l">💷 Pund</div><div class="k-v">{fmtNum(FX.gbp, 1)}</div><div class="k-s">kr</div></div>}
-      <div class="kpi"><div class="k-l">👷 Atvinnuleysi</div><div class="k-v">{fmtNum(atvLatest, 1)}%</div><div class="k-s">skráð · <a href="/vinnumarkadur/">nánar</a></div></div>
+      <div class="kpi"><div class="k-l">Stýrivextir</div><div class="k-v">{fmtNum(STYRIVEXTIR.v, 2)}%</div><div class="k-s">frá {STYRIVEXTIR.fra}</div></div>
+      {FX && <div class="kpi"><div class="k-l">Evra</div><div class="k-v">{fmtNum(FX.eur, 1)}</div><div class="k-s">kr · {FX.date}</div></div>}
+      {FX && <div class="kpi"><div class="k-l">Dalur</div><div class="k-v">{fmtNum(FX.usd, 1)}</div><div class="k-s">kr</div></div>}
+      {FX && <div class="kpi"><div class="k-l">Pund</div><div class="k-v">{fmtNum(FX.gbp, 1)}</div><div class="k-s">kr</div></div>}
+      <div class="kpi"><div class="k-l">Atvinnuleysi</div><div class="k-v">{fmtNum(atvLatest, 1)}%</div><div class="k-s">skráð · <a href="/vinnumarkadur/">nánar</a></div></div>
     </div>
 
     <div id="chart" role="img" aria-label={`Línurit: ársverðbólga síðustu ${rows.length} mánuði, nú ${latestPct}%`}></div>
@@ -201,7 +201,7 @@ const jsonLd = {
 
     <div class="kpis">
       {tiles.map((t) => (
-        <div class="kpi"><div class="k-l">{t.e} {t.l}</div><div class="k-v">{t.v != null ? fmtNum(t.v, 1) : '–'}</div><div class="k-s">{t.s}</div></div>
+        <div class="kpi"><div class="k-l">{t.l}</div><div class="k-v">{t.v != null ? fmtNum(t.v, 1) : '–'}</div><div class="k-s">{t.s}</div></div>
       ))}
     </div>
 
@@ -243,7 +243,6 @@ const jsonLd = {
     {err && <p class="err">Villa við gagnasókn á byggingartíma: {err}</p>}
 
     <a href="/lyf/" style="display:flex;gap:13px;align-items:center;margin:28px 0 4px;padding:14px 16px;background:rgba(246,177,59,.06);border:1px solid rgba(246,177,59,.28);border-radius:12px;text-decoration:none;">
-      <span style="font-size:26px;line-height:1;">💊</span>
       <span style="flex:1;min-width:0;">
         <span style="display:block;color:#eaf1fb;font-weight:700;font-size:15px;">Lyf &amp; lyfjaverð — ný uppfletting</span>
         <span style="display:block;color:#9fb0c8;font-size:12.5px;margin-top:2px;">Leitaðu í öllum markaðssettum lyfjum á Íslandi: smásölu- og viðmiðunarverð, greiðsluþátttaka, heildsali og lyfjaskortur. Opin gögn Lyfjastofnunar.</span>
@@ -465,7 +464,7 @@ const jsonLd = {
       const u = window.KARP_USER || { loggedIn: false };
       const d = (await karpGet('/spa?topic=' + encodeURIComponent(TOPIC))) || {};
       const mine = d.mine;
-      let h = `<div class="spa-h">🔮 Spá: næsta verðbólgumæling${NEXT ? ' (' + NEXT + ')' : ''}</div>`;
+      let h = `<div class="spa-h">Spá: næsta verðbólgumæling${NEXT ? ' (' + NEXT + ')' : ''}</div>`;
       h += `<div class="spa-sub">Hver heldurðu að ársverðbólgan verði? Núna: <b>${NOW}%</b>.</div>`;
       h += `<div class="spa-avg">Meðalspá almennings: <b>${fp(d.avg)}</b> <span>· ${d.count || 0} spár</span></div>`;
       // LOTA 19: engin læsing — óinnskráð spá vistast í vafranum

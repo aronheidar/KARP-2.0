@@ -82,7 +82,7 @@ const desc = 'Nýskráðu þig á Karp — ókeypis aðgangur að Karp+ vöktun,
           if (res && res.ok && res.verify) {
             // F5: staðfestingar-póstur sendur → sýna leiðbeiningar í stað þess að skrá inn strax
             const fw = document.getElementById('ka-form-wrap');
-            if (fw) fw.innerHTML = '<div style="text-align:center;padding:8px 0"><div style="font-size:34px">📧</div>'
+            if (fw) fw.innerHTML = '<div style="text-align:center;padding:8px 0">'
               + '<h2 style="margin:8px 0 6px">Staðfestu netfangið þitt</h2>'
               + '<p style="color:var(--muted);line-height:1.6">Við sendum staðfestingar-póst á <b>' + ((res.email || data.email || '').replace(/[<>&]/g, '')) + '</b>. Smelltu á hlekkinn í póstinum til að virkja aðganginn — athugaðu líka ruslpóstinn.</p>'
               + '<p style="font-size:13px;color:var(--faint);margin-top:14px">Fékkstu engan póst? <a href="#" id="ka-resend">Endursenda</a></p></div>';

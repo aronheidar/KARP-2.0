@@ -23,7 +23,7 @@ export function renderRasBox(p) {
   const disc = 'Stílfærð sviðsmynd úr opna RÁS-herminum — ekki spá.' + (p.illustrative ? ' Byggt á dæmi-stærð.' : '');
   const cta = p.deepLink ? '<a class="r-ras-cta" href="' + esc(p.deepLink) + '">Prófa í RÁS →</a>' : '';
   return '<div class="r-ras">'
-    + '<div class="r-ras-h">📊 Samkvæmt RÁS-hermi' + perNote + ' ' + badge + '</div>'
+    + '<div class="r-ras-h">Samkvæmt RÁS-hermi' + perNote + ' ' + badge + '</div>'
     + (p.inputLabel ? '<div class="r-ras-in">' + esc(p.inputLabel) + '</div>' : '')
     + '<div class="r-ras-rows">' + rows + '</div>'
     + (p.sentence ? '<p class="r-ras-s">' + esc(p.sentence) + '</p>' : '')

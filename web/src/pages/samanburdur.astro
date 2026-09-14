@@ -73,15 +73,15 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Í
 <Layout title="Ísland í samanburði — Norðurlöndin & heimurinn | Karp" description={desc} canonical="https://karp.is/samanburdur/" jsonLd={jsonLd} ogTitle="Ísland í samanburði">
   <main data-pg="samanburdur">
     <p class="kicker">Hagvísir Íslands · Efnahagur</p>
-    <h1>Ísland í samanburði 🌍</h1>
+    <h1>Ísland í samanburði</h1>
     <p>Hvar sker Ísland sig úr? Hagvöxtur, verðbólga, ríkisfjármál og lífskjör borin saman við Norðurlöndin (með <strong>IMF-spám til 2031</strong>) — orkunotkun þar sem Ísland er heimsmethafi, skattbyrði undir norrænu meðaltali og hamingja í fremstu röð heims.</p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Alþjóðasamanburður: Eurostat, IMF, Our World in Data og Numbeo. Samræming milli landa fylgir aðferðafræði hverrar veitu.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div class="kpis">
-      {eRank && <div class="kpi"><div class="k-l">⚡ Orkunotkun á mann</div><div class="k-v">{eRank.rank}. sæti</div><div class="k-s">af {eRank.total} löndum heims ({eRank.yr})</div></div>}
-      {cRank && <div class="kpi"><div class="k-l">🏭 CO₂ á mann</div><div class="k-v">{cRank.rank}. sæti</div><div class="k-s">af {cRank.total} löndum ({cRank.yr})</div></div>}
-      {GROWTH && GROWTH.ISL && GROWTH.ISL[FORECAST_FROM] != null && <div class="kpi"><div class="k-l">📈 IMF-spá {FORECAST_FROM}</div><div class="k-v">{fmtNum(GROWTH.ISL[FORECAST_FROM], 1)}%</div><div class="k-s">hagvöxtur Íslands</div></div>}
-      {hRank && <div class="kpi"><div class="k-l">😊 Hamingja</div><div class="k-v">{hRank.rank}. sæti</div><div class="k-s">af {hRank.total} löndum heims ({hRank.yr})</div></div>}
+      {eRank && <div class="kpi"><div class="k-l">Orkunotkun á mann</div><div class="k-v">{eRank.rank}. sæti</div><div class="k-s">af {eRank.total} löndum heims ({eRank.yr})</div></div>}
+      {cRank && <div class="kpi"><div class="k-l">CO₂ á mann</div><div class="k-v">{cRank.rank}. sæti</div><div class="k-s">af {cRank.total} löndum ({cRank.yr})</div></div>}
+      {GROWTH && GROWTH.ISL && GROWTH.ISL[FORECAST_FROM] != null && <div class="kpi"><div class="k-l">IMF-spá {FORECAST_FROM}</div><div class="k-v">{fmtNum(GROWTH.ISL[FORECAST_FROM], 1)}%</div><div class="k-s">hagvöxtur Íslands</div></div>}
+      {hRank && <div class="kpi"><div class="k-l">Hamingja</div><div class="k-v">{hRank.rank}. sæti</div><div class="k-s">af {hRank.total} löndum heims ({hRank.yr})</div></div>}
     </div>
 
     {GROWTH && (

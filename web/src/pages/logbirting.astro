@@ -122,15 +122,15 @@ const jsonLd = {
 <Layout title="Gjaldþrota- & félagavakt — Lögbirtingablaðið | Karp" description={desc} canonical="https://karp.is/logbirting/" jsonLd={jsonLd} ogTitle="Gjaldþrota- og félagavakt">
   <main data-pg="logbirting">
     <p class="kicker">Hagvísir Íslands · Gagnsæi</p>
-    <h1>Gjaldþrota- &amp; félagavakt ⚖️</h1>
+    <h1>Gjaldþrota- &amp; félagavakt</h1>
     <p class="lead">Landsyfirlit yfir <strong>{totalNotices.toLocaleString('is-IS')}</strong> lögformlegar tilkynningar sem varða <strong>{totalCompanies.toLocaleString('is-IS')} lögaðila</strong> í Lögbirtingablaðinu árið 2026 — gjaldþrotaskiptabeiðnir, innkallanir þrotabúa, skiptalok og félagsslit. Fletta má upp einstöku félagi á <a href="/fyrirtaeki/">fyrirtækjaprófílum</a>.</p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Heimild: Lögbirtingablaðið (logbirtingablad.is), unnið úr opinberum PDF-tölublöðum skv. lögum nr. 15/2005. Tegundir: Gjaldþrotaskiptabeiðni · Skiptabeiðni (fyrirtaka) · Innköllun þrotabús (kröfulýsing) · Skiptafundur · Skiptalok þrotabús · Félagsslit / afskráning. Aðeins lögaðilar — einstaklingar, sakamál, dómsmál og nauðungarsölur eru undanskilin.">ⓘ</i> Um gögnin · ⚠ aðeins lögaðilar</p>
 
     <div class="kpis">
-      <div class="kpi"><div class="k-l">📄 Tilkynningar</div><div class="k-v">{totalNotices.toLocaleString('is-IS')}</div><div class="k-s">alls · 2026</div></div>
-      <div class="kpi"><div class="k-l">🏢 Lögaðilar</div><div class="k-v">{totalCompanies.toLocaleString('is-IS')}</div><div class="k-s">með tilkynningu</div></div>
-      <div class="kpi"><div class="k-l">⛔ Gjaldþrotabeiðnir</div><div class="k-v" style="color:#f85149">{nGjaldthrot.toLocaleString('is-IS')}</div><div class="k-s">skiptabeiðni</div></div>
-      <div class="kpi"><div class="k-l">📢 Innkallanir</div><div class="k-v" style="color:#f6b13b">{nInnkollun.toLocaleString('is-IS')}</div><div class="k-s">kröfulýsing</div></div>
+      <div class="kpi"><div class="k-l">Tilkynningar</div><div class="k-v">{totalNotices.toLocaleString('is-IS')}</div><div class="k-s">alls · 2026</div></div>
+      <div class="kpi"><div class="k-l">Lögaðilar</div><div class="k-v">{totalCompanies.toLocaleString('is-IS')}</div><div class="k-s">með tilkynningu</div></div>
+      <div class="kpi"><div class="k-l">Gjaldþrotabeiðnir</div><div class="k-v" style="color:#f85149">{nGjaldthrot.toLocaleString('is-IS')}</div><div class="k-s">skiptabeiðni</div></div>
+      <div class="kpi"><div class="k-l">Innkallanir</div><div class="k-v" style="color:#f6b13b">{nInnkollun.toLocaleString('is-IS')}</div><div class="k-s">kröfulýsing</div></div>
     </div>
 
     <div class="ppair">
@@ -172,7 +172,7 @@ const jsonLd = {
     <h2>Leitaðu í skránni</h2>
     <p class="sub">Sláðu inn félagsnafn eða kennitölu, eða síaðu eftir tegund tilkynningar. Smelltu á nafn til að sjá fyrirtækjaprófíl, eða á tölublaðið fyrir opinberu auglýsinguna.</p>
     <div class="lb-controls">
-      <input id="lb-q" type="search" placeholder="🔎 Leita að félagi eða kennitölu…" autocomplete="off" aria-label="Leita að félagi eða kennitölu í Lögbirtingablaðinu" />
+      <input id="lb-q" type="search" placeholder="Leita að félagi eða kennitölu…" autocomplete="off" aria-label="Leita að félagi eða kennitölu í Lögbirtingablaðinu" />
       <div class="lb-filt" id="lb-filt">
         <button class="lb-fb active" data-t="all">Allar</button>
         {typeBars.map((t) => (

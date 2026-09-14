@@ -32,16 +32,16 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Me
 <Layout title="Menntun — menntunarstaða, nemendur & PISA | Karp" description={desc} canonical="https://karp.is/menntun/" jsonLd={jsonLd} ogTitle="Menntun á Íslandi">
   <main data-pg="menntun">
     <p class="kicker">Hagvísir Íslands · Samfélag</p>
-    <h1>Menntun 🎓</h1>
+    <h1>Menntun</h1>
     <p>Frá menntunarstöðu þjóðar til nemendafjölda, brautskráninga eftir fræðasviði, opinberra fræðsluútgjalda og PISA-samanburðar við hin Norðurlöndin. Heimildir: Hagstofa Íslands og OECD.</p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Menntunartölur: menntunarstaða, skólahald og brautskráningar Hagstofunnar (SKO), fræðsluútgjöld hins opinbera (THJ056xx) og PISA-niðurstöður OECD 2022.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div class="kpis">
-      {uniPct != null && <div class="kpi"><div class="k-l">🎓 Háskólamenntun</div><div class="k-v">{fmtNum(uniPct, 0)}%</div><div class="k-s">25–64 ára · {uniY}</div></div>}
-      {haskN && <div class="kpi"><div class="k-l">👩‍🎓 Háskólanemar</div><div class="k-v">{groupThousands(haskN)}</div><div class="k-s">skráðir · {enrollY}</div></div>}
-      {gradTot && <div class="kpi"><div class="k-l">📜 Brautskráðir háskóla</div><div class="k-v">{groupThousands(gradTot)}</div><div class="k-s">{fieldY}</div></div>}
-      {spendPct != null && <div class="kpi"><div class="k-l">💸 Fræðsluútgjöld</div><div class="k-v">{fmtNum(spendPct, 1)}%</div><div class="k-s">hins opinbera, af VLF · {spendY}</div></div>}
-      {costHask != null && <div class="kpi"><div class="k-l">💰 Kostn./háskólanema</div><div class="k-v">{fmtNum(costHask / 1000, 1)}</div><div class="k-s">m.kr á ári · {costY}</div></div>}
+      {uniPct != null && <div class="kpi"><div class="k-l">Háskólamenntun</div><div class="k-v">{fmtNum(uniPct, 0)}%</div><div class="k-s">25–64 ára · {uniY}</div></div>}
+      {haskN && <div class="kpi"><div class="k-l">Háskólanemar</div><div class="k-v">{groupThousands(haskN)}</div><div class="k-s">skráðir · {enrollY}</div></div>}
+      {gradTot && <div class="kpi"><div class="k-l">Brautskráðir háskóla</div><div class="k-v">{groupThousands(gradTot)}</div><div class="k-s">{fieldY}</div></div>}
+      {spendPct != null && <div class="kpi"><div class="k-l">Fræðsluútgjöld</div><div class="k-v">{fmtNum(spendPct, 1)}%</div><div class="k-s">hins opinbera, af VLF · {spendY}</div></div>}
+      {costHask != null && <div class="kpi"><div class="k-l">Kostn./háskólanema</div><div class="k-v">{fmtNum(costHask / 1000, 1)}</div><div class="k-s">m.kr á ári · {costY}</div></div>}
     </div>
 
     <div class="ppair">

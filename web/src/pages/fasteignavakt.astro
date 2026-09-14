@@ -20,13 +20,13 @@ const jsonLd = {
 <Layout title="Fasteignavaktin — gata, verðmat & uppboð | Karp" description={desc} canonical="https://karp.is/fasteignavakt/" jsonLd={jsonLd} ogTitle="Fasteignavaktin">
   <main data-pg="fastvakt">
     <p class="kicker">Karp · Fasteignir</p>
-    <h1>🏠 Fasteignavaktin</h1>
-    <p>Öll þinglýst kaup á íbúðarhúsnæði — leitaðu að götunni þinni, settu hana á vakt og fáðu tölvupóst þegar ný sala þinglýsist. <a class="xlink" href="/fasteignir/">📈 Verðþróun markaðarins er á Fasteignir →</a></p>
+    <h1>Fasteignavaktin</h1>
+    <p>Öll þinglýst kaup á íbúðarhúsnæði — leitaðu að götunni þinni, settu hana á vakt og fáðu tölvupóst þegar ný sala þinglýsist. <a class="xlink" href="/fasteignir/">Verðþróun markaðarins er á Fasteignir →</a></p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Kaupskrá HMS: öll þinglýst kaup á íbúðarhúsnæði (nothæfir samningar), uppfærð daglega. Þinglýsing berst með nokkurra daga/vikna töf. Uppboðsauglýsingar eru opinberar auglýsingar sýslumanna af island.is.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div id="fv-market" class="fv-market" hidden></div>
 
-    <h2>🔎 Leit, verðmat &amp; vöktun <span class="hint">— Karp+ (ókeypis aðgangur) · sláðu inn heimilisfang MEÐ póstnúmeri → verðmat, sölugraf, sambærilegar sölur, fasteignamat/brunabótamat og götuvakt í einni skýrslu.</span> <i class="tip" tabindex="0" data-tip="Veldu heimilisfang úr fléttilistanum og stærð + tegund fyllast sjálfkrafa úr skránni. Smelltu á Meta fyrir skýrslu — þá birtast Vakta- og Kaupa-skýrslu-takkarnir. Ekki fasteignamat og ekki verðmat löggilts fasteignasala.">ⓘ</i></h2>
+    <h2>Leit, verðmat &amp; vöktun <span class="hint">— Karp+ (ókeypis aðgangur) · sláðu inn heimilisfang MEÐ póstnúmeri → verðmat, sölugraf, sambærilegar sölur, fasteignamat/brunabótamat og götuvakt í einni skýrslu.</span> <i class="tip" tabindex="0" data-tip="Veldu heimilisfang úr fléttilistanum og stærð + tegund fyllast sjálfkrafa úr skránni. Smelltu á Meta fyrir skýrslu — þá birtast Vakta- og Kaupa-skýrslu-takkarnir. Ekki fasteignamat og ekki verðmat löggilts fasteignasala.">ⓘ</i></h2>
     <div id="fv-chips"></div>
     <div class="row fvm-row">
       <input id="fvm-addr" type="text" maxlength="60" placeholder="Heimilisfang MEÐ póstnúmeri — t.d. „Laugavegur 10, 101“" autocomplete="off" list="fv-addr-list" />
@@ -36,21 +36,21 @@ const jsonLd = {
       <select id="fvm-teg" aria-label="Tegund"><option value="Fjölbýli">Fjölbýli</option><option value="Sérbýli">Sérbýli</option><option value="Einbýli">Einbýli</option></select>
       <button id="fvm-go" class="cta">Meta</button>
       <span id="fvm-quota" class="fvm-quota" hidden></span>
-      <button id="fvm-vakta" class="cta cta-alt" type="button" hidden>🔔 Vakta</button>
-      <button id="fvm-buy" class="cta cta-alt" type="button" hidden>🛒 Kaupa matsskýrslu — 990 kr</button>
+      <button id="fvm-vakta" class="cta cta-alt" type="button" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:inline-block;vertical-align:-.2em;flex:none"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg> Vakta</button>
+      <button id="fvm-buy" class="cta cta-alt" type="button" hidden>Kaupa matsskýrslu — 990 kr</button>
     </div>
     <div id="fvm-fill" class="fillnote" hidden></div>
-    <div class="fvm-samplerow"><a class="fv-sample" href="/fasteignavakt/?syni=1">👁️ Sjá sýnishorn af fullbúnu verðmati (PDF)</a></div>
-    <div id="fvm-vedbokrow" class="fvm-vedbokrow" hidden>🔗 <a class="fvm-vedbok-link" href="https://island.is/vedbokarvottord" target="_blank" rel="noopener">Sækja veðbókarvottorð</a> <span class="fvm-vedbok-note">(opinbert vottorð, 3.100 kr, greitt á island.is með rafrænum skilríkjum)</span></div>
+    <div class="fvm-samplerow"><a class="fv-sample" href="/fasteignavakt/?syni=1">Sjá sýnishorn af fullbúnu verðmati (PDF)</a></div>
+    <div id="fvm-vedbokrow" class="fvm-vedbokrow" hidden><a class="fvm-vedbok-link" href="https://island.is/vedbokarvottord" target="_blank" rel="noopener">Sækja veðbókarvottorð</a> <span class="fvm-vedbok-note">(opinbert vottorð, 3.100 kr, greitt á island.is með rafrænum skilríkjum)</span></div>
     <div id="fvm-out" hidden></div>
 
-    <h2>🔨 Nauðungarsölur — opinberar auglýsingar sýslumanna <i class="tip" tabindex="0" data-tip="Uppboðsauglýsingar eru opinberar skv. lögum um nauðungarsölu. Staða segir hvar málið er statt: byrjun/framhald uppboðs er framundan, „Sölu lokið“ er afgreitt.">ⓘ</i></h2>
+    <h2>Nauðungarsölur — opinberar auglýsingar sýslumanna <i class="tip" tabindex="0" data-tip="Uppboðsauglýsingar eru opinberar skv. lögum um nauðungarsölu. Staða segir hvar málið er statt: byrjun/framhald uppboðs er framundan, „Sölu lokið“ er afgreitt.">ⓘ</i></h2>
     <div id="upp-list" class="feed">Sæki uppboðsauglýsingar…</div>
 
     <h2>Svona virkar vaktin</h2>
     <ol class="how">
       <li><b>Flettu upp</b> heimilisfangi (með póstnúmeri) og smelltu á <b>Meta</b> — þú færð verðmat, sölugraf, kort og sambærilegar sölur í einni skýrslu.</li>
-      <li><b>🔔 Vakta</b> og <b>🛒 Kaupa skýrslu</b> birtast við Meta þegar skýrslan er komin — vaktin vistast (hám. 6) og vöktuðu heimilisföngin raðast efst sem flýti-hnappar sem opna skýrsluna beint.</li>
+      <li><b>Vakta</b> og <b>Kaupa skýrslu</b> birtast við Meta þegar skýrslan er komin — vaktin vistast (hám. 6) og vöktuðu heimilisföngin raðast efst sem flýti-hnappar sem opna skýrsluna beint.</li>
       <li><b>Skráðu þig inn</b> (ókeypis <a href="/karp-pro/">Karp+</a>) og vaktin fylgir þér milli tækja — <b>tölvupóstur</b> berst þegar ný sala þinglýsist í götunni, með verði og fermetraverði.</li>
     </ol>
 
@@ -89,8 +89,6 @@ const jsonLd = {
     /* Vörumerkt ~5 sek hleðsla fyrir verðmatið — innspýtt í #fvm-out á keyrslutíma → þarf global CSS */
     main[data-pg="fastvakt"] .fvm-loader { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 42px 20px; text-align: center; background: linear-gradient(180deg, rgba(246,177,59,.07), rgba(246,177,59,.02)); border: 1px solid rgba(246,177,59,.22); border-radius: 14px; animation: fvl-in .35s ease; }
     @keyframes fvl-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-    main[data-pg="fastvakt"] .fvl-emoji { font-size: 44px; line-height: 1; animation: fvl-bob 1.8s ease-in-out infinite; filter: drop-shadow(0 5px 12px rgba(246,177,59,.4)); }
-    @keyframes fvl-bob { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-9px) rotate(3deg); } }
     main[data-pg="fastvakt"] .fvl-dots { display: inline-flex; gap: 7px; }
     main[data-pg="fastvakt"] .fvl-dots span { width: 8px; height: 8px; border-radius: 50%; background: #f6b13b; opacity: .35; animation: fvl-dot 1.2s ease-in-out infinite; }
     main[data-pg="fastvakt"] .fvl-dots span:nth-child(2) { animation-delay: .18s; }
@@ -102,7 +100,7 @@ const jsonLd = {
     main[data-pg="fastvakt"] .fvl-bar { width: min(240px, 72%); height: 5px; border-radius: 99px; background: rgba(246,177,59,.14); overflow: hidden; margin-top: 2px; }
     main[data-pg="fastvakt"] .fvl-bar i { display: block; height: 100%; width: 4%; border-radius: 99px; background: linear-gradient(90deg, #f6b13b, #ffcf7a); animation: fvl-fill 5s cubic-bezier(.4,0,.2,1) forwards; }
     @keyframes fvl-fill { 0% { width: 4%; } 20% { width: 34%; } 55% { width: 66%; } 85% { width: 88%; } 100% { width: 100%; } }
-    @media (prefers-reduced-motion: reduce) { main[data-pg="fastvakt"] .fvl-emoji, main[data-pg="fastvakt"] .fvl-dots span, main[data-pg="fastvakt"] .fvl-bar i { animation-duration: .01ms; animation-iteration-count: 1; } }
+    @media (prefers-reduced-motion: reduce) { main[data-pg="fastvakt"] .fvl-dots span, main[data-pg="fastvakt"] .fvl-bar i { animation-duration: .01ms; animation-iteration-count: 1; } }
     main[data-pg="fastvakt"] .cta-alt { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.2); color: var(--ink); }
     main[data-pg="fastvakt"] .cta-alt:hover { background: rgba(255,255,255,.1); }
     main[data-pg="fastvakt"] #fvm-vakta.on { background: rgba(66,208,134,.14); border-color: rgba(66,208,134,.5); color: #42d086; }
@@ -115,7 +113,7 @@ const jsonLd = {
     main[data-pg="fastvakt"] .fv-sample:hover { color: #f6b13b; border-color: #f6b13b; }
     main[data-pg="fastvakt"] .fvm-demonote { margin: 0 0 12px; padding: 10px 12px; border: 1px solid rgba(246,177,59,.4); border-radius: 10px; background: rgba(246,177,59,.07); color: #f6d9a6; font-size: 13.5px; line-height: 1.45; }
     main[data-pg="fastvakt"] .fv-gate { max-width: 460px; margin: 8px auto; background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.35); border-radius: 16px; padding: 24px 22px; text-align: center; }
-    main[data-pg="fastvakt"] .fvg-lock { font-size: 30px; line-height: 1; }
+    main[data-pg="fastvakt"] .fvg-lock { line-height: 1; }
     main[data-pg="fastvakt"] .fvg-h { font-size: 18px; color: var(--ink); margin: 8px 0 6px; }
     main[data-pg="fastvakt"] .fvg-b { color: var(--ink); font-size: 13.5px; line-height: 1.5; margin: 0 0 16px; }
     main[data-pg="fastvakt"] .fvg-btns { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
@@ -158,7 +156,6 @@ const jsonLd = {
     .fvm-dir.fvm-dn { background: rgba(255,109,122,.08); border-color: rgba(255,109,122,.32); }
     .fvm-dir.fvm-cool { background: rgba(246,177,59,.08); border-color: rgba(246,177,59,.32); }
     .fvm-dir.fvm-flat { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.12); }
-    .fvm-arrow { font-size: 28px; }
     .fvm-dir-t { font-size: 16px; color: var(--ink); } .fvm-dir-t b { color: #f6b13b; }
     .fvm-dir-s { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
     .fvm-mat { font-size: 13.5px; color: var(--ink); margin-top: 8px; background: rgba(255,255,255,.03); border-radius: 10px; padding: 10px 14px; line-height: 1.6; }
@@ -240,7 +237,6 @@ const jsonLd = {
     .fvm-photo { height: 220px; border-radius: 10px; border: 1px solid rgba(255,255,255,.1); overflow: hidden; position: relative; background: #0e1420; }
     .fvm-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .fvm-ph-ph { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; color: #6a7688; font-size: 12px; text-align: center; padding: 8px; }
-    .fvm-ph-ph .big { font-size: 30px; opacity: .5; }
     .fvm-ph-cap { position: absolute; left: 0; right: 0; bottom: 0; font-size: 9.5px; color: #eef3fb; background: linear-gradient(transparent, rgba(0,0,0,.6)); padding: 12px 8px 5px; }
     @media (max-width: 640px) { .fvm-media { flex-direction: column; } .fvm-media .fvm-map, .fvm-media .fvm-photo { flex: none; } }
     body.fvm-printing #fvm-report .fvm-photo { border-color: #ddd !important; }
@@ -346,6 +342,7 @@ const jsonLd = {
 
   <script>
       import { KARP_MERKI } from '../lib/karp-merki.mjs';
+    import { takn, TAKN } from '../lib/takn.mjs';
     import { loadUser, karpGet, karpPost, loginHref, isAdmin, hasReport, hasSub, karpCheckout, helpNote, metaValuation, fasteignRemaining, fasteignResets, fasteignQuotaKnown } from '../lib/auth.js';
     import { midgildi, hundradsmark, tsOf as fmTsOf, OUTLO as FM_OUTLO, OUTHI as FM_OUTHI, metaUrSolusogu, bakprof, veljaMatHlutfall, matDomur } from '../lib/fasteignamat.mjs';
     import { slugify as slugSvaedi } from '@lib/format.mjs';   // sama slug og /fasteignaverd/[slug].astro notar
@@ -466,7 +463,7 @@ const jsonLd = {
       // LOTA 62: fasteignamat + brunabótamat + hlutfall kaupverðs/mats sýnt á hverri röð
       const matPct = (r) => (r.mat && r.v ? (r.v >= r.mat ? '+' : '') + Math.round((r.v / r.mat - 1) * 100) + '% v. mat' : '');
       const fvRow = (r) => `<div class="fi"><span class="t">${esc(r.a)} <span class="fv-sv">· ${esc(r.pn)} ${esc(r.sv)}</span> — <b class="fv-v">${fvKr(r.v)}</b>${r.mat ? ` <span class="fv-mat">${matPct(r)}</span>` : ''}</span><span class="s">${dIS(r.d)} · ${String(r.fm).replace('.', ',')} m²${r.fm > 0 ? ' · ' + Math.round(r.v / r.fm) + ' þ/m²' : ''} · ${esc(r.t)}${r.ar ? ' · byggt ' + r.ar : ''}${r.mat ? ' · fasteignamat ' + fvKr(r.mat) : ''}${r.bruna ? ' · brunabótamat ' + fvKr(r.bruna) : ''}</span></div>`;
-      const uppRow = (x) => `<div class="fi fv-upp"><span class="t">🔨 ${esc(x.a)} — <b>${esc(x.teg)}</b></span><span class="s">${dIS(x.d)}${x.kl ? ' kl. ' + esc(x.kl) : ''} · ${esc(x.flokkur)} · ${esc(x.e)}</span></div>`;
+      const uppRow = (x) => `<div class="fi fv-upp"><span class="t">${esc(x.a)} — <b>${esc(x.teg)}</b></span><span class="s">${dIS(x.d)}${x.kl ? ' kl. ' + esc(x.kl) : ''} · ${esc(x.flokkur)} · ${esc(x.e)}</span></div>`;
       // Röð fyrir eign úr fasteignaskrá (ekki nýleg sala) — fasteignamat + brunabótamat
       const fskRow = (r) => `<div class="fi fv-fsk"><span class="t">${esc(r.a)} <span class="fv-sv">· ${esc(r.pn)} ${esc(r.sv)}</span> — ${r.heimild === 'leiga' ? '<b class="fv-v">stærð úr leiguskrá HMS</b> · ekkert skráð mat' : 'fasteignamat <b class="fv-v">' + (r.mat ? fvKr(r.mat) : '–') + '</b>'}</span><span class="s">${r.fm ? String(r.fm).replace('.', ',') + ' m² · ' : ''}${esc(r.teg)}${r.herb ? ' · ' + r.herb + ' herb.' : ''}${r.ar ? ' · byggt ' + r.ar : ''}${r.lod ? ' · lóð ' + r.lod + ' m²' : ''}${r.bruna ? ' · brunabótamat ' + fvKr(r.bruna) : ''}${r.ld ? ' · seldist síðast ' + esc(r.ld) + (r.lv ? ' á ' + fvKr(r.lv) : '') : ''}</span></div>`;
       const fvQ = document.getElementById('fv-q'), fvMuniEl = document.getElementById('fv-muni'), fvBtn = document.getElementById('fv-add');
@@ -512,9 +509,9 @@ const jsonLd = {
           if (aEl) aEl.value = addr + ', ' + pn;
           if (note) {
             const c = h[fvNorm(addr)];   // [lat, lng, hverfi, landnr, heinum]
-            const hms = (c && c[3] && c[4]) ? ' <a class="ec-hms" href="https://hms.is/fasteignaskra/' + c[3] + '/' + c[4] + '" target="_blank" rel="noopener">🏛️ Skráð stærð hjá HMS →</a> (opnast í nýjum flipa — afritaðu m² hingað)' : '';
+            const hms = (c && c[3] && c[4]) ? ' <a class="ec-hms" href="https://hms.is/fasteignaskra/' + c[3] + '/' + c[4] + '" target="_blank" rel="noopener">Skráð stærð hjá HMS →</a> (opnast í nýjum flipa — afritaðu m² hingað)' : '';
             note.hidden = false;
-            note.innerHTML = '📍 Skráð heimilisfang í staðfangaskrá — hvorki í kaupskrá né leiguskrá HMS, svo stærð og tegund finnast ekki sjálfkrafa.' + hms + ' Sláðu þær inn og smelltu á Meta: matið byggir á sambærilegum eignum í götunni/póstnúmerinu.';
+            note.innerHTML = 'Skráð heimilisfang í staðfangaskrá — hvorki í kaupskrá né leiguskrá HMS, svo stærð og tegund finnast ekki sjálfkrafa.' + hms + ' Sláðu þær inn og smelltu á Meta: matið byggir á sambærilegum eignum í götunni/póstnúmerinu.';
           }
           return true;
         }
@@ -532,7 +529,7 @@ const jsonLd = {
       // LOTA 54: fasteignavaktin er Karp+ (ókeypis aðgangur) — leit+vaktir læstar,
       // uppboðin (opinberar auglýsingar) sjást öllum sem forsmekkur.
       let USER = null;
-      const proTease = () => `<div class="pro-tease2"><b>⭐ Fasteignavaktin er hluti af Karp+</b> — ókeypis aðgangur sem tekur mínútu. Leit í kaupskránni, götuvaktir með tölvupósti og verðmatið opnast við innskráningu.<div class="pt2-btns"><a class="pt2-main" href="/karp-pro/">Hvað er Karp+?</a><a class="pt2-sec" href="${loginHref()}">Innskráning</a></div></div>`;
+      const proTease = () => `<div class="pro-tease2"><b>Fasteignavaktin er hluti af Karp+</b> — ókeypis aðgangur sem tekur mínútu. Leit í kaupskránni, götuvaktir með tölvupósti og verðmatið opnast við innskráningu.<div class="pt2-btns"><a class="pt2-main" href="/karp-pro/">Hvað er Karp+?</a><a class="pt2-sec" href="${loginHref()}">Innskráning</a></div></div>`;
       async function fvSearch() {
         const res = document.getElementById('fv-res');
         if (!res) return;
@@ -553,14 +550,14 @@ const jsonLd = {
         const reg = await fskRows(sv, fvQ.value);
         const recentKeys = new Set(rows.map((r) => fvNorm(r.a) + '|' + r.pn));
         const regRows = reg.filter((r) => (!sv || r.sv === sv) && (qq ? fvNorm(r.a).startsWith(qq) : true) && !recentKeys.has(fvNorm(r.a) + '|' + r.pn));
-        const regHtml = regRows.length ? `<div class="fv-head" style="margin-top:10px">📋 Úr kaupskrá — ${regRows.length} eign${regRows.length === 1 ? '' : 'ir'} með gildandi mati (seldist síðast fyrir meira en 6 mánuðum)</div>` + regRows.slice(0, 20).map(fskRow).join('') + (regRows.length > 20 ? `<div class="s" style="padding:7px 2px">… og ${regRows.length - 20} til viðbótar.</div>` : '') : '';
+        const regHtml = regRows.length ? `<div class="fv-head" style="margin-top:10px">Úr kaupskrá — ${regRows.length} eign${regRows.length === 1 ? '' : 'ir'} með gildandi mati (seldist síðast fyrir meira en 6 mánuðum)</div>` + regRows.slice(0, 20).map(fskRow).join('') + (regRows.length > 20 ? `<div class="s" style="padding:7px 2px">… og ${regRows.length - 20} til viðbótar.</div>` : '') : '';
         // Staðfangaskrá: götuföng sem hafa EKKI selst síðan 2006 — hús sem standa en kaupskráin þekkir ekki.
         // Aðeins þegar leitað er að götu/fangi (ekki tómu sveitarfélagi — þá væru það þúsundir).
         let hnHtml = '';
         if (qq && !/^\d{3}$/.test(qq)) {
           const known = new Set([...recentKeys, ...regRows.map((r) => fvNorm(r.a) + '|' + r.pn)]);
           const hn = (await hnRows(sv, fvQ.value, qq)).filter((r) => !known.has(fvNorm(r.a) + '|' + r.pn));
-          if (hn.length) hnHtml = `<div class="fv-head" style="margin-top:10px">📍 Skráð heimilisföng án þinglýstrar sölu síðan 2006 — ${hn.length}</div>`
+          if (hn.length) hnHtml = `<div class="fv-head" style="margin-top:10px">Skráð heimilisföng án þinglýstrar sölu síðan 2006 — ${hn.length}</div>`
             + hn.slice(0, 20).map((r) => `<div class="fi fv-hn" role="button" tabindex="0" data-addr="${esc(r.a)}, ${esc(r.pn)}" title="Opna verðmat"><span class="t">${esc(r.a)} <span class="fv-sv">· ${esc(r.pn)} ${esc(r.sv)}</span> — <b class="fv-v">ekkert skráð mat úr kaupskrá</b></span><span class="s">Húsið er í staðfangaskrá HMS en hefur ekki selst síðan kaupskráin hófst 2006 → hvorki fasteignamat né stærð tiltæk hér. Smelltu til að meta út frá sambærilegum eignum í götunni.</span></div>`).join('')
             + (hn.length > 20 ? `<div class="s" style="padding:7px 2px">… og ${hn.length - 20} til viðbótar — þrengdu leitina.</div>` : '');
         }
@@ -576,8 +573,8 @@ const jsonLd = {
         if (!el) return;
         const vaktir = fvLoad();
         el.innerHTML = vaktir.length
-          ? '<div class="fvc-lbl">🔔 Vaktir þínar — smelltu til að opna skýrslu:</div>' + vaktir.map((v, i) => `<span class="lvc" data-i="${i}" role="button" tabindex="0" title="Opna verðmatsskýrslu">🏠 ${esc(v.q || v.sv)}${v.ibud ? ' · íb. ' + esc(v.ibud) : ''}${v.q && v.sv ? ' · ' + esc(v.sv) : ''} <b></b><button class="lvc-x" title="Fjarlægja vakt" aria-label="Fjarlægja vakt">✕</button></span>`).join('')
-          : '<span class="fv-sv">Engin vakt enn — flettu upp eign, smelltu á Meta og svo 🔔 Vakta.</span>';
+          ? '<div class="fvc-lbl">Vaktir þínar — smelltu til að opna skýrslu:</div>' + vaktir.map((v, i) => `<span class="lvc" data-i="${i}" role="button" tabindex="0" title="Opna verðmatsskýrslu">${esc(v.q || v.sv)}${v.ibud ? ' · íb. ' + esc(v.ibud) : ''}${v.q && v.sv ? ' · ' + esc(v.sv) : ''} <b></b><button class="lvc-x" title="Fjarlægja vakt" aria-label="Fjarlægja vakt">✕</button></span>`).join('')
+          : '<span class="fv-sv">Engin vakt enn — flettu upp eign, smelltu á Meta og svo Vakta.</span>';
         // smellur á vakt → opnar verðmatsskýrslu beint (flýtir á Meta fyrir þá eign)
         const openVakt = (i) => { const v = fvLoad()[i]; if (!v) return; const aEl = document.getElementById('fvm-addr'); if (!aEl) return; FVM_DEMO = false; aEl.value = v.q + (v.pn ? ', ' + v.pn : ''); const ibEl = document.getElementById('fvm-ibud'); if (ibEl) ibEl.value = v.ibud || ''; fvAutofill(aEl.value).then(() => fvmGo()); document.getElementById('fvm-out')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); };
         el.querySelectorAll('.lvc').forEach((c) => {
@@ -722,11 +719,11 @@ const jsonLd = {
       // Heldur alltaf mynd-slottinu (stöðugt útlit): mynd ef til, annars snyrtilegt placeholder.
       function renderPhoto(el, lat, lng, demo) {
         if (!el) return;
-        const ph = (t, s) => '<div class="fvm-ph-ph"><span class="big">🏠</span><span>' + t + '</span>' + (s ? '<span style="font-size:10px;opacity:.8">' + s + '</span>' : '') + '</div>';
+        const ph = (t, s) => '<div class="fvm-ph-ph"><span>' + t + '</span>' + (s ? '<span style="font-size:10px;opacity:.8">' + s + '</span>' : '') + '</div>';
         el.innerHTML = ph('Sæki götumynd…', '');
         const img = new Image();
         img.alt = 'Götumynd af eign';
-        img.onload = () => { el.innerHTML = ''; el.appendChild(img); const c = document.createElement('div'); c.className = 'fvm-ph-cap'; c.textContent = '📷 Götumynd · Google'; el.appendChild(c); };
+        img.onload = () => { el.innerHTML = ''; el.appendChild(img); const c = document.createElement('div'); c.className = 'fvm-ph-cap'; c.textContent = 'Götumynd · Google'; el.appendChild(c); };
         img.onerror = () => { el.innerHTML = ph(demo ? 'Götumynd frá Google Maps' : 'Götumynd ekki tiltæk', demo ? '(virkjast með API-lykli)' : ''); };
         img.src = '/api/streetview?lat=' + lat + '&lng=' + lng;
       }
@@ -751,11 +748,11 @@ const jsonLd = {
       function showFvGate(raw, matKey, heading, blurb, buyLabel, sub2) {
         ['fvm-vakta', 'fvm-buy'].forEach((id) => { const e = document.getElementById(id); if (e) e.hidden = true; });
         fvmOut.hidden = false;
-        fvmOut.innerHTML = '<div class="fv-gate"><div class="fvg-lock">🔒</div>'
+        fvmOut.innerHTML = '<div class="fv-gate"><div class="fvg-lock">' + TAKN.laest(28) + '</div>'
           + '<h3 class="fvg-h">' + heading + '</h3>'
           + '<p class="fvg-b">' + blurb + '</p>'
           + '<div class="fvg-btns"><button id="fvg-buy" class="fvg-main" type="button">' + buyLabel + '</button>'
-          + '<a class="fvg-sample" href="/fasteignavakt/?syni=1">👁️ Sjá sýnishorn</a></div>'
+          + '<a class="fvg-sample" href="/fasteignavakt/?syni=1">Sjá sýnishorn</a></div>'
           + '<p class="fvg-note">Vistast á Mitt svæði · formleg PDF · aðgengileg alltaf</p>'
           + (sub2 ? '<p class="fvg-sub2">' + sub2 + '</p>' : '') + '</div>';
         const gb = document.getElementById('fvg-buy');
@@ -773,7 +770,6 @@ const jsonLd = {
       function fvmLoaderStart(countTxt) {
         fvmOut.hidden = false;
         fvmOut.innerHTML = '<div class="fvm-loader" role="status" aria-live="polite">'
-          + '<div class="fvl-emoji">🏠</div>'
           + '<div class="fvl-dots"><span></span><span></span><span></span></div>'
           + '<div class="fvl-msg">Hér er matið þitt…</div>'
           + (countTxt ? '<div class="fvl-sub">' + countTxt + '</div>' : '')
@@ -801,7 +797,7 @@ const jsonLd = {
         fvmOut.hidden = false;
         const u = await loadUser().catch(() => null);
         if ((!u || !u.loggedIn) && !FVM_DEMO) {
-          fvmOut.innerHTML = `<div class="pro-tease2"><b>⭐ Verðmatið er hluti af Karp+</b> — ókeypis aðgangur. Nálgun úr þinglýstum kaupum í götunni þinni, póstnúmerinu og sveitarfélaginu. <a class="fv-sample" href="/fasteignavakt/?syni=1">Sjá sýnishorn af verðmati →</a><div class="pt2-btns"><a class="pt2-main" href="/karp-pro/">Hvað er Karp+?</a><a class="pt2-sec" href="${loginHref()}">Innskráning</a></div></div>`;
+          fvmOut.innerHTML = `<div class="pro-tease2"><b>Verðmatið er hluti af Karp+</b> — ókeypis aðgangur. Nálgun úr þinglýstum kaupum í götunni þinni, póstnúmerinu og sveitarfélaginu. <a class="fv-sample" href="/fasteignavakt/?syni=1">Sjá sýnishorn af verðmati →</a><div class="pt2-btns"><a class="pt2-main" href="/karp-pro/">Hvað er Karp+?</a><a class="pt2-sec" href="${loginHref()}">Innskráning</a></div></div>`;
           return;
         }
         // ── GÁTT: matið er læst á bak við greiðslu/kvóta ──
@@ -817,7 +813,7 @@ const jsonLd = {
               const rd = mv.resets ? new Date(mv.resets * 1000).toLocaleDateString('is-IS', { day: 'numeric', month: 'long' }) : 'næstu mánaðamót';
               showFvGate(raw, matKey, 'Mánaðarkvóti fullnýttur',
                 'Þú hefur nýtt öll 20 innifalin verðmöt þessa mánaðar (endurstillist ' + rd + '). Þú getur keypt stakt verðmat af ' + esc(raw) + ' núna á 990 kr — það vistast sem formleg skýrsla á Mitt svæði.',
-                '🛒 Kaupa þetta verðmat — 990 kr', '');
+                'Kaupa þetta verðmat — 990 kr', '');
               return;
             }
             // granted / owned / tæknifeill → HALDA ÁFRAM og reikna matið. Fellur OPIÐ: borgandi áskrifandi er
@@ -825,8 +821,8 @@ const jsonLd = {
           } else {
             showFvGate(raw, matKey, 'Verðmat fyrir ' + esc(raw),
               'Fullt verðmat opnast við kaup: áætlað markaðsvirði og verðbil, sölugraf götunnar, sambærilegar sölur, fasteignamat og brunabótamat, áætluð leiga og kort.',
-              '🛒 Kaupa matsskýrslu — 990 kr',
-              'Metur þú margar eignir? <a href="/karp-pro/#verd">⭐ Komdu í áskrift — 20 verðmöt á mánuði á 3.900 kr/mán →</a>');
+              'Kaupa matsskýrslu — 990 kr',
+              'Metur þú margar eignir? <a href="/karp-pro/#verd">Komdu í áskrift — 20 verðmöt á mánuði á 3.900 kr/mán →</a>');
             return;
           }
         }
@@ -903,7 +899,7 @@ const jsonLd = {
         // íbúð 1 → íbúð 201), skráð stærð, fasteignamat, brunabótamat. Sama fyrir hús sem kaupskráin þekkir ekki.
         // Slóðin er landnr/heinum[/fastnum]; API þeirra er bot- og CORS-varið svo við TENGJUM, sækjum ekki.
         const hmsUrl = (c, fnr) => (c && c[3] && c[4]) ? 'https://hms.is/fasteignaskra/' + c[3] + '/' + c[4] + (fnr ? '/' + String(fnr).replace(/\D/g, '') : '') : '';
-        const hmsLink = (c, fnr, txt) => { const u = hmsUrl(c, fnr); return u ? `<a class="ec-hms" href="${u}" target="_blank" rel="noopener">🏛️ ${txt || 'Skoða í fasteignaskrá HMS'} →</a>` : ''; };
+        const hmsLink = (c, fnr, txt) => { const u = hmsUrl(c, fnr); return u ? `<a class="ec-hms" href="${u}" target="_blank" rel="noopener">${txt || 'Skoða í fasteignaskrá HMS'} →</a>` : ''; };
         const hverfi = (subjC && subjC[2]) || '';
         // eignaspjald EIGN / GÖGN (tveir flipar)
         let cardHtml = '';
@@ -931,7 +927,7 @@ const jsonLd = {
           const rows2 = (arr) => arr.map(([k, v]) => `<div class="ec-r"><span class="ec-k">${k}</span><span class="ec-v">${esc(String(v))}</span></div>`).join('');
           const eign = [['Heimilisfang', hnDisp(selfAddr) + (pn ? ', ' + pn : '')], ['Staða', 'Skráð í staðfangaskrá HMS'], ['Þinglýst sala', 'Engin síðan 2006'], ['Tegund', teg + ' (slegið inn)'], ['Stærð', fm + ' m² (slegið inn)']];
           if (hverfi) eign.push(['Hverfi', hverfi]);
-          cardHtml = `<div class="eign-card"><div class="ec-tabs"><button class="ec-tab on" data-tab="eign">📍 SKRÁÐ HEIMILISFANG</button></div><div class="ec-panel" data-panel="eign">${rows2(eign)}</div>`
+          cardHtml = `<div class="eign-card"><div class="ec-tabs"><button class="ec-tab on" data-tab="eign">SKRÁÐ HEIMILISFANG</button></div><div class="ec-panel" data-panel="eign">${rows2(eign)}</div>`
             + `<div class="ec-pick"><div class="ec-pick-l">ⓘ Kaupskrá HMS ber fasteignamat og stærð aðeins fyrir eignir sem hafa selst síðan 2006 — þetta hús hefur ekki gert það, svo matið hér að ofan byggir á sambærilegum eignum í götunni og póstnúmerinu, ekki á eigninni sjálfri. ${hmsLink(subjC, null, 'Skráð stærð, fasteignamat og einingar hjá HMS')}</div></div></div>`;
         }
         // ── Sjónræn verðstika: neðri-/efrimörk + áætlað verð (neðri röð), fasteignamat + brunabótamat (efri röð) ──
@@ -966,7 +962,7 @@ const jsonLd = {
           if (bk) {
             const pc = (x) => Math.round(x * 100) + '%';
             const litur = bk.midgildi <= 0.08 ? '#42d086' : bk.midgildi <= 0.12 ? '#e8b84b' : '#ef6a6a';
-            nakvHtml = `<div class="fvm-nakv"><span class="fvm-nakv-b" style="background:${litur}"></span><div><b>🎯 Nákvæmni matsaðferðarinnar í póstnúmeri ${esc(pn)}</b> <i class="tip" tabindex="0" data-tip="Bakpróf: hver þinglýst sala síðustu 6 mánaða í póstnúmerinu er metin með NÁKVÆMLEGA sömu aðferð og matið hér að ofan — sambærilegar eignir sem seldust Á UNDAN henni — og borin saman við raunverulegt kaupverð. Talan lýsir því hvernig aðferðin stóð sig á þessu svæði nýlega, ekki hversu rétt þetta tiltekna mat er.">ⓘ</i><br>`
+            nakvHtml = `<div class="fvm-nakv"><span class="fvm-nakv-b" style="background:${litur}"></span><div><b>Nákvæmni matsaðferðarinnar í póstnúmeri ${esc(pn)}</b> <i class="tip" tabindex="0" data-tip="Bakpróf: hver þinglýst sala síðustu 6 mánaða í póstnúmerinu er metin með NÁKVÆMLEGA sömu aðferð og matið hér að ofan — sambærilegar eignir sem seldust Á UNDAN henni — og borin saman við raunverulegt kaupverð. Talan lýsir því hvernig aðferðin stóð sig á þessu svæði nýlega, ekki hversu rétt þetta tiltekna mat er.">ⓘ</i><br>`
               + `<span>Bakprófað á ${bk.n} sölum sl. 6 mán: miðgildisfrávik <b>${pc(bk.midgildi)}</b> frá raunverði · <b>${pc(bk.innan10)}</b> mata innan ±10% · ${pc(bk.innan20)} innan ±20%.</span></div></div>`;
           }
         }
@@ -984,7 +980,7 @@ const jsonLd = {
           const okkar = est ? Math.round(est.m) : null;   // þ.kr/m²
           const fr = (okkar && m2sv) ? Math.round((okkar / m2sv - 1) * 100) : null;
           const pcs = (x) => (x == null ? '–' : (x >= 0 ? '+' : '−') + (Math.abs(x) * 100).toFixed(1).replace('.', ',') + '%');
-          svaediHtml = `<div class="fvm-nakv fvm-svaedi"><span class="fvm-nakv-b" style="background:#8ab4f8"></span><div><b>🏘️ Matssvæði HMS: ${esc(sv2027.heiti)}</b> <i class="tip" tabindex="0" data-tip="Matssvæði fasteignamats 2027 (HMS). Meðalverð á m² og % breyting matsins 2026→2027 eru opinberar tölur HMS fyrir svæðið í heild — ekki mat á þessari eign. Svæðið er fundið út frá staðsetningu (næstu sölur í úrtaki HMS); heimilisföng við svæðamörk geta lent röngum megin.">ⓘ</i><br>`
+          svaediHtml = `<div class="fvm-nakv fvm-svaedi"><span class="fvm-nakv-b" style="background:#8ab4f8"></span><div><b>Matssvæði HMS: ${esc(sv2027.heiti)}</b> <i class="tip" tabindex="0" data-tip="Matssvæði fasteignamats 2027 (HMS). Meðalverð á m² og % breyting matsins 2026→2027 eru opinberar tölur HMS fyrir svæðið í heild — ekki mat á þessari eign. Svæðið er fundið út frá staðsetningu (næstu sölur í úrtaki HMS); heimilisföng við svæðamörk geta lent röngum megin.">ⓘ</i><br>`
             + `<span>Opinbert meðalverð í svæðinu: <b>${thouIS(m2sv)} þ.kr/m²</b> (${fj ? 'fjölbýli' : 'sérbýli'}) · fasteignamat 2027 breytist um <b>${pcs(brsv)}</b>`
             + (fr != null ? ` · matið hér að ofan (${thouIS(okkar)} þ.kr/m²) er <b>${Math.abs(fr)}% ${fr >= 0 ? 'yfir' : 'undir'}</b> svæðismeðaltali` : '') + `. <a class="ec-hms" href="/fasteignaverd/${slugSvaedi(sv2027.heiti)}/">Sjá svæðið — nýjustu sölur →</a></span></div></div>`;
         }
@@ -1013,11 +1009,11 @@ const jsonLd = {
               const stad = stadOf(sel), tegL = tegOf(sel);
               const hvernig = `Miðað við markaðsverð sambærilegra og hvernig ${tegL} í ${stad} seljast gagnvart mati „ætti" matið að vera nær <b>${mkr(d.matVaent)}</b>.`;
               const DOM = {
-                i_takt: ['ok', '✅ Fasteignamatið er í takt við markaðinn', `Út frá ${arL} fást <b>${mkr(d.est2)}</b>; sambærilegar sölur gefa <b>${mkr(verd)}</b> — frávik ${pcI(d.fravik)}, innan óvissu beggja aðferða (~±10%).`],
-                hatt: ['warn', '⚠️ Fasteignamatið virðist hátt', `Út frá ${arL} fást <b>${mkr(d.est2)}</b> en sambærilegar sölur gefa <b>${mkr(verd)}</b> (${pcI(d.fravik)}). ${hvernig} Telji eigandi matið rangt má gera athugasemd við HMS — þetta er ábending úr opinberum gögnum, ekki verðmat löggilts fasteignasala.`],
-                mjog_hatt: ['warn', '⚠️ Fasteignamatið virðist verulega hátt', `Út frá ${arL} fást <b>${mkr(d.est2)}</b> en sambærilegar sölur gefa <b>${mkr(verd)}</b> (${pcI(d.fravik)}). ${hvernig} Svo mikill munur er sjaldgæfur — athugaðu að stærð og tegund séu rétt slegin inn; standist það má gera athugasemd við HMS.`],
-                lagt: ['info', 'ℹ️ Fasteignamatið virðist lágt', `Út frá ${arL} fást <b>${mkr(d.est2)}</b> en sambærilegar sölur gefa <b>${mkr(verd)}</b> (${pcI(d.fravik)}) — lægri fasteignagjöld nú, en matið gæti hækkað við næstu endurskoðun; markaðsverðið gæfi mat nær <b>${mkr(d.matVaent)}</b>.`],
-                mjog_lagt: ['info', 'ℹ️ Fasteignamatið virðist verulega lágt', `Út frá ${arL} fást <b>${mkr(d.est2)}</b> en sambærilegar sölur gefa <b>${mkr(verd)}</b> (${pcI(d.fravik)}). Athugaðu að stærð og tegund séu rétt — standist það er matið óvenju lágt og gæti hækkað umtalsvert við næstu endurskoðun.`],
+                i_takt: ['ok', 'Fasteignamatið er í takt við markaðinn', `Út frá ${arL} fást <b>${mkr(d.est2)}</b>; sambærilegar sölur gefa <b>${mkr(verd)}</b> — frávik ${pcI(d.fravik)}, innan óvissu beggja aðferða (~±10%).`],
+                hatt: ['warn', '⚠ Fasteignamatið virðist hátt', `Út frá ${arL} fást <b>${mkr(d.est2)}</b> en sambærilegar sölur gefa <b>${mkr(verd)}</b> (${pcI(d.fravik)}). ${hvernig} Telji eigandi matið rangt má gera athugasemd við HMS — þetta er ábending úr opinberum gögnum, ekki verðmat löggilts fasteignasala.`],
+                mjog_hatt: ['warn', '⚠ Fasteignamatið virðist verulega hátt', `Út frá ${arL} fást <b>${mkr(d.est2)}</b> en sambærilegar sölur gefa <b>${mkr(verd)}</b> (${pcI(d.fravik)}). ${hvernig} Svo mikill munur er sjaldgæfur — athugaðu að stærð og tegund séu rétt slegin inn; standist það má gera athugasemd við HMS.`],
+                lagt: ['info', 'ⓘ Fasteignamatið virðist lágt', `Út frá ${arL} fást <b>${mkr(d.est2)}</b> en sambærilegar sölur gefa <b>${mkr(verd)}</b> (${pcI(d.fravik)}) — lægri fasteignagjöld nú, en matið gæti hækkað við næstu endurskoðun; markaðsverðið gæfi mat nær <b>${mkr(d.matVaent)}</b>.`],
+                mjog_lagt: ['info', 'ⓘ Fasteignamatið virðist verulega lágt', `Út frá ${arL} fást <b>${mkr(d.est2)}</b> en sambærilegar sölur gefa <b>${mkr(verd)}</b> (${pcI(d.fravik)}). Athugaðu að stærð og tegund séu rétt — standist það er matið óvenju lágt og gæti hækkað umtalsvert við næstu endurskoðun.`],
               }[d.domur];
               return `<div class="lei-grid">`
                 + `<div class="lei-c"><div class="lei-v">${mkr(d.est2)}</div><div class="lei-l">mat út frá fasteignamati ${arS}: ${mkr(mat)} × ${d.hlutfall.toFixed(2).replace('.', ',')}</div></div>`
@@ -1027,7 +1023,7 @@ const jsonLd = {
             };
             const selG = veljaMatHlutfall(HL, Object.assign({ argerd: 'g' }, fmatCtx));
             const tip = 'Tvö óháð möt: (1) sambærilegar sölur (hér að ofan) og (2) gildandi fasteignamat eignarinnar margfaldað með miðgildi hlutfalls kaupverðs og fasteignamats í þinglýstum kaupum síðustu 12 mánaða í svæðinu — kaupskrá HMS ber núgildandi mat hverrar seldrar eignar. Mælt á 7.700 sölum 2025–26 (hver metin eingöngu úr fyrri sölum): leið 2 víkur 5,5% frá söluverði að miðgildi og hittir innan ±10% í 75% tilvika; leið 1 6,5% og 67%. Blöndun bætir ekki — þess vegna eru þau sýnd hlið við hlið. Beri þeim ekki saman um meira en ~10% er annað hvort fasteignamatið eða forsendurnar (stærð/tegund) líklega skakkar.';
-            const head = `<div class="fv-head" style="margin-top:14px">🏛️ Fasteignamats-leiðin — annað, óháð mat <i class="tip" tabindex="0" data-tip="${esc(tip)}">?</i></div>`;
+            const head = `<div class="fv-head" style="margin-top:14px">Fasteignamats-leiðin — annað, óháð mat <i class="tip" tabindex="0" data-tip="${esc(tip)}">?</i></div>`;
             const adferd = selG ? `<div class="fvm-note">Aðferð: fasteignamat eignarinnar × miðgildi hlutfalls kaupverðs/fasteignamats í þinglýstum kaupum sl. 12 mán (${esc(tegOf(selG))} í ${esc(stadOf(selG))}, kaupskrá HMS). Hvorugt matið er verðmat löggilts fasteignasala.</div>` : '';
             const matG = self && self.mat > 0 ? self.mat : 0, matN = self && self.matN > 0 ? self.matN : 0;
             if (matG) {
@@ -1107,7 +1103,7 @@ const jsonLd = {
             [svN, svN ? ratioOf(d.rows.filter((r) => r.mat > 0 && r.sv === svN)) : [], 8],
           ];
           const lvl = levels.find((l) => l[0] && l[1].length >= l[2]);
-          if (lvl) { const pc = Math.round((med(lvl[1]) - 1) * 100); matHtml = `<div class="fvm-signal">🏷️ Eignir í ${esc(lvl[0])} hafa selst að jafnaði <b>${pc >= 0 ? '+' : ''}${pc}%</b> ${pc >= 0 ? 'yfir' : 'undir'} gildandi fasteignamati síðustu 6 mánuði (${lvl[1].length} þinglýst kaup).</div>`; }
+          if (lvl) { const pc = Math.round((med(lvl[1]) - 1) * 100); matHtml = `<div class="fvm-signal">Eignir í ${esc(lvl[0])} hafa selst að jafnaði <b>${pc >= 0 ? '+' : ''}${pc}%</b> ${pc >= 0 ? 'yfir' : 'undir'} gildandi fasteignamati síðustu 6 mánuði (${lvl[1].length} þinglýst kaup).</div>`; }
         } catch (e) {}
 
         // sölugraf + sambærilegar (ef sölusaga til) — annars gamli listinn + sveitarfélagssamhengi
@@ -1149,7 +1145,7 @@ const jsonLd = {
                   + '<div class="byg-m"><span>' + esc(c.latestDate || '') + tl + sz + ' · mál ' + esc(c.caseNo || '') + '</span>'
                   + (u ? '<a href="' + esc(u) + '" target="_blank" rel="noopener">fundargerð ↗</a>' : '') + '</div></div></div>';
               }).join('');
-              byggHtml = '<div class="fv-head" style="margin-top:14px">🏗️ Byggingarsaga heimilisfangs</div>'
+              byggHtml = '<div class="fv-head" style="margin-top:14px">Byggingarsaga heimilisfangs</div>'
                 + '<div class="byg-note">Afgreiðslur byggingarfulltrúa Reykjavíkur á <b>' + esc(rec.addr) + '</b> — ' + rec.cases.length + ' byggingarmál (leyfi, breytingar, stækkanir). <a href="/eftirlit-byggingar/?t=bygging">Byggingarleyfi ↗</a></div>'
                 + '<div class="byg-list">' + rows + '</div>'
                 + (rec.cases.length > 30 ? '<div class="fvm-note" style="margin-top:4px">Sýni 30 nýjustu af ' + rec.cases.length + ' málum — sjá öll á Byggingarvaktinni.</div>' : '');
@@ -1226,7 +1222,7 @@ const jsonLd = {
         if (vb) vb.hidden = false;
         const vbr = document.getElementById('fvm-vedbokrow'); if (vbr) vbr.hidden = false;   // 🔗 veðbókarvottorð (opinber þjónusta)
         // hingað kemst aðeins eigandi/admin/sýnishorn (gátt skilar fyrir aðra) → takkinn prentar
-        if (bb) { bb.hidden = false; bb.dataset.demo = ''; bb.textContent = '🖨️ Sækja skýrslu (PDF)'; }
+        if (bb) { bb.hidden = false; bb.dataset.demo = ''; bb.innerHTML = takn('prenta') + 'Sækja skýrslu (PDF)'; }
         paintVaktaBtn();
       }
       // ── Sameinuð leit (LOTA 78): heimilisfangs-vöktun + kaupa/prenta við Meta ──
@@ -1246,10 +1242,10 @@ const jsonLd = {
         const { q, pn } = parseVaktaAddr(document.getElementById('fvm-addr').value);
         const on = q.length >= 2 && fvLoad().some((v) => v.q === q && (v.pn || '') === pn);
         vb.classList.toggle('on', on);
-        vb.textContent = on ? '✓ Á vakt · 🔕' : '🔔 Vakta';
+        vb.innerHTML = on ? '✓ Á vakt' : takn('vakta') + 'Vakta';
       }
       function fvmVakta() {
-        if (!USER || !USER.loggedIn) { const vb = document.getElementById('fvm-vakta'); if (vb) { const t0 = vb.textContent; vb.textContent = '🔒 Innskráning (Karp+)'; setTimeout(() => { vb.textContent = t0; }, 2400); } return; }
+        if (!USER || !USER.loggedIn) { const vb = document.getElementById('fvm-vakta'); if (vb) { const t0 = vb.innerHTML; vb.innerHTML = takn('laest') + 'Innskráning (Karp+)'; setTimeout(() => { vb.innerHTML = t0; }, 2400); } return; }
         const { q, pn } = parseVaktaAddr(document.getElementById('fvm-addr').value);
         if (q.length < 2) return;
         const a = fvLoad();
@@ -1270,19 +1266,19 @@ const jsonLd = {
         if (document.getElementById('fvm-out').hidden) return;
         const addr = (document.getElementById('fvm-addr').value || '').trim();
         const rkey = 'fasteign:' + addr;
-        const t0 = fvmBuyBtn.textContent; fvmBuyBtn.disabled = true; fvmBuyBtn.textContent = '…';
+        const t0 = fvmBuyBtn.innerHTML; fvmBuyBtn.disabled = true; fvmBuyBtn.textContent = '…';
         // Skráarheiti PDF-sins: vafrinn notar document.title sem sjálfgefið heiti í „Vista sem PDF". Án þessa hét
         // hver einasta skýrsla „🏠 Fasteignavaktin — gata, verðmat & uppboð | Karp". Nú: heimilisfang (+ íbúð) + dagsetning.
         const ibudF = (document.getElementById('fvm-ibud')?.value || '').trim().slice(0, 12);
         const pdfTitle = 'Verðmat ' + (fvmBuyBtn.dataset.demo === '1' ? 'Sólbrekka 7, 200 (sýnishorn)' : addr) + (ibudF ? ' íbúð ' + ibudF : '') + ' ' + dIS(new Date().toISOString().slice(0, 10)) + ' - karp.is';
-        const doPrint = () => { fvmBuyBtn.textContent = '✓ Útbý PDF…'; setTimeout(() => { const t0title = document.title; document.title = pdfTitle.replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim(); document.body.classList.add('fvm-printing'); window.print(); setTimeout(() => { document.body.classList.remove('fvm-printing'); document.title = t0title; fvmBuyBtn.textContent = t0; fvmBuyBtn.disabled = false; }, 600); }, 200); };
+        const doPrint = () => { fvmBuyBtn.textContent = '✓ Útbý PDF…'; setTimeout(() => { const t0title = document.title; document.title = pdfTitle.replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim(); document.body.classList.add('fvm-printing'); window.print(); setTimeout(() => { document.body.classList.remove('fvm-printing'); document.title = t0title; fvmBuyBtn.innerHTML = t0; fvmBuyBtn.disabled = false; }, 600); }, 200); };
         if (fvmBuyBtn.dataset.demo === '1' || isAdmin() || hasReport(rkey) || hasSub('fasteign')) { doPrint(); return; }   // áskrifandi fær PDF án 990-gjalds
         let askHolf = document.getElementById('fvm-askell');
         if (!askHolf) { askHolf = document.createElement('div'); askHolf.id = 'fvm-askell'; const row = fvmBuyBtn.closest('.fvm-row'); if (row) row.after(askHolf); else fvmBuyBtn.after(askHolf); }
         const res = await karpCheckout({ kind: 'fasteign', ref: addr, key: rkey }, askHolf);
-        if (res === 'embedded') { fvmBuyBtn.textContent = t0; fvmBuyBtn.disabled = false; return; } // Áskell-kortagluggi birtur undir leitarröðinni
+        if (res === 'embedded') { fvmBuyBtn.innerHTML = t0; fvmBuyBtn.disabled = false; return; } // Áskell-kortagluggi birtur undir leitarröðinni
         if (res === 'redirected') return; // vafri á leið á hýstu greiðslusíðu Teya (varaleið)
-        fvmBuyBtn.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur'; helpNote(fvmBuyBtn); fvmBuyBtn.disabled = false; setTimeout(() => { fvmBuyBtn.textContent = t0; }, 2800); // greiðsla fór ekki af stað → ENGIN ókeypis prentun
+        fvmBuyBtn.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur'; helpNote(fvmBuyBtn); fvmBuyBtn.disabled = false; setTimeout(() => { fvmBuyBtn.innerHTML = t0; }, 2800); // greiðsla fór ekki af stað → ENGIN ókeypis prentun
       });
       const fvmAddr = document.getElementById('fvm-addr');
       // ný leit → fela Vakta/Kaupa aftur þar til Meta keyrt (ósk notanda)
@@ -1320,7 +1316,7 @@ const jsonLd = {
           return arr;
         })();
         out.innerHTML =
-          '<div class="fvm-demonote">👁️ <b>Sýnishorn af verðmati</b> — TILBÚIN dæmigögn fyrir gervi-eign, EKKI raunveruleg fasteign. Svona lítur fullbúin matsskýrsla út. Sláðu inn þitt eigið heimilisfang að ofan, eða smelltu á <b>Sækja PDF-sýnishorn</b>.</div>'
+          '<div class="fvm-demonote"><b>Sýnishorn af verðmati</b> — TILBÚIN dæmigögn fyrir gervi-eign, EKKI raunveruleg fasteign. Svona lítur fullbúin matsskýrsla út. Sláðu inn þitt eigið heimilisfang að ofan, eða smelltu á <b>Sækja PDF-sýnishorn</b>.</div>'
           + '<div class="fvm-card" id="fvm-report"><div class="fvm-rephead" hidden><b>' + KARP_MERKI + 'KARP — Verðmatsskýrsla úr kaupskrá</b><span>Sólbrekka 7, 200 Kópavogi · Fjölbýli, 92 m² · SÝNISHORN (tilbúin dæmigögn) · karp.is/fasteignavakt</span></div>'
           + '<div class="rep-top"><div class="rep-val"><div class="rep-lbl">Áætlað markaðsverð</div><div class="fvm-big">76.500.000 kr.</div><div class="rep-ppm">831.000 kr./m²</div><div class="fvm-range">Verðbil 71.000.000 kr. – 82.000.000 kr.</div><div class="fvm-meta">byggt á 34 þinglýstum kaupum í sambærilegum eignum í póstnúmeri 200 (Fjölbýli, ±30% stærð, sl. 18 mán) · hverfi: Smárinn</div></div>'
           + '<div class="eign-card"><div class="ec-tabs"><button class="ec-tab on" data-tab="eign">EIGN</button><button class="ec-tab" data-tab="gogn">GÖGN</button></div><div class="ec-panel" data-panel="eign">' + rows2(eignRows) + '</div><div class="ec-panel" data-panel="gogn" hidden>' + rows2(gognRows) + '</div></div></div>'
@@ -1330,7 +1326,7 @@ const jsonLd = {
           + '<div class="vb-track"><div class="vb-band" style="left:61.9%;width:30.5%"></div><div class="vb-tick vb-bru" style="left:7.6%"></div><div class="vb-tick vb-mat" style="left:26.5%"></div><div class="vb-tick vb-lo" style="left:61.9%"></div><div class="vb-tick vb-est" style="left:77.1%"></div><div class="vb-tick vb-hi" style="left:92.4%"></div><div class="vb-dot" style="left:77.1%"></div></div>'
           + '<div class="vb-row vb-bot"><div class="vb-lbl vb-lo" style="left:61.9%"><b>71,0 m.kr</b><span>Neðrimörk</span></div><div class="vb-lbl vb-est" style="left:77.1%"><b>76,5 m.kr</b><span>Áætlað verð</span></div><div class="vb-lbl vb-hi" style="left:92.4%"><b>82,0 m.kr</b><span>Efrimörk</span></div></div></div>'
           + '<div class="fv-head" style="margin-top:14px">Leiga og ávöxtun — áætlað</div><div class="lei-grid"><div class="lei-c"><div class="lei-v">331.200 kr</div><div class="lei-l">áætluð leiga á mánuði</div></div><div class="lei-c"><div class="lei-v gold">5,2%</div><div class="lei-l">brúttó leiguávöxtun á ári</div></div><div class="lei-c"><div class="lei-v">19,2 ár</div><div class="lei-l">kaupverð ÷ ársleiga</div></div></div>'
-          + '<div class="fvm-signal">🏷️ Eignir í póstnúmeri 200 hafa selst að jafnaði <b>+5%</b> yfir gildandi fasteignamati síðustu 6 mánuði (41 þinglýst kaup).</div>'
+          + '<div class="fvm-signal">Eignir í póstnúmeri 200 hafa selst að jafnaði <b>+5%</b> yfir gildandi fasteignamati síðustu 6 mánuði (41 þinglýst kaup).</div>'
           + '<div class="fv-head" style="margin-top:14px">Verð á fermetra í póstnúmeri 200 — matslína, öryggisbil og raunsölur</div><div id="fvm-graf" class="fvm-graf"></div>'
           + '<div class="fv-head" style="margin-top:14px">Sambærilegar seldar eignir í póstnúmeri (200)</div><div class="comp-wrap" id="comp-wrap"></div>'
           + '<div class="fvm-note">Áætlað markaðsvirði og verðbil byggir venjulega á opinberri kaupskrá HMS (þinglýst kaup) með tölfræðilegri nálgun — ekki fasteignamat og ekki verðmat löggilts fasteignasala. <b>Í þessu sýnishorni eru tölurnar tilbúnar.</b> Ástand, hæð, útsýni, bílastæði og sérstaða eignar geta hliðrað verði verulega.</div></div>';
@@ -1364,7 +1360,7 @@ const jsonLd = {
           if (tE) tE.value = 'Fjölbýli';
           renderDemoValuation();
           const bb = document.getElementById('fvm-buy');
-          if (bb) { bb.hidden = false; bb.dataset.demo = '1'; bb.textContent = '🖨️ Sækja PDF-sýnishorn'; }
+          if (bb) { bb.hidden = false; bb.dataset.demo = '1'; bb.innerHTML = takn('prenta') + 'Sækja PDF-sýnishorn'; }
         } else if (_sp.get('q')) {
           // ?q=<heimilisfang> → opna mat (t.d. keypt skýrsla af Mitt svæði); eigandi (hasReport) → gátt sniðgengin
           const qAddr = (_sp.get('q') || '').trim();
@@ -1378,7 +1374,6 @@ const jsonLd = {
         const el = document.getElementById('fv-market');
         if (!el || !f || !f.direction) return;
         const dr = f.direction, ms = f.matStats || {};
-        const arrow = { up: '📈', down: '📉', cooling: '🌡️', flat: '➡️' }[dr.verdict] || '➡️';
         const word = { up: 'á uppleið', down: 'á niðurleið', cooling: 'að kólna', flat: 'stöðugur' }[dr.verdict] || '';
         const cls = { up: 'up', down: 'dn', cooling: 'cool', flat: 'flat' }[dr.verdict] || 'flat';
         const sgn = (v) => (v > 0 ? '+' : '') + String(v).replace('.', ',') + '%';
@@ -1391,8 +1386,8 @@ const jsonLd = {
         const top = munis.slice(0, 3).map(([n, v]) => esc(n) + ' ' + sgn(v.pct)).join(' · ');
         const bot = munis.slice(-3).reverse().map(([n, v]) => esc(n) + ' ' + sgn(v.pct)).join(' · ');
         el.hidden = false;
-        el.innerHTML = `<div class="fvm-dir fvm-${cls}"><span class="fvm-arrow">${arrow}</span><div><div class="fvm-dir-t">Húsnæðismarkaðurinn er <b>${word}</b></div><div class="fvm-dir-s">Verð ${sgn(dr.chg3)} síðustu 3 mánuði · ${sgn(dr.chg12)} síðasta árið (vegið miðgildi verðs/m², ${esc(dr.updated)})</div></div></div>`
-          + `<div class="fvm-mat">🏷️ Á landsvísu seljast eignir að jafnaði <b class="${nat.pct >= 0 ? 'up' : 'dn'}">${sgn(nat.pct)}</b> ${overWord(nat.pct)} gildandi fasteignamati síðustu 12 mánuði <span class="fv-sv">(${nat.n ? thou(nat.n) : 0} kaup${ms.trend != null ? '; bilið hefur ' + (ms.trend > 0 ? 'aukist' : 'minnkað') + ' um ' + pst(Math.abs(ms.trend)) + ' prósentustig' : ''})</span>.`
+        el.innerHTML = `<div class="fvm-dir fvm-${cls}"><div><div class="fvm-dir-t">Húsnæðismarkaðurinn er <b>${word}</b></div><div class="fvm-dir-s">Verð ${sgn(dr.chg3)} síðustu 3 mánuði · ${sgn(dr.chg12)} síðasta árið (vegið miðgildi verðs/m², ${esc(dr.updated)})</div></div></div>`
+          + `<div class="fvm-mat">Á landsvísu seljast eignir að jafnaði <b class="${nat.pct >= 0 ? 'up' : 'dn'}">${sgn(nat.pct)}</b> ${overWord(nat.pct)} gildandi fasteignamati síðustu 12 mánuði <span class="fv-sv">(${nat.n ? thou(nat.n) : 0} kaup${ms.trend != null ? '; bilið hefur ' + (ms.trend > 0 ? 'aukist' : 'minnkað') + ' um ' + pst(Math.abs(ms.trend)) + ' prósentustig' : ''})</span>.`
           + (top ? `<div class="fvm-mrow"><span class="fvm-ml up">Mest yfir mati:</span> ${top}</div>` : '')
           + (bot ? `<div class="fvm-mrow"><span class="fvm-ml dn">Mest undir mati:</span> ${bot}</div>` : '')
           + `</div>`;
@@ -1407,7 +1402,7 @@ const jsonLd = {
         const fram = rows.filter((x) => x.d >= today && !/lokið/i.test(x.teg)).sort((a, b) => a.d.localeCompare(b.d));
         const lokid = rows.filter((x) => !fram.includes(x)).sort((a, b) => b.d.localeCompare(a.d));
         const row = (x, isFram) => `<div class="fi"><span class="t"><span class="upp-pill ${isFram ? 'fram' : ''}">${isFram ? 'Framundan' : esc(x.teg)}</span>${esc(x.a)}</span><span class="s">${dIS(x.d)}${x.kl ? ' kl. ' + esc(x.kl) : ''} · ${esc(x.flokkur)} · ${esc(x.e)}${x.st ? ' · ' + esc(x.st) : ''}</span></div>`;
-        el.innerHTML = (fram.length ? `<div class="fv-head">🔜 Framundan (${fram.length})</div>` + fram.map((x) => row(x, true)).join('') : '<div class="fv-head">Engin uppboð auglýst framundan í augnablikinu — nýjar auglýsingar birtast hér daglega.</div>')
+        el.innerHTML = (fram.length ? `<div class="fv-head">Framundan (${fram.length})</div>` + fram.map((x) => row(x, true)).join('') : '<div class="fv-head">Engin uppboð auglýst framundan í augnablikinu — nýjar auglýsingar birtast hér daglega.</div>')
           + (lokid.length ? `<div class="fv-head" style="margin-top:10px">Nýlega afgreidd (${lokid.length})</div>` + lokid.slice(0, 10).map((x) => row(x, false)).join('') : '');
       });
     }

@@ -56,7 +56,6 @@ const chartCols = rows.map((r) => idxColor(r.idx));
 // Verðlaunapallur + landshluta-síun (LOTA 13f)
 const top3 = rows.slice(0, 3);
 const REGIONS = [...new Set(rows.map((r) => r.region).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'is'));
-const MEDALS = ['🥇', '🥈', '🥉'];
 
 const updated = '2026-07-01';
 // Öll sveitarfélög (líka <1.000 íbúa) fyrir innri tengla → engar munaðarlausar síður.
@@ -94,8 +93,8 @@ const jsonLd = {
     </p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Sveitarfélagatölur: ársreikningar sveitarfélaga, mannfjöldi Hagstofunnar og kjörnir fulltrúar af vef Sambands íslenskra sveitarfélaga. Samsettu vísitölurnar reiknar Karp.">ⓘ</i> Um gögnin á síðunni</p>
     <p class="note">
-      ⓘ Vísitalan er <strong>vélræn samsetning</strong> þriggja jafnvæginna þátta — 🏦 fjárhagur (afkoma + skuldir á íbúa),
-      📈 vöxtur (fólksfjölgun + ungt fólk) og 👷 atvinna (skráð atvinnuleysi, öfugt) — meðaltal þeirra. Hlutlæg
+      ⓘ Vísitalan er <strong>vélræn samsetning</strong> þriggja jafnvæginna þátta — fjárhagur (afkoma + skuldir á íbúa),
+      vöxtur (fólksfjölgun + ungt fólk) og atvinna (skráð atvinnuleysi, öfugt) — meðaltal þeirra. Hlutlæg
       samantekt opinberra talna, <strong>ekki gæðamat</strong>.
     </p>
 
@@ -103,7 +102,6 @@ const jsonLd = {
     <div class="podium">
       {top3.map((r, i) => (
         <a class={`pod pod-${i}`} href={`/sveitarfelog/${slugify(r.name)}/`}>
-          <span class="pod-m">{MEDALS[i]}</span>
           <span class="pod-n">{r.name}</span>
           <span class="pod-v" style={`color:${idxColor(r.idx)}`}>{r.idx}</span>
           <span class="pod-r">{r.region}{r.pop ? ` · ${groupThousands(r.pop)} íbúar` : ''}</span>
@@ -115,7 +113,7 @@ const jsonLd = {
 
     <h2>Full röðun</h2>
     <div class="fbar">
-      <input id="sv-filter" type="text" placeholder="🔍 Sía eftir nafni…" autocomplete="off" />
+      <input id="sv-filter" type="text" placeholder="Sía eftir nafni…" autocomplete="off" />
       <div class="chips" id="reg-chips">
         <button class="chip on" data-r="">Allt landið</button>
         {REGIONS.map((rg) => <button class="chip" data-r={rg}>{rg}</button>)}
@@ -126,8 +124,8 @@ const jsonLd = {
         <thead>
           <tr>
             <th class="l">#</th><th class="l">Sveitarfélag</th>
-            <th>Vísitala</th><th>🏦 Fjárhagur</th><th>📈 Vöxtur</th><th>👷 Atvinna</th>
-            <th>🌿 Lífsgæði</th><th>Atvinnuleysi</th><th>Íbúar</th>
+            <th>Vísitala</th><th>Fjárhagur</th><th>Vöxtur</th><th>Atvinna</th>
+            <th>Lífsgæði</th><th>Atvinnuleysi</th><th>Íbúar</th>
           </tr>
         </thead>
         <tbody>
@@ -190,7 +188,6 @@ const jsonLd = {
     .pod { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 13px; padding: 14px 12px; text-decoration: none; transition: border-color .12s, transform .12s; }
     .pod:hover { border-color: #f6b13b; transform: translateY(-2px); }
     .pod-0 { border-color: rgba(246,177,59,.55); background: linear-gradient(180deg, rgba(246,177,59,.09), rgba(255,255,255,.03)); }
-    .pod-m { font-size: 26px; }
     .pod-n { font-weight: 800; font-size: 14.5px; color: var(--ink); }
     .pod-v { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; }
     .pod-r { font-size: 11px; color: var(--faint); }

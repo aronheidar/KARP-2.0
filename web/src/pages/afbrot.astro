@@ -54,10 +54,10 @@ const jsonLd = {
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Afbrotatölur: afbrotatölfræði ríkislögreglustjóra eftir brotaflokkum og umdæmum. Tíðni á 1.000 íbúa er reiknuð af Karp með mannfjöldatölum Hagstofunnar.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div class="kpis">
-      <div class="kpi"><div class="k-l">🚓 Hegningarlagabrot</div><div class="k-v">{fmtNum(nat.hegn, 1)}</div><div class="k-s">á 10þ · {year}</div></div>
-      <div class="kpi"><div class="k-l">📉 Frá 2001</div><div class={`k-v ${change < 0 ? 'good' : ''}`}>{change != null ? (change > 0 ? '+' : '') + fmtNum(change, 0) + '%' : '–'}</div><div class="k-s">breyting</div></div>
-      <div class="kpi"><div class="k-l">⬆️ Hæst</div><div class="k-v">{hi ? fmtNum(hi.v, 0) : '–'}</div><div class="k-s">{hi?.label}</div></div>
-      <div class="kpi"><div class="k-l">⬇️ Lægst</div><div class="k-v">{lo ? fmtNum(lo.v, 0) : '–'}</div><div class="k-s">{lo?.label}</div></div>
+      <div class="kpi"><div class="k-l">Hegningarlagabrot</div><div class="k-v">{fmtNum(nat.hegn, 1)}</div><div class="k-s">á 10þ · {year}</div></div>
+      <div class="kpi"><div class="k-l">Frá 2001</div><div class={`k-v ${change < 0 ? 'good' : ''}`}>{change != null ? (change > 0 ? '+' : '') + fmtNum(change, 0) + '%' : '–'}</div><div class="k-s">breyting</div></div>
+      <div class="kpi"><div class="k-l">↑ Hæst</div><div class="k-v">{hi ? fmtNum(hi.v, 0) : '–'}</div><div class="k-s">{hi?.label}</div></div>
+      <div class="kpi"><div class="k-l">↓ Lægst</div><div class="k-v">{lo ? fmtNum(lo.v, 0) : '–'}</div><div class="k-s">{lo?.label}</div></div>
     </div>
 
     <h2>Landsþróun 2001–{year}</h2>

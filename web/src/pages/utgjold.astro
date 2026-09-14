@@ -16,9 +16,9 @@ const updated = '2026-09-09';
     <h1>Útgjöld</h1>
     <p>Hvert fara peningar ríkisins? Útgjöld ársins {D.ar} eftir málefnasviðum, beint úr fjárlagafrumvarpinu.</p>
     <div class="kpis">
-      <div class="kpi"><div class="k-l">💸 Útgjöld alls <i class="tip" tabindex="0" data-tip="Heildarútgjöld ríkissjóðs skv. fjárlögum — rekstrargjöld, tilfærslur og fjárfesting allra málefnasviða samanlagt.">ⓘ</i></div><div class="k-v">{groupThousands(Math.round(D.heild))}</div><div class="k-s">ma.kr · fjárlagafrumvarp {D.ar}</div></div>
-      <div class="kpi"><div class="k-l">💰 Tekjur á móti <i class="tip" tabindex="0" data-tip="Heildartekjur ríkissjóðs sama ár (sjá Skattar-síðuna) — til samanburðar við útgjöldin.">ⓘ</i></div><div class="k-v">{groupThousands(Math.round(D.tekjur))}</div><div class="k-s">ma.kr</div></div>
-      <div class="kpi"><div class="k-l">{halli < 0 ? '📉 Halli' : '📈 Afgangur'} <i class="tip" tabindex="0" data-tip="Reiknuð tala: heildartekjur mínus heildarútgjöld fjárlaga. Neikvæð tala = ríkið eyðir meira en það aflar og fjármagnar muninn með lántöku.">ⓘ</i></div><div class="k-v">{halli < 0 ? '−' : '+'}{groupThousands(Math.abs(halli))}</div><div class="k-s">ma.kr · reiknað</div></div>
+      <div class="kpi"><div class="k-l">Útgjöld alls <i class="tip" tabindex="0" data-tip="Heildarútgjöld ríkissjóðs skv. fjárlögum — rekstrargjöld, tilfærslur og fjárfesting allra málefnasviða samanlagt.">ⓘ</i></div><div class="k-v">{groupThousands(Math.round(D.heild))}</div><div class="k-s">ma.kr · fjárlagafrumvarp {D.ar}</div></div>
+      <div class="kpi"><div class="k-l">Tekjur á móti <i class="tip" tabindex="0" data-tip="Heildartekjur ríkissjóðs sama ár (sjá Skattar-síðuna) — til samanburðar við útgjöldin.">ⓘ</i></div><div class="k-v">{groupThousands(Math.round(D.tekjur))}</div><div class="k-s">ma.kr</div></div>
+      <div class="kpi"><div class="k-l">{halli < 0 ? 'Halli' : 'Afgangur'} <i class="tip" tabindex="0" data-tip="Reiknuð tala: heildartekjur mínus heildarútgjöld fjárlaga. Neikvæð tala = ríkið eyðir meira en það aflar og fjármagnar muninn með lántöku.">ⓘ</i></div><div class="k-v">{halli < 0 ? '−' : '+'}{groupThousands(Math.abs(halli))}</div><div class="k-s">ma.kr · reiknað</div></div>
     </div>
     <h2>Stærstu málefnasviðin <i class="tip" tabindex="0" data-tip="14 stærstu málefnasvið útgjalda skv. fjárlögum, ma.kr. Sjúkrahúsþjónusta og málefni aldraðra og öryrkja vega jafnan þyngst.">ⓘ</i></h2>
     <div id="chart" style="height: 420px;"></div>

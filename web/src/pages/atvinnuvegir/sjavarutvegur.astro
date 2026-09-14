@@ -80,22 +80,22 @@ const desc = 'Sjávarútvegur Íslands: heildarafli frá 1995, landaður afli ef
 <Layout title="Sjávarútvegur — afli, landanir og fiskeldi | Karp" description={desc} canonical="https://karp.is/atvinnuvegir/sjavarutvegur/" ogTitle="Sjávarútvegur á Íslandi">
   <main data-pg="atvinnuvegir-sjavarutvegur">
     <p class="kicker">Hagvísir Íslands · Atvinnuvegir</p>
-    <h1>Sjávarútvegur 🐟</h1>
+    <h1>Sjávarútvegur</h1>
     <p class="lead">Undirstöðuatvinnuvegurinn í tölum: <strong>heildarafli, mánaðarlegar landanir eftir tegundum og fiskeldi</strong> frá Hagstofu í sögulegu samhengi. Útflutningsverðmæti sjávarafurða: sjá <a href="/vidskipti/">Utanríkisverslun</a>. Hver heldur kvótanum? Aflamark, eigendahópar og samþjöppun eru í <a href="/kvotavaktin/?syni=1">Kvótavaktinni</a>.</p>
 
     <!-- KPI-röð (almennar hagtölur) -->
     <div class="kpis">
-      {latest && <div class="kpi"><div class="k-l">🎣 Heildarafli</div><div class="k-v">{groupThousands(latest.v)}</div><div class="k-s">þús. tonn · {latest.y}</div></div>}
-      {eldiL && <div class="kpi"><div class="k-l">🐠 Fiskeldi</div><div class="k-v">{groupThousands(eldiL.v)}</div><div class="k-s">tonn · {eldiL.y}</div></div>}
-      {LAND && <div class="kpi"><div class="k-l">📦 Landað · {LAND.latest.label}</div><div class="k-v">{groupThousands(LAND.latest.total)}</div><div class="k-s">þús. tonn · nýjasti mánuður</div></div>}
+      {latest && <div class="kpi"><div class="k-l">Heildarafli</div><div class="k-v">{groupThousands(latest.v)}</div><div class="k-s">þús. tonn · {latest.y}</div></div>}
+      {eldiL && <div class="kpi"><div class="k-l">Fiskeldi</div><div class="k-v">{groupThousands(eldiL.v)}</div><div class="k-s">tonn · {eldiL.y}</div></div>}
+      {LAND && <div class="kpi"><div class="k-l">Landað · {LAND.latest.label}</div><div class="k-v">{groupThousands(LAND.latest.total)}</div><div class="k-s">þús. tonn · nýjasti mánuður</div></div>}
     </div>
 
-    <!-- ⚓ Sölu-flís: Kvótavaktin — kvóta-efnið sem áður var á þessari síðu býr nú þar -->
+    <!-- Sölu-flís: Kvótavaktin — kvóta-efnið sem áður var á þessari síðu býr nú þar -->
     <aside class="kv-cta">
-      <div class="kv-cta-h">⚓ Hver heldur kvótanum?</div>
+      <div class="kv-cta-h">Hver heldur kvótanum?</div>
       <p class="kv-cta-p"><strong>Kvótavaktin</strong> svarar því{timabil ? ' fyrir fiskveiðiárið ' + timabil : ''}: aflamark alls flotans samlagt <strong>per útgerð og eigendahóp</strong> · samþjöppun aflaheimilda og 12%-viðmið laganna · tegundagreining og vikuleg vakt á breytingum á aflamarki.</p>
       <div class="kv-cta-btns">
-        <a class="kv-cta-main" href="/kvotavaktin/?syni=1">👁️ Sjá sýnishorn →</a>
+        <a class="kv-cta-main" href="/kvotavaktin/?syni=1">Sjá sýnishorn →</a>
         <a class="kv-cta-sec" href="/lausnir/kvotavaktin/">Kvótavaktin — 9.900 kr/mán →</a>
       </div>
       <div class="kv-cta-s">14 daga frí prufa · engin binding</div>
@@ -110,14 +110,14 @@ const desc = 'Sjávarútvegur Íslands: heildarafli frá 1995, landaður afli ef
 
     <!-- Landaður afli eftir mánuðum, per tegund (Hagstofa/Fiskistofa SJA01101) -->
     {LAND && <>
-      <h2>Landaður afli eftir mánuðum 📦</h2>
+      <h2>Landaður afli eftir mánuðum</h2>
       <p class="sub">Raunverulegur landaður afli síðustu {LAND.labels.length} mánuði, skipt eftir helstu tegundum — landsvísi, allar löndunarhafnir. Þetta er <strong>raunumsvif veiðanna</strong> (úthlutað aflamark per útgerð er í <a href="/kvotavaktin/?syni=1">Kvótavaktinni</a>): árstíðatoppar uppsjávarveiða — loðna, kolmunni, síld, makríll — ofan á jafnari botnfiskafla árið um kring. Í þúsundum tonna.</p>
       <div class="cwrap"><div id="c-land" class="ch"></div></div>
       {LAND.latest.top.length > 0 && <p class="tnote">Mest landað í {LAND.latest.label}: {LAND.latest.top.map((s) => s.n + ' ' + nMark(s.v)).join(' · ')} (þús. tonn).</p>}
     </>}
 
     <!-- Kvóta-kaflarnir (staða stofna, kvótanýting, þjöppun, stærstu kvótahafar, dreifirit, tegundatafla) fluttu í Kvótavaktina -->
-    <p class="moved">⚓ Aflamark og samþjöppun eftir útgerðum er nú í <a href="/kvotavaktin/?syni=1">Kvótavaktinni</a> — þar er líka kvótastaða tegunda, stærstu kvótahafar og vikuleg breytinga-vakt.</p>
+    <p class="moved">Aflamark og samþjöppun eftir útgerðum er nú í <a href="/kvotavaktin/?syni=1">Kvótavaktinni</a> — þar er líka kvótastaða tegunda, stærstu kvótahafar og vikuleg breytinga-vakt.</p>
 
     <p class="foot">Forþjónað (SSG). Heimildir: <b>Hagstofa Íslands</b> (SJA01101 — heildarafli og mánaðarlegar landanir per tegund, SJA07001 — fiskeldi). Aflamark, kvótanýting og samþjöppun aflaheimilda{timabil ? ' fiskveiðiársins ' + timabil : ''} — per útgerð, skip og eigendahóp — er í <a href="/kvotavaktin/?syni=1">Kvótavaktinni</a>.</p>
   </main>

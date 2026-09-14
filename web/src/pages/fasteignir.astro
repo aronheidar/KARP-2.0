@@ -91,9 +91,9 @@ const jsonLd = {
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Fasteignagögn: kaupskrá og leiguskrá HMS (opin gagnasöfn) og íbúðaverðsvísitala Hagstofunnar. Miðgildi og fermetraverð reiknar Karp úr þinglýstum samningum; leiguskráin nær aðeins til þinglýstra leigusamninga.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div class="kpis">
-      <div class="kpi"><div class="k-l">🏙️ Höfuðborgarsvæði</div><div class="k-v">{groupThousands(hb.m2)}</div><div class="k-s">þús/m² · <span class={yoyHb >= 0 ? 'up' : 'dn'}>{yoyTxt(yoyHb)}</span> á ári</div></div>
-      <div class="kpi"><div class="k-l">🌄 Landsbyggð</div><div class="k-v">{groupThousands(land.m2)}</div><div class="k-s">þús/m² · <span class={yoyLand >= 0 ? 'up' : 'dn'}>{yoyTxt(yoyLand)}</span> á ári</div></div>
-      <div class="kpi"><div class="k-l">🧾 Meðalverð (höfuðb.)</div><div class="k-v">{fmtNum(hb.vp, 1)}</div><div class="k-s">m.kr · {groupThousands(hb.n)} kaup/mán</div></div>
+      <div class="kpi"><div class="k-l">Höfuðborgarsvæði</div><div class="k-v">{groupThousands(hb.m2)}</div><div class="k-s">þús/m² · <span class={yoyHb >= 0 ? 'up' : 'dn'}>{yoyTxt(yoyHb)}</span> á ári</div></div>
+      <div class="kpi"><div class="k-l">Landsbyggð</div><div class="k-v">{groupThousands(land.m2)}</div><div class="k-s">þús/m² · <span class={yoyLand >= 0 ? 'up' : 'dn'}>{yoyTxt(yoyLand)}</span> á ári</div></div>
+      <div class="kpi"><div class="k-l">Meðalverð (höfuðb.)</div><div class="k-v">{fmtNum(hb.vp, 1)}</div><div class="k-s">m.kr · {groupThousands(hb.n)} kaup/mán</div></div>
     </div>
 
     <h2>Verð á fermetra — þróun</h2>
@@ -109,9 +109,9 @@ const jsonLd = {
       <>
         <h2>Fasteignamat 2027 — opinbert mat HMS <i class="tip" tabindex="0" data-tip="Fasteignamat 2027 tók gildi 31. desember 2026 og er metið af HMS á verðlagi febrúar 2026. Tölurnar hér eru opinberar samantektir HMS (fjöldi eigna og heildarmat eftir tegund og sveitarfélagi). Verðmat Karp á einstakar eignir er sjálfstætt, byggt á þinglýstum kaupum.">ⓘ</i></h2>
         <div class="kpis">
-          <div class="kpi"><div class="k-l">🏠 Íbúðareignir á landinu</div><div class="k-v">{groupThousands(H27_IB.fjoldi)}</div><div class="k-s">eignir · heildarmat {maKr(H27_IB.mat2027)} ma.kr · <span class={H27_IB.breyting >= 0 ? 'up' : 'dn'}>{pcS(H27_IB.breyting)}</span> frá 2026</div></div>
-          {H27_ALLS && <div class="kpi"><div class="k-l">🏗️ Allar fasteignir</div><div class="k-v">{groupThousands(H27_ALLS.fjoldi)}</div><div class="k-s">eignir · heildarmat {maKr(H27_ALLS.mat2027)} ma.kr · <span class={H27_ALLS.breyting >= 0 ? 'up' : 'dn'}>{pcS(H27_ALLS.breyting)}</span></div></div>}
-          {H27_SV[0] && <div class="kpi"><div class="k-l">🏙️ {H27_SV[0].sv}</div><div class="k-v">{maKr(H27_SV[0].mat2027)}</div><div class="k-s">ma.kr íbúðareignir · {groupThousands(H27_SV[0].fjoldi)} eignir · <span class={H27_SV[0].breyting >= 0 ? 'up' : 'dn'}>{pcS(H27_SV[0].breyting)}</span></div></div>}
+          <div class="kpi"><div class="k-l">Íbúðareignir á landinu</div><div class="k-v">{groupThousands(H27_IB.fjoldi)}</div><div class="k-s">eignir · heildarmat {maKr(H27_IB.mat2027)} ma.kr · <span class={H27_IB.breyting >= 0 ? 'up' : 'dn'}>{pcS(H27_IB.breyting)}</span> frá 2026</div></div>
+          {H27_ALLS && <div class="kpi"><div class="k-l">Allar fasteignir</div><div class="k-v">{groupThousands(H27_ALLS.fjoldi)}</div><div class="k-s">eignir · heildarmat {maKr(H27_ALLS.mat2027)} ma.kr · <span class={H27_ALLS.breyting >= 0 ? 'up' : 'dn'}>{pcS(H27_ALLS.breyting)}</span></div></div>}
+          {H27_SV[0] && <div class="kpi"><div class="k-l">{H27_SV[0].sv}</div><div class="k-v">{maKr(H27_SV[0].mat2027)}</div><div class="k-s">ma.kr íbúðareignir · {groupThousands(H27_SV[0].fjoldi)} eignir · <span class={H27_SV[0].breyting >= 0 ? 'up' : 'dn'}>{pcS(H27_SV[0].breyting)}</span></div></div>}
         </div>
         <div class="tw">
           <table>
@@ -137,10 +137,10 @@ const jsonLd = {
       <>
         <h2>Leigumarkaðurinn — þróun leiguverðs {LEIGA.q0} til {LNU ? manIS(LNU.m) : LEIGA.q1} <i class="tip" tabindex="0" data-tip="Opna leiguskrá HMS (þinglýstir samningar) nær til 2023 — þinglýsingarskyldan féll með nýju húsaleigulögunum. HMS birtir hins vegar mánaðarlega vísitölu leiguverðs úr nýju leiguskránni (markaðsleiga, 2023-05 = 100). Karp framreiknar þinglýsta samninga 2022–23 með þeirri vísitölu: „nú" = miðgildi leigu á m² á verðlagi nýjasta vísitölumánaðar. Vísitalan er höfuðborgarsvæðis-vísitala og er notuð fyrir landið allt.">?</i></h2>
         <div class="kpis">
-          {LNU && <div class="kpi"><div class="k-l">🔑 Miðgildi leiguverðs nú</div><div class="k-v">{groupThousands(LNU.medM2)}</div><div class="k-s">kr/m² á mán · framreiknað til {manIS(LNU.m)} · {groupThousands(LNU.n)} samningar 2022–23</div></div>}
-          {VIS && <div class="kpi"><div class="k-l">📈 Vísitala leiguverðs HMS</div><div class="k-v">{String(VIS.stig[VIS.til]).replace('.', ',')}</div><div class="k-s">{manIS(VIS.til)} · maí 2023 = 100{VIS.yoy != null ? <> · <span class={VIS.yoy >= 0 ? 'up' : 'dn'}>{(VIS.yoy >= 0 ? '+' : '−') + String(Math.abs(VIS.yoy)).replace('.', ',')}%</span> á 12 mán</> : ''}</div></div>}
-          <div class="kpi"><div class="k-l">🧾 Síðasti fjórðungur skrár</div><div class="k-v">{groupThousands(LEIGA.last.medM2)}</div><div class="k-s">kr/m² á mán · {LEIGA.last.q} · {LEIGA.rise}% hækkun frá {LEIGA.first.q.slice(0, 4)}</div></div>
-          <div class="kpi"><div class="k-l">🧾 Samningar alls</div><div class="k-v">{groupThousands(LEIGA.total)}</div><div class="k-s">þinglýstir 2011–2024</div></div>
+          {LNU && <div class="kpi"><div class="k-l">Miðgildi leiguverðs nú</div><div class="k-v">{groupThousands(LNU.medM2)}</div><div class="k-s">kr/m² á mán · framreiknað til {manIS(LNU.m)} · {groupThousands(LNU.n)} samningar 2022–23</div></div>}
+          {VIS && <div class="kpi"><div class="k-l">Vísitala leiguverðs HMS</div><div class="k-v">{String(VIS.stig[VIS.til]).replace('.', ',')}</div><div class="k-s">{manIS(VIS.til)} · maí 2023 = 100{VIS.yoy != null ? <> · <span class={VIS.yoy >= 0 ? 'up' : 'dn'}>{(VIS.yoy >= 0 ? '+' : '−') + String(Math.abs(VIS.yoy)).replace('.', ',')}%</span> á 12 mán</> : ''}</div></div>}
+          <div class="kpi"><div class="k-l">Síðasti fjórðungur skrár</div><div class="k-v">{groupThousands(LEIGA.last.medM2)}</div><div class="k-s">kr/m² á mán · {LEIGA.last.q} · {LEIGA.rise}% hækkun frá {LEIGA.first.q.slice(0, 4)}</div></div>
+          <div class="kpi"><div class="k-l">Samningar alls</div><div class="k-v">{groupThousands(LEIGA.total)}</div><div class="k-s">þinglýstir 2011–2024</div></div>
         </div>
         <div id="chart-leiga"></div>
         <h2>Leiguverð eftir sveitarfélögum ({LEIGA.muniYear})</h2>
@@ -168,9 +168,9 @@ const jsonLd = {
       <>
         <h2>Kaupa eða leigja? — verð/leigu-hlutfall yfir tíma</h2>
         <div class="kpis">
-          <div class="kpi"><div class="k-l">⚖️ Verð/leigu-hlutfall</div><div class="k-v">{fmtNum(prNow.pr, 1)}</div><div class="k-s">ár af leigu = kaupverð · {prNow.q.slice(0, 4)}</div></div>
-          <div class="kpi"><div class="k-l">📊 Sögulegt meðaltal</div><div class="k-v">{fmtNum(prAvg, 1)}</div><div class="k-s">ár · {PR[0].q.slice(0, 4)}–{prNow.q.slice(0, 4)}</div></div>
-          {prVerdict && (<div class="kpi"><div class="k-l">🧭 Staðan núna</div><div class={'k-v sm ' + prVerdict.c}>{prVerdict.t}</div><div class="k-s">{prVerdict.d}</div></div>)}
+          <div class="kpi"><div class="k-l">Verð/leigu-hlutfall</div><div class="k-v">{fmtNum(prNow.pr, 1)}</div><div class="k-s">ár af leigu = kaupverð · {prNow.q.slice(0, 4)}</div></div>
+          <div class="kpi"><div class="k-l">Sögulegt meðaltal</div><div class="k-v">{fmtNum(prAvg, 1)}</div><div class="k-s">ár · {PR[0].q.slice(0, 4)}–{prNow.q.slice(0, 4)}</div></div>
+          {prVerdict && (<div class="kpi"><div class="k-l">Staðan núna</div><div class={'k-v sm ' + prVerdict.c}>{prVerdict.t}</div><div class="k-s">{prVerdict.d}</div></div>)}
         </div>
         <div id="chart-pr"></div>
         <p class="note">ⓘ Verð/leigu-hlutfallið sýnir hve <strong>mörg ár af leigu jafngilda kaupverði</strong> sömu íbúðar (miðgildi kaupverðs/m² ÷ árleg miðgildisleiga/m²). <strong>Hátt</strong> hlutfall → kaup dýr miðað við leigu (leiga tiltölulega hagstæð); <strong>lágt</strong> → kaup tiltölulega hagstæð. Þetta er vísbending, ekki ráðgjöf — vextir, eiginfjármyndun og leiguþróun vega líka þungt. Leiguskrá HMS nær fram á {prNow.q.slice(0, 4)} (þinglýsingarskyldan féll niður), svo nýjasta hlutfallið endurspeglar það tímabil.</p>

@@ -32,16 +32,16 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'La
 <Layout title="Landbúnaður | Karp" description={desc} canonical="https://karp.is/atvinnuvegir/landbunadur/" jsonLd={jsonLd} ogTitle="Landbúnaður">
   <main data-pg="atvinnuvegir-landbunadur">
     <p class="kicker">Hagvísir Íslands · Atvinnuvegir</p>
-    <h1>Landbúnaður 🌾</h1>
+    <h1>Landbúnaður</h1>
     <p>Íslenskur landbúnaður er sjálfum sér nógur um mjólk, egg og lambakjöt en flytur inn stóran hluta korns og grænmetis. Hér er framleiðslan eftir tegundum, þróun bústofnsins, útflutningur búvara og úthlutanir <a href="/styrkir/">Matvælasjóðs</a>.</p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Landbúnaðartölur: framleiðslu-, búfjár- og uppskerutölur Hagstofunnar (LAN), útflutningur úr utanríkisverslun (UTA06105) og styrkir úr úthlutunarskrá Matvælasjóðs.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div class="kpis">
-      {kjotL && <div class="kpi"><div class="k-l">🥩 Kjötframleiðsla</div><div class="k-v">{groupThousands(kjotL.v)}</div><div class="k-s">tonn · {kjotL.y}</div></div>}
-      {milkL && <div class="kpi"><div class="k-l">🥛 Mjólk</div><div class="k-v">{milkL.v}</div><div class="k-s">þús. tonn · {milkL.y}</div></div>}
-      {grainL && <div class="kpi"><div class="k-l">🌾 Kornuppskera</div><div class="k-v">{groupThousands(grainL.v)}</div><div class="k-s">tonn · {grainL.y}</div></div>}
-      {expL && <div class="kpi"><div class="k-l">🚢 Útflutningur búvara</div><div class="k-v">{fmtNum(expL.v, 1)}</div><div class="k-s">ma.kr · {expL.y}</div></div>}
-      {valL && <div class="kpi"><div class="k-l">💰 Framleiðsluvirði</div><div class="k-v">{groupThousands(valL.v)}</div><div class="k-s">ma.kr · {valL.y}</div></div>}
+      {kjotL && <div class="kpi"><div class="k-l">Kjötframleiðsla</div><div class="k-v">{groupThousands(kjotL.v)}</div><div class="k-s">tonn · {kjotL.y}</div></div>}
+      {milkL && <div class="kpi"><div class="k-l">Mjólk</div><div class="k-v">{milkL.v}</div><div class="k-s">þús. tonn · {milkL.y}</div></div>}
+      {grainL && <div class="kpi"><div class="k-l">Kornuppskera</div><div class="k-v">{groupThousands(grainL.v)}</div><div class="k-s">tonn · {grainL.y}</div></div>}
+      {expL && <div class="kpi"><div class="k-l">Útflutningur búvara</div><div class="k-v">{fmtNum(expL.v, 1)}</div><div class="k-s">ma.kr · {expL.y}</div></div>}
+      {valL && <div class="kpi"><div class="k-l">Framleiðsluvirði</div><div class="k-v">{groupThousands(valL.v)}</div><div class="k-s">ma.kr · {valL.y}</div></div>}
     </div>
 
     <div class="ppair">
@@ -60,7 +60,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'La
 
     {grantK && (
       <section class="grant">
-        <h2>🥬 Matvælasjóður — úthlutaðir styrkir</h2>
+        <h2>Matvælasjóður — úthlutaðir styrkir</h2>
         <p class="gsub">Matvælasjóður styrkir þróun og nýsköpun í matvælaframleiðslu. Skráðar úthlutanir {grantK.minAr}–{grantK.maxAr} úr <a href="/styrkir/">styrkjaskrá Karp</a>.</p>
         <div class="kpis">
           <div class="kpi"><div class="k-l">Heildarúthlutun</div><div class="k-v">{fmtNum(grantK.total / 1e6, 0)}</div><div class="k-s">m.kr · {grantK.minAr}–{grantK.maxAr}</div></div>

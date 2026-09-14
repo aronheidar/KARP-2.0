@@ -390,17 +390,18 @@ export async function kycVikuDigest(env) {
     if (!vf.radad.length && !vf.obreytt) continue;
     const em = (await env.TENGSL.prepare('SELECT email FROM users WHERE id=?').bind(oid).first().catch(() => null))?.email;
     if (!em || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) continue;
-    const SEV = { critical: '🔴', high: '🟠', info: '🔵' };
+    const SEV = { critical: ['Alvarlegt', '#d33'], high: ['Hátt', '#e90'], info: ['Upplýsing', '#69c'] };
+    const sevTag = (s) => (SEV[s] ? `<span style="color:${SEV[s][1]};font-weight:700">${SEV[s][0]}</span> · ` : '· ');
     const blokkir = vf.radad.map((f, i) =>
       `<div style="margin:0 0 14px;padding:10px 12px;border-left:3px solid ${f.severity === 'critical' ? '#d33' : f.severity === 'high' ? '#e90' : '#69c'};background:#f7f8fa">` +
       `<b>${i + 1}. ${htmlEsc(f.nafn)}</b> <span style="color:#777">(${htmlEsc(f.kt)})</span><br>` +
-      f.atburdir.map((a) => `${SEV[a.severity] || '·'} ${htmlEsc(a.lina)}<br><span style="color:#555;font-size:13px">→ ${htmlEsc(a.adgerd)}</span>`).join('<br>') +
+      f.atburdir.map((a) => `${sevTag(a.severity)}${htmlEsc(a.lina)}<br><span style="color:#555;font-size:13px">→ ${htmlEsc(a.adgerd)}</span>`).join('<br>') +
       (f.fleiri ? `<br><span style="color:#777;font-size:13px">… og ${f.fleiri} atburðir til viðbótar í möppunni</span>` : '') +
       '</div>').join('');
     const tpl = await _emailTpl(env, 'kyc_digest');
     const vars = { fjoldi: String(vf.radad.length), obreytt: String(vf.obreytt) };
     const html = '<p>' + htmlEsc(renderEmail(tpl.intro, vars)) + '</p>' + blokkir +
-      `<p style="color:#555">✅ ${vf.obreytt} af ${vf.n} vöktuðum félögum: engar breytingar í vikunni.</p>` +
+      `<p style="color:#555">${vf.obreytt} af ${vf.n} vöktuðum félögum: engar breytingar í vikunni.</p>` +
       '<p style="color:#777;font-size:13px">' + htmlEsc(renderEmail(tpl.footer, vars)) + '</p>';
     const r = await sendGmail(env, { to: em, subject: renderEmail(tpl.subject, vars), html }).catch(() => null);
     if (r && r.ok) sent++;

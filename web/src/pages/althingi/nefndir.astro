@@ -44,7 +44,7 @@ const desc = `Fastanefndir Alþingis (${NEFNDCARDS.length}) með formönnum og f
         <details class="nf">
           <summary>
             <span class="nf-h">{n.heiti}</span>
-            <span class="nf-s">👥 {n.count} fulltrúar</span>
+            <span class="nf-s">{n.count} fulltrúar</span>
             {n.chair && <span class="nf-f">Formaður: {n.chairSlug ? <a href={`/althingi/${n.chairSlug}/`} style={`color:${n.chairC}`}>{n.chair}</a> : <b style={`color:${n.chairC}`}>{n.chair}</b>}</span>}
           </summary>
           <div class="nf-m">
@@ -61,9 +61,9 @@ const desc = `Fastanefndir Alþingis (${NEFNDCARDS.length}) með formönnum og f
 
     <h2>Þingdagatal {CAL.range ? `(${CAL.range[0].slice(0, 4)}–${CAL.range[1].slice(0, 4)})` : ''}</h2>
     <div class="cal-kpis">
-      <span>📅 <b>{CAL.days}</b> starfsdagar</span>
-      <span>🏛️ <b>{CAL.plenary}</b> þingfundir</span>
-      <span>📋 <b>{CAL.meetings}</b> nefndafundir</span>
+      <span><b>{CAL.days}</b> starfsdagar</span>
+      <span><b>{CAL.plenary}</b> þingfundir</span>
+      <span><b>{CAL.meetings}</b> nefndafundir</span>
     </div>
     <div id="calchart"></div>
     <p class="src">Hver reitur er dagur — dekkri gull = meiri virkni (þingfundur + nefndafundir).</p>
@@ -116,7 +116,7 @@ const desc = `Fastanefndir Alþingis (${NEFNDCARDS.length}) með formönnum og f
       const maxV = Math.max(1, ...CAL.data.map((d) => d[1]));
       c.setOption({
         backgroundColor: 'transparent',
-        tooltip: { backgroundColor: 'rgba(9,14,26,.94)', borderColor: 'rgba(255,255,255,.12)', textStyle: { color: '#eaf1fb', fontSize: 12 }, formatter: (p) => `<b>${p.data[0]}</b><br>${p.data[2] ? '🏛️ Þingfundur<br>' : ''}📋 ${p.data[3]} nefndafundir` },
+        tooltip: { backgroundColor: 'rgba(9,14,26,.94)', borderColor: 'rgba(255,255,255,.12)', textStyle: { color: '#eaf1fb', fontSize: 12 }, formatter: (p) => `<b>${p.data[0]}</b><br>${p.data[2] ? 'Þingfundur<br>' : ''}${p.data[3]} nefndafundir` },
         visualMap: { min: 0, max: maxV, show: false, inRange: { color: ['rgba(255,255,255,.05)', 'rgba(246,177,59,.35)', '#f6b13b'] } },
         calendar: { range: CAL.range, left: 34, right: 8, top: 24, bottom: 8, cellSize: ['auto', 13], dayLabel: { color: '#7e8ca6', fontSize: 9, firstDay: 1, nameMap: ['S', 'M', 'Þ', 'M', 'F', 'F', 'L'] }, monthLabel: { color: '#9fb0c8', fontSize: 10 }, yearLabel: { show: false }, itemStyle: { color: 'rgba(255,255,255,.03)', borderColor: 'rgba(7,11,22,.9)', borderWidth: 2 }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
         series: [{ type: 'heatmap', coordinateSystem: 'calendar', data: CAL.data }],

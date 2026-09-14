@@ -8,7 +8,7 @@ test('byggMatch: ósamsvarandi gata → false', () => { assert.equal(byggMatch({
 test('byggMatch: tómt q → false', () => { assert.equal(byggMatch({ pn: '101', a: 'Bragagata 26' }, ''), false); });
 
 test('rankMovement: inn í topp-3 (5→2) → milestone up', () => { const m = rankMovement({ rank: 5 }, { rank: 2 }); assert.equal(m.dir, 'up'); assert.equal(m.badge, '↑ í topp 3'); });
-test('rankMovement: nýtt #1 (2→1)', () => { assert.equal(rankMovement({ rank: 2 }, { rank: 1 }).badge, '🥇 nýtt #1 í greininni'); });
+test('rankMovement: nýtt #1 (2→1)', () => { assert.equal(rankMovement({ rank: 2 }, { rank: 1 }).badge, 'Nýtt #1 í greininni'); });
 test('rankMovement: út úr topp-5 (4→7) → milestone down', () => { assert.equal(rankMovement({ rank: 4 }, { rank: 7 }).badge, '↓ úr topp 5'); });
 test('rankMovement: stökk niður (40→36) → jump up 4', () => { const m = rankMovement({ rank: 40 }, { rank: 36 }); assert.equal(m.kind, 'jump'); assert.equal(m.badge, '↑ 4 sæti'); });
 test('rankMovement: smá-rek (40→41) → null', () => { assert.equal(rankMovement({ rank: 40 }, { rank: 41 }), null); });

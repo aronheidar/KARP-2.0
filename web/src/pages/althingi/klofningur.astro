@@ -88,7 +88,7 @@ const desc = `Hvaða þingmenn hafa greitt atkvæði gegn eigin flokki á ${THIN
       <div class="hs"><b>{alls}</b><span>tilvik alls</span></div>
     </div>
 
-    <h2>🚩 Eftir flokkum</h2>
+    <h2>Eftir flokkum</h2>
     <p class="note">Raðað eftir <b>tíðni á hvern þingmann</b> — hrá tala segir lítið þegar flokkar eru misstórir.</p>
     <div class="bars">
       {FLOKKAR.map((x) => (
@@ -100,7 +100,7 @@ const desc = `Hvaða þingmenn hafa greitt atkvæði gegn eigin flokki á ${THIN
       ))}
     </div>
 
-    <h2>👥 Þingmenn</h2>
+    <h2>Þingmenn</h2>
     <div class="menn">
       {MENN.map((p) => (
         <a class="mann" href={`/althingi/${p.sl}/skyrsla/`}>
@@ -112,7 +112,7 @@ const desc = `Hvaða þingmenn hafa greitt atkvæði gegn eigin flokki á ${THIN
       ))}
     </div>
 
-    <h2>🗳️ Atkvæðagreiðslurnar</h2>
+    <h2>Atkvæðagreiðslurnar</h2>
     <div class="sia">
       <button class="sb on" data-f="">Allir flokkar</button>
       {FLOKKAR.map((x) => (<button class="sb" data-f={x.f}>{x.f}</button>))}

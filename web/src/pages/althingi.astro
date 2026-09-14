@@ -119,7 +119,7 @@ const dIS = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.` : '');
         <p class="src">Raunveruleg sætaskipan þingsalsins (skv. Alþingi) — hver punktur er sæti á réttum stað í salnum, litað eftir flokki. <span style="color:#ffd479">Gyllt umgjörð</span> = ráðherra. Smelltu á sæti fyrir þingmanns-síðu.</p>
       </div>
       <aside class="seat-bills">
-        <div class="sb-h">⚡ Mál í gangi</div>
+        <div class="sb-h">Mál í gangi</div>
         <div class="sb-list">
           {BILLS_GO.map((b) => (
             <a class="sb-item" href={billUrl(b)} target={b.int ? undefined : "_blank"} rel={b.int ? undefined : "noopener"}>
@@ -146,7 +146,7 @@ const dIS = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.` : '');
 
     <div class="live-cal">
       <div class="lc-feed">
-        <h2>🔴 Þingið í beinni</h2>
+        <h2>Þingið í beinni</h2>
         <div class="live-frame">
           <iframe src="https://vod.althingi.is/player/?type=dvr&dvrwindow=1" title="Bein útsending frá Alþingi" loading="lazy" allow="autoplay; fullscreen; encrypted-media" allowfullscreen></iframe>
         </div>
@@ -387,10 +387,10 @@ const dIS = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.` : '');
         if (nextSit) {
           const inf = DAGATAL.dates[nextSit] || {}, pp = nextSit.split('-');
           const hvad = inf.t ? 'Þingfundur' : (inf.c && inf.c.length ? 'Nefndarfundir (' + inf.n + ')' : 'Fundur');
-          upEl.innerHTML = '📅 <b>Á döfinni:</b> ' + hvad + ' ' + (+pp[2]) + '. ' + MNF[+pp[1] - 1]
+          upEl.innerHTML = '<b>Á döfinni:</b> ' + hvad + ' ' + (+pp[2]) + '. ' + MNF[+pp[1] - 1]
             + (nextSit === todayYmd ? ' — í dag' : '') + '.';
         } else {
-          upEl.innerHTML = '📅 <b>Á döfinni:</b> Engir fundir á dagskrá sem stendur. Reglulegt Alþingi kemur'
+          upEl.innerHTML = '<b>Á döfinni:</b> Engir fundir á dagskrá sem stendur. Reglulegt Alþingi kemur'
             + ' saman annan þriðjudag septembermánaðar (35. gr. stjórnarskrár) — næst ' + up.d + '. september ' + up.y + '.';
         }
       }

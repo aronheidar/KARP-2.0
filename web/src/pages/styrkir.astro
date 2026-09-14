@@ -69,15 +69,15 @@ const desc = `Styrkjavaktin — ${fmtISK(count)} opinberir styrkir úr ${nFunds}
 <Layout title="Styrkjavaktin — opinberir styrkir úr 6 sjóðum | Karp" description={desc} canonical="https://karp.is/styrkir/" ogTitle="Styrkjavaktin — opinberir styrkir Íslands">
   <main data-pg="styrkir">
     <p class="kicker">Hagvísir Íslands · Styrkir</p>
-    <h1>Styrkjavaktin 💰</h1>
+    <h1>Styrkjavaktin</h1>
     <p class="lead">Opinberir styrkir úr <strong>{nFunds} sjóðum</strong> á einum stað — <strong>{fmtISK(count)}</strong> styrkveitingar að fjárhæð samtals <strong>{shortKr(grandTotal)}</strong> á árunum <strong>{minYear}–{maxYear}</strong>. Kvikmyndasjóður, Matvælasjóður, Orkusjóður, Tækniþróunarsjóður og uppbyggingarsjóðir landshlutanna birta styrkþega hver í sínu lagi — hér má leita í þeim öllum á einum stað. Fletta má upp einstöku fyrirtæki á <a href="/fyrirtaeki/">fyrirtækjaprófílum</a>.</p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Heimildir: Kvikmyndasjóður (kmi.payload.is), Matvælasjóður (stjórnarráðið), Orkusjóður (Orkustofnun), Tækniþróunarsjóður (Rannís), Uppbyggingarsjóðir Vesturlands og Suðurnesja. Upphæðir eru samþykktir/greiddir styrkir; vilyrði merkt sérstaklega þar sem við á. ⚠ Engin kennitala fylgir — styrkþegar eru nafn-lyklaðir og fyrirtæki og einstaklingar geta borið sama eða líkt nafn.">ⓘ</i> Um sjóðina og gögnin · ⚠ nafn-lyklað (engin kennitala)</p>
 
     <div class="kpis">
-      <div class="kpi"><div class="k-l">💰 Heildarupphæð</div><div class="k-v">{shortKr(grandTotal)}</div><div class="k-s">{minYear}–{maxYear}</div></div>
-      <div class="kpi"><div class="k-l">📄 Styrkveitingar</div><div class="k-v">{fmtISK(count)}</div><div class="k-s">skráðar færslur</div></div>
-      <div class="kpi"><div class="k-l">🏛️ Sjóðir</div><div class="k-v">{nFunds}</div><div class="k-s">opinberar heimildir</div></div>
-      <div class="kpi"><div class="k-l">📊 Meðalstyrkur</div><div class="k-v">{shortKr(grandTotal / (count || 1))}</div><div class="k-s">á hverja veitingu</div></div>
+      <div class="kpi"><div class="k-l">Heildarupphæð</div><div class="k-v">{shortKr(grandTotal)}</div><div class="k-s">{minYear}–{maxYear}</div></div>
+      <div class="kpi"><div class="k-l">Styrkveitingar</div><div class="k-v">{fmtISK(count)}</div><div class="k-s">skráðar færslur</div></div>
+      <div class="kpi"><div class="k-l">Sjóðir</div><div class="k-v">{nFunds}</div><div class="k-s">opinberar heimildir</div></div>
+      <div class="kpi"><div class="k-l">Meðalstyrkur</div><div class="k-v">{shortKr(grandTotal / (count || 1))}</div><div class="k-s">á hverja veitingu</div></div>
     </div>
 
     <h2>Styrkir eftir sjóði</h2>
@@ -101,7 +101,7 @@ const desc = `Styrkjavaktin — ${fmtISK(count)} opinberir styrkir úr ${nFunds}
     <p class="sub">Heildarfjárhæð styrkja á ári (súlur) og fjöldi veitinga (lína). Umfangið vex verulega frá 2019 þegar Orkusjóður og Tækniþróunarsjóður bætast við skrána.</p>
     <div class="cwrap"><div id="c-years" class="ch"></div></div>
 
-    <h2>🏆 Stærstu styrkþegar</h2>
+    <h2>Stærstu styrkþegar</h2>
     <p class="sub">Efstu {topRecipients.length} styrkþegar eftir samanlagðri fjárhæð allra styrkja á tímabilinu. Smelltu á nafn til að fletta upp fyrirtækjaprófíl.</p>
     <div class="top-grid">
       {topRecipients.map((r, i) => (
@@ -119,7 +119,7 @@ const desc = `Styrkjavaktin — ${fmtISK(count)} opinberir styrkir úr ${nFunds}
     <h2>Leitaðu í skránni</h2>
     <p class="sub">Sláðu inn nafn styrkþega eða verkefnis, eða síaðu eftir sjóði og ári. Smelltu á nafn til að sjá fyrirtækjaprófíl.</p>
     <div class="st-controls">
-      <input id="st-q" type="search" placeholder="🔎 Leita að styrkþega eða verkefni…" autocomplete="off" />
+      <input id="st-q" type="search" placeholder="Leita að styrkþega eða verkefni…" autocomplete="off" />
       <select id="st-fund" class="st-sel">
         <option value="all">Allir sjóðir</option>
         {funds.map((f) => (<option value={f.nafn}>{f.nafn}</option>))}

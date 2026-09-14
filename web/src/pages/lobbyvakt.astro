@@ -43,12 +43,12 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
         <button type="button" id="lv-save">Vista</button>
         <span id="lv-save-msg" class="lv-save-msg" hidden></span>
       </div>
-      <p id="lv-setup-msg" class="lv-hint" hidden>👉 Veldu greinar og/eða bættu við leitarorðum að ofan og ýttu á „Vista" til að byrja.</p>
+      <p id="lv-setup-msg" class="lv-hint" hidden>Veldu greinar og/eða bættu við leitarorðum að ofan og ýttu á „Vista" til að byrja.</p>
 
-      <!-- ✉️ Póst-vaktin á sama stað og leitarorðin (20.8.2026, ósk notanda): sama /api/u/frettavakt-stilling og
+      <!-- Póst-vaktin á sama stað og leitarorðin (20.8.2026, ósk notanda): sama /api/u/frettavakt-stilling og
            „Fréttavaktir" á /mitt-svaedi/ — GET fyrst svo völdu fréttaflokkarnir haldist (merge skiptir þeim út). -->
       <div class="lv-post" id="lv-post" hidden>
-        <h3 class="lv-sub-h">✉️ Fá vaktina senda í tölvupósti</h3>
+        <h3 class="lv-sub-h">Fá vaktina senda í tölvupósti</h3>
         <p class="sub">Fréttir sem nefna leitarorðin þín — og fyrirtæki sem þú <a href="/mitt-svaedi/">fylgir</a> — fara sjálfkrafa í póstinn. Fréttaflokka (t.d. gjaldþrot, útboð, vexti) velurðu í <a href="/mitt-svaedi/#fv-vakt">stillingum á Mínu svæði →</a></p>
         <div class="lv-post-row">
           <label class="lv-post-on"><input type="checkbox" id="lv-post-on" /> Kveikt</label>
@@ -62,22 +62,22 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
         </div>
       </div>
 
-      <h2>📰 Fréttir sem passa</h2>
+      <h2>Fréttir sem passa</h2>
       <p class="sub">Fréttir vikunnar sem nefna leitarorðin þín — frjálst, fyrir alla innskráða.</p>
       <div id="lv-frettir"></div>
       <p id="lv-frettir-empty" class="lv-empty" hidden>Engar fréttir nefna orðin þín eins og er.</p>
 
-      <h2>🎧 Hlaðvörp og útvarpsþættir sem nefna orðin þín</h2>
+      <h2>Hlaðvörp og útvarpsþættir sem nefna orðin þín</h2>
       <p class="sub">Spegillinn, Þetta helst og Vikulokin (RÚV), Bítið, Sprengisandur og Reykjavík síðdegis (Bylgjan), Þjóðmál, Rauða borðið, Ein pæling og fleiri — leitað í titlum og lýsingum þátta og, þar sem þátturinn hefur verið umritaður, í töluðu máli. Tilraunaútgáfa.</p>
       <div id="lv-hlad"></div>
       <p id="lv-hlad-empty" class="lv-empty" hidden>Engir nýlegir þættir nefna orðin þín.</p>
 
-      <h2>🎤 Ræður á Alþingi sem nefna orðin þín</h2>
+      <h2>Ræður á Alþingi sem nefna orðin þín</h2>
       <p class="sub">Opinberar umritanir Alþingis — leitað í málsheiti, nafni ræðumanns og upphafi ræðunnar. Nafn þingmanns sem leitarorð vaktar allar ræður hans. Tómt í þinghléi.</p>
       <div id="lv-raedur"></div>
       <p id="lv-raedur-empty" class="lv-empty" hidden>Engar nýlegar ræður nefna orðin þín.</p>
 
-      <h2>🏛️ Þingmál &amp; samráð sem snerta greinina þína <span class="lv-plus">Fyrirtæki+</span></h2>
+      <h2>Þingmál &amp; samráð sem snerta greinina þína <span class="lv-plus">Fyrirtæki+</span></h2>
       <p class="sub">Síað eftir greinum og leitarorðum, með áhrifa-briefi, relevans-stigi og fresti.</p>
       <div id="lv-reglur"></div>
       <p id="lv-empty" class="lv-empty" hidden>Engin þingmál/samráð passa við valið eins og er — „Þvert á greinar"-mál birtast sjálfkrafa.</p>
@@ -86,19 +86,19 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
     <!-- ── OPNU VEITURNAR (áður /vaktir/) — utan gáttar: opin gögn, engin innskráning ──
          Leitarorðin lýsa upp treff hér eins og á gömlu Leitarorðavaktinni. -->
     <section id="lv-open">
-      <h2>⚖️ Dómavaktin</h2>
+      <h2>Dómavaktin</h2>
       <p class="sub">Nýjustu dómar Hæstaréttar og Landsréttar. Opið öllum — leitarorðin þín lýsast upp þegar þú ert innskráð(ur).</p>
       <div class="ppair">
         <div><h3>Hæstiréttur</h3><div id="domar-hr" class="feed">Sæki dóma…</div></div>
         <div><h3>Landsréttur</h3><div id="domar-lr" class="feed">Sæki dóma…</div></div>
       </div>
 
-      <h2>💬 Nýtt í samráðsgátt</h2>
+      <h2>Nýtt í samráðsgátt</h2>
       <p class="sub">Öll ný samráðsmál stjórnvalda — óháð grein. Síað og með áhrifa-briefi birtast þau í Fyrirtæki+ hlutanum að ofan.</p>
       <div id="samrad-pills"></div>
       <div id="samrad-list" class="feed">Sæki samráðsmál…</div>
 
-      <h2>💸 Greiðsluvaktin</h2>
+      <h2>Greiðsluvaktin</h2>
       <p class="sub">Nýjustu greiðslur ríkisins úr opnirreikningar.is (Fjársýslan).</p>
       <div id="greidslur-list" class="feed">Sæki greiðslur ríkisins…</div>
 
@@ -224,11 +224,12 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
     // {entitled, frettir, reglur} — óinnskráð fær {ok:false,error:'login'}, ALDREI 'tier' framar).
     // Greina-val vistast um POST /api/u/lobbyvakt-greinar (karpPost → /api/u + nonce sjálfkrafa).
     import { karpGet, karpPost, loginHref } from '../lib/auth.js';
+    import { takn } from '../lib/takn.mjs';
 
     const $ = (s) => document.querySelector(s);
     const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     const SECTORS = (() => { try { return JSON.parse(document.getElementById('d-lv-sectors').textContent) || {}; } catch (e) { return {}; } })();
-    const KIND_LABEL = { thingmal: '📜 Þingmál', samrad: '💬 Samráð' };
+    const KIND_LABEL = { thingmal: 'Þingmál', samrad: 'Samráð' };
     const STIG_CLASS = { 'Mikil': 'lv-stig-mikil', 'Miðlungs': 'lv-stig-midl', 'Lítil': 'lv-stig-litil' };
     let keywords = [];   // valin leitarorð (lágstöfuð); vistast með greinum um POST /api/u/lobbyvakt-greinar
 
@@ -261,7 +262,7 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
 
     function itemCard(it) {
       const kind = KIND_LABEL[it && it.kind] || esc((it && it.kind) || '');
-      const kindHtml = kind + (itemMatchesKeyword(it) ? '<span class="lv-kwmark" title="Passar við leitarorð">🔍 leitarorð</span>' : '');
+      const kindHtml = kind + (itemMatchesKeyword(it) ? '<span class="lv-kwmark" title="Passar við leitarorð">' + takn('leit') + 'leitarorð</span>' : '');
       const stig = (it && it.stig) || 'Miðlungs';
       const stigCls = STIG_CLASS[stig] || 'lv-stig-midl';
       const brief = it && it.brief ? '<p class="lv-brief">' + esc(it.brief) + '</p>' : '';
@@ -296,7 +297,7 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
     function hladCard(h) {
       const ordHtml = (h.ord || []).map((w) => '<span class="lv-kw-hit">' + esc(w) + '</span>').join(' ');
       const brot = h.brot ? '<p class="lv-brot">„…' + esc(h.brot) + '…"</p>' : '';
-      const meta = ['🎧 ' + esc(h.show || ''), esc(h.date || '')].filter(Boolean).join(' · ');
+      const meta = [esc(h.show || ''), esc(h.date || '')].filter(Boolean).join(' · ');
       return '<article class="lv-card lv-hlad"><h3 class="lv-title"><a href="' + esc(h.url || '#') + '" target="_blank" rel="noopener">' + esc(h.title || '') + '</a></h3>'
         + '<div class="lv-meta">' + meta + '</div>' + brot
         + '<div class="lv-meta">' + ordHtml + (h.dypt === 'umritun' ? ' <span class="lv-dypt">· fannst í töluðu máli</span>' : ' <span class="lv-dypt">· fannst í titli eða lýsingu</span>') + '</div></article>';
@@ -304,10 +305,10 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
     // 🎤 Ræður (22.8.2026): { id, nafn, embaetti, dags, malsheiti, brot, hlekkur, ord[] } — hlekkur á ræðuna á althingi.is.
     function raedaCard(r) {
       const ordHtml = (r.ord || []).map((w) => '<span class="lv-kw-hit">' + esc(w) + '</span>').join(' ');
-      const meta = ['🎤 ' + esc(r.nafn || ''), esc(r.embaetti || ''), esc(r.dags || '')].filter(Boolean).join(' · ');
+      const meta = [esc(r.nafn || ''), esc(r.embaetti || ''), esc(r.dags || '')].filter(Boolean).join(' · ');
       return '<article class="lv-card lv-hlad"><h3 class="lv-title"><a href="' + esc(r.hlekkur || '#') + '" target="_blank" rel="noopener">' + esc(r.malsheiti || 'Ræða á Alþingi') + '</a></h3>'
         + '<div class="lv-meta">' + meta + '</div>' + (r.brot ? '<p class="lv-brot">„' + esc(r.brot) + '…"</p>' : '')
-        + (r.hljod ? '<div class="lv-meta"><a href="' + esc(r.hljod) + '" target="_blank" rel="noopener">🎧 Hlusta á ræðuna</a></div>' : '')
+        + (r.hljod ? '<div class="lv-meta"><a href="' + esc(r.hljod) + '" target="_blank" rel="noopener">Hlusta á ræðuna</a></div>' : '')
         + (ordHtml ? '<div class="lv-meta">' + ordHtml + '</div>' : '') + '</article>';
     }
     function renderRaedur(raedur) {
@@ -324,7 +325,7 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
       const host = $('#lv-reglur'); const empty = $('#lv-empty');
       if (!entitled) {
         empty.hidden = true;
-        host.innerHTML = '<div class="lv-card lv-lock"><p class="lv-brief">🔒 Þingmál og samráðsmál sem snerta greinarnar þínar — með áhrifa-briefi, relevans-stigi og fresti — eru hluti af <b>Fyrirtæki+</b>.</p><a class="lv-upsell" href="/karp-pro/#verd">Sjá Fyrirtæki+ →</a></div>';
+        host.innerHTML = '<div class="lv-card lv-lock"><p class="lv-brief">' + takn('laest') + 'Þingmál og samráðsmál sem snerta greinarnar þínar — með áhrifa-briefi, relevans-stigi og fresti — eru hluti af <b>Fyrirtæki+</b>.</p><a class="lv-upsell" href="/karp-pro/#verd">Sjá Fyrirtæki+ →</a></div>';
         return;
       }
       host.innerHTML = (reglur || []).map(itemCard).join('');
@@ -454,7 +455,7 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
           el.innerHTML = list.slice(0, 8).map((v) => {
             const a = AI[key + ':' + v.nr];
             const skyring = a && a.einfalt ? a.einfalt : (v.um ? String(v.um).trim().slice(0, 150) + (String(v.um).trim().length > 150 ? '…' : '') : '');
-            return `<a class="fi" href="${SITES[key]}" target="_blank" rel="noopener" title="${esc(v.um || '')}"><span class="t">Mál ${esc(v.nr)}: ${esc(String(v.titill || '').split(' gegn ')[0].slice(0, 60))}${String(v.titill || '').includes(' gegn ') ? ' gegn …' : ''}</span>${skyring ? `<span class="s dom-ai">${a && a.einfalt ? '💡 ' : ''}${esc(skyring)}${a && a.svid ? ` <span class="pill">${esc(a.svid)}</span>` : ''}</span>` : ''}<span class="s">${dIS(v.dags)}${(v.efnisord || []).length ? ' · ' + v.efnisord.slice(0, 3).map(esc).join(' · ') : ''}</span></a>`;
+            return `<a class="fi" href="${SITES[key]}" target="_blank" rel="noopener" title="${esc(v.um || '')}"><span class="t">Mál ${esc(v.nr)}: ${esc(String(v.titill || '').split(' gegn ')[0].slice(0, 60))}${String(v.titill || '').includes(' gegn ') ? ' gegn …' : ''}</span>${skyring ? `<span class="s dom-ai">${esc(skyring)}${a && a.svid ? ` <span class="pill">${esc(a.svid)}</span>` : ''}</span>` : ''}<span class="s">${dIS(v.dags)}${(v.efnisord || []).length ? ' · ' + v.efnisord.slice(0, 3).map(esc).join(' · ') : ''}</span></a>`;
           }).join('');
         }
         lvHi();

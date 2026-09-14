@@ -54,22 +54,22 @@ const desc = `Vextir, gengi og verðbólga á Íslandi — lifandi frá Seðlaba
 <Layout title="Vextir, gengi & verðbólga — Seðlabanki | Karp" description={desc} canonical="https://karp.is/vextir/" ogTitle="Vextir & gengi á Íslandi">
   <main data-pg="vextir">
     <p class="kicker">Hagvísir Íslands · Efnahagur</p>
-    <h1>Vextir, gengi & verðbólga 🏦</h1>
+    <h1>Vextir, gengi & verðbólga</h1>
     <p class="lead">Peningamál Íslands beint frá <strong>Seðlabanka</strong>: stýrivextir og saga þeirra á móti verðbólgu, ríkis-vaxtaferillinn sem sýnir <strong>verðbólguálag markaðarins</strong>, gengi krónunnar, millibankavextir og peningamagn. Verðbólgan sjálf og neyslukarfan: sjá <a href="/verdlag/">Verðlag</a>.</p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Meginvextir = stýrivextir SÍ (vextir á 7 daga bundnum innlánum). Raunstýrivextir = meginvextir − verðbólga. Verðbólguálag = óverðtryggðir − verðtryggðir ríkisvextir (mat markaðarins á meðalverðbólgu næstu ára). Gengisvísitala: hærri tala = veikari króna.">ⓘ</i> Um hugtökin</p>
 
     <div class="kpis">
-      <div class="kpi"><div class="k-l">🏦 Meginvextir</div><div class="k-v">{c(meginv)}%</div><div class="k-s">stýrivextir{H.meginvextir ? ' · frá ' + isoIs(H.meginvextir.date) : ''}</div></div>
-      <div class="kpi"><div class="k-l">📈 Verðbólga</div><div class="k-v">{c(verdb)}%</div><div class="k-s">12 mán{H.verdbolga ? ' · ' + isoIs(H.verdbolga.date) : ''}</div></div>
-      <div class="kpi"><div class="k-l">⚖️ Raunstýrivextir</div><div class="k-v">{c(raun)}%</div><div class="k-s">meginvextir − verðbólga</div></div>
-      <div class="kpi"><div class="k-l">💱 Gengisvísitala</div><div class="k-v">{c(gvis)}</div><div class="k-s">hærri = veikari króna</div></div>
+      <div class="kpi"><div class="k-l">Meginvextir</div><div class="k-v">{c(meginv)}%</div><div class="k-s">stýrivextir{H.meginvextir ? ' · frá ' + isoIs(H.meginvextir.date) : ''}</div></div>
+      <div class="kpi"><div class="k-l">Verðbólga</div><div class="k-v">{c(verdb)}%</div><div class="k-s">12 mán{H.verdbolga ? ' · ' + isoIs(H.verdbolga.date) : ''}</div></div>
+      <div class="kpi"><div class="k-l">Raunstýrivextir</div><div class="k-v">{c(raun)}%</div><div class="k-s">meginvextir − verðbólga</div></div>
+      <div class="kpi"><div class="k-l">Gengisvísitala</div><div class="k-v">{c(gvis)}</div><div class="k-s">hærri = veikari króna</div></div>
     </div>
 
     <h2>Meginvextir og verðbólga · 2014→</h2>
     <p class="sub">Stýrivextir Seðlabankans (gullið) á móti 12-mánaða verðbólgu (rautt). Bilið á milli = <strong>raunstýrivextir</strong> (nú ~{c(raun)}%).</p>
     <div class="cwrap"><div id="c-mv" class="ch"></div></div>
 
-    <h2>Ríkis-vaxtaferill og verðbólguálag 🎯</h2>
+    <h2>Ríkis-vaxtaferill og verðbólguálag</h2>
     <p class="sub">Par-vextir ríkisbréfa eftir lánstíma: óverðtryggt (nafnvextir) á móti verðtryggðu (raunvextir). Munurinn = <strong>verðbólguálag</strong> — mat markaðarins á meðalverðbólgu tímabilsins. 10 ára álag nú ~{c(be10)}%.</p>
     <div class="cwrap"><div id="c-yc" class="ch"></div></div>
 

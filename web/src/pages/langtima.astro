@@ -15,9 +15,9 @@ const updated = '2026-07-02';
     <h1>Langtímastefna</h1>
     <p>Hvert stefna ríkisfjármálin? Skuldahlutfall og afkoma hins opinbera samkvæmt fjármálastefnu og langtímahorfum ráðuneytisins.</p>
     <div class="kpis">
-      <div class="kpi"><div class="k-l">🏦 Skuldir nú <i class="tip" tabindex="0" data-tip="Skuldir ríkissjóðs skv. skuldareglu laga um opinber fjármál, % af vergri landsframleiðslu. Fyrsta ár ferilsins að neðan.">ⓘ</i></div><div class="k-v">{fmtNum(D.skuldir[0], 1)}%</div><div class="k-s">af VLF · {D.ar[0]}</div></div>
-      <div class="kpi"><div class="k-l">🎯 Skuldamarkmið <i class="tip" tabindex="0" data-tip="Skuldareglan í lögum um opinber fjármál: skuldir eiga að vera undir þessu hlutfalli af VLF til lengri tíma.">ⓘ</i></div><div class="k-v">{D.markmid}%</div><div class="k-s">af VLF · lögbundið viðmið</div></div>
-      <div class="kpi"><div class="k-l">📅 Spátímabil <i class="tip" tabindex="0" data-tip="Ferillinn er STEFNA OG SPÁ stjórnvalda — ekki mæld gögn. Byggt á fjármálastefnu og langtímahorfum fjármála- og efnahagsráðuneytisins.">ⓘ</i></div><div class="k-v">{D.ar[0]}–{D.ar[D.ar.length - 1]}</div><div class="k-s">stefna + spá</div></div>
+      <div class="kpi"><div class="k-l">Skuldir nú <i class="tip" tabindex="0" data-tip="Skuldir ríkissjóðs skv. skuldareglu laga um opinber fjármál, % af vergri landsframleiðslu. Fyrsta ár ferilsins að neðan.">ⓘ</i></div><div class="k-v">{fmtNum(D.skuldir[0], 1)}%</div><div class="k-s">af VLF · {D.ar[0]}</div></div>
+      <div class="kpi"><div class="k-l">Skuldamarkmið <i class="tip" tabindex="0" data-tip="Skuldareglan í lögum um opinber fjármál: skuldir eiga að vera undir þessu hlutfalli af VLF til lengri tíma.">ⓘ</i></div><div class="k-v">{D.markmid}%</div><div class="k-s">af VLF · lögbundið viðmið</div></div>
+      <div class="kpi"><div class="k-l">Spátímabil <i class="tip" tabindex="0" data-tip="Ferillinn er STEFNA OG SPÁ stjórnvalda — ekki mæld gögn. Byggt á fjármálastefnu og langtímahorfum fjármála- og efnahagsráðuneytisins.">ⓘ</i></div><div class="k-v">{D.ar[0]}–{D.ar[D.ar.length - 1]}</div><div class="k-s">stefna + spá</div></div>
     </div>
     <h2>Skuldahlutfall og afkoma <i class="tip" tabindex="0" data-tip="Gull lína = skuldir (% af VLF, vinstri ás). Blá súla = afkoma ársins (% af VLF, hægri ás; neikvætt = halli). Brotalína = skuldamarkmiðið.">ⓘ</i></h2>
     <div id="chart" style="height: 360px;"></div>

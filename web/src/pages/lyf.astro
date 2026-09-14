@@ -22,21 +22,21 @@ const desc = `Uppfletting í sérlyfjaskrá Lyfjastofnunar: ${count} markaðsset
 <Layout title="Lyf & lyfjaverð — sérlyfjaskrá | Karp" description={desc} canonical="https://karp.is/lyf/" ogTitle="Lyf & lyfjaverð">
   <main data-pg="lyf">
     <p class="kicker">Karp · Verðlag & neytendur</p>
-    <h1>💊 Lyf &amp; lyfjaverð</h1>
+    <h1>Lyf &amp; lyfjaverð</h1>
     <p>Öll lyf sem eru markaðssett á Íslandi — leitaðu að lyfi, virku efni eða ATC-kóða og sjáðu verð, greiðsluþátttöku, heildsala og hvort lyf er í skorti. Byggt á opnum gögnum sérlyfjaskrár Lyfjastofnunar.</p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Grunngögn (heiti, styrkur, lyfjaform, virk efni, ATC-flokkur, markaðsleyfishafi og staða lyfjaskorts) koma úr leitarskrá sérlyfjaskrár (serlyfjaskra.is) og ná til allra markaðssettra lyfja. Verð (smásölu- og viðmiðunarverð, greiðsluþátttaka, heildsali) er sótt af lyfjasíðum serlyfjaskrár og uppfært reglulega af Lyfjastofnun/Sjúkratryggingum.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div class="grid">
-      <div class="tile hero"><div class="t-top">💊 Markaðssett lyf</div><div class="t-v">{groupThousands(count)}</div><div class="t-s">í sérlyfjaskrá</div></div>
-      <div class="tile"><div class="t-top">⚠️ Í skorti núna</div><div class="t-v">{groupThousands(shortageCount)}</div><div class="t-s">lyf með skráðan skort</div></div>
-      <div class="tile"><div class="t-top">🏷️ Með verð</div><div class="t-v">{pricedPct}%</div><div class="t-s">{groupThousands(priced)} af {groupThousands(count)}</div></div>
-      <div class="tile"><div class="t-top">🗓️ Uppfært</div><div class="t-v s">{updated}</div><div class="t-s">opin gögn Lyfjastofnunar</div></div>
+      <div class="tile hero"><div class="t-top">Markaðssett lyf</div><div class="t-v">{groupThousands(count)}</div><div class="t-s">í sérlyfjaskrá</div></div>
+      <div class="tile"><div class="t-top">⚠ Í skorti núna</div><div class="t-v">{groupThousands(shortageCount)}</div><div class="t-s">lyf með skráðan skort</div></div>
+      <div class="tile"><div class="t-top">Með verð</div><div class="t-v">{pricedPct}%</div><div class="t-s">{groupThousands(priced)} af {groupThousands(count)}</div></div>
+      <div class="tile"><div class="t-top">Uppfært</div><div class="t-v s">{updated}</div><div class="t-s">opin gögn Lyfjastofnunar</div></div>
     </div>
 
     <div class="ctl">
       <input id="lyf-q" type="search" placeholder="Leita að lyfi, virku efni eða ATC-kóða…" autocomplete="off" />
       <div class="chips">
-        <button class="chip" type="button" data-f="shortage">⚠️ Í skorti</button>
+        <button class="chip" type="button" data-f="shortage">Í skorti</button>
         <button class="chip" type="button" data-f="rx">Lyfseðilsskylt</button>
         <button class="chip" type="button" data-f="vet">Dýralyf</button>
         <select id="lyf-atc" aria-label="ATC-flokkur">

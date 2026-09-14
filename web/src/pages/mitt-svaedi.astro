@@ -35,9 +35,9 @@ THINGMENN.forEach((m) => { MP['mp:' + m.id] = { n: m.nafn, f: m.flokkur, c: colo
 const _sbv = (o) => (o && o.value != null ? String(o.value).replace('.', ',') + '%' : '–');
 const _sbh = SB.headline || {};
 const KPIS = [
-  { l: '👷 Atvinnuleysi', v: (ATV.latest ?? 0).toFixed(1).replace('.', ',') + '%', href: '/vinnumarkadur/' },
-  { l: '🏦 Stýrivextir', v: _sbv(_sbh.meginvextir), href: '/vextir/' },
-  { l: '📉 Verðbólga', v: _sbv(_sbh.verdbolga), href: '/verdlag/' },
+  { l: 'Atvinnuleysi', v: (ATV.latest ?? 0).toFixed(1).replace('.', ',') + '%', href: '/vinnumarkadur/' },
+  { l: 'Stýrivextir', v: _sbv(_sbh.meginvextir), href: '/vextir/' },
+  { l: 'Verðbólga', v: _sbv(_sbh.verdbolga), href: '/verdlag/' },
 ];
 
 // Þingsæti-spá mini
@@ -85,7 +85,7 @@ const updated = '2026-07-02';
   <main data-pg="mitt-svaedi">
     <p class="kicker">Karp</p>
     <h1>Mitt svæði</h1>
-    <div class="tabs"><button class="tab on" data-t="dash">📊 Mælaborð</button><button class="tab" data-t="still">⚙️ Stillingar</button></div>
+    <div class="tabs"><button class="tab on" data-t="dash">Mælaborð</button><button class="tab" data-t="still">Stillingar</button></div>
 
     <!-- ── MÆLABORÐ ── -->
     <section id="p-dash">
@@ -93,47 +93,47 @@ const updated = '2026-07-02';
 
       <!-- Umferðartölfræði — AÐEINS stjórnandi (Burst um worker /api/u/burst → CF-vefgreining). Falið sjálfgefið. -->
       <div class="w" id="w-traffic-box" hidden>
-        <div class="w-h">📊 Umferð á Karp <span class="w-sub">Cloudflare · aðeins stjórnandi</span></div>
+        <div class="w-h">Umferð á Karp <span class="w-sub">Cloudflare · aðeins stjórnandi</span></div>
         <div id="w-traffic">Sæki tölfræði…</div>
       </div>
 
       <div class="w" data-w="hagvisar">
-        <div class="w-h">📈 Hagvísar dagsins</div>
+        <div class="w-h">Hagvísar dagsins</div>
         <div class="kpis">{KPIS.map((k) => <a class="kpi" href={k.href}><span class="k-l">{k.l}</span><span class="k-v">{k.v}</span></a>)}</div>
       </div>
 
       <div class="w" data-w="sveit">
-        <div class="w-h">🗺️ Mitt sveitarfélag</div>
+        <div class="w-h">Mitt sveitarfélag</div>
         <div id="w-sveit"></div>
       </div>
 
       <div class="w" data-w="loft">
-        <div class="w-h">🌬️ Loftgæði <span class="w-sub">svifryk PM10 · Umhverfisstofnun</span></div>
+        <div class="w-h">Loftgæði <span class="w-sub">svifryk PM10 · Umhverfisstofnun</span></div>
         <div id="w-loft">Sæki mælingar…</div>
       </div>
 
       <div class="w" data-w="vaktir">
-        <div class="w-h">🔔 Vaktirnar — nýjast <span class="w-sub">dómar · samráð · útboð · greiðslur</span> <a class="w-more" href="/lobbyvakt/">Allar vaktir →</a></div>
+        <div class="w-h">Vaktirnar — nýjast <span class="w-sub">dómar · samráð · útboð · greiðslur</span> <a class="w-more" href="/lobbyvakt/">Allar vaktir →</a></div>
         <div id="w-vaktir" class="wv-grid">Sæki vaktir…</div>
       </div>
 
       <div class="w" data-w="fylgja">
-        <div class="w-h">🔖 Að fylgja <span id="fylgja-ny" class="fylgja-ny" hidden></span></div>
+        <div class="w-h">Að fylgja <span id="fylgja-ny" class="fylgja-ny" hidden></span></div>
         <div id="mine">Hleð…</div>
       </div>
 
       <div class="w" data-w="nylegt">
-        <div class="w-h">🕘 Nýlega skoðað</div>
+        <div class="w-h">Nýlega skoðað</div>
         <div id="w-nylegt"><span class="dim">Engin félög skoðuð enn — opnaðu fyrirtækjaskýrslu og hún birtist hér.</span></div>
       </div>
 
       <div class="w" data-w="skyrslur">
-        <div class="w-h">🛒 Keyptar skýrslur</div>
+        <div class="w-h">Keyptar skýrslur</div>
         <div id="w-skyrslur"><span class="dim">Hleð…</span></div>
       </div>
 
       <div class="w" data-w="seats">
-        <div class="w-h">🏛️ Þingsæti-spá</div>
+        <div class="w-h">Þingsæti-spá</div>
         <div class="seats">
           <span class={SEATSW.maj ? 'up' : 'dn'}><b>{SEATSW.gov}</b> ríkisstjórn</span>
           <span><b>{SEATSW.opp}</b> stjórnarandstaða</span>
@@ -143,56 +143,56 @@ const updated = '2026-07-02';
       </div>
 
       <div class="w" data-w="match">
-        <div class="w-h">🎯 Flokkamatið mitt</div>
+        <div class="w-h">Flokkamatið mitt</div>
         <div id="w-match"></div>
       </div>
 
-      <a id="ms-kyc" class="ms-card" href="/areidanleikavaktin/" hidden>🛡️ Áreiðanleikavaktin — KYC-vöktun viðskiptavina</a>
-      <a id="ms-lobbyvakt" class="ms-card" href="/lobbyvakt/" hidden>🏛️ Lobbývakt — reglur í pípunni sem snerta þína grein</a>
-      <a id="ms-leikur" class="ms-card" href="/leikur/" hidden>🎮 Leikurinn <span class="ms-leikur-sub w-sub"></span></a>
+      <a id="ms-kyc" class="ms-card" href="/areidanleikavaktin/" hidden>Áreiðanleikavaktin — KYC-vöktun viðskiptavina</a>
+      <a id="ms-lobbyvakt" class="ms-card" href="/lobbyvakt/" hidden>Lobbývakt — reglur í pípunni sem snerta þína grein</a>
+      <a id="ms-leikur" class="ms-card" href="/leikur/" hidden>Leikurinn <span class="ms-leikur-sub w-sub"></span></a>
     </section>
 
     <!-- ── STILLINGAR ── -->
     <section id="p-still" hidden>
       <div class="w">
-        <div class="w-h">📊 Mælaborðið — hvað birtist</div>
+        <div class="w-h">Mælaborðið — hvað birtist</div>
         <p class="w-p">Kveiktu og slökktu á spjöldum mælaborðsins. Valið vistast í vafranum þínum.</p>
         <div id="dash-toggles" class="tgl-list"></div>
       </div>
 
       <div class="w">
-        <div class="w-h">🌗 Þema</div>
+        <div class="w-h">Þema</div>
         <p class="w-p">Ljóst eða dökkt útlit — valið vistast í vafranum og gildir um alla síðuna.</p>
-        <div class="theme-seg" id="theme-seg"><button type="button" data-th="dark">🌙 Dökkt</button><button type="button" data-th="light">☀️ Ljóst</button></div>
+        <div class="theme-seg" id="theme-seg"><button type="button" data-th="dark">Dökkt</button><button type="button" data-th="light">Ljóst</button></div>
       </div>
 
       <div class="w">
-        <div class="w-h">🗺️ Sveitarfélagið mitt</div>
+        <div class="w-h">Sveitarfélagið mitt</div>
         <p class="w-p">Veldu sveitarfélagið þitt — spjaldið birtist á mælaborðinu og valið vistast í vafranum.</p>
         <select id="sv-sel"><option value="">— Velja sveitarfélag —</option>{MUNIS.map((m) => <option value={m.n}>{m.n}</option>)}</select>
       </div>
 
       <div class="w">
-        <div class="w-h">📋 Vaktirnar mínar <a class="w-more" href="/lobbyvakt/">Stjórna vöktum →</a></div>
+        <div class="w-h">Vaktirnar mínar <a class="w-more" href="/lobbyvakt/">Stjórna vöktum →</a></div>
         <p class="w-p">Yfirlit yfir allt sem þú vaktar. Virkar vaktir senda þér tölvupóst þegar eitthvað nýtt gerist.</p>
         <div id="vakt-yfirlit"><span class="dim">Sæki vaktirnar þínar…</span></div>
       </div>
 
       <div class="w">
-        <div class="w-h">📬 Tölvupóstarnir mínir</div>
+        <div class="w-h">Tölvupóstarnir mínir</div>
         <p class="w-p">Stýrðu hvaða tölvupóst þú færð frá Karp.</p>
-        <label class="tgl"><input type="checkbox" id="dg-on" /><span class="tgl-sw"></span><span class="tgl-t"><b>📅 Vikuyfirlit</b><span class="tgl-d">Persónulegt yfirlit á mánudagsmorgnum — vaktir vikunnar, félög og þingmenn sem þú fylgist með, ný vörumerki, fasteignasölur og útboð.</span></span></label>
+        <label class="tgl"><input type="checkbox" id="dg-on" /><span class="tgl-sw"></span><span class="tgl-t"><b>Vikuyfirlit</b><span class="tgl-d">Persónulegt yfirlit á mánudagsmorgnum — vaktir vikunnar, félög og þingmenn sem þú fylgist með, ný vörumerki, fasteignasölur og útboð.</span></span></label>
         <p id="dg-note" class="w-note" hidden></p>
         <div id="mail-more" class="mail-more"></div>
       </div>
 
       <div class="w" id="sub-card">
-        <div class="w-h">⭐ Áskrift, aðgangar & vaktir</div>
+        <div class="w-h">Áskrift, aðgangar & vaktir</div>
         <div id="sub-body"><span class="dim">Hleð…</span></div>
       </div>
 
       <div class="w">
-        <div class="w-h">👤 Aðgangurinn</div>
+        <div class="w-h">Aðgangurinn</div>
         <div id="acc" class="acc"></div>
         <div class="acc-links" id="acc-links" hidden>
           <button type="button" id="acc-edit" class="acc-lnk">Breyta prófíl</button>
@@ -211,7 +211,7 @@ const updated = '2026-07-02';
       </div>
 
       <div id="fv-vakt" class="w" style="margin-top:14px">
-        <h3>🔔 Fréttavaktir</h3>
+        <h3>Fréttavaktir</h3>
         <p class="dim" style="font-size:13px">Veldu fréttaflokka og fáðu tölvupóst þegar nýtt mál kviknar. Flokkarnir bera innbyggða fréttnæmis-þröskulda. <b>Leitarorðin þín</b> úr <a href="/lobbyvakt/">Lobbývaktinni</a> og <b>fyrirtæki sem þú fylgir</b> fara sjálfkrafa með í póstinn — engin þörf á að velja flokk til þess.</p>
         <div id="fv-login" hidden class="dim">Skráðu þig inn til að setja upp fréttavaktir.</div>
         <div id="fv-body" hidden>
@@ -220,7 +220,7 @@ const updated = '2026-07-02';
               <legend style="font-size:12px;color:var(--muted)">{sec.label}</legend>
               {sec.types.map((t) => CAT[t] && (
                 <label style="display:inline-flex;align-items:center;gap:5px;margin:3px 10px 3px 0;font-size:13px">
-                  <input type="checkbox" class="fv-cb" value={t} /> {CAT[t].emoji} {CAT[t].label}
+                  <input type="checkbox" class="fv-cb" value={t} /> {CAT[t].label}
                 </label>
               ))}
             </fieldset>
@@ -241,7 +241,7 @@ const updated = '2026-07-02';
       </div>
     </section>
 
-    <p class="foot">Forþjónað (SSG) {updated} · persónulegt yfirlit — fylgja/vaktir um <code>auth.js</code>, sveitarfélagsval og flokkamat aðeins í þínum vafra. #2. · <a href="/hjalp/?fra=mitt-svaedi">🆘 Þarftu aðstoð?</a></p>
+    <p class="foot">Forþjónað (SSG) {updated} · persónulegt yfirlit — fylgja/vaktir um <code>auth.js</code>, sveitarfélagsval og flokkamat aðeins í þínum vafra. #2. · <a href="/hjalp/?fra=mitt-svaedi">Þarftu aðstoð?</a></p>
   </main>
 
   <script type="application/json" id="d-mp" set:html={JSON.stringify(MP)}></script>
@@ -446,7 +446,7 @@ const updated = '2026-07-02';
       });
 
       // 📊 Mælaborðs-rofar (localStorage) — kveikja/slökkva á spjöldum mælaborðsins
-      const DASH_W = [['hagvisar', '📈 Hagvísar dagsins'], ['sveit', '🗺️ Mitt sveitarfélag'], ['loft', '🌬️ Loftgæði'], ['vaktir', '🔔 Vaktirnar — nýjast'], ['fylgja', '🔖 Að fylgja'], ['nylegt', '🕘 Nýlega skoðað'], ['skyrslur', '🛒 Keyptar skýrslur'], ['seats', '🏛️ Þingsæti-spá'], ['match', '🎯 Flokkamatið mitt']];
+      const DASH_W = [['hagvisar', 'Hagvísar dagsins'], ['sveit', 'Mitt sveitarfélag'], ['loft', 'Loftgæði'], ['vaktir', 'Vaktirnar — nýjast'], ['fylgja', 'Að fylgja'], ['nylegt', 'Nýlega skoðað'], ['skyrslur', 'Keyptar skýrslur'], ['seats', 'Þingsæti-spá'], ['match', 'Flokkamatið mitt']];
       const dhKey = 'karp-dash-hidden';
       const dhLoad = () => { try { return JSON.parse(localStorage.getItem(dhKey) || '[]'); } catch (e) { return []; } };
       const applyDash = () => { const hid = dhLoad(); DASH_W.forEach(([id]) => { const w = document.querySelector('.w[data-w="' + id + '"]'); if (w) w.hidden = hid.indexOf(id) !== -1; }); };
@@ -471,12 +471,12 @@ const updated = '2026-07-02';
             // Flokka keyptar skýrslur eftir tegund (lykil-forskeyti). Nýir flokkar fyllast
             // sjálfkrafa þegar sölulyklar bætast við (t.d. eigendur:/areidanleiki:).
             const CATS = [
-              { pfx: 'fyrirtaeki:', label: 'Fyrirtækjaskýrslur', ico: '📄', link: (id) => felagHref(id) },
-              { pfx: 'eigendur:', label: 'Endanlegir eigendur', ico: '👤', link: (id) => '/eigendur/?q=' + encodeURIComponent(id) },
-              { pfx: 'areidanleiki:', label: 'Áreiðanleikamat', ico: '🛡️', link: (id) => felagHref(id, { vidmot: 'areidanleiki' }) },
-              { pfx: 'fjolmidlar:', label: 'Fjölmiðlavakt', ico: '📰', link: (id) => felagHref(id) },
-              { pfx: 'fasteign:', label: 'Fasteignaskýrslur', ico: '🏠', link: (id) => '/fasteignavakt/?q=' + encodeURIComponent(id) },
-              { pfx: 'thingmadur:', label: 'Þingmannaskýrslur', ico: '🏛️', link: (id) => '/althingi/' + encodeURIComponent(id) + '/skyrsla/' },
+              { pfx: 'fyrirtaeki:', label: 'Fyrirtækjaskýrslur', link: (id) => felagHref(id) },
+              { pfx: 'eigendur:', label: 'Endanlegir eigendur', link: (id) => '/eigendur/?q=' + encodeURIComponent(id) },
+              { pfx: 'areidanleiki:', label: 'Áreiðanleikamat', link: (id) => felagHref(id, { vidmot: 'areidanleiki' }) },
+              { pfx: 'fjolmidlar:', label: 'Fjölmiðlavakt', link: (id) => felagHref(id) },
+              { pfx: 'fasteign:', label: 'Fasteignaskýrslur', link: (id) => '/fasteignavakt/?q=' + encodeURIComponent(id) },
+              { pfx: 'thingmadur:', label: 'Þingmannaskýrslur', link: (id) => '/althingi/' + encodeURIComponent(id) + '/skyrsla/' },
             ];
             // /reports skilar hlutum { key, nafn } (nafn úr felog fyrir kt-lyklaðar skýrslur).
             // Þolir líka eldri skil (streng-lykla) svo cache/eldri útgáfa brjóti ekki upp.
@@ -498,8 +498,8 @@ const updated = '2026-07-02';
               return `<a class="sk-row" href="${href}"><span class="sk-t">${esc(title)}${sub ? '<small style="display:block;font-weight:400;font-size:11px;color:var(--muted);opacity:.85;margin-top:1px">' + esc(sub) + '</small>' : ''}</span><span class="sk-o">Opna →</span></a>`;
             };
             let html = '';
-            CATS.forEach((c) => { const items = buckets.get(c.label); if (items && items.length) html += `<div class="sk-cat"><div class="sk-cat-h">${c.ico} ${c.label} <span class="sk-n">${items.length}</span></div><div class="sk-list">${items.map((rec) => rowH(c.link(rec.id), rec)).join('')}</div></div>`; });
-            if (other.length) html += `<div class="sk-cat"><div class="sk-cat-h">📁 Aðrar skýrslur <span class="sk-n">${other.length}</span></div><div class="sk-list">${other.map((rec) => rowH('#', rec)).join('')}</div></div>`;
+            CATS.forEach((c) => { const items = buckets.get(c.label); if (items && items.length) html += `<div class="sk-cat"><div class="sk-cat-h">${c.label} <span class="sk-n">${items.length}</span></div><div class="sk-list">${items.map((rec) => rowH(c.link(rec.id), rec)).join('')}</div></div>`; });
+            if (other.length) html += `<div class="sk-cat"><div class="sk-cat-h">Aðrar skýrslur <span class="sk-n">${other.length}</span></div><div class="sk-list">${other.map((rec) => rowH('#', rec)).join('')}</div></div>`;
             el.innerHTML = html;
           }).catch(() => { el.innerHTML = '<span class="dim">Náði ekki í keyptar skýrslur.</span>'; });
         });
@@ -537,11 +537,11 @@ const updated = '2026-07-02';
           const remTxt = lim.reportsMonth === 0 ? 'stakar á 990 kr' : (rem < 0 ? 'ótakmarkað' : rem + ' af ' + lim.reportsMonth + ' eftir í mánuðinum · endurstillist um mánaðamót');
           // Upsell fyrir grunnur/fyrirtæki: „⬆ Uppfærðu í <næsta þrep> fyrir fleiri skýrslur" (Fyrirtæki+ er efst → ekkert).
           const nt = (A.nextTierUp && A.nextTierUp()) || null;
-          const remUpsell = nt ? ' · <a href="/karp-pro/#verd">⬆ Uppfærðu í ' + esc(nt.heiti) + ' fyrir fleiri skýrslur →</a>' : '';
+          const remUpsell = nt ? ' · <a href="/karp-pro/#verd">Uppfærðu í ' + esc(nt.heiti) + ' fyrir fleiri skýrslur →</a>' : '';
           const folCap = (lim.follows < 0) ? 'ótakmarkað' : lim.follows;
           const dags = (ts) => { try { return new Date(ts * 1000).toLocaleDateString('is-IS'); } catch (e) { return ''; } };
           // Sérlausnir (utbod/fasteign/frettir) — birtar með gildistíma + uppsagnar-hnappi
-          const SVCN = { utbod: '📋 Útboðsvaktin', fasteign: '🏠 Fasteignavakt', frettir: '📰 Fjölmiðlavakt', thingskyrslur: '🏛️ Þingmannaskýrslur', kvoti: '⚓ Kvótavaktin' };
+          const SVCN = { utbod: 'Útboðsvaktin', fasteign: 'Fasteignavakt', frettir: 'Fjölmiðlavakt', thingskyrslur: 'Þingmannaskýrslur', kvoti: 'Kvótavaktin' };
           const subsUntil = u.subsUntil || {};
           const svcRows = (u.subs || []).map((s) => {
             const sq = (u.svcQuota || {})[s];   // #22: fasteign/þingskyrslur = 20/mán → sýna „N eftir í mánuðinum"
@@ -593,7 +593,7 @@ const updated = '2026-07-02';
               : ' <em class="dim" style="font-style:normal;font-size:10.5px">· bíður samþykkis</em>');
             const rows = mems.map((m) => '<div class="mem"><span>' + esc(m.email) + (m.skrad === false ? ' <em class="dim" style="font-style:normal;font-size:10.5px">· óskráð — biðja um nýskráningu</em>' : m.skrad ? ' <em style="font-style:normal;font-size:10.5px;color:var(--green,#6ee7b7)">· virkur</em>' : '') + stBadge(m.email) + '</span><button data-e="' + esc(m.email) + '" class="mem-x" title="Fjarlægja">✕</button></div>').join('') || '<span class="dim">Engir meðlimir enn.</span>';
             const full = mems.length >= d.cap;
-            box.innerHTML = seg('👥 Aðgangar (teymi)', 'þú + ' + mems.length + '/' + d.cap + ' meðlimir')
+            box.innerHTML = seg('Aðgangar (teymi)', 'þú + ' + mems.length + '/' + d.cap + ' meðlimir')
               + '<div class="mem-list">' + rows + '</div>'
               + (!full ? '<div class="mem-add"><input id="mem-email" type="email" placeholder="netfang meðlims" /><button id="mem-go">Bæta við</button></div>'
                        : '<p class="dim sub-note">Sætin eru full — <a href="/karp-pro/#verd">fleiri aðgangar í stærra þrepi →</a></p>')
@@ -607,7 +607,7 @@ const updated = '2026-07-02';
           A.ktWatchList().then((d) => {
             if (!d || (d.cap | 0) <= 0) { box.innerHTML = ''; return; }
             const rows = (d.kt || []).map((k) => '<div class="mem"><span>' + esc(k) + '</span><button data-k="' + esc(k) + '" class="mem-x" title="Fjarlægja">✕</button></div>').join('') || '<span class="dim">Engar kennitölur enn.</span>';
-            box.innerHTML = seg('📇 Viðskiptamannavakt (kt)', (d.kt || []).length + '/' + d.cap + ' notaðar')
+            box.innerHTML = seg('Viðskiptamannavakt (kt)', (d.kt || []).length + '/' + d.cap + ' notaðar')
               + '<div class="mem-list">' + rows + '</div>'
               + ((d.kt || []).length < d.cap ? '<div class="mem-add"><input id="ktw-in" inputmode="numeric" placeholder="kennitala" maxlength="11" /><button id="ktw-go">Bæta við</button></div>'
                                              : '<p class="dim sub-note">Vaktin er full — <a href="/karp-pro/#verd">stærri vakt í Fyrirtæki+ →</a></p>');
@@ -620,18 +620,18 @@ const updated = '2026-07-02';
       // 📋 Vakta-samantekt (öll vaktakerfi) — í Stillingum
       async function paintVaktYfirlit(loggedIn) {
         const el = $g('vakt-yfirlit'); if (!el) return;
-        if (!loggedIn) { el.innerHTML = '<div class="vy-out">🔎 <a href="/lobbyvakt/">Leitarorðavaktin</a> og fasteignavaktin virka án innskráningar (vistast í vafra). <a href="' + loginHref() + '">Skráðu þig inn</a> til að fá vaktir í tölvupóst og sjá þær á öllum tækjum.</div>'; return; }
+        if (!loggedIn) { el.innerHTML = '<div class="vy-out"><a href="/lobbyvakt/">Leitarorðavaktin</a> og fasteignavaktin virka án innskráningar (vistast í vafra). <a href="' + loginHref() + '">Skráðu þig inn</a> til að fá vaktir í tölvupóst og sjá þær á öllum tækjum.</div>'; return; }
         const [lv, fv, fm, hv] = await Promise.all([karpGet('/leitvakt').catch(() => null), karpGet('/fastvakt').catch(() => null), karpGet('/firmavakt').catch(() => null), karpGet('/vaktir').catch(() => null)]);
         const nOrd = ((lv && lv.ord) || []).length, nFast = ((fv && fv.vaktir) || []).length, nFelog = ((fm && fm.felog) || []).length;
         const nHag = (Array.isArray(hv) ? hv : ((hv && hv.vaktir) || [])).length;
         const nFylgt = ((window.KARP_USER && window.KARP_USER.follows) || []).length;
-        const row = (e, n, l, href) => `<a class="vy-row" href="${href}"><span class="vy-n">${n}</span><span class="vy-l">${e} ${l}</span></a>`;
-        el.innerHTML = '<div class="vy-grid">' + row('🔎', nOrd, 'leitarorð', '/lobbyvakt/') + row('🏠', nFast, 'götuvaktir', '/lobbyvakt/') + row('🏢', nFelog, 'félög vöktuð', '/fyrirtaeki/') + row('📈', nHag, 'hagvísa-vaktir', '/lobbyvakt/') + row('🔖', nFylgt, 'fylgt', '/mitt-svaedi/') + '</div>' + ((nOrd + nFast + nFelog + nHag + nFylgt) ? '' : '<div class="vy-empty">Engar vaktir enn — settu upp vaktir á <a href="/lobbyvakt/">Vaktir</a> eða fylgstu með félagi/þingmanni.</div>');
+        const row = (n, l, href) => `<a class="vy-row" href="${href}"><span class="vy-n">${n}</span><span class="vy-l">${l}</span></a>`;
+        el.innerHTML = '<div class="vy-grid">' + row(nOrd, 'leitarorð', '/lobbyvakt/') + row(nFast, 'götuvaktir', '/lobbyvakt/') + row(nFelog, 'félög vöktuð', '/fyrirtaeki/') + row(nHag, 'hagvísa-vaktir', '/lobbyvakt/') + row(nFylgt, 'fylgt', '/mitt-svaedi/') + '</div>' + ((nOrd + nFast + nFelog + nHag + nFylgt) ? '' : '<div class="vy-empty">Engar vaktir enn — settu upp vaktir á <a href="/lobbyvakt/">Vaktir</a> eða fylgstu með félagi/þingmanni.</div>');
       }
       // 📬 Vikupóstur (og tölvupóst-yfirlit)
       function wireDigest(loggedIn) {
         const dg = $g('dg-on'), note = $g('dg-note'), more = $g('mail-more');
-        if (more) more.innerHTML = loggedIn ? '<div class="mail-note">📨 Þú færð líka tölvupóst þegar leitarorð, fasteign eða félag á vaktinni þinni fær nýja niðurstöðu.</div>' : '';
+        if (more) more.innerHTML = loggedIn ? '<div class="mail-note">Þú færð líka tölvupóst þegar leitarorð, fasteign eða félag á vaktinni þinni fær nýja niðurstöðu.</div>' : '';
         if (!dg) return;
         if (!loggedIn) { dg.disabled = true; if (note) { note.hidden = false; note.innerHTML = 'Vikuyfirlitið þarf innskráningu — <a href="' + loginHref() + '">skráðu þig inn</a> (ókeypis).'; } return; }
         karpGet('/digest').then((d) => { if (d && typeof d.on === 'boolean') dg.checked = d.on; }).catch(() => {});
@@ -671,24 +671,24 @@ const updated = '2026-07-02';
         const sv = localStorage.getItem('karp-sveit') || '';
         const MUNIS = J('d-munis') || [];
         const m = MUNIS.find((x) => x.n === sv);
-        if (!m) { el.innerHTML = '<div class="sv-empty">Ekkert valið — <button id="go-still">veldu sveitarfélagið þitt í ⚙️ Stillingum</button>.</div>'; const b = el.querySelector('#go-still'); if (b) b.onclick = () => document.querySelector('.tab[data-t="still"]').click(); return; }
-        const tile = (e, l, v, s) => `<div class="svt"><div class="svt-l">${e} ${l}</div><div class="svt-v">${v}</div><div class="svt-s">${s}</div></div>`;
+        if (!m) { el.innerHTML = '<div class="sv-empty">Ekkert valið — <button id="go-still">veldu sveitarfélagið þitt í Stillingum</button>.</div>'; const b = el.querySelector('#go-still'); if (b) b.onclick = () => document.querySelector('.tab[data-t="still"]').click(); return; }
+        const tile = (l, v, s) => `<div class="svt"><div class="svt-l">${l}</div><div class="svt-v">${v}</div><div class="svt-s">${s}</div></div>`;
         el.innerHTML = `
           <div class="sv-head">
             <span class="sv-n">${esc(m.n)}</span>
             ${m.pop ? `<span class="sv-i">${gt(m.pop)} íbúar</span>` : ''}
-            ${m.idx != null ? `<span class="sv-badge">🏆 ${m.rank}. af ${m.rt}</span>` : ''}
+            ${m.idx != null ? `<span class="sv-badge">${m.rank}. af ${m.rt}</span>` : ''}
             <a class="sv-go" href="/sveitarfelog/${esc(m.s)}/">Opna sveitarspjaldið →</a>
           </div>
           <div class="sv-body">
             <div class="sv-tiles">
-              ${m.idx != null ? tile('🏆', 'Vísitala', String(m.idx), 'af 100') : ''}
-              ${tile('👷', 'Atvinnuleysi', m.unemp != null ? f1(m.unemp) + '%' : '–', 'skráð')}
-              ${tile('🏠', 'Húsnæði', m.house != null ? gt(m.house) + ' þ' : '–', 'kr/m²')}
-              ${tile('💰', 'Útsvar', m.u != null ? f1(m.u) + '%' : '–', 'hám. 14,74%')}
-              ${tile('💳', 'Skuldir/íbúa', m.sk != null ? gt(m.sk) + ' þ' : '–', 'þ.kr.')}
-              ${tile('📊', 'Afkoma/íbúa', m.af != null ? (m.af >= 0 ? '+' : '') + gt(m.af) + ' þ' : '–', 'rekstur')}
-              ${m.jof != null ? tile('⚖️', 'Jöfnunarsjóður', gt(m.jof) + ' þ', 'kr/íbúa á ári') : ''}
+              ${m.idx != null ? tile('Vísitala', String(m.idx), 'af 100') : ''}
+              ${tile('Atvinnuleysi', m.unemp != null ? f1(m.unemp) + '%' : '–', 'skráð')}
+              ${tile('Húsnæði', m.house != null ? gt(m.house) + ' þ' : '–', 'kr/m²')}
+              ${tile('Útsvar', m.u != null ? f1(m.u) + '%' : '–', 'hám. 14,74%')}
+              ${tile('Skuldir/íbúa', m.sk != null ? gt(m.sk) + ' þ' : '–', 'þ.kr.')}
+              ${tile('Afkoma/íbúa', m.af != null ? (m.af >= 0 ? '+' : '') + gt(m.af) + ' þ' : '–', 'rekstur')}
+              ${m.jof != null ? tile('Jöfnunarsjóður', gt(m.jof) + ' þ', 'kr/íbúa á ári') : ''}
             </div>
             <div id="sv-radar"></div>
           </div>`;
@@ -769,13 +769,13 @@ const updated = '2026-07-02';
         ]).then(([dm, sm, ub, gr]) => {
           const out = [];
           const d = dm.value;
-          if (d && (d.hr || []).length) out.push(box('⚖️ Nýjustu dómar', d.hr.slice(0, 2).map((v) => [esc('Mál ' + v.nr + ' · Hæstiréttur'), dIS2(v.dags) + esc((v.efnisord || [])[0] || '')]), '/lobbyvakt/'));
+          if (d && (d.hr || []).length) out.push(box('Nýjustu dómar', d.hr.slice(0, 2).map((v) => [esc('Mál ' + v.nr + ' · Hæstiréttur'), dIS2(v.dags) + esc((v.efnisord || [])[0] || '')]), '/lobbyvakt/'));
           const cs = ((((sm.value || {}).data || {}).consultationPortalGetCases || {}).cases || []);
-          if (cs.length) out.push(box('💬 Í samráði', cs.slice(0, 2).map((c) => [esc(String(c.name).slice(0, 54)), esc(c.institutionName || '') + ' · ' + esc(c.statusName || '')]), '/lobbyvakt/'));
+          if (cs.length) out.push(box('Í samráði', cs.slice(0, 2).map((c) => [esc(String(c.name).slice(0, 54)), esc(c.institutionName || '') + ' · ' + esc(c.statusName || '')]), '/lobbyvakt/'));
           const ps = ub.value;
-          if (Array.isArray(ps) && ps.length) out.push(box('📋 Ný útboð', ps.slice(0, 2).map((p) => [esc(((p.title || {}).rendered || '').slice(0, 54)), dIS2(p.date)]), '/lobbyvakt/'));
+          if (Array.isArray(ps) && ps.length) out.push(box('Ný útboð', ps.slice(0, 2).map((p) => [esc(((p.title || {}).rendered || '').slice(0, 54)), dIS2(p.date)]), '/lobbyvakt/'));
           const g = gr.value;
-          if (g && (g.rows || []).length) out.push(box('💸 Greiðslur ríkisins', g.rows.slice(0, 2).map((r) => [esc(r.stofnun + ' → ' + r.birgir).slice(0, 60), dIS2(r.dags) + Math.round(r.upph / 1000).toLocaleString('de-DE') + ' þ.kr']), '/lobbyvakt/'));
+          if (g && (g.rows || []).length) out.push(box('Greiðslur ríkisins', g.rows.slice(0, 2).map((r) => [esc(r.stofnun + ' → ' + r.birgir).slice(0, 60), dIS2(r.dags) + Math.round(r.upph / 1000).toLocaleString('de-DE') + ' þ.kr']), '/lobbyvakt/'));
           el.innerHTML = out.length ? out.join('') : '<span class="dim">Vaktirnar svara ekki í augnablikinu — kíktu á <a href="/lobbyvakt/">Vaktir</a>.</span>';
         });
       })();
@@ -862,17 +862,17 @@ const updated = '2026-07-02';
         // 📊 Umferðartölfræði — AÐEINS stjórnandi (Burst um worker /api/u/burst → CF-vefgreining). LOTA 24.
         if (u.isAdmin) {
           const box = $g('w-traffic-box'), tel = $g('w-traffic');
-          if (box) { box.hidden = false; box.insertAdjacentHTML('afterbegin', '<a href="/stjorn/" style="display:inline-block;margin:0 0 12px;padding:8px 14px;background:rgba(246,177,59,.14);border:1px solid rgba(246,177,59,.3);border-radius:8px;color:var(--gold);font-weight:700;font-size:13.5px;text-decoration:none">🛠️ Opna stjórnborð — notendur, áskriftir, rekstur →</a>'); }
+          if (box) { box.hidden = false; box.insertAdjacentHTML('afterbegin', '<a href="/stjorn/" style="display:inline-block;margin:0 0 12px;padding:8px 14px;background:rgba(246,177,59,.14);border:1px solid rgba(246,177,59,.3);border-radius:8px;color:var(--gold);font-weight:700;font-size:13.5px;text-decoration:none">Opna stjórnborð — notendur, áskriftir, rekstur →</a>'); }
           karpGet('/burst').then((d) => {
             if (!tel) return;
             if (!d || d.available === false) { tel.innerHTML = '<span class="dim">Cloudflare-vefgreining er ekki tengd enn — tölfræðin birtist þegar API-tóki (CF_ANALYTICS_TOKEN) er kominn.</span>'; return; }
             const gt = (v) => String(v == null ? 0 : v).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-            const cell = (e, l, v, s) => `<div class="tr-c"><div class="tr-l">${e} ${l}</div><div class="tr-v">${gt(v)}</div><div class="tr-s">${s}</div></div>`;
+            const cell = (l, v, s) => `<div class="tr-c"><div class="tr-l">${l}</div><div class="tr-v">${gt(v)}</div><div class="tr-s">${s}</div></div>`;
             let h = '<div class="tr-grid">'
-              + cell('🌐', 'Jaðar-beiðnir í dag', (d.today || {}).pageviews, 'öll umferð')
-              + cell('🔢', 'Einstök IP í dag', (d.today || {}).visitors, 'm/vélmennum')
-              + cell('🌐', 'Jaðar-beiðnir (7d)', (d.week || {}).pageviews, 'vikan')
-              + cell('🔢', 'Einstök IP (7d)', (d.week || {}).visitors, 'm/vélmennum')
+              + cell('Jaðar-beiðnir í dag', (d.today || {}).pageviews, 'öll umferð')
+              + cell('Einstök IP í dag', (d.today || {}).visitors, 'm/vélmennum')
+              + cell('Jaðar-beiðnir (7d)', (d.week || {}).pageviews, 'vikan')
+              + cell('Einstök IP (7d)', (d.week || {}).visitors, 'm/vélmennum')
               + '</div>';
             const top = (d.top || []).filter((x) => x && x.url);
             if (top.length) {
@@ -898,7 +898,7 @@ const updated = '2026-07-02';
           let unseen = 0;
           const coHtml = cos.map((k) => {
             const kt = k.slice(3), nm = names[k] || kt, isNew = !seen[k]; if (isNew) unseen++;
-            return `<div class="fcard" style="--pc:#19d3c5"><a class="fc-link" href="${felagHref(kt)}"><span class="fc-ini">🏢</span><span class="fc-txt"><span class="fc-n">${esc(nm)}${isNew ? ' <span class="fc-dot" title="Óskoðað">●</span>' : ''}</span><span class="fc-f">fyrirtæki vaktað</span></span></a><button class="fc-x" data-key="${esc(k)}">✕</button></div>`;
+            return `<div class="fcard" style="--pc:#19d3c5"><a class="fc-link" href="${felagHref(kt)}"><span class="fc-ini">${esc(nm.charAt(0))}</span><span class="fc-txt"><span class="fc-n">${esc(nm)}${isNew ? ' <span class="fc-dot" title="Óskoðað">●</span>' : ''}</span><span class="fc-f">fyrirtæki vaktað</span></span></a><button class="fc-x" data-key="${esc(k)}">✕</button></div>`;
           }).join('');
           el.innerHTML = '<div class="flist">' + mps.map((k) => {
             const m = MP[k];

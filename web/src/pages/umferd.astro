@@ -25,20 +25,20 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Um
 
     {KEF && (
       <div class="kpis">
-        <div class="kpi"><div class="k-l">✈️ Farþegar um KEF</div><div class="k-v">{groupThousands(KEF.now)}</div><div class="k-s">{KEF.nowLbl}</div></div>
-        {KEF.yoy != null && <div class="kpi"><div class="k-l">📈 Breyting</div><div class={`k-v ${KEF.yoy >= 0 ? 'up' : 'dn'}`}>{KEF.yoy > 0 ? '+' : ''}{fmtNum(KEF.yoy, 1)}%</div><div class="k-s">frá sama mánuði í fyrra</div></div>}
+        <div class="kpi"><div class="k-l">Farþegar um KEF</div><div class="k-v">{groupThousands(KEF.now)}</div><div class="k-s">{KEF.nowLbl}</div></div>
+        {KEF.yoy != null && <div class="kpi"><div class="k-l">Breyting</div><div class={`k-v ${KEF.yoy >= 0 ? 'up' : 'dn'}`}>{KEF.yoy > 0 ? '+' : ''}{fmtNum(KEF.yoy, 1)}%</div><div class="k-s">frá sama mánuði í fyrra</div></div>}
       </div>
     )}
 
     <div id="veg-live" hidden>
-      <h2>🚗 Vegaumferð núna</h2>
+      <h2>Vegaumferð núna</h2>
       <div class="kpis" id="veg-live-row"></div>
       <div id="veg-roads" class="roads"></div>
       <p class="srcnote">Gögn frá teljurum Vegagerðarinnar (15 mín) — birtast aðeins á karp.is.</p>
     </div>
 
     <div id="flug-live" hidden>
-      <h2>✈️ Flug yfir Íslandi — núna</h2>
+      <h2>Flug yfir Íslandi — núna</h2>
       <div class="kpis" id="flug-row"></div>
       <div id="flug-list" class="roads"></div>
       <p class="srcnote">Ratsjárgögn (ADS-B) frá OpenSky Network, uppfært á ~5 mín fresti. Sýnir loftför innan svæðisins 62,5–67,5°N.</p>
@@ -117,8 +117,8 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Um
           // Öryggi: vegaheiti úr lifandi veitu HTML-varin fyrir innsetningu.
           const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
           const tiles = [];
-          if (d.total_today != null) tiles.push({ l: '🚗 Bílar í dag', v: th(d.total_today), s: 'samanlagt á teljurum' });
-          if (d.counters != null) tiles.push({ l: '📡 Teljarar', v: th(d.counters), s: 'virkir' });
+          if (d.total_today != null) tiles.push({ l: 'Bílar í dag', v: th(d.total_today), s: 'samanlagt á teljurum' });
+          if (d.counters != null) tiles.push({ l: 'Teljarar', v: th(d.counters), s: 'virkir' });
           if (!tiles.length) return;
           document.getElementById('veg-live-row').innerHTML = tiles.map((t) => `<div class="kpi"><div class="k-l">${t.l}</div><div class="k-v">${t.v}</div><div class="k-s">${t.s}</div></div>`).join('');
           const roads = Array.isArray(d.fjolfornustu) ? d.fjolfornustu.slice(0, 6) : [];
@@ -149,8 +149,8 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Um
           const icel = planes.filter((p) => /^ICE|^FXI|^NLC/.test(p.cs)).length;
           wrap.hidden = false;
           document.getElementById('flug-row').innerHTML =
-            `<div class="kpi"><div class="k-l">✈️ Á lofti yfir svæðinu</div><div class="k-v">${planes.length}</div><div class="k-s">loftför núna</div></div>`
-            + `<div class="kpi"><div class="k-l">🇮🇸 Íslensk flugfélög</div><div class="k-v">${icel}</div><div class="k-s">ICE/FXI/NLC kallmerki</div></div>`;
+            `<div class="kpi"><div class="k-l">Á lofti yfir svæðinu</div><div class="k-v">${planes.length}</div><div class="k-s">loftför núna</div></div>`
+            + `<div class="kpi"><div class="k-l">Íslensk flugfélög</div><div class="k-v">${icel}</div><div class="k-s">ICE/FXI/NLC kallmerki</div></div>`;
           document.getElementById('flug-list').innerHTML = planes.slice(0, 10).map((p) =>
             `<div class="road"><span class="r-n">${esc(p.cs)}</span><span class="r-v">${p.alt ? Math.round(p.alt) + ' m' : '—'}${p.spd ? ' · ' + Math.round(p.spd * 3.6) + ' km/klst' : ''}</span><span class="r-s">${esc(p.land)}</span></div>`
           ).join('');

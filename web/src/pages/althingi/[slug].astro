@@ -20,16 +20,16 @@ const committees = Array.isArray(m.nefndalisti) ? m.nefndalisti : (m.nefndalisti
 const updated = '2026-07-01';
 
 const tiles = [
-  { e: '🎂', l: 'Aldur', v: m.aldur != null ? m.aldur + ' ára' : '–' },
-  { e: '🏛️', l: 'Á þingi frá', v: yearFrom || '–', s: m.fjoldiThinga != null ? m.fjoldiThinga + ' þing' : '' },
-  { e: '🤝', l: 'Hollusta', v: m.hollusta != null ? m.hollusta + '%' : '–', s: 'við flokk' },
-  { e: '🗣️', l: 'Ræður', v: m.raedur != null ? groupThousands(m.raedur) : '–', s: m.raedumin != null ? groupThousands(m.raedumin) + ' mín' : '' },
-  { e: '📋', l: 'Nefndir', v: m.nefndir != null ? String(m.nefndir) : '–' },
-  { e: '✅', l: 'Greidd atkv.', v: m.greidd != null ? groupThousands(m.greidd) : '–' },
-  { e: '🚫', l: 'Fjarvistir', v: m.fjarvist != null ? String(m.fjarvist) : '–' },
-  { e: '🪑', l: 'Sæti', v: m.saeti != null ? String(m.saeti) : '–' },
-  { e: '💰', l: 'Laun', v: m.laun != null ? groupThousands(m.laun) + ' kr' : '–', s: 'á mánuði skv. launatöflu' },
-  { e: '🧾', l: 'Kostnaður', v: m.kostn != null ? groupThousands(m.kostn) + ' kr' : '–', s: 'starfskostn./mán' },
+  { l: 'Aldur', v: m.aldur != null ? m.aldur + ' ára' : '–' },
+  { l: 'Á þingi frá', v: yearFrom || '–', s: m.fjoldiThinga != null ? m.fjoldiThinga + ' þing' : '' },
+  { l: 'Hollusta', v: m.hollusta != null ? m.hollusta + '%' : '–', s: 'við flokk' },
+  { l: 'Ræður', v: m.raedur != null ? groupThousands(m.raedur) : '–', s: m.raedumin != null ? groupThousands(m.raedumin) + ' mín' : '' },
+  { l: 'Nefndir', v: m.nefndir != null ? String(m.nefndir) : '–' },
+  { l: 'Greidd atkv.', v: m.greidd != null ? groupThousands(m.greidd) : '–' },
+  { l: 'Fjarvistir', v: m.fjarvist != null ? String(m.fjarvist) : '–' },
+  { l: 'Sæti', v: m.saeti != null ? String(m.saeti) : '–' },
+  { l: 'Laun', v: m.laun != null ? groupThousands(m.laun) + ' kr' : '–', s: 'á mánuði skv. launatöflu' },
+  { l: 'Kostnaður', v: m.kostn != null ? groupThousands(m.kostn) + ' kr' : '–', s: 'starfskostn./mán' },
 ];
 
 // Málróf, AI-tónn og fjölmiðlaumfjöllun fluttust í SELDU Þingmannaskýrsluna
@@ -71,7 +71,7 @@ const jsonLd = {
     <div class="grid">
       {tiles.map((t) => (
         <div class="tile">
-          <div class="t-top">{t.e} {t.l}</div>
+          <div class="t-top">{t.l}</div>
           <div class="t-v">{t.v}</div>
           {t.s && <div class="t-s">{t.s}</div>}
         </div>
@@ -87,19 +87,19 @@ const jsonLd = {
 
     <!-- SÖLUREITUR: Málróf, AI-tónn og umfjöllun fluttust í seldu Þingmannaskýrsluna -->
     <div class="tk-sell">
-      <div class="tks-badge">📊 Þingmannaskýrsla Karp</div>
+      <div class="tks-badge">Þingmannaskýrsla Karp</div>
       <h2 class="tks-h">Ítarleg greining á {m.nafn.split(' ')[0]} — í einni skýrslu</h2>
       <ul class="tks-list">
-        <li>🗳️ <b>Atkvæðaferill</b> — uppreisnar-atkvæði gegn eigin flokki, mæting mánuð fyrir mánuð</li>
-        <li>🧩 <b>Afstaða eftir málaflokkum</b> — já/nei-atkvæði flokkuð eftir opinberum efnisflokkum Alþingis</li>
-        <li>🗣️ <b>Málróf</b> — ræður, andsvör, ræðutími eftir málefnum og hvað er talað mest um</li>
-        <li>🤖 <b>Tónn og áherslur</b> — AI-greining á raunverulegum þingræðum, eftir málaflokkum</li>
-        <li>❓ <b>Fyrirspurnir og flutt mál</b> · 📋 nefndavald · 💰 laun · 🧭 pólitískt kort með staðsetningu</li>
-        <li>📰 <b>Fjölmiðlaumfjöllun</b> með vélrænu viðhorfsmati + 🖨️ PDF-útprentun</li>
+        <li><b>Atkvæðaferill</b> — uppreisnar-atkvæði gegn eigin flokki, mæting mánuð fyrir mánuð</li>
+        <li><b>Afstaða eftir málaflokkum</b> — já/nei-atkvæði flokkuð eftir opinberum efnisflokkum Alþingis</li>
+        <li><b>Málróf</b> — ræður, andsvör, ræðutími eftir málefnum og hvað er talað mest um</li>
+        <li><b>Tónn og áherslur</b> — AI-greining á raunverulegum þingræðum, eftir málaflokkum</li>
+        <li><b>Fyrirspurnir og flutt mál</b> · nefndavald · laun · pólitískt kort með staðsetningu</li>
+        <li><b>Fjölmiðlaumfjöllun</b> með vélrænu viðhorfsmati + PDF-útprentun</li>
       </ul>
       <div class="tks-btns">
         <a class="tks-main" href={SKYRSLA_URL}>Opna skýrsluna — 990 kr →</a>
-        <a class="tks-sec" href={SAMPLE_URL}>👁️ Sjá sýnishorn (ókeypis)</a>
+        <a class="tks-sec" href={SAMPLE_URL}>Sjá sýnishorn (ókeypis)</a>
       </div>
       <div class="tks-note">Eða <b>áskrift á 3.900 kr/mán</b> — 20 þingmannaskýrslur innifaldar í hverjum mánuði. Hluti af <a href="/karp-pro/">Karp+</a>.</div>
     </div>

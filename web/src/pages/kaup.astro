@@ -13,7 +13,6 @@ const desc = 'Staðfesting greiðslu fyrir Karp-skýrslu.';
 <Layout title="Kaup — Karp" description={desc} canonical="https://karp.is/kaup/" ogTitle="Kaup" noindex={true}>
   <main data-pg="kaup">
     <div class="kaup-card">
-      <div class="kaup-ico" id="kaup-ico">⏳</div>
       <h1 class="kaup-h" id="kaup-h">Vinn úr greiðslu…</h1>
       <p class="kaup-b" id="kaup-b"></p>
       <div class="kaup-btns" id="kaup-btns"></div>
@@ -24,8 +23,7 @@ const desc = 'Staðfesting greiðslu fyrir Karp-skýrslu.';
   <style is:global>
     main[data-pg="kaup"] { max-width: 560px; margin: 0 auto; }
     main[data-pg="kaup"] .kaup-card { background: rgba(255,255,255,.04); border: 1px solid rgba(246,177,59,.35); border-radius: 18px; padding: 34px 28px; text-align: center; margin: 40px auto; }
-    main[data-pg="kaup"] .kaup-ico { font-size: 46px; line-height: 1; }
-    main[data-pg="kaup"] .kaup-h { font-size: 24px; color: var(--ink); margin: 14px 0 8px; }
+    main[data-pg="kaup"] .kaup-h { font-size: 24px; color: var(--ink); margin: 0 0 8px; }
     main[data-pg="kaup"] .kaup-b { color: var(--ink); font-size: 15px; line-height: 1.55; margin: 0 0 20px; }
     main[data-pg="kaup"] .kaup-oid { color: var(--muted); font-size: 13px; white-space: nowrap; }
     main[data-pg="kaup"] .kaup-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
@@ -38,6 +36,7 @@ const desc = 'Staðfesting greiðslu fyrir Karp-skýrslu.';
 
   <script>
     import { loadUser } from '../lib/auth.js';
+    import { takn } from '../lib/takn.mjs';
     const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     function boot() {
       const main = document.querySelector('main[data-pg="kaup"]');
@@ -51,19 +50,16 @@ const desc = 'Staðfesting greiðslu fyrir Karp-skýrslu.';
         : ('/fasteignavakt/' + (rest ? '?q=' + encodeURIComponent(rest) : ''));
       const $ = (id) => document.getElementById(id);
       if (s === 'ok') {
-        $('kaup-ico').textContent = '✅';
         $('kaup-h').textContent = 'Greiðsla tókst!';
         $('kaup-b').innerHTML = 'Takk fyrir kaupin — skýrslan þín er tilbúin' + (o ? ' <span class="kaup-oid">(pöntun ' + esc(o) + ')</span>' : '') + '.';
-        $('kaup-btns').innerHTML = '<a class="kaup-main" href="' + esc(backHref) + '">🖨️ Sækja skýrslu (PDF)</a><a class="kaup-sec" href="/mitt-svaedi/">Mitt svæði</a>';
+        $('kaup-btns').innerHTML = '<a class="kaup-main" href="' + esc(backHref) + '">' + takn('prenta') + 'Sækja skýrslu (PDF)</a><a class="kaup-sec" href="/mitt-svaedi/">Mitt svæði</a>';
         $('kaup-note').textContent = 'Skýrslan vistast á Mitt svæði og er þér alltaf aðgengileg.';
       } else if (s === 'cancel') {
-        $('kaup-ico').textContent = '↩️';
         $('kaup-h').textContent = 'Hætt við greiðslu';
         $('kaup-b').textContent = 'Engin greiðsla fór fram. Þú getur reynt aftur hvenær sem er.';
         $('kaup-btns').innerHTML = '<a class="kaup-main" href="' + esc(backHref) + '">Reyna aftur</a><a class="kaup-sec" href="/">Forsíða</a>';
         $('kaup-note').textContent = '';
       } else {
-        $('kaup-ico').textContent = 'ℹ️';
         $('kaup-h').textContent = 'Kaupstaðfesting';
         $('kaup-b').textContent = 'Þessi síða staðfestir greiðslur fyrir Karp-skýrslur.';
         $('kaup-btns').innerHTML = '<a class="kaup-main" href="/">Forsíða</a>';

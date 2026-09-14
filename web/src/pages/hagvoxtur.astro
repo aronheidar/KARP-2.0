@@ -25,10 +25,10 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ha
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Hagvaxtartölur: þjóðhagsreikningar Hagstofunnar (PxWeb), raunbreytingar á föstu verðlagi.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div class="kpis">
-      {GDP && <div class="kpi"><div class="k-l">📈 Hagvöxtur</div><div class={`k-v ${GDP.latest >= 0 ? 'up' : 'dn'}`}>{GDP.latest > 0 ? '+' : ''}{fmtNum(GDP.latest, 1)}%</div><div class="k-s">{GDP.latestQ} · frá fyrra ári</div></div>}
-      {VSAN && <div class="kpi"><div class="k-l">💰 VLF (12 mán)</div><div class="k-v">{groupThousands(VSAN.vlf)}</div><div class="k-s">ma.kr · verðlag hvers árs</div></div>}
-      {islWb && <div class="kpi"><div class="k-l">👤 VLF á mann</div><div class="k-v">{groupThousands(islWb.v)}</div><div class="k-s">USD · {islWb.yr} (WB)</div></div>}
-      {fcNow != null && <div class="kpi"><div class="k-l">🔮 Hagvaxtarspá {forecast.splitYear}</div><div class={`k-v ${fcNow >= 0 ? 'up' : 'dn'}`}>{fcNow > 0 ? '+' : ''}{fmtNum(fcNow, 1)}%</div><div class="k-s">IMF WEO · raun-VLF</div></div>}
+      {GDP && <div class="kpi"><div class="k-l">Hagvöxtur</div><div class={`k-v ${GDP.latest >= 0 ? 'up' : 'dn'}`}>{GDP.latest > 0 ? '+' : ''}{fmtNum(GDP.latest, 1)}%</div><div class="k-s">{GDP.latestQ} · frá fyrra ári</div></div>}
+      {VSAN && <div class="kpi"><div class="k-l">VLF (12 mán)</div><div class="k-v">{groupThousands(VSAN.vlf)}</div><div class="k-s">ma.kr · verðlag hvers árs</div></div>}
+      {islWb && <div class="kpi"><div class="k-l">VLF á mann</div><div class="k-v">{groupThousands(islWb.v)}</div><div class="k-s">USD · {islWb.yr} (WB)</div></div>}
+      {fcNow != null && <div class="kpi"><div class="k-l">Hagvaxtarspá {forecast.splitYear}</div><div class={`k-v ${fcNow >= 0 ? 'up' : 'dn'}`}>{fcNow > 0 ? '+' : ''}{fmtNum(fcNow, 1)}%</div><div class="k-s">IMF WEO · raun-VLF</div></div>}
     </div>
 
     {GDP && (

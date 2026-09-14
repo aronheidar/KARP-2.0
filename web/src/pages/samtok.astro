@@ -29,7 +29,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Al
     <div class="grid">
       {orgs.map((o) => (
         <details class="card">
-          <summary><span class="c-e">{o.emoji}</span><span class="c-n">{o.name}</span><span class="c-y">{o.year}</span><div class="c-s">{o.short}</div></summary>
+          <summary><span class="c-n">{o.name}</span><span class="c-y">{o.year}</span><div class="c-s">{o.short}</div></summary>
           <div class="c-b" set:html={o.body} />
           {o.link && <a class="c-l" href={o.link} target="_blank" rel="noopener">Vefur ↗</a>}
         </details>
@@ -40,7 +40,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Al
     <div class="grid">
       {deals.map((o) => (
         <details class="card">
-          <summary><span class="c-e">{o.emoji}</span><span class="c-n">{o.name}</span><span class="c-y">{o.year}</span><div class="c-s">{o.short}</div></summary>
+          <summary><span class="c-n">{o.name}</span><span class="c-y">{o.year}</span><div class="c-s">{o.short}</div></summary>
           <div class="c-b" set:html={o.body} />
           {o.link && <a class="c-l" href={o.link} target="_blank" rel="noopener">Vefur ↗</a>}
         </details>
@@ -50,7 +50,6 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Al
     <h2>Þvingunaraðgerðir &amp; refsilistar</h2>
     <p class="rl-intro">Sem aðili að EES og Sameinuðu þjóðunum innleiðir Ísland þvingunaraðgerðir (refsiaðgerðir) ESB og öryggisráðs SÞ. Hér má fletta upp nöfnum á opinberum refsilistum.</p>
     <a class="rl-card" href="/refsilistar/">
-      <span class="rl-e">🚫</span>
       <span class="rl-b">
         <span class="rl-n">Refsilistar — ESB, SÞ &amp; OFAC</span>
         <span class="rl-s">Leitaðu í {fmtN(nSanctions)} nöfnum á samsteyptum refsilistum. ⚠ Nafnasamsvörun er ekki úrskurður — staðfestu ávallt sjálfstætt.</span>
@@ -72,7 +71,6 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Al
     .card summary { list-style: none; cursor: pointer; padding: 13px 15px; position: relative; }
     .card summary::-webkit-details-marker { display: none; }
     .card[open] { border-color: rgba(246,177,59,.5); }
-    .c-e { font-size: 20px; margin-right: 8px; }
     .c-n { font-weight: 700; font-size: 14.5px; color: var(--ink); }
     .c-y { position: absolute; top: 13px; right: 14px; font-size: 11px; color: #f6b13b; font-weight: 700; }
     .c-s { font-size: 12px; color: var(--muted); margin-top: 4px; }
@@ -85,11 +83,10 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Al
     .rl-intro { font-size: 13.5px; color: var(--ink); margin: 0 0 12px; line-height: 1.55; }
     .rl-card { display: flex; align-items: center; gap: 14px; background: rgba(248,81,73,.06); border: 1px solid rgba(248,81,73,.28); border-radius: 12px; padding: 14px 16px; text-decoration: none; transition: border-color .15s; }
     .rl-card:hover { border-color: rgba(248,81,73,.55); }
-    .rl-e { font-size: 26px; flex: 0 0 auto; }
     .rl-b { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
     .rl-n { font-size: 14.5px; font-weight: 700; color: var(--ink); }
     .rl-s { font-size: 12.5px; color: var(--ink); margin-top: 3px; line-height: 1.5; }
     .rl-go { flex: 0 0 auto; font-size: 13px; font-weight: 700; color: #ff9d94; white-space: nowrap; }
-    @media (max-width: 560px) { .rl-card { flex-wrap: wrap; } .rl-go { margin-left: 40px; } }
+    @media (max-width: 560px) { .rl-card { flex-wrap: wrap; } }
   </style>
 </Layout>

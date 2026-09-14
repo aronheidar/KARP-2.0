@@ -86,7 +86,7 @@ const desc = `Stjórnmálaflokkarnir á Alþingi — sæti nú og í sætaspá, 
               {p.medalaldur != null && <span class="pt"><b>{p.medalaldur} ára</b><i>meðalaldur</i></span>}
               {p.ministers.length > 0 && <span class="pt"><b>{p.ministers.length}</b><i>ráðherrar</i></span>}
             </div>
-            {p.spark && <div class="pc-stats"><span class="pc-spark">📈 Fylgisþróun (14 síðustu kannanir) <svg viewBox="0 0 96 28" preserveAspectRatio="none"><polyline points={p.spark} fill="none" stroke={p.color} stroke-width="2" vector-effect="non-scaling-stroke" /></svg></span></div>}
+            {p.spark && <div class="pc-stats"><span class="pc-spark">Fylgisþróun (14 síðustu kannanir) <svg viewBox="0 0 96 28" preserveAspectRatio="none"><polyline points={p.spark} fill="none" stroke={p.color} stroke-width="2" vector-effect="non-scaling-stroke" /></svg></span></div>}
             {p.ministers.length > 0 && (
               <div class="pc-min">Ráðherrar: {p.ministers.map((m) => `${m.n} (${m.e})`).join(' · ')}</div>
             )}

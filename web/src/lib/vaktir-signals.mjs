@@ -28,7 +28,7 @@ export function rankMovement(prev, cur) {
   const milestone = tp !== tc;
   if (!milestone && delta < 3) return null;
   let badge;
-  if (c === 1 && p > 1) badge = '🥇 nýtt #1 í greininni';
+  if (c === 1 && p > 1) badge = 'Nýtt #1 í greininni';
   else if (milestone && dir === 'up') badge = '↑ í topp ' + tc;
   else if (milestone && dir === 'down') badge = '↓ úr topp ' + tp;
   else badge = (dir === 'up' ? '↑ ' : '↓ ') + delta + ' sæti';

@@ -39,14 +39,14 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Au
 <Layout title="Auðlindir Íslands — hver nýtir og hvað borgar hver? | Karp" description={desc} canonical="https://karp.is/audlindir/" jsonLd={jsonLd} ogTitle="Auðlindir Íslands í tölum">
   <main data-pg="audlindir">
     <p class="kicker">Hagvísir Íslands · Atvinnuvegir</p>
-    <h1>Auðlindir Íslands 🌊⚡🏔️</h1>
+    <h1>Auðlindir Íslands</h1>
     <p>Fiskurinn, orkan, náttúran — og gjöldin sem renna til samfélagsins fyrir nýtinguna. Hér eru tölurnar hlið við hlið, með heimildum. Karp tekur ekki afstöðu; það gera lesendur.</p>
 
     <div class="kpis">
-      {veidigjald != null && <div class="kpi"><div class="k-l">🎣 Veiðigjald <i class="tip" tabindex="0" data-tip={`Gjald útgerða fyrir aðgang að fiskveiðiauðlindinni, skv. tekjuáætlun fjárlaga ${SKATTAR.ar}. Heimild: fjárlög.`}>ⓘ</i></div><div class="k-v">{fmtNum(veidigjald, 1)}</div><div class="k-s">ma.kr · fjárlög {SKATTAR.ar}</div></div>}
-      {orkaGWh != null && <div class="kpi"><div class="k-l">⚡ Raforkuframleiðsla <i class="tip" tabindex="0" data-tip="Heildarraforkuframleiðsla nýjasta árs í gagnasafni Orkustofnunar (GWh). Nær öll úr vatnsafli og jarðvarma; um 80% fara til stórnotenda.">ⓘ</i></div><div class="k-v">{groupThousands(orkaGWh)}</div><div class="k-s">GWh{lastO && lastO.y ? ` · ${lastO.y}` : ''} · sjá <a href="/orka/">Raforku</a></div></div>}
-      {ferda12 != null && <div class="kpi"><div class="k-l">✈️ Erlendir ferðamenn <i class="tip" tabindex="0" data-tip="Brottfarir erlendra farþega um Keflavíkurflugvöll síðustu 12 mánuði. Heimild: Hagstofa (SAM02001).">ⓘ</i></div><div class="k-v">{groupThousands(ferda12)}</div><div class="k-s">sl. 12 mánuði</div></div>}
-      {CO2 && <div class="kpi"><div class="k-l">🏭 Losun á mann <i class="tip" tabindex="0" data-tip="CO₂-losun á íbúa (tonn/ári), innanlandslosun án landnotkunar. Heimild: Our World in Data (Global Carbon Budget).">ⓘ</i></div><div class="k-v">{String(CO2.last.v).replace('.', ',')}</div><div class="k-s">t CO₂ · {CO2.last.y}</div></div>}
+      {veidigjald != null && <div class="kpi"><div class="k-l">Veiðigjald <i class="tip" tabindex="0" data-tip={`Gjald útgerða fyrir aðgang að fiskveiðiauðlindinni, skv. tekjuáætlun fjárlaga ${SKATTAR.ar}. Heimild: fjárlög.`}>ⓘ</i></div><div class="k-v">{fmtNum(veidigjald, 1)}</div><div class="k-s">ma.kr · fjárlög {SKATTAR.ar}</div></div>}
+      {orkaGWh != null && <div class="kpi"><div class="k-l">Raforkuframleiðsla <i class="tip" tabindex="0" data-tip="Heildarraforkuframleiðsla nýjasta árs í gagnasafni Orkustofnunar (GWh). Nær öll úr vatnsafli og jarðvarma; um 80% fara til stórnotenda.">ⓘ</i></div><div class="k-v">{groupThousands(orkaGWh)}</div><div class="k-s">GWh{lastO && lastO.y ? ` · ${lastO.y}` : ''} · sjá <a href="/orka/">Raforku</a></div></div>}
+      {ferda12 != null && <div class="kpi"><div class="k-l">Erlendir ferðamenn <i class="tip" tabindex="0" data-tip="Brottfarir erlendra farþega um Keflavíkurflugvöll síðustu 12 mánuði. Heimild: Hagstofa (SAM02001).">ⓘ</i></div><div class="k-v">{groupThousands(ferda12)}</div><div class="k-s">sl. 12 mánuði</div></div>}
+      {CO2 && <div class="kpi"><div class="k-l">Losun á mann <i class="tip" tabindex="0" data-tip="CO₂-losun á íbúa (tonn/ári), innanlandslosun án landnotkunar. Heimild: Our World in Data (Global Carbon Budget).">ⓘ</i></div><div class="k-v">{String(CO2.last.v).replace('.', ',')}</div><div class="k-s">t CO₂ · {CO2.last.y}</div></div>}
     </div>
 
     <div class="ppair">
@@ -66,10 +66,10 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Au
 
     <h2>Samhengið</h2>
     <div class="facts">
-      <div class="fact"><b>🎣 Fiskurinn</b><span>Aflinn er rúmlega milljón tonn á ári og veiðigjaldið skilar {veidigjald ? fmtNum(veidigjald, 1) : '—'} ma.kr — um {veidigjald ? fmtNum((veidigjald / SKATTAR.heildartekjur) * 100, 1) : '—'}% af heildartekjum ríkissjóðs. Sjá <a href="/atvinnuvegir/sjavarutvegur/">Sjávarútveg</a>.</span></div>
-      <div class="fact"><b>⚡ Orkan</b><span>Raforkan er nær öll endurnýjanleg en um fjórir fimmtu hlutar fara til stórnotenda (álver, gagnaver). Arður orkufyrirtækjanna rennur til eigenda — ríkis og sveitarfélaga. Sjá <a href="/orka/">Raforku</a> og <a href="/atvinnuvegir/storidja/">Stóriðju</a>.</span></div>
-      <div class="fact"><b>🏔️ Náttúran</b><span>Ferðaþjónustan nýtir náttúruna án beins auðlindagjalds — gisting og neysla skila þó virðisaukaskatti. Álagið mælist í <a href="/atvinnuvegir/ferdathjonusta/">ferðamannafjöldanum</a> og innviðunum.</span></div>
-      <div class="fact"><b>🌍 Samanburðurinn</b><span>Ísland er meðal efstu þjóða heims í orkunotkun á mann — sjá <a href="/samanburdur/">Ísland í samanburði</a> fyrir heimsröðunina.</span></div>
+      <div class="fact"><b>Fiskurinn</b><span>Aflinn er rúmlega milljón tonn á ári og veiðigjaldið skilar {veidigjald ? fmtNum(veidigjald, 1) : '—'} ma.kr — um {veidigjald ? fmtNum((veidigjald / SKATTAR.heildartekjur) * 100, 1) : '—'}% af heildartekjum ríkissjóðs. Sjá <a href="/atvinnuvegir/sjavarutvegur/">Sjávarútveg</a>.</span></div>
+      <div class="fact"><b>Orkan</b><span>Raforkan er nær öll endurnýjanleg en um fjórir fimmtu hlutar fara til stórnotenda (álver, gagnaver). Arður orkufyrirtækjanna rennur til eigenda — ríkis og sveitarfélaga. Sjá <a href="/orka/">Raforku</a> og <a href="/atvinnuvegir/storidja/">Stóriðju</a>.</span></div>
+      <div class="fact"><b>Náttúran</b><span>Ferðaþjónustan nýtir náttúruna án beins auðlindagjalds — gisting og neysla skila þó virðisaukaskatti. Álagið mælist í <a href="/atvinnuvegir/ferdathjonusta/">ferðamannafjöldanum</a> og innviðunum.</span></div>
+      <div class="fact"><b>Samanburðurinn</b><span>Ísland er meðal efstu þjóða heims í orkunotkun á mann — sjá <a href="/samanburdur/">Ísland í samanburði</a> fyrir heimsröðunina.</span></div>
     </div>
 
     <p class="note">ⓘ Umræðan um auðlindagjöld er pólitísk; þessi síða birtir aðeins opinberu tölurnar hlið við hlið. Gjöldin eru <strong>tekjuáætlun fjárlaga</strong>, ekki rauninnheimta; arðgreiðslur orkufyrirtækja eru ekki í fjárlagatölunum.</p>

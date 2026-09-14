@@ -22,7 +22,7 @@ const desc = 'Stærstu fyrirtæki Íslands eftir atvinnugrein — raðað eftir 
           <option value="efe">Eigin fé</option>
         </select>
       </label>
-      <button type="button" class="tf-pdf">🖨️ Sækja PDF</button>
+      <button type="button" class="tf-pdf"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:inline-block;vertical-align:-.2em;flex:none"><path d="M6 9V3h12v6"/><rect x="4" y="9" width="16" height="8" rx="1.5"/><path d="M7 14h10v7H7z"/></svg> Sækja PDF</button>
     </div>
     <div class="tf-cov" id="tf-cov"></div>
     <div class="tf-host" id="tf-host"><div class="eig-loading">Hleð…</div></div>
@@ -30,6 +30,7 @@ const desc = 'Stærstu fyrirtæki Íslands eftir atvinnugrein — raðað eftir 
   <script>
     import { hasTier } from '../lib/auth.js';
     import { felagHref } from '../lib/fyrirtaeki-slod.mjs';
+    import { takn } from '../lib/takn.mjs';
     const kr = (n) => (n == null ? '—' : Math.round(n / 1e6).toLocaleString('is-IS') + ' m.kr');
     const ktF = (k) => (k && k.length === 10 ? k.slice(0, 6) + '-' + k.slice(6) : k || '');
     const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -44,7 +45,7 @@ const desc = 'Stærstu fyrirtæki Íslands eftir atvinnugrein — raðað eftir 
       const rows = d.radir.map((r, i) => `<tr><td class="tf-rank">${i + 1}</td><td class="tf-nm"><a href="${felagHref(r.kt)}">${esc(r.nafn)}</a> <span class="eig-kt">${esc(ktF(r.kt))}</span></td><td class="tf-num">${kr(r.sala)}</td><td class="tf-num">${kr(r.hagnadur)}</td><td class="tf-num">${kr(r.eignir)}</td><td class="tf-num">${kr(r.eigid_fe)}</td><td class="tf-yr">${esc(r.ar || '')}</td></tr>`).join('');
       let html = `<table class="eig-tafla tf-tafla"><thead><tr><th>#</th><th>Fyrirtæki</th><th>Velta</th><th>Hagnaður</th><th>Eignir</th><th>Eigið fé</th><th>Ár</th></tr></thead><tbody>${rows}</tbody></table>`;
       if (d.locked) {
-        html += `<div class="eig-cta tf-lock"><b>🔒 Fullur listi — Karp+</b><span>Sjáðu alla ${d.total >= 100 ? '100' : d.total} + veltu/hagnað/eignir og PDF-niðurhal með Karp+ áskrift.</span><div class="eig-cta-btns"><button type="button" class="eig-buy tf-buy">⭐ Fá Karp+</button></div></div>`;
+        html += `<div class="eig-cta tf-lock"><b>${takn('laest')}Fullur listi — Karp+</b><span>Sjáðu alla ${d.total >= 100 ? '100' : d.total} + veltu/hagnað/eignir og PDF-niðurhal með Karp+ áskrift.</span><div class="eig-cta-btns"><button type="button" class="eig-buy tf-buy">Fá Karp+</button></div></div>`;
       }
       host.innerHTML = html;
       const buy = host.querySelector('.tf-buy');

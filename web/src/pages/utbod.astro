@@ -30,21 +30,21 @@ const TOPBUYERS = Object.entries((UTBOD.tenders || []).reduce((a, x) => { if (x.
 const desc = `Útboðsgátt Karp — ${UTBOD.n} opinber útboð frá öllum helstu gáttum á einum stað: Útboðsvefur Ríkiskaupa, TED (EES), Reykjavíkurborg, Faxaflóahafnir og Landsvirkjun. Leit, flokkar, frestir og tölvupósts-vakt fyrir verktaka.`;
 // Flokkalisti raðaður eftir fjölda (build skilar cats-heitum + byCat-talningu)
 const catList = Object.entries(UTBOD.byCat || {}).sort((a, b) => b[1] - a[1])
-  .map(([k, n]) => ({ k, n, label: (UTBOD.cats[k] || [k])[0], e: (UTBOD.cats[k] || ['', '📦'])[1] }));
-const SRCMETA = { rk: ['Útboðsvefur', '🇮🇸'], ted: ['TED (EES)', '🇪🇺'], rvk: ['Reykjavíkurborg', '🏙️'], fax: ['Faxaflóahafnir', '⚓'], lv: ['Landsvirkjun', '⚡'] };
+  .map(([k, n]) => ({ k, n, label: (UTBOD.cats[k] || [k])[0] }));
+const SRCMETA = { rk: ['Útboðsvefur', 'IS'], ted: ['TED (EES)', 'EES'], rvk: ['Reykjavíkurborg', 'RVK'], fax: ['Faxaflóahafnir', 'FAX'], lv: ['Landsvirkjun', 'LV'] }; // [heiti, textakóði í pillu] — engir fánar (Windows teiknar þá sem bókstafi)
 ---
 
 <Layout title="Útboðsgátt — öll útboð á einum stað | Karp" description={desc} canonical="https://karp.is/utbod/" ogTitle="Útboðsgátt Karp">
   <main data-pg="utbod">
     <p class="kicker">Karp+ · Útboð</p>
-    <h1>📋 Útboðsgátt</h1>
+    <h1>Útboðsgátt</h1>
     <p>Öll opinber útboð frá öllum helstu gáttum — á einum stað, fyrir verktaka og birgja. Leitaðu, síaðu eftir flokki og láttu <a href="/lobbyvakt/">leitarorðavaktina</a> senda þér póst um leið og nýtt útboð passar við þína verktöku.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Grunngögnin eru sótt daglega kl. 6 af öllum gáttum sem Karp nær í: Útboðsvefur Ríkiskaupa (API), TED — EES-útboð á Íslandi (API), Reykjavíkurborg, Faxaflóahafnir og Landsvirkjun (vef-scrape) — og Útboðsvefurinn er auk þess sóttur í hverri heimsókn. Flokkun er vélræn: TED eftir CPV-innkaupakóðum, annað eftir lykilorðum í heiti. Fit-einkunnin er reiknuð í vafranum þínum úr vaktinni þinni og verktaka-prófílnum. 📋 Hæfiskröfur EES-útboða eru dregnar út úr tilkynningunum með gervigreind — leiðbeinandi, sannreyndu alltaf í útboðsgögnunum sjálfum.">ⓘ</i> Um gögnin á síðunni</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Grunngögnin eru sótt daglega kl. 6 af öllum gáttum sem Karp nær í: Útboðsvefur Ríkiskaupa (API), TED — EES-útboð á Íslandi (API), Reykjavíkurborg, Faxaflóahafnir og Landsvirkjun (vef-scrape) — og Útboðsvefurinn er auk þess sóttur í hverri heimsókn. Flokkun er vélræn: TED eftir CPV-innkaupakóðum, annað eftir lykilorðum í heiti. Fit-einkunnin er reiknuð í vafranum þínum úr vaktinni þinni og verktaka-prófílnum. Hæfiskröfur EES-útboða eru dregnar út úr tilkynningunum með gervigreind — leiðbeinandi, sannreyndu alltaf í útboðsgögnunum sjálfum.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div id="uv-panel" class="uv">
       <div class="uv-head">
         <div>
-          <div class="uv-title">🔔 Mín útboðsvakt</div>
+          <div class="uv-title">Mín útboðsvakt</div>
           <div class="uv-desc">Ný útboð sem passa þína verktöku — beint í tölvupóstinn, á hverjum morgni.</div>
         </div>
         <span id="uv-status" class="uv-pill" hidden>Óvirk</span>
@@ -59,32 +59,32 @@ const SRCMETA = { rk: ['Útboðsvefur', '🇮🇸'], ted: ['TED (EES)', '🇪�
       <button class="us-c us-f" id="us-new-c" type="button" title="Sía listann: aðeins útboð birt í dag"><b id="us-new">—</b><span>ný í dag</span></button>
     </div>
 
-    {(AVGBIDS || TOPBUYERS.length > 0) && <p class="ut-comp">🥊 Samkeppnin: {AVGBIDS ? `meðaltal ${String(AVGBIDS).replace('.', ',')} tilboð í opnun` : ''}{AVGBIDS && TOPBUYERS.length ? ' · ' : ''}{TOPBUYERS.length ? 'virkustu kaupendur: ' + TOPBUYERS.map(([b, n]) => `${b} (${n})`).join(' · ') : ''}</p>}
+    {(AVGBIDS || TOPBUYERS.length > 0) && <p class="ut-comp">Samkeppnin: {AVGBIDS ? `meðaltal ${String(AVGBIDS).replace('.', ',')} tilboð í opnun` : ''}{AVGBIDS && TOPBUYERS.length ? ' · ' : ''}{TOPBUYERS.length ? 'virkustu kaupendur: ' + TOPBUYERS.map(([b, n]) => `${b} (${n})`).join(' · ') : ''}</p>}
 
     <div class="ut-bar">
       <input id="ut-q" type="search" placeholder="Leita í útboðum… (t.d. „malbik“, „raflagnir“, „ræsting“)" autocomplete="off" />
       <select id="ut-sort" aria-label="Röðun">
         <option value="new">Nýjast fyrst</option>
         <option value="deadline">Frestur styst í</option>
-        <option value="fit">🎯 Fit — passar best</option>
+        <option value="fit">Fit — passar best</option>
       </select>
     </div>
 
     <div class="ut-cats" id="ut-cats">
       <button class="uc on" data-c="">Allir flokkar · {UTBOD.n}</button>
-      {catList.map((c) => <button class="uc" data-c={c.k}>{c.e} {c.label} · {c.n}</button>)}
+      {catList.map((c) => <button class="uc" data-c={c.k}>{c.label} · {c.n}</button>)}
     </div>
 
     <div class="ut-srcs" id="ut-srcs">
       <span class="us-l">Gáttir:</span>
-      {Object.keys(SRCMETA).map((s) => (UTBOD.bySrc && UTBOD.bySrc[s] ? <label class="ut-src"><input type="checkbox" data-src={s} checked /> {SRCMETA[s][1]} {SRCMETA[s][0]} ({UTBOD.bySrc[s]})</label> : null))}
+      {Object.keys(SRCMETA).map((s) => (UTBOD.bySrc && UTBOD.bySrc[s] ? <label class="ut-src"><input type="checkbox" data-src={s} checked /> <span class={'ut-badge ' + s}>{SRCMETA[s][1]}</span> {SRCMETA[s][0]} ({UTBOD.bySrc[s]})</label> : null))}
     </div>
 
     <div id="ut-count" class="ut-count"></div>
     <div id="ut-list" class="ut-list">Raða útboðum…</div>
 
     {PINS.length > 0 && <>
-      <h2>🔮 Væntanleg útboð — forauglýsingar & markaðskannanir <i class="tip" tabindex="0" data-tip="Forauglýsingar (PIN) og markaðskannanir (RFI) úr TED — verk sem opinberir kaupendur eru að undirbúa en hafa EKKI enn boðið út. Forskotið: þú sérð verkefnin á undan öðrum og getur svarað markaðskönnun til að hafa áhrif á útboðslýsinguna áður en hún er skrifuð.">ⓘ</i></h2>
+      <h2>Væntanleg útboð — forauglýsingar & markaðskannanir <i class="tip" tabindex="0" data-tip="Forauglýsingar (PIN) og markaðskannanir (RFI) úr TED — verk sem opinberir kaupendur eru að undirbúa en hafa EKKI enn boðið út. Forskotið: þú sérð verkefnin á undan öðrum og getur svarað markaðskönnun til að hafa áhrif á útboðslýsinguna áður en hún er skrifuð.">ⓘ</i></h2>
       <div class="op-list">
         {PINS.map((p) => (
           <a class="op-card" href={p.u} target="_blank" rel="noopener">
@@ -95,7 +95,7 @@ const SRCMETA = { rk: ['Útboðsvefur', '🇮🇸'], ted: ['TED (EES)', '🇪�
       </div>
     </>}
 
-    <h2>🏆 Hver vann? — niðurstöður útboða <i class="tip" tabindex="0" data-tip="Samningstilkynningar (contract award notices) úr TED, opna útboðasafni ESB — hver vann íslensk útboð og á hvaða samningsverðmæti. Verðmæti eru heildarvirði samnings (rammasamningar geta spannað ár) og birtast aðeins þegar þau eru skráð í íslenskum krónum. Uppfært daglega.">ⓘ</i></h2>
+    <h2>Hver vann? — niðurstöður útboða <i class="tip" tabindex="0" data-tip="Samningstilkynningar (contract award notices) úr TED, opna útboðasafni ESB — hver vann íslensk útboð og á hvaða samningsverðmæti. Verðmæti eru heildarvirði samnings (rammasamningar geta spannað ár) og birtast aðeins þegar þau eru skráð í íslenskum krónum. Uppfært daglega.">ⓘ</i></h2>
     <div class="aw-bar"><input id="aw-q" type="search" placeholder="Leita í niðurstöðum… (fyrirtæki, kaupandi, verk)" autocomplete="off" /><span class="aw-n">{URSLIT.nAwards} niðurstöður</span></div>
     <div class="aw-list" id="aw-list">
       {AWARDS.map((a) => (
@@ -128,10 +128,10 @@ const SRCMETA = { rk: ['Útboðsvefur', '🇮🇸'], ted: ['TED (EES)', '🇪�
       </div>
     </>}
 
-    <h2>🏗️ Á undan útboðunum</h2>
+    <h2>Á undan útboðunum</h2>
     <p class="ut-bygg"><a href="/eftirlit-byggingar/?t=bygging">Byggingarleyfi Reykjavíkur</a> sýnir afgreiðslur byggingarfulltrúa Reykjavíkur — samþykkt byggingaráform og útgefin leyfi eftir heimilisföngum. Þar sérðu hvar framkvæmdir einkaaðila eru að fara af stað, áður en nokkuð er boðið út.</p>
 
-    <h2>📑 Öll útboð á Karp</h2>
+    <h2>Öll útboð á Karp</h2>
     <ul class="ut-index">
       {UT_INDEX.map((x) => (
         <li><a href={`/utbod/${x._id}/`}>{x.t}</a>{x.buyer ? <span class="ui-b"> · {x.buyer}</span> : null}</li>
@@ -166,6 +166,7 @@ const SRCMETA = { rk: ['Útboðsvefur', '🇮🇸'], ted: ['TED (EES)', '🇪�
     .ut-srcs { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 10px; }
     .us-l { font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: .04em; }
     .ut-src { font-size: 12.5px; color: var(--ink); display: inline-flex; gap: 5px; align-items: center; cursor: pointer; }
+    .ut-src .ut-badge { margin-right: 0; }
     .ut-count { font-size: 12px; color: var(--faint); margin: 12px 0 6px; }
     .ut-comp { font-size: 12px; color: var(--muted); margin: 10px 0 0; }
     .ut-bygg { font-size: 13.5px; }
@@ -208,7 +209,6 @@ const SRCMETA = { rk: ['Útboðsvefur', '🇮🇸'], ted: ['TED (EES)', '🇪�
     .ut-it { display: block; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 11px 13px; text-decoration: none; }
     .ut-it:hover { border-color: rgba(246,177,59,.45); }
     .ut-it.hit { border-left: 3px solid #f6b13b; background: rgba(246,177,59,.05); }
-    .ut-it .cat { font-size: 15px; margin-right: 4px; }
     .ut-t { display: block; font-size: 13.5px; color: var(--ink); line-height: 1.35; }
     .ut-m { display: block; font-size: 11px; color: var(--faint); margin-top: 5px; }
     .ut-m .by { color: var(--muted); }
@@ -388,8 +388,8 @@ const SRCMETA = { rk: ['Útboðsvefur', '🇮🇸'], ted: ['TED (EES)', '🇪�
         document.getElementById('ut-count').textContent = rows.length + ' útboð'
           + (dfilter === 'new' ? ' · ný í dag' : dfilter === 'soon' ? ' · loka innan 14 daga' : '')
           + (cat ? ` · ${(CATS[cat] || [cat])[0]}` : '') + (q ? ` · leit: „${q}“` : '')
-          + (sort === 'fit' && fits ? ' · 🎯 raðað eftir fit-einkunn' : '')
-          + (nVakt ? ` · 🔔 ${nVakt} passa vaktina þína (efst)` : '')
+          + (sort === 'fit' && fits ? ' · raðað eftir fit-einkunn' : '')
+          + (nVakt ? ` · ${nVakt} passa vaktina þína (efst)` : '')
           + (words.length ? ` · ${words.length} leitarorð þín upplýst` : '');
         list.innerHTML = rows.length ? rows.map((x) => {
           const vhit = vaktMatch(x);
@@ -399,20 +399,19 @@ const SRCMETA = { rk: ['Útboðsvefur', '🇮🇸'], ted: ['TED (EES)', '🇪�
           let dl = '';
           if (x.deadline) {
             if (dt != null && dt < 0) dl = `<span class="ut-past">frestur liðinn (${dIS(x.deadline)})</span>`;
-            else if (dt != null && dt <= 14) dl = `<span class="ut-soon">⏳ lokar eftir ${dt} d (${dIS(x.deadline)})</span>`;
+            else if (dt != null && dt <= 14) dl = `<span class="ut-soon">lokar eftir ${dt} d (${dIS(x.deadline)})</span>`;
             else dl = `frestur ${dIS(x.deadline)}`;
           }
           const fi = fits ? fits.get(x) : null;
-          const fitB = fi ? `<span class="ut-fit ${fi.score >= 70 ? 'hi' : fi.score >= 40 ? 'mid' : 'lo'}" title="${esc('Fit ' + fi.score + '% — ' + fi.tip)}">🎯 ${fi.score}%</span>` : '';
+          const fitB = fi ? `<span class="ut-fit ${fi.score >= 70 ? 'hi' : fi.score >= 40 ? 'mid' : 'lo'}" title="${esc('Fit ' + fi.score + '% — ' + fi.tip)}">Fit ${fi.score}%</span>` : '';
           // 📋 Hæfiskröfur: merki með kröfulistanum í tooltip; með prófíl → x/y uppfyllt (mátanlegar kröfur)
           const hx = HAEFI ? HAEFI[x.u] : null;
           const hc = hx ? haefiCheck(hx) : null;
           const haefiB = hx && hx.krofur && hx.krofur.length
-            ? `<span class="ut-haefi${hc ? (hc.passed === hc.total ? ' ok' : hc.passed === 0 ? ' nei' : ' mid') : ''}" title="${esc(hx.krofur.map((k) => '• ' + k.texti).join('\n').slice(0, 900) + '\n(GG-þáttun — sannreyndu í útboðsgögnum)')}">📋 ${hc ? `uppfyllir ${hc.passed}/${hc.total}` : hx.krofur.length + ' hæfiskröfur'}</span>` : '';
-          const ics = (x.deadline && dt != null && dt >= 0) ? `<span class="ut-ics" role="button" tabindex="0" title="Setja frestinn í dagatalið (.ics)" data-t="${esc(x.t.slice(0, 90))}" data-dl="${esc(x.deadline)}" data-u="${safe(x.u)}">📅 dagatal</span>` : '';
-          const cm = CATS[x.cat] || ['', '📦'];
+            ? `<span class="ut-haefi${hc ? (hc.passed === hc.total ? ' ok' : hc.passed === 0 ? ' nei' : ' mid') : ''}" title="${esc(hx.krofur.map((k) => '• ' + k.texti).join('\n').slice(0, 900) + '\n(GG-þáttun — sannreyndu í útboðsgögnum)')}">${hc ? `uppfyllir ${hc.passed}/${hc.total}` : hx.krofur.length + ' hæfiskröfur'}</span>` : '';
+          const ics = (x.deadline && dt != null && dt >= 0) ? `<span class="ut-ics" role="button" tabindex="0" title="Setja frestinn í dagatalið (.ics)" data-t="${esc(x.t.slice(0, 90))}" data-dl="${esc(x.deadline)}" data-u="${safe(x.u)}">dagatal</span>` : '';
           const parts = [fitB, haefiB, isNew ? '<span class="ut-new">NÝTT Í DAG</span>' : '', dl, ics, x.buyer ? `<span class="by">${esc(x.buyer)}</span>` : '', x.d && !dl ? 'birt ' + dIS(x.d) : ''].filter(Boolean);
-          return `<a class="ut-it${hit ? ' hit' : ''}" href="${safe(x.u)}" target="_blank" rel="noopener"><span class="ut-t">${vhit ? '<span class="ut-badge vakt" title="Passar við útboðsvaktina þína">🔔 VAKTIN</span>' : ''}<span class="ut-badge ${x.src}">${esc((({rk:'Útboðsvefur',ted:'TED',rvk:'Reykjavík',fax:'Faxafl.',lv:'Landsv.'})[x.src]) || x.src)}</span><span class="cat" title="${esc(cm[0])}">${cm[1]}</span>${esc(x.t)}</span><span class="ut-m">${parts.join(' · ')}</span></a>`;
+          return `<a class="ut-it${hit ? ' hit' : ''}" href="${safe(x.u)}" target="_blank" rel="noopener"><span class="ut-t">${vhit ? '<span class="ut-badge vakt" title="Passar við útboðsvaktina þína">VAKTIN</span>' : ''}<span class="ut-badge ${x.src}">${esc((({rk:'Útboðsvefur',ted:'TED',rvk:'Reykjavík',fax:'Faxafl.',lv:'Landsv.'})[x.src]) || x.src)}</span>${esc(x.t)}</span><span class="ut-m">${parts.join(' · ')}</span></a>`;
         }).join('') : '<div style="grid-column:1/-1;color:#7e8ca6">Ekkert útboð passar við leitina — prófaðu annan flokk, síu eða leitarorð.</div>';
       }
 
@@ -469,7 +468,7 @@ const SRCMETA = { rk: ['Útboðsvefur', '🇮🇸'], ted: ['TED (EES)', '🇪�
       const setPill = (on) => { if (!pill) return; pill.hidden = false; pill.textContent = on ? '● Vakt virk' : 'Óvirk'; pill.classList.toggle('on', !!on); };
       loadUser().then((u) => {
         if (!u || !u.loggedIn) {
-          body.innerHTML = '<div class="uv-gate"><span>⭐ Veldu útboðsflokka og leitarorð — Karp sendir þér póst um leið og nýtt útboð fellur að þinni verktöku, og útboðin þín raðast efst á síðunni. Hluti af <a href="/karp-pro/">Karp+</a> — eða sér áskrift á 1.900 kr./mán., 30 daga frítt.</span><a class="uv-save" href="' + esc(loginHref()) + '">Skrá inn</a></div>';
+          body.innerHTML = '<div class="uv-gate"><span>Veldu útboðsflokka og leitarorð — Karp sendir þér póst um leið og nýtt útboð fellur að þinni verktöku, og útboðin þín raðast efst á síðunni. Hluti af <a href="/karp-pro/">Karp+</a> — eða sér áskrift á 1.900 kr./mán., 30 daga frítt.</span><a class="uv-save" href="' + esc(loginHref()) + '">Skrá inn</a></div>';
           return;
         }
         karpGet('/utbodvakt').then((v) => {
@@ -477,11 +476,11 @@ const SRCMETA = { rk: ['Útboðsvefur', '🇮🇸'], ted: ['TED (EES)', '🇪�
           setPill(v.on);
           setVakt(v.cats, v.words);   // vakt-samsvörun í listanum (efst) — óháð póst-rofanum
           const sel = new Set(v.cats || []);
-          const catBtns = Object.keys(CATS).map((k) => `<span class="uv-cat${sel.has(k) ? ' on' : ''}" data-c="${k}">${CATS[k][1]} ${esc(CATS[k][0])}</span>`).join('');
+          const catBtns = Object.keys(CATS).map((k) => `<span class="uv-cat${sel.has(k) ? ' on' : ''}" data-c="${k}">${esc(CATS[k][0])}</span>`).join('');
           body.innerHTML =
             `<div class="uv-sec"><div class="uv-lbl">1 · Flokkarnir mínir</div><div class="uv-cats">${catBtns}</div></div>`
             + `<div class="uv-sec"><div class="uv-lbl">2 · Leitarorð <span class="opt">— valfrjálst, þrengir valið (kommu-aðskilin)</span></div><input id="uv-words" type="text" value="${esc((v.words || []).join(', '))}" placeholder="t.d. malbik, raflagnir, gröftur"></div>`
-            + `<div class="uv-foot"><label class="uv-toggle"><input type="checkbox" id="uv-on"${v.on ? ' checked' : ''}> 📧 Daglegur tölvupóstur</label><button class="uv-save" id="uv-save">Vista vakt</button></div>`
+            + `<div class="uv-foot"><label class="uv-toggle"><input type="checkbox" id="uv-on"${v.on ? ' checked' : ''}> Daglegur tölvupóstur</label><button class="uv-save" id="uv-save">Vista vakt</button></div>`
             + '<div class="uv-msg" id="uv-msg"></div>';
           body.querySelectorAll('.uv-cat').forEach((b) => b.addEventListener('click', () => b.classList.toggle('on')));
           document.getElementById('uv-save').addEventListener('click', () => {
@@ -511,7 +510,7 @@ const SRCMETA = { rk: ['Útboðsvefur', '🇮🇸'], ted: ['TED (EES)', '🇪�
         PROFIL = { velta: +pr.velta || 0, menn: +pr.menn || 0, vottord: pr.vottord || [], taeki: pr.taeki || [] };
         const sec = document.createElement('div');
         sec.className = 'uv-sec'; sec.id = 'uv-profil';
-        sec.innerHTML = '<div class="uv-lbl">3 · Verktaka-prófíllinn minn <span class="opt">— gefur útboðunum 🎯 fit-einkunn (sjá líka röðunina „Fit — passar best")</span></div>'
+        sec.innerHTML = '<div class="uv-lbl">3 · Verktaka-prófíllinn minn <span class="opt">— gefur útboðunum fit-einkunn (sjá líka röðunina „Fit — passar best")</span></div>'
           + '<div class="uv-prof">'
           + '<label>Árvelta (m.kr.)<input id="vp-velta" type="number" min="0" inputmode="numeric" value="' + (PROFIL.velta ? Math.round(PROFIL.velta / 1e6) : '') + '"></label>'
           + '<label>Starfsmenn<input id="vp-menn" type="number" min="0" inputmode="numeric" value="' + (PROFIL.menn || '') + '"></label>'
@@ -614,7 +613,6 @@ const SRCMETA = { rk: ['Útboðsvefur', '🇮🇸'], ted: ['TED (EES)', '🇪�
     // NÚNA: raunveruleg OPIN útboð úr safninu. Engin persónugögn (aðeins opinberir kaupendur).
     const SYNI_MAN = ['jan.', 'feb.', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágú.', 'sep.', 'okt.', 'nóv.', 'des.'];
     const SYNI_SRC = { rk: 'Útboðsvefur', ted: 'TED', rvk: 'Reykjavík', fax: 'Faxaflóahafnir', lv: 'Landsvirkjun' };
-    const SYNI_EMOJI = { bygg: '🏗️', jardv: '🚧', vel: '⚙️', flutn: '🚚', raesting: '🧹', hugb: '💻', matur: '🍽️', radgjof: '📊', orka: '⚡' };
     const syniEsc = (x) => String(x == null ? '' : x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     const syniDags = (d) => { const p = String(d).split('-'); return +p[2] + '. ' + SYNI_MAN[+p[1] - 1]; };
     // ⚠ aðeins 5-6 stafa Reykjavíkur-útboðsnúmer („16341 Titill") — EKKI ártal í heiti („2026-04 Penstock Pipes")
@@ -636,19 +634,19 @@ const SRCMETA = { rk: ['Útboðsvefur', '🇮🇸'], ted: ['TED (EES)', '🇪�
         const idagMs = Date.parse(new Date().toISOString().slice(0, 10));   // almanaksdagar, ekki ms-mismunur
         const dagar = Math.max(0, Math.round((Date.parse(x.deadline) - idagMs) / 864e5));
         const bratt = dagar <= 7;
-        const dl = (bratt ? '⏳ lokar eftir ' + dagar + ' d · ' : 'frestur ') + syniDags(x.deadline);
+        const dl = (bratt ? 'lokar eftir ' + dagar + ' d · ' : 'frestur ') + syniDags(x.deadline);
         return `<div class="ut-it" style="cursor:default"><span class="ut-t">`
           + `<span class="ut-badge ${x.src}">${SYNI_SRC[x.src] || x.src}</span>`
-          + `<span class="cat">${SYNI_EMOJI[x.cat] || '📦'}</span>${syniEsc(syniTitill(x.t))}</span>`
+          + `${syniEsc(syniTitill(x.t))}</span>`
           + `<span class="ut-m"><span class="${bratt ? 'ut-soon' : ''}">${dl}</span> · <span class="by">${syniEsc(x.buyer || '')}</span></span></div>`;
       }).join('');
       const cta = `<div class="syni-btns"><a class="syni-main" href="${loginHref()}">Prófa frítt í 30 daga</a><a class="syni-sec" href="/lausnir/utbodsvaktin/">Um Útboðsvaktina →</a></div>`;
-      return `<div class="syni-banner"><div class="syni-t">⭐ ${nOpin} opinber útboð eru opin núna — hér eru þau sem loka næst</div>`
-        + `<p>Þetta eru <b>raunveruleg útboð</b> úr vaktinni, ekki dæmi. Með áskrift sérðu þau öll og færð 🎯 fit-einkunn miðað við þína verktöku, 📋 hæfiskröfur EES-útboða og <b>daglegan tölvupóst</b> um leið og nýtt útboð passar við leitarorðin þín.</p>${cta}</div>`
+      return `<div class="syni-banner"><div class="syni-t">${nOpin} opinber útboð eru opin núna — hér eru þau sem loka næst</div>`
+        + `<p>Þetta eru <b>raunveruleg útboð</b> úr vaktinni, ekki dæmi. Með áskrift sérðu þau öll og færð fit-einkunn miðað við þína verktöku, hæfiskröfur EES-útboða og <b>daglegan tölvupóst</b> um leið og nýtt útboð passar við leitarorðin þín.</p>${cta}</div>`
         + `<div class="ut-list" style="grid-template-columns:1fr">${rows}</div>`
         + (full
           ? `<div class="syni-banner" style="margin-top:14px"><div class="syni-t">Tilbúinn að fá þín útboð efst?</div><p>Fyrstu 30 dagarnir eru fríir — svo 1.900 kr./mán. og engin binding.</p>${cta}</div>`
-          : `<p style="font-size:12.5px;color:#8fa0ba;margin:10px 0 0"><a href="/utbod/?syni=1" style="color:#f6b13b">👁️ Sjá fleiri opin útboð →</a></p>`);
+          : `<p style="font-size:12.5px;color:#8fa0ba;margin:10px 0 0"><a href="/utbod/?syni=1" style="color:#f6b13b">Sjá fleiri opin útboð →</a></p>`);
     }
 
     document.addEventListener('astro:page-load', () => {

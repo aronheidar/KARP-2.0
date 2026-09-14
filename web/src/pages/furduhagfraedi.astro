@@ -20,7 +20,7 @@ const rows = (FURDU.items || []).map((it) => {
   const p = rvk[it.idx], pc = cph[it.idx];
   if (p == null || !hourly) return null;
   return {
-    e: it.e, l: it.l || (itemsMeta[it.idx] || {}).is || '',
+    l: it.l || (itemsMeta[it.idx] || {}).is || '',
     price: p,
     perHour: Math.round((hourly / p) * 10) / 10,
     mins: Math.round((p / hourly) * 60),
@@ -35,12 +35,12 @@ const desc = `Furðuhagfræði — hvað kaupir klukkustund af íslenskri vinnu?
 <Layout title="Furðuhagfræði — hvað kaupir tímakaupið? | Karp" description={desc} canonical="https://karp.is/furduhagfraedi/" ogTitle="Furðuhagfræði">
   <main data-pg="furduhagfraedi">
     <p class="kicker">Hagvísir Íslands · Efnahagur</p>
-    <h1>Furðuhagfræði 🤪</h1>
+    <h1>Furðuhagfræði</h1>
     <p>Gleymdu vísitölum — mælum kaupmáttinn í <strong>bjórum og kaffibollum</strong>. Meðalnettólaun í Reykjavík eru {wage ? groupThousands(wage) : '—'} kr/mán ≈ <strong>{hourly ? groupThousands(Math.round(hourly)) : '—'} kr á klukkustund</strong>.</p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Furðuhagfræðin: verð frá Numbeo (hópöflun) og opinber verð; vísitölurnar reiknar Karp til gamans og fróðleiks — ekki hagspá.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div class="sal">
-      <label for="mysal">💰 Eða settu inn <strong>þín útborguðu laun</strong> og sjáðu hvað tímakaupið þitt kaupir:</label>
+      <label for="mysal">Eða settu inn <strong>þín útborguðu laun</strong> og sjáðu hvað tímakaupið þitt kaupir:</label>
       <div class="sal-row">
         <div class="sal-in"><input id="mysal" type="number" min="0" step="10000" placeholder={wage ? String(wage) : '450000'} inputmode="numeric" /><span>kr/mán</span></div>
         <span class="sal-note" id="sal-note"></span>
@@ -50,10 +50,9 @@ const desc = `Furðuhagfræði — hvað kaupir klukkustund af íslenskri vinnu?
     <div class="grid">
       {rows.map((r) => (
         <div class="c" data-price={r.price}>
-          <div class="c-e">{r.e}</div>
           <div class="c-l">{r.l}</div>
           <div class="c-v"><span class="c-v-num">{fmtNum(r.perHour, 1)}</span> <span>á klst vinnu</span></div>
-          <div class="c-m">⏱️ <span class="c-m-mins">{r.mins}</span> mín að vinna fyrir einum{r.minsCph != null ? ` · KBH: ${r.minsCph} mín` : ''}</div>
+          <div class="c-m"><span class="c-m-mins">{r.mins}</span> mín að vinna fyrir einum{r.minsCph != null ? ` · KBH: ${r.minsCph} mín` : ''}</div>
           <div class="c-p">{groupThousands(Math.round(r.price))} kr stk</div>
         </div>
       ))}
@@ -61,7 +60,7 @@ const desc = `Furðuhagfræði — hvað kaupir klukkustund af íslenskri vinnu?
 
     {RACE && (
       <>
-        <h2>🏃 Launakapphlaupið</h2>
+        <h2>Launakapphlaupið</h2>
         <p class="race-sub">Hvað hefur hækkað mest frá {RACE.baseY}? Laun, almennt verðlag og húsnæðisverð — allt sett á 100 í {RACE.baseY}. Heimild: Hagstofa.</p>
         <div id="c-race"></div>
         <div class="race-insight">
@@ -71,7 +70,7 @@ const desc = `Furðuhagfræði — hvað kaupir klukkustund af íslenskri vinnu?
       </>
     )}
 
-    <p class="note">ⓘ Verð frá Numbeo (samfélagslega söfnuð), laun = meðalnettólaun. Fylgni er ekki orsök og bjór er ekki fjárfestingarráðgjöf. 🍺</p>
+    <p class="note">ⓘ Verð frá Numbeo (samfélagslega söfnuð), laun = meðalnettólaun. Fylgni er ekki orsök og bjór er ekki fjárfestingarráðgjöf.</p>
     <p class="foot">Forþjónað (SSG, daglegt gagna-snapshot) {updated}. Sama fyrirbæri og gamla mælaborðið — tímakaups-hagfræðin. #2.</p>
   </main>
 
@@ -81,8 +80,7 @@ const desc = `Furðuhagfræði — hvað kaupir klukkustund af íslenskri vinnu?
     h1 { font-size: 32px; margin: 0 0 10px; } p { color: var(--ink); }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 16px; }
     .c { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 13px; padding: 14px 16px; }
-    .c-e { font-size: 28px; }
-    .c-l { font-weight: 700; font-size: 13.5px; margin: 4px 0 6px; }
+    .c-l { font-weight: 700; font-size: 13.5px; margin: 0 0 6px; }
     .c-v { font-size: 24px; font-weight: 800; color: #f6b13b; font-variant-numeric: tabular-nums; }
     .c-v span { font-size: 11px; color: var(--faint); font-weight: 500; }
     .c-m { font-size: 11.5px; color: var(--muted); margin-top: 5px; }

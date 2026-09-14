@@ -41,13 +41,13 @@ const jsonLd = {
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Orkutölur: raforkuframleiðsla og -notkun frá Orkustofnun (opin gagnasöfn) og kerfisgögn Landsnets.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div class="kpis">
-      <div class="kpi"><div class="k-l">⚡ Heildarframleiðsla</div><div class="k-v">{groupThousands(Math.round(latest.total))}</div><div class="k-s">GWh · {latest.y}</div></div>
-      <div class="kpi"><div class="k-l">🌿 Endurnýjanlegt</div><div class="k-v">{fmtNum(renew, 2)}%</div><div class="k-s">vatnsafl + jarðvarmi</div></div>
-      <div class="kpi"><div class="k-l">👤 Á íbúa</div><div class="k-v">{fmtNum(perCapita, 0)}</div><div class="k-s">MWh (heimsmet)</div></div>
+      <div class="kpi"><div class="k-l">Heildarframleiðsla</div><div class="k-v">{groupThousands(Math.round(latest.total))}</div><div class="k-s">GWh · {latest.y}</div></div>
+      <div class="kpi"><div class="k-l">Endurnýjanlegt</div><div class="k-v">{fmtNum(renew, 2)}%</div><div class="k-s">vatnsafl + jarðvarmi</div></div>
+      <div class="kpi"><div class="k-l">Á íbúa</div><div class="k-v">{fmtNum(perCapita, 0)}</div><div class="k-s">MWh (heimsmet)</div></div>
     </div>
 
     <div id="orka-live" hidden>
-      <h2>⚡ Framleiðsla núna</h2>
+      <h2>Framleiðsla núna</h2>
       <div class="live-row" id="orka-live-row"></div>
       <p class="srcnote" id="orka-live-ts"></p>
     </div>
@@ -144,14 +144,14 @@ const jsonLd = {
         .then((d) => {
           const mw = (v) => (v == null ? null : Math.round(v));
           const parts = [
-            { l: '💧 Vatnsafl', v: mw(d.hydro) },
-            { l: '🌋 Jarðvarmi', v: mw(d.geothermal) },
-            { l: '🛢️ Eldsneyti', v: mw(d.oil) },
+            { l: 'Vatnsafl', v: mw(d.hydro) },
+            { l: 'Jarðvarmi', v: mw(d.geothermal) },
+            { l: 'Eldsneyti', v: mw(d.oil) },
           ].filter((p) => p.v != null);
           if (!parts.length) return;
           const total = parts.reduce((s, p) => s + p.v, 0);
           const row = document.getElementById('orka-live-row');
-          row.innerHTML = [{ l: '⚡ Alls', v: total }, ...parts].map((p) => `<div class="kpi"><div class="k-l">${p.l}</div><div class="k-v">${String(p.v).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}</div><div class="k-s">MW núna</div></div>`).join('');
+          row.innerHTML = [{ l: 'Alls', v: total }, ...parts].map((p) => `<div class="kpi"><div class="k-l">${p.l}</div><div class="k-v">${String(p.v).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}</div><div class="k-s">MW núna</div></div>`).join('');
           document.getElementById('orka-live-ts').textContent = 'Rauntímagögn frá Landsnet' + (d.timestamp ? ' · ' + d.timestamp : '') + ' — birtast aðeins á karp.is.';
           box.hidden = false;
           box.dataset.done = '1';

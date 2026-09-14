@@ -24,9 +24,9 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ut
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Utanríkisverslun: inn- og útflutningstölur Hagstofunnar (PxWeb) eftir vöruflokkum.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div class="kpis">
-      {EXP && <div class="kpi"><div class="k-l">📦 Útflutningur</div><div class="k-v">{groupThousands(EXP.total)}</div><div class="k-s">ma.kr · {EXP.year}</div></div>}
-      {IMP && <div class="kpi"><div class="k-l">🚢 Innflutningur</div><div class="k-v">{groupThousands(IMP.total)}</div><div class="k-s">ma.kr · {IMP.year}</div></div>}
-      {lastJofn != null && <div class="kpi"><div class="k-l">⚖️ Jöfnuður (mán)</div><div class={`k-v ${lastJofn >= 0 ? 'up' : 'dn'}`}>{lastJofn > 0 ? '+' : ''}{fmtNum(lastJofn, 0)}</div><div class="k-s">ma.kr · nýjasti mánuður</div></div>}
+      {EXP && <div class="kpi"><div class="k-l">Útflutningur</div><div class="k-v">{groupThousands(EXP.total)}</div><div class="k-s">ma.kr · {EXP.year}</div></div>}
+      {IMP && <div class="kpi"><div class="k-l">Innflutningur</div><div class="k-v">{groupThousands(IMP.total)}</div><div class="k-s">ma.kr · {IMP.year}</div></div>}
+      {lastJofn != null && <div class="kpi"><div class="k-l">Jöfnuður (mán)</div><div class={`k-v ${lastJofn >= 0 ? 'up' : 'dn'}`}>{lastJofn > 0 ? '+' : ''}{fmtNum(lastJofn, 0)}</div><div class="k-s">ma.kr · nýjasti mánuður</div></div>}
     </div>
 
     <div class="ppair">
@@ -64,10 +64,10 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ut
         <h2>Heimskortin — hvert fara vörurnar? (12 mán)</h2>
         <p class="src">Stærstu viðskiptalönd: útflutningur → <strong>{BYLAND.utTop.name}</strong> ({fmtNum(BYLAND.utTop.v, 0)} ma.kr) · innflutningur ← <strong>{BYLAND.innTop.name}</strong> ({fmtNum(BYLAND.innTop.v, 0)} ma.kr).</p>
         <div class="mapgrid">
-          <div><div class="map-h">📦 Útflutningur eftir löndum</div><div id="map-exp" class="wmap"></div></div>
-          <div><div class="map-h">🚢 Innflutningur eftir löndum</div><div id="map-imp" class="wmap"></div></div>
-          <div><div class="map-h">➡️ Útflutningsflæði frá Íslandi</div><div id="map-expflow" class="wmap"></div></div>
-          <div><div class="map-h">⬅️ Innflutningsflæði til Íslands</div><div id="map-impflow" class="wmap"></div></div>
+          <div><div class="map-h">Útflutningur eftir löndum</div><div id="map-exp" class="wmap"></div></div>
+          <div><div class="map-h">Innflutningur eftir löndum</div><div id="map-imp" class="wmap"></div></div>
+          <div><div class="map-h">→ Útflutningsflæði frá Íslandi</div><div id="map-expflow" class="wmap"></div></div>
+          <div><div class="map-h">← Innflutningsflæði til Íslands</div><div id="map-impflow" class="wmap"></div></div>
         </div>
         <p class="src">Heimskortið hleðst í vafranum (ECharts world-GeoJSON). Ma.kr, samtala síðustu 12 mánaða.</p>
       </>

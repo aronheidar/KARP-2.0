@@ -202,7 +202,7 @@ export function teiknaDreifirit(el, SJ) {
 export function teiknaThroun(el, saga) {
   const p = ((saga && saga.punktar) || []).slice();
   if (p.length < 2) {
-    el.innerHTML = '<div class="kv-empty">📈 Þróunarlínurnar teiknast þegar 2+ vikulegar mælingar eru komnar — fyrsta mæling var '
+    el.innerHTML = '<div class="kv-empty">Þróunarlínurnar teiknast þegar 2+ vikulegar mælingar eru komnar — fyrsta mæling var '
       + (p[0] ? p[0].dags : '—') + ' og ný bætist við hvern mánudag. Hér birtist þá þróun samþjöppunar (top-10 og HHI) viku fyrir viku.</div>';
     return;
   }

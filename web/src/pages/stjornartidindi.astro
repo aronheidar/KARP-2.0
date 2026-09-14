@@ -39,12 +39,12 @@ const desc = `Stjórnartíðindavaktin — nýjustu lög, reglugerðir og auglý
 <Layout title="Stjórnartíðindavaktin — ný lög & reglugerðir | Karp" description={desc} canonical="https://karp.is/stjornartidindi/" ogTitle="Stjórnartíðindavaktin">
   <main data-pg="stjornartidindi">
     <p class="kicker">Hagvísir Íslands · Ríkisstjórn</p>
-    <h1>Stjórnartíðindavaktin 📜</h1>
+    <h1>Stjórnartíðindavaktin</h1>
     <p class="lead">Nýjustu <strong>lög, reglugerðir og auglýsingar</strong> úr Stjórnartíðindum á einum stað — <strong>{fmt(n)} nýjustu færslur</strong>, flokkaðar eftir deild, tegund og útgefanda. Þegar ný reglugerð eða lög eru birt rata þau hingað. Heimild er opna gátt <a href="https://island.is" rel="nofollow">island.is</a>.</p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Heimild: Stjórnartíðindi um opnu island.is-gáttina (officialJournalOfIcelandAdverts). Sýndar eru nýjustu ~200 færslur; á tímabilinu í heild (síðustu 120 daga) birtust fleiri. Deildir: A = lög og reglur, B = reglugerðir og gjaldskrár, C = milliríkjasamningar.">ⓘ</i> Stjórnartíðindi · nýjustu {fmt(n)} færslur (af {fmt(totalItems)} síðustu 120 daga)</p>
 
     <div class="kpis">
-      <div class="kpi"><div class="k-l">📜 Nýjustu færslur</div><div class="k-v">{fmt(n)}</div><div class="k-s">birtar nýlega</div></div>
+      <div class="kpi"><div class="k-l">Nýjustu færslur</div><div class="k-v">{fmt(n)}</div><div class="k-s">birtar nýlega</div></div>
       {depts.map((d) => (
         <div class="kpi"><div class="k-l" style={`color:${d.col}`}>● {d.nafn}</div><div class="k-v" style={`color:${d.col}`}>{fmt(d.count)}</div><div class="k-s">{d.key === 'A' ? 'lög & reglur' : d.key === 'B' ? 'reglugerðir' : 'samningar'}</div></div>
       ))}
@@ -72,7 +72,7 @@ const desc = `Stjórnartíðindavaktin — nýjustu lög, reglugerðir og auglý
     <h2>Nýjustu færslur</h2>
     <p class="sub">Síaðu eftir deild eða tegund, eða leitaðu í fyrirsögnum og útgefendum.</p>
     <div class="sj-controls">
-      <input id="sj-q" type="search" placeholder="🔎 Leita í fyrirsögn eða útgefanda…" autocomplete="off" />
+      <input id="sj-q" type="search" placeholder="Leita í fyrirsögn eða útgefanda…" autocomplete="off" />
       <select id="sj-dept" class="sj-sel"><option value="all">Allar deildir</option>{depts.map((d) => (<option value={d.nafn}>{d.nafn}</option>))}</select>
       <select id="sj-type" class="sj-sel"><option value="all">Allar tegundir</option>{typeArr.map((t) => (<option value={t.t}>{t.t}</option>))}</select>
     </div>

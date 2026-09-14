@@ -137,9 +137,12 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
     })} />
     <ClientRouter />
     <style is:global>
-      :root { color-scheme: dark; --bg:#070b16; --surface:#0e1626; --panel:rgba(255,255,255,.04); --line:rgba(255,255,255,.08); --ink:#eaf1fb; --muted:#9fb0c8; --faint:#7e8ca6; --gold:#f6b13b; }
+      :root { color-scheme: dark; --ok:#42d086; --vidvorun:#e8b84b; --slaemt:#ef6a6a; --hlutlaust:var(--faint); --bg:#070b16; --surface:#0e1626; --panel:rgba(255,255,255,.04); --line:rgba(255,255,255,.08); --ink:#eaf1fb; --muted:#9fb0c8; --faint:#7e8ca6; --gold:#f6b13b; }
       /* Ljóst þema (KREMAÐ) — virkjað með data-theme="light" á <html> (rofi í nav-foot + Stillingum) */
-      :root[data-theme="light"] { color-scheme: light; --bg:#f4efe3; --surface:#fffdf6; --panel:rgba(74,58,30,.05); --line:rgba(74,58,30,.16); --ink:#2a2417; --muted:#6a5f48; --faint:#6f6349; --gold:#8a5e00; }
+      :root[data-theme="light"] { color-scheme: light; --ok:#0a7a43; --vidvorun:#8a5000; --slaemt:#b3261e; --hlutlaust:#6b6b6b; --bg:#f4efe3; --surface:#fffdf6; --panel:rgba(74,58,30,.05); --line:rgba(74,58,30,.16); --ink:#2a2417; --muted:#6a5f48; --faint:#6f6349; --gold:#8a5e00; }
+      /* Stöðulitir (afvélvæðing 13.9.2026): staða sem LITUR, ekki emojí. .k-punktur = einn punktur í currentColor. */
+      .k-ok{color:var(--ok)} .k-vidvorun{color:var(--vidvorun)} .k-slaemt{color:var(--slaemt)} .k-hlutlaust{color:var(--hlutlaust)}
+      .k-punktur{display:inline-block;width:.55em;height:.55em;border-radius:50%;background:currentColor;vertical-align:middle;margin-right:.35em;flex:none}
       /* Global ljós-þema lagfæring: form-stýringar + native fellilistar (mörg með harða dökka liti sem
          flippast ekki). !important yfirskrifar scoped einingastíla. Frekari fínstilling per síðu á eftir. */
       :root[data-theme="light"] select,

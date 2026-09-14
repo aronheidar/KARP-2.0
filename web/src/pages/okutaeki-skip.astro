@@ -10,12 +10,12 @@ const desc = 'Ökutækja-, skipa- og loftfaraleit — flettu upp íslensku bíln
 <Layout title="Ökutækja-, skipa- & loftfaraleit | Karp" description={desc} canonical="https://karp.is/okutaeki-skip/" ogTitle="Ökutækja-, skipa- & loftfaraleit">
   <main data-pg="okuskip">
     <p class="kicker">Hagvísir Íslands · Uppfletting</p>
-    <h1 id="os-title">Ökutækjaleit 🚗</h1>
+    <h1 id="os-title">Ökutækjaleit</h1>
 
     <div class="os-toggle" role="tablist" aria-label="Veldu leit">
-      <button class="os-tab on" type="button" data-mode="oku" role="tab" aria-selected="true">🚗 Ökutæki</button>
-      <button class="os-tab" type="button" data-mode="skip" role="tab" aria-selected="false">🚢 Skip</button>
-      <button class="os-tab" type="button" data-mode="loft" role="tab" aria-selected="false">✈️ Loftför</button>
+      <button class="os-tab on" type="button" data-mode="oku" role="tab" aria-selected="true">Ökutæki</button>
+      <button class="os-tab" type="button" data-mode="skip" role="tab" aria-selected="false">Skip</button>
+      <button class="os-tab" type="button" data-mode="loft" role="tab" aria-selected="false">Loftför</button>
     </div>
 
     <p class="lead" id="os-lead">Flettu upp íslensku bílnúmeri og sjáðu skráðar upplýsingar ökutækisins — tegund, árgerð, lit, stöðu, <strong>næstu skoðun</strong>, þyngd, CO₂-losun og verksmiðjunúmer. Ókeypis, beint frá Samgöngustofu um island.is.</p>
@@ -26,7 +26,7 @@ const desc = 'Ökutækja-, skipa- og loftfaraleit — flettu upp íslensku bíln
     </form>
     <div id="os-result" class="os-result" aria-live="polite"></div>
 
-    <p class="os-lock" id="os-lock">🔒 <strong>Eigandi, veðbönd og skoðunarsaga</strong> eru ekki í opna skránni — þau krefjast innskráningar með rafrænum skilríkjum á <a href="https://island.is/minarsidur/eignir/okutaeki/leit" target="_blank" rel="noopener">Mínum síðum</a>.</p>
+    <p class="os-lock" id="os-lock"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:inline-block;vertical-align:-.2em;flex:none"><rect x="5" y="11" width="14" height="10" rx="1.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> <strong>Eigandi, veðbönd og skoðunarsaga</strong> eru ekki í opna skránni — þau krefjast innskráningar með rafrænum skilríkjum á <a href="https://island.is/minarsidur/eignir/okutaeki/leit" target="_blank" rel="noopener">Mínum síðum</a>.</p>
     <p class="foot" id="os-foot">Heimild: Samgöngustofa um opna ökutækjaleit island.is (<code>publicVehicleSearch</code>). Grunnupplýsingar ökutækis, engar persónuupplýsingar. Uppfletting takmörkuð (öryggisnet gegn fjöldaflettingu).</p>
   </main>
 
@@ -101,6 +101,7 @@ const desc = 'Ökutækja-, skipa- og loftfaraleit — flettu upp íslensku bíln
 
   <script>
     import { felagHref } from '../lib/fyrirtaeki-slod.mjs';
+    import { takn } from '../lib/takn.mjs';
     function initOkuSkip() {
       const form = document.getElementById('os-form');
       if (!form || form.dataset.on) return;
@@ -113,24 +114,24 @@ const desc = 'Ökutækja-, skipa- og loftfaraleit — flettu upp íslensku bíln
       // ── Mode-stillingar ──
       const MODES = {
         oku: {
-          title: 'Ökutækjaleit 🚗', maxlen: 6, plate: true,
+          title: 'Ökutækjaleit', maxlen: 6, plate: true,
           placeholder: 'Bílnúmer · t.d. AB123',
           lead: 'Flettu upp íslensku bílnúmeri og sjáðu skráðar upplýsingar ökutækisins — tegund, árgerð, lit, stöðu, <strong>næstu skoðun</strong>, þyngd, CO₂-losun og verksmiðjunúmer. Ókeypis, beint frá Samgöngustofu um island.is.',
-          lock: '🔒 <strong>Eigandi, veðbönd og skoðunarsaga</strong> eru ekki í opna skránni — þau krefjast innskráningar með rafrænum skilríkjum á <a href="https://island.is/minarsidur/eignir/okutaeki/leit" target="_blank" rel="noopener">Mínum síðum</a>.',
+          lock: takn('laest') + '<strong>Eigandi, veðbönd og skoðunarsaga</strong> eru ekki í opna skránni — þau krefjast innskráningar með rafrænum skilríkjum á <a href="https://island.is/minarsidur/eignir/okutaeki/leit" target="_blank" rel="noopener">Mínum síðum</a>.',
           foot: 'Heimild: Samgöngustofa um opna ökutækjaleit island.is (<code>publicVehicleSearch</code>). Grunnupplýsingar ökutækis, engar persónuupplýsingar. Uppfletting takmörkuð (öryggisnet gegn fjöldaflettingu).',
         },
         skip: {
-          title: 'Skipaleit 🚢', maxlen: 64, plate: false,
+          title: 'Skipaleit', maxlen: 64, plate: false,
           placeholder: 'Skipaskrárnúmer eða nafn · t.d. 2881 eða Venus',
           lead: 'Flettu upp íslensku skipi eftir <strong>skipaskrárnúmeri eða nafni</strong> og sjáðu skráðar upplýsingar úr skipaskrá Samgöngustofu — tegund, smíðaár og -stöð, brúttótonn, lengd, heimahöfn, umdæmi, stöðu og skráða eigendur. Ókeypis, beint um island.is.',
-          lock: '🔒 <strong>Vél/afl, kallmerki, haffærisskírteini og skoðunarsaga</strong> eru ekki í opnu skránni — þau liggja að baki X-Road-gátt Samgöngustofu og innskráningar (t.d. „mín skip" á <a href="https://island.is/skipaskra" target="_blank" rel="noopener">island.is</a>).',
+          lock: takn('laest') + '<strong>Vél/afl, kallmerki, haffærisskírteini og skoðunarsaga</strong> eru ekki í opnu skránni — þau liggja að baki X-Road-gátt Samgöngustofu og innskráningar (t.d. „mín skip" á <a href="https://island.is/skipaskra" target="_blank" rel="noopener">island.is</a>).',
           foot: 'Heimild: Samgöngustofa um opna skipaleit island.is (<code>shipRegistryShipSearch</code>). Skipaskrárnúmer er sami lykill og hjá Fiskistofu (aflamark). Opinber skipaskrá; einstaklingseigendur einkabáta birtir með hófsemi. Uppfletting takmörkuð (öryggisnet gegn fjöldaflettingu).',
         },
         loft: {
-          title: 'Loftfaraleit ✈️', maxlen: 40, plate: false,
+          title: 'Loftfaraleit', maxlen: 40, plate: false,
           placeholder: 'TF-númer eða nafn · t.d. TF-FIA eða Icelandair',
           lead: 'Flettu upp íslensku loftfari eftir <strong>skráningarnúmeri (TF-…) eða nafni/eiganda</strong> og sjáðu skráðar upplýsingar úr loftfaraskrá Samgöngustofu — tegund, árgerð, hámarksþyngd, raðnúmer og skráða eigendur/rekanda. Ókeypis, beint um island.is.',
-          lock: '🔒 <strong>Veðbönd, lofthæfi og skoðunarsaga</strong> eru ekki í opnu skránni — þau liggja að baki innskráningar hjá Samgöngustofu.',
+          lock: takn('laest') + '<strong>Veðbönd, lofthæfi og skoðunarsaga</strong> eru ekki í opnu skránni — þau liggja að baki innskráningar hjá Samgöngustofu.',
           foot: 'Heimild: Samgöngustofa um opna loftfaraskrá island.is (<code>aircraftRegistryAllAircrafts</code>). Opinber loftfaraskrá (356 loftför); lögaðila-eigendur tengjast fyrirtækjaskrá, einstaklingar birtir með hófsemi (án kennitölu). Uppfletting takmörkuð.',
         },
       };
@@ -142,8 +143,8 @@ const desc = 'Ökutækja-, skipa- og loftfaraleit — flettu upp íslensku bíln
       const fO = (l, v, cls) => '<div class="ok-f"><div class="l">' + l + '</div><div class="v' + (cls ? ' ' + cls : '') + '">' + (v == null || v === '' ? '—' : esc(v)) + '</div></div>';
       const renderOku = (d) => {
         if (d.error === 'numer') { out.innerHTML = '<div class="os-msg">Sláðu inn gilt bílnúmer (2–6 stafir).</div>'; return; }
-        if (d.error === 'kvoti') { out.innerHTML = '<div class="os-msg">⏳ Of margar flettingar í bili — reyndu aftur síðar.</div>'; return; }
-        if (!d.fannst) { out.innerHTML = '<div class="os-msg">🔍 Ökutæki með númerið <b>' + esc(d.numer || '') + '</b> fannst ekki. Athugaðu stafsetningu (fastanúmer virkar líka).</div>'; return; }
+        if (d.error === 'kvoti') { out.innerHTML = '<div class="os-msg">Of margar flettingar í bili — reyndu aftur síðar.</div>'; return; }
+        if (!d.fannst) { out.innerHTML = '<div class="os-msg">Ökutæki með númerið <b>' + esc(d.numer || '') + '</b> fannst ekki. Athugaðu stafsetningu (fastanúmer virkar líka).</div>'; return; }
         const insp = d.naestaSkodun, inspCls = insp ? (insp < today ? 'bad' : 'ok') : '';
         const inspTxt = insp ? isoIS(insp) + (insp < today ? ' · útrunnin' : '') : '—';
         const statCls = /í lagi/i.test(d.stada || '') ? 'ok' : (/(afskrá|ónýtt|innkoll|bann)/i.test(d.stada || '') ? 'bad' : '');
@@ -209,9 +210,9 @@ const desc = 'Ökutækja-, skipa- og loftfaraleit — flettu upp íslensku bíln
       };
       const renderSkip = (d) => {
         if (d.error === 'q') { out.innerHTML = '<div class="os-msg">Sláðu inn skipaskrárnúmer eða nafn (a.m.k. 2 stafi).</div>'; return; }
-        if (d.error === 'kvoti') { out.innerHTML = '<div class="os-msg">⏳ Of margar flettingar í bili — reyndu aftur síðar.</div>'; return; }
+        if (d.error === 'kvoti') { out.innerHTML = '<div class="os-msg">Of margar flettingar í bili — reyndu aftur síðar.</div>'; return; }
         const ships = d.ships || [];
-        if (!ships.length) { out.innerHTML = '<div class="os-msg">🔍 Ekkert skip fannst fyrir <b>' + esc(d.qs || '') + '</b>. Athugaðu stafsetningu — leita má eftir númeri eða (hluta úr) nafni.</div>'; return; }
+        if (!ships.length) { out.innerHTML = '<div class="os-msg">Ekkert skip fannst fyrir <b>' + esc(d.qs || '') + '</b>. Athugaðu stafsetningu — leita má eftir númeri eða (hluta úr) nafni.</div>'; return; }
         if (ships.length === 1) { showShip(ships[0], false); return; }
         showList(ships, d.alls);
       };
@@ -239,7 +240,7 @@ const desc = 'Ökutækja-, skipa- og loftfaraleit — flettu upp íslensku bíln
       const renderLoft = (d) => {
         if (d.error === 'q') { out.innerHTML = '<div class="os-msg">Sláðu inn TF-númer eða nafn (a.m.k. 2 stafi).</div>'; return; }
         const acs = d.loftfor || [];
-        if (!acs.length) { out.innerHTML = '<div class="os-msg">🔍 Ekkert loftfar fannst fyrir <b>' + esc(d.q || '') + '</b>. Athugaðu stafsetningu — leita má eftir TF-númeri eða (hluta úr) nafni/eiganda.</div>'; return; }
+        if (!acs.length) { out.innerHTML = '<div class="os-msg">Ekkert loftfar fannst fyrir <b>' + esc(d.q || '') + '</b>. Athugaðu stafsetningu — leita má eftir TF-númeri eða (hluta úr) nafni/eiganda.</div>'; return; }
         if (acs.length === 1) { out.innerHTML = loftCard(acs[0]); return; }
         showLoftList(acs);
       };

@@ -631,7 +631,7 @@ async function spyrduHandler(request, env, ctx) {
   // 🆘 Hjálpar-regla: beiðni um aðstoð / „virkar ekki" / vandamál / villa → vísa beint
   // á /hjalp/ (ekkert AI-kall, engin kvóta-notkun). Linkify í framendanum gerir /hjalp/ smellanlegt.
   if (/virkar ekki|virkar illa|virki ekki|bilun|bilað|hrundi|hrynur|kemur villa|villa (í|á|kom|kemur|við)|villu(r)? (í|á)|vandamál|vandræð|kvörtun|kvarta|endurgreiðsl|get ekki (skráð|innskráð|logga|greitt|borgað|opnað)|kemst ekki inn|hafa samband|samband við (ykkur|karp)|tala við (ykkur|manneskju|einhvern|starfsmann)|þarf (aðstoð|hjálp)|fá (aðstoð|hjálp)|biðja um (aðstoð|hjálp)|hjálpar?síð|^\s*(hjálp|help|aðstoð)[!.?\s]*$/i.test(q)) {
-    return sjson({ svar: 'Hljómar eins og þú þurfir aðstoð frá okkur mannfólkinu. 🐟 Sendu okkur línu á /hjalp/ — lýstu vandamálinu þar og við svörum á netfangið þitt, yfirleitt samdægurs. Ef spurningin var um gögnin sjálf máttu líka spyrja mig aftur með öðru orðalagi.' });
+    return sjson({ svar: 'Hljómar eins og þú þurfir aðstoð frá okkur mannfólkinu. Sendu okkur línu á /hjalp/ — lýstu vandamálinu þar og við svörum á netfangið þitt, yfirleitt samdægurs. Ef spurningin var um gögnin sjálf máttu líka spyrja mig aftur með öðru orðalagi.' });
   }
   // Dagskvóti á IP (cache-byggt, per-gagnaver — gróft en heiðarlegt öryggisnet)
   const cache = caches.default;
@@ -1673,12 +1673,12 @@ function felagMainHtml(f, kt) {
   const nEig = Array.isArray(f.eigendur) ? f.eigendur.length : 0;
   const eigTeaser = `<div class="kf-sec"><h2>Endanlegir eigendur</h2><div class="kf-note" style="border:0;padding:0;margin:0 0 10px">${nEig ? `${nEig} raunverulegir eigendur skráðir (>25%).` : (f.eigendurTomt ? 'Enginn með >25% skráður.' : 'Eigendagreining í boði.')} Fullt eignarhald, þrepaskipting og félagakeðja í eigendaskýrslunni.</div></div>`;
   const cta = `<div class="kf-cta">
-    <a class="kf-cta-main" href="/fyrirtaeki/?q=${e(kt)}">🛒 Fyrirtækjaskýrsla — 990 kr</a>
+    <a class="kf-cta-main" href="/fyrirtaeki/?q=${e(kt)}">Fyrirtækjaskýrsla — 990 kr</a>
     <a class="kf-cta-sec" href="/eigendur/?kt=${e(kt)}">Endanlegir eigendur — 990 kr</a>
     <a class="kf-cta-sec" href="/lausnir/fyrirtaekjavaktin/">Fyrirtækjavaktin</a>
   </div>`;
   const links = `<p class="kf-links">Sjá einnig: <a href="/fyrirtaeki/?q=${e(kt)}">lifandi uppfletting</a> · <a href="/birgjar/">greiðslur ríkisins</a> · <a href="/frettir/">fjölmiðlaumfjöllun</a> · <a href="/utbod/">útboð</a></p>`;
-  const timalinaSec = `<div class="kf-sec"><h2>🕑 Atburða-tímalína</h2><div id="fb-timalina" class="kf-tl" data-kt="${e(kt)}" data-nafn="${e(f.nafn)}"><div class="kf-note" style="border:0;padding:0;margin:0">Sæki atburði…</div></div></div>`;
+  const timalinaSec = `<div class="kf-sec"><h2>Atburða-tímalína</h2><div id="fb-timalina" class="kf-tl" data-kt="${e(kt)}" data-nafn="${e(f.nafn)}"><div class="kf-note" style="border:0;padding:0;margin:0">Sæki atburði…</div></div></div>`;
   return `<p class="kf-links"><a href="/fyrirtaeki/">← Fyrirtækjaskrá</a></p>
     <h1 class="kf-h1">${e(f.nafn)}</h1>
     <div class="kf-kt">kt. ${e(ktSep(kt))}</div>
@@ -2429,7 +2429,7 @@ export function frettavaktEmail(matches) {
       const ext = m.type === 'frett' || m.type === 'hlad' || m.type === 'raeda';
       const href = ext ? esc(m.url) : ('https://karp.is/frettavel/' + esc(asciiId(m.id)) + '/');
       const badge = ext ? (m.source || ({ hlad: 'hlaðvarp', raeda: 'Alþingi' })[m.type] || 'frétt') : ((CAT[m.type] || {}).label || m.type);
-      return `<li style="margin:0 0 8px"><a href="${href}" style="color:#8a5e00;text-decoration:none;font-weight:600">${esc(m.title)}</a> <span style="color:#888;font-size:12px">· ${esc(badge)}</span>${m.hljod ? ` <a href="${esc(m.hljod)}" style="color:#8a5e00;font-size:12px;text-decoration:none">🎧 hlusta</a>` : ''}</li>`;
+      return `<li style="margin:0 0 8px"><a href="${href}" style="color:#8a5e00;text-decoration:none;font-weight:600">${esc(m.title)}</a> <span style="color:#888;font-size:12px">· ${esc(badge)}</span>${m.hljod ? ` <a href="${esc(m.hljod)}" style="color:#8a5e00;font-size:12px;text-decoration:none">hlusta</a>` : ''}</li>`;
     }).join('');
     return `<h3 style="font-size:14px;margin:16px 0 6px;color:#4a3a1e">${esc(label)}</h3><ul style="padding-left:18px;margin:0">${li}</ul>`;
   }).join('');
