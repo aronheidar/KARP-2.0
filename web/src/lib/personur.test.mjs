@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { PERSONUR, PERSONA_IDS, persona, MOOT_ADGERDIR, MOOT_AFSTODUR, MOOT_JA_TEXTI, MOOT_VILLUR, mootVilluTexti, veljaFundarmenn, AVATAR_PALETTE, avatarSvg, avatarDataUri } from './personur.mjs';
+import { PERSONUR, PERSONA_IDS, persona, MOOT_ADGERDIR, MOOT_AFSTODUR, MOOT_JA_TEXTI, MOOT_VILLUR, mootVilluTexti, veljaFundarmenn, AVATAR_PALETTE, avatarSvg, avatarDataUri, ROFAR, rofiLykill } from './personur.mjs';
 
 const RETT_ROD = ['sigrun', 'hrafn', 'elin', 'bjarki', 'unnur', 'kari', 'hildur', 'egill'];
 const HAETTULEGT = /<script|on[a-z]+=|href=|url\(#|<defs|id="/i;
@@ -186,4 +186,20 @@ test('P6 avatarDataUri: encodeURIComponent af avatarSvg, samhverft', () => {
   assert.ok(u.startsWith('data:image/svg+xml;utf8,%3Csvg'), u.slice(0, 40));
   assert.equal(decodeURIComponent(u.slice('data:image/svg+xml;utf8,'.length)), avatarSvg('kari', { size: 32 }));
   assert.ok(avatarSvg('kari').includes('xmlns="http://www.w3.org/2000/svg"'), 'xmlns þarf svo <img src=data:> virki');
+});
+
+test('Hrafn er forritari, ekki CTO — titill og undirskrift fylgjast að', () => {
+  const h = persona('hrafn');
+  assert.equal(h.hlutverk, 'forritari');
+  assert.equal(h.undirskrift, 'Hrafn — forritari Karp');
+  assert.ok(!JSON.stringify(PERSONUR).includes('CTO'), 'ekkert „CTO" eftir í persónuskránni');
+});
+
+test('ROFAR: aðeins starfsmenn með vél fá rofa; Sigrún heldur gamla lyklinum', () => {
+  assert.equal(rofiLykill('sigrun'), 'hjalp_agent_off');   // ⚠ ekkert endurnefnt — flæðið í loftinu les þennan lykil
+  assert.equal(rofiLykill('hrafn'), 'rofi_hrafn');
+  assert.equal(rofiLykill('kari'), null);
+  assert.equal(rofiLykill('ekki-til'), null);
+  assert.equal(rofiLykill(null), null);
+  for (const id of Object.keys(ROFAR)) assert.ok(PERSONA_IDS.includes(id), id + ' er til');
 });

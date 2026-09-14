@@ -20,10 +20,10 @@ export const PERSONUR = [
     svipur: { hud: 0, har: 2, harStill: 'sitt', augu: 'mondlu', gler: false, eyrnalokkar: true, heyrnartol: true },
   },
   {
-    id: 'hrafn', nafn: 'Hrafn', hlutverk: 'CTO', emoji: '🛠️', kyn: 'kk', litur: '#5b8dd6',
+    id: 'hrafn', nafn: 'Hrafn', hlutverk: 'forritari', emoji: '🛠️', kyn: 'kk', litur: '#5b8dd6',
     sjonarhorn: 'Tækni, kóðaáhætta og endurtekning villu. Nefnir slóð eða einingu þegar hún kemur fram í gögnum og merkir ágiskun um orsök sem tilgátu.',
     spyr: 'Er þetta endurtakanlegt og hvar liggur rótin?',
-    undirskrift: 'Hrafn — CTO Karp',
+    undirskrift: 'Hrafn — forritari Karp',
     svipur: { hud: 1, har: 0, harStill: 'stutt', augu: 'kringlott', gler: false, skegg: 'rot' },
   },
   {
@@ -77,6 +77,14 @@ export function persona(id) {
   if (typeof id !== 'string') return null;
   for (let i = 0; i < PERSONUR.length; i++) if (PERSONUR[i].id === id) return PERSONUR[i];
   return null;
+}
+
+/** Starfsmenn sem hafa VÉL sem má slökkva á → lykill í stjorn_sync. Persóna án vélar (Moot-sæti eitt og sér)
+ *  fær engan rofa. ⚠ Sigrún heldur upprunalega lyklinum 'hjalp_agent_off': flæðið sem er í loftinu les hann
+ *  (processNewTicket) og endurnefning myndi þagga sjálfvirknina án þess að nokkuð sýndist að. */
+export const ROFAR = { sigrun: 'hjalp_agent_off', hrafn: 'rofi_hrafn' };
+export function rofiLykill(id) {
+  return (typeof id === 'string' && Object.prototype.hasOwnProperty.call(ROFAR, id)) ? ROFAR[id] : null;
 }
 
 /** Aðgerðir sem Moot getur lagt til — EIN uppspretta hnappatexta (UI) og hvítlista (worker). */
