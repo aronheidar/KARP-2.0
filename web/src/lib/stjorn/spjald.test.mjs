@@ -78,9 +78,12 @@ test('EIGINDI: gögn geta ekki brotist út úr href, data- eða class-eigindum',
     heimildir: [arás],
     rofi: { lykill: arás, off: false },
   }));
-  assert.ok(!h.includes('onmouseover='), 'ekkert eigind slapp í gegn');
-  assert.ok(!h.includes('" x="'), 'engin gæsalöpp braut út úr eigindi');
-  assert.equal((h.match(/&quot;/g) || []).length >= 6, true, 'gæsalappirnar eru escape-aðar, ekki fjarlægðar');
+  // Vörnin er sú að gæsalöpp komist ekki út úr eigindi — ekki að orðið „onmouseover" hverfi.
+  // Rétt escape-uð gögn bera áfram textann `onmouseover=` sem MEINLAUSAN texta inni í eigindinu.
+  assert.ok(!/\son[a-z]+=["'][^"']*["']/i.test(h), 'ekkert VIRKT atburða-eigind varð til');
+  assert.ok(!h.includes('" onmouseover'), 'engin hrá gæsalöpp braut út úr eigindi');
+  assert.ok(h.includes('&quot;'), 'gæsalappirnar eru escape-aðar, ekki fjarlægðar');
+  assert.ok(h.includes('onmouseover=&quot;'), 'árásartextinn stendur eftir sem meinlaus texti — það er rétt hegðun');
 });
 
 test('SLÓÐIR: aðeins kjölfestur og https komast í href', () => {
