@@ -18,7 +18,9 @@ function fakeDb(state) {
     }
     if (/^INSERT INTO ticket_msgs/.test(sql)) { state.msgs.push({ dir: args[2], sent_by: args[3], til: args[5], efni: args[6], texti: args[7] }); return { meta: {} }; }
     if (/SELECT is_admin FROM users WHERE id=\?/.test(sql)) return state.users[args[0]] || null;
-    if (/SELECT v FROM stjorn_sync/.test(sql)) return null;
+    if (/SELECT v FROM stjorn_sync WHERE k='(\w+)'/.test(sql)) { const k = sql.match(/k='(\w+)'/)[1]; return state.sync[k] != null ? { v: state.sync[k] } : null; }
+    if (/^SELECT v FROM stjorn_sync WHERE k=\?$/.test(sql)) { const k = args[0]; return state.sync[k] != null ? { v: state.sync[k] } : null; }
+    if (/^INSERT INTO stjorn_sync \(k, v, updated\)/.test(sql)) { state.sync[args[0]] = args[1]; return { meta: {} }; }
     // ── ticketsOverview ──────────────────────────────────────────────────────────────────────────────────────────
     if (/^SELECT id, created, updated, uppruni, nafn, netfang, flokkur, tegund, forgangur, efni, lysing, stada, ack_sent, svar_sent, cto_pr FROM tickets ORDER BY created DESC LIMIT 60$/.test(sql)) return { results: Object.values(state.tickets) };
     if (/^SELECT m\.ticket_id, MAX\(CASE WHEN m\.sent_by='moot' THEN m\.ts END\) t_moot, MAX\(CASE WHEN m\.sent_by='aron' THEN m\.ts END\) t_atkv FROM ticket_msgs m JOIN tickets t ON t\.id=m\.ticket_id WHERE m\.dir='moot' AND t\.stada IN \([?,]+\) GROUP BY m\.ticket_id$/.test(sql)) return { results: [] };
@@ -39,7 +41,7 @@ function fakeDb(state) {
   };
 }
 const TICKET = { id: 1, created: 1789311176, updated: 1789311176, uppruni: 'form', nafn: 'Aron (prufa)', netfang: 'aron@karp.is', flokkur: 'Villa', tegund: 'villa', forgangur: 1, efni: 'Leirdalur 36 á síma', lysing: 'Spjaldið fer út af skjánum.', stada: 'tillaga', notur: null, cto_pr: 'https://github.com/aronheidar/KARP-2.0/pull/10', cto_branch: 'cto/ticket-1' };
-function mkState(over = {}) { return { tickets: { 1: Object.assign({}, TICKET, over) }, msgs: [], users: { 8: { is_admin: 1 }, 9: { is_admin: 0 } } }; }
+function mkState(over = {}) { return { tickets: { 1: Object.assign({}, TICKET, over) }, msgs: [], users: { 8: { is_admin: 1 }, 9: { is_admin: 0 } }, sync: {} }; }
 function mkEnv(state, over = {}) {
   return Object.assign({ TENGSL: fakeDb(state), ADMIN_API_KEY: 'adm-key', SESSION_SECRET: 'leyndó', GITHUB_DISPATCH_TOKEN: 'ghp_test', GMAIL_CLIENT_ID: 'c', GMAIL_CLIENT_SECRET: 's', GMAIL_REFRESH_TOKEN: 'r' }, over);
 }
@@ -131,6 +133,24 @@ test('cto: dispatch ber event_type cto {ticket} (óbreytt eftir _ghDispatch-samr
   assert.deepEqual(await js(await adminTicketHandler(req({ action: 'cto', id: 1 }, { 'X-Admin-Key': 'adm-key' }), env, {})), { ok: true, status: 204 });
   assert.deepEqual(dispatches(log), [{ event_type: 'cto', client_payload: { ticket: 1 } }]);
   assert.equal(state.tickets[1].stada, 'cto');
+});
+
+// ── rofi per starfsmann ──────────────────────────────────────────────────────────────────────────────────────────
+test('rofi: sjálfgefið er Sigrún (gamla hegðunin) en starfsmadur velur lykilinn', async (t) => {
+  const state = mkState(); const env = mkEnv(state); stubFetch(t);
+  await js(await adminTicketHandler(req({ action: 'rofi', off: true }, { 'X-Admin-Key': 'adm-key' }), env, {}));
+  assert.equal(state.sync.hjalp_agent_off, '1', 'án starfsmanns fer rofinn á Sigrúnu — ekkert brotnar hjá þeim sem kalla eins og áður');
+  await js(await adminTicketHandler(req({ action: 'rofi', starfsmadur: 'hrafn', off: true }, { 'X-Admin-Key': 'adm-key' }), env, {}));
+  assert.equal(state.sync.rofi_hrafn, '1');
+  assert.deepEqual(await js(await adminTicketHandler(req({ action: 'rofi', starfsmadur: 'kari', off: true }, { 'X-Admin-Key': 'adm-key' }), env, {})), { ok: false, error: 'starfsmadur' });
+});
+
+test('slökkt á Hrafni stöðvar CTO-ræsingu — engin dispatch fer út', async (t) => {
+  const state = mkState({ stada: 'stadfest' }); state.sync.rofi_hrafn = '1';
+  const env = mkEnv(state); const log = stubFetch(t);
+  assert.deepEqual(await js(await adminTicketHandler(req({ action: 'cto', id: 1 }, { 'X-Admin-Key': 'adm-key' }), env, {})), { ok: false, error: 'rofi' });
+  assert.deepEqual(dispatches(log), []);
+  assert.equal(state.tickets[1].stada, 'stadfest', 'staðan hreyfist ekki');
 });
 
 // ── ticketsOverview: sjalfvirk ───────────────────────────────────────────────────────────────────────────────────

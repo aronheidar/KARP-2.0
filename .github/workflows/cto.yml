@@ -14,6 +14,9 @@ on:
       ticket:
         description: 'Ticket-númer (tickets.id í D1)'
         required: true
+      verk:
+        description: 'Frjálst verkefni (í stað beiðnar) — t.d. „karp2-byggingin fellur við hvert push"'
+        required: false
 
 permissions:
   contents: write
@@ -29,6 +32,7 @@ jobs:
     timeout-minutes: 40
     env:
       TICKET: ${{ github.event.client_payload.ticket || inputs.ticket }}
+      VERK: ${{ github.event.client_payload.verk || inputs.verk }}
       KARP_ADMIN_KEY: ${{ secrets.KARP_ADMIN_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
@@ -38,11 +42,22 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
-      - name: Sækja ticket úr karp.is
+      - name: Sækja ticket úr karp.is (sleppt þegar frjálst verk er sent)
+        if: env.TICKET != ''
         run: |
           curl -sf -H "X-Admin-Key: $KARP_ADMIN_KEY" "https://karp.is/api/admin/ticket?id=$TICKET" -o ticket.json
           node -e "const t=require('./ticket.json'); if(!t.ok) throw new Error('ticket '+JSON.stringify(t)); console.log('#'+t.ticket.id, t.ticket.tegund, '—', t.ticket.efni)"
+      - name: Verkefni án beiðnar
+        if: env.TICKET == ''
+        run: |
+          node -e "
+            const v = (process.env.VERK || '').trim();
+            if (v.length < 10) throw new Error('hvorki ticket né nothæft verk');
+            require('fs').writeFileSync('ticket.json', JSON.stringify({ ok: true, ticket: { id: 'verk', flokkur: 'Bilun', tegund: 'villa', lysing: v, ai_greining: '{}' } }));
+            console.log('frjálst verk:', v.slice(0, 120));
+          "
       - name: Sækja Moot (verkbeiðni Hrafns) úr karp.is
+        if: env.TICKET != ''
         # Nýjasti ráðsfundur um málið: /api/admin/moot?id=N → { nidurstada:{cto_brief,…}, atkvaedi_arons:{val,…} }.
         # Vantar Moot eða veitan svarar ekki → '{}' (promptið segir „(engin)“). Aldrei fellur keyrslan á þessu skrefi.
         run: |
@@ -56,6 +71,7 @@ jobs:
         # óbreytt) og sér node-skript fyllir staðgenglana úr ticket.json + moot.json. Áður var JS-ið inni í "…" í bash og
         # `npm test` varð skipanaútskipting → „Expected ',', got '@'“ og keyrslan féll.
         run: |
+          [ -f moot.json ] || echo '{}' > moot.json
           npm i -g @anthropic-ai/claude-code
           cat > cto_prompt.tmpl <<'EOF'
           Þú ert Hrafn, forritari Karp (karp.is — Astro-vefur í web/ + Cloudflare Worker web/worker.js og web/src/worker/*.mjs, gögn í gogn/ byggð af skriptur/).
@@ -115,7 +131,7 @@ jobs:
           BAD2=$(git status --porcelain | awk '{print $2}' | grep -E '^web/migrations/|^web/wrangler.toml|^\.github/' || true)
           if [ -n "$BAD$BAD2" ]; then echo "Óleyfilegar breytingar: $BAD $BAD2"; git checkout -- . ; git clean -fd; echo "pr=" >> $GITHUB_OUTPUT; echo "note=Óleyfilegar skrár snertar — breytingum hent" >> $GITHUB_OUTPUT; exit 0; fi
           if git diff --quiet && [ -z "$(git status --porcelain)" ]; then echo "pr=" >> $GITHUB_OUTPUT; echo "note=Engin kóðabreyting" >> $GITHUB_OUTPUT; printf '%s' "$SUM" > /tmp/sum.md; exit 0; fi
-          BR="cto/ticket-$TICKET"
+          BR="cto/${TICKET:-verk-$GITHUB_RUN_ID}"
           printf '%s' "$SUM" > /tmp/sum.md
           git checkout -B "$BR"
           git add -A web skriptur
@@ -130,6 +146,7 @@ jobs:
       - name: Skila niðurstöðu á karp.is
         if: always()
         run: |
+          if [ -z "$TICKET" ]; then echo "frjálst verk — engin beiðni að uppfæra"; exit 0; fi
           [ -f /tmp/sum.md ] || echo "Keyrsla mistókst áður en samantekt varð til — sjá Actions-log (run $GITHUB_RUN_ID)" > /tmp/sum.md
           node -e "
             const body={action:'cto_result', id: Number(process.env.TICKET), pr: process.env.PR||'', branch: process.env.PR ? 'cto/ticket-'+process.env.TICKET : '', samantekt: (process.env.NOTE ? process.env.NOTE+'\n\n' : '') + require('fs').readFileSync('/tmp/sum.md','utf8').slice(0,3800)};

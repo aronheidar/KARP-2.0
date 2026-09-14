@@ -9,7 +9,7 @@ import { _ajson, _emailTpl, _esc, sendGmail } from './felag.mjs';
 import { renderEmail } from '../lib/emails.mjs';
 import { readSession } from './auth.mjs';
 import { OPNAR_STODUR, TICKET_STODUR, ackVars, efniUrLysingu, flokkaFallback, greiningPrompt, greiningUser, kbSjalfvirkt, parseGreining, svarUppfaersla, ticketSubject } from '../lib/hjalp_agent.mjs';
-import { persona, veljaFundarmenn } from '../lib/personur.mjs';   // 🛟 Sigrún skrifar undir öll póst-samskipti við notendur; fundarmenn f. Moot-forsýn
+import { persona, rofiLykill, veljaFundarmenn } from '../lib/personur.mjs';   // 🛟 Sigrún skrifar undir öll póst-samskipti við notendur; fundarmenn f. Moot-forsýn
 
 const MODEL = 'claude-haiku-4-5-20251001';
 const _nowSek = () => Math.floor(Date.now() / 1000);
@@ -40,6 +40,12 @@ export function adminCsrfVilla(request) {
 }
 async function _rofiOff(env) {
   const r = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='hjalp_agent_off'").first().catch(() => null);
+  return !!(r && String(r.v) === '1');
+}
+
+/** Almennur rofa-lestur: k='hjalp_agent_off' | 'rofi_hrafn' | … Skilar true þegar SLÖKKT er. */
+async function _rofiA(env, lykill) {
+  const r = await env.TENGSL.prepare('SELECT v FROM stjorn_sync WHERE k=?').bind(lykill).first().catch(() => null);
   return !!(r && String(r.v) === '1');
 }
 
@@ -154,9 +160,10 @@ export async function processNewTicket(env, t) {
   return { g, auto: auto ? auto.id : null, off };
 }
 
-/** repository_dispatch á KARP-2.0: 'cto' → cto.yml (Hrafn lagar → PR) · 'cto_merge' → cto_merge.yml (merge → deploy → lokapóstur). */
-async function _ghDispatch(env, eventType, payload) {
+/** repository_dispatch á KARP-2.0. Virðir rofa starfsmannsins: slökkt á Hrafni ⇒ engin keyrsla ræst. */
+export async function _ghDispatch(env, eventType, payload) {
   if (!env.GITHUB_DISPATCH_TOKEN) return { ok: false, error: 'unconfigured' };
+  if (eventType === 'cto' && await _rofiA(env, 'rofi_hrafn')) return { ok: false, error: 'rofi' };
   const r = await fetch('https://api.github.com/repos/aronheidar/KARP-2.0/dispatches', {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + env.GITHUB_DISPATCH_TOKEN, 'Accept': 'application/vnd.github+json', 'User-Agent': 'karp21-worker', 'Content-Type': 'application/json' },
@@ -195,8 +202,11 @@ export async function adminTicketHandler(request, env, ctx) {
   const b = (await request.json().catch(() => null)) || {};
   const action = String(b.action || '');
   if (action === 'rofi') {
-    await env.TENGSL.prepare("INSERT INTO stjorn_sync (k, v, updated) VALUES ('hjalp_agent_off', ?, ?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated").bind(b.off ? '1' : '0', _nowSek()).run().catch(() => {});
-    return _ajson({ ok: true, off: !!b.off });
+    // Sjálfgefið Sigrún: eldri kallendur (og vistuð bókamerki) sendu engan starfsmann.
+    const lykill = rofiLykill(b.starfsmadur ? String(b.starfsmadur) : 'sigrun');
+    if (!lykill) return _ajson({ ok: false, error: 'starfsmadur' });
+    await env.TENGSL.prepare('INSERT INTO stjorn_sync (k, v, updated) VALUES (?, ?, ?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated').bind(lykill, b.off ? '1' : '0', _nowSek()).run().catch(() => {});
+    return _ajson({ ok: true, lykill, off: !!b.off });
   }
   if (action === 'create') {
     // Innlestur utan frá (t.d. Gmail-vakt um X-Admin-Key) eða nýr póstur saminn á /stjorn/ (uppruni 'stjorn').
