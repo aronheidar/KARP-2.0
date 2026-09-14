@@ -63,10 +63,29 @@ jobs:
       # ⚠ `[assets] directory = "./dist"` í wrangler.toml ⇒ wrangler sendir dist/ EINS OG ÞAÐ LIGGUR.
       #   Þess vegna VERÐUR „Astro-bygging" að hafa keyrt á undan í SÖMU keyrslu. Deploy án
       #   undanfarandi byggingar sendir gamalt tré — það gerðist handvirkt 13.9 og sendi eignir frá 9.9.
+      # ⚠ TOKEN: `CLOUDFLARE_API_TOKEN` var búinn til fyrir D1-REST og hefur ENGAR Workers-heimildir
+      #   (staðfest 14.9: HTTP 403 bæði á `workers/scripts` og `workers/services/karp21`). Þess vegna er
+      #   `CLOUDFLARE_DEPLOY_TOKEN` notaður fyrst — sérstakur deploy-token snertir ekki þau sex
+      #   workflow sem reiða sig á D1-tokeninn. Sé hann ósettur fellur þetta á gamla tokenið, svo
+      #   uppsetningin virkar líka ef Workers-heimild er þess í stað bætt við hann.
       - name: Deploy (aðeins main)
         if: github.ref == 'refs/heads/main'
-        run: npx wrangler deploy
         working-directory: web
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -e
+          # Forskoðun. Án hennar fellur wrangler á „Authentication error [code: 10000]" sem segir
+          # ekki HVAÐ vantar — sú villa kostaði tvær keyrslur 13.–14.9 áður en rótin fannst.
+          code=$(curl -s -o /dev/null -w '%{http_code}' \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN")
+          if [ "$code" = "401" ] || [ "$code" = "403" ]; then
+            echo "✗ CF-tokeninn hefur ekki Workers-heimildir (HTTP $code) — deploy myndi falla."
+            echo "  Laga: dash.cloudflare.com/profile/api-tokens → Create Token → sniðmátið"
+            echo "  „Edit Cloudflare Workers\" → settu gildið í leyndarmálið CLOUDFLARE_DEPLOY_TOKEN."
+            echo "  (Eða bættu Account · Workers Scripts · Edit við núverandi CLOUDFLARE_API_TOKEN.)"
+            exit 1
+          fi
+          npx wrangler deploy

@@ -325,13 +325,24 @@ jobs:
       #   Það var einmitt hlutverk CF_DEPLOY_HOOK.
       # ⚠ Á UNDAN heilsu-hliðinu, sömu rökum og commit-þrepið: gögnin eiga að skila sér þótt einhver
       #   uppstreymis-veita hafi staðnað. Hliðið er viðvörun um veitu, ekki ástæða til að halda öllu eftir.
+      # ⚠ Sami token og í ci.yml: CLOUDFLARE_DEPLOY_TOKEN fyrst (sérstakur deploy-token), annars fallið
+      #   á CLOUDFLARE_API_TOKEN. ÖNNUR skref í þessari skrá nota ÁFRAM CLOUDFLARE_API_TOKEN — D1-
+      #   heimildir þess tokens eru óbreyttar og mega ekki raskast.
       - name: Bygging + deploy (fersk gögn í loftið)
         working-directory: web
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -e
+          code=$(curl -s -o /dev/null -w '%{http_code}' \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN")
+          if [ "$code" = "401" ] || [ "$code" = "403" ]; then
+            echo "✗ CF-tokeninn hefur ekki Workers-heimildir (HTTP $code) — fersk gögn komast ekki í loftið."
+            echo "  Sjá skýringuna við deploy-skrefið í ci.yml (leyndarmálið CLOUDFLARE_DEPLOY_TOKEN)."
+            exit 1
+          fi
           npm ci
           npx astro build
           npx wrangler deploy
