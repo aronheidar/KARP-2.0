@@ -44,6 +44,10 @@ const SOURCES = [
   //   grípur hina hliðina: haldi seiglan gömlu eintaki of lengi sést það hér.
   //   WEEKLY því skrapið er þungt og verðlag hreyfist hægt; strangara þak gæfi falskt rautt.
   ['numbeo.json', 'Numbeo verðsamanburður', WEEKLY],
+  // ⚠ BÆTT VIÐ 14.9.2026 ÁSAMT build_sveitarfelog_fin.js. Skráin hafði ÁÐUR enga byggingarskriftu
+  //   og engin metagögn — hún stóð óbreytt frá 29.6 og enginn vissi hvaða ár hún sýndi. MONTHLY því
+  //   Sambandið uppfærir pivot-skrána þegar ársreikningum er skilað, ekki daglega.
+  ['sveitarfelog_fin.json', 'Fjárhagur sveitarfélaga', MONTHLY],
 ];
 const pickDate = (o) => { if (!o || typeof o !== 'object') return null; for (const k of ['updated', 'generated', 'uppfaert', 'sott', 'ts', 'dags', 'timestamp', 'date']) if (o[k]) return String(o[k]); return null; };
 

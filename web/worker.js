@@ -463,6 +463,36 @@ export const AUG = [
       + 'Stærstu útflutningsliðir: ' + topp(e) + '. Stærstu innflutningsliðir: ' + topp(im) + '.'
       + (bl.utTop ? ' Mest flutt út til ' + bl.utTop.name + ', mest flutt inn frá ' + (bl.innTop || {}).name + '.' : '');
   } },
+  // ── fjárhagur sveitarfélaga ──
+  // ⚠ ÞESSU GAGNASETTI VAR HALDIÐ UTAN SPJALLSINS Í FÓTSPOR AUG-LOTU 1 — skráin hafði ENGA
+  //   byggingarskriftu og ENGIN metagögn, svo enginn gat sagt hvaða ár hún sýndi. Ódagsettar
+  //   skuldatölur á íbúa eru einmitt villan sem lotan gekk út á að laga. NÚ les build_sveitarfelog_fin.js
+  //   ársreikninga-pivot Sambandsins og skrifar ár + grunn í `_meta` — því má hún koma inn.
+  // ⚠⚠ GRUNNURINN ER A-HLUTI, ekki samstæða. Tölurnar eru því LÆGRI en samstæðuskuldir sem
+  //   sveitarfélögin sjálf birta oft. Grúnnurinn er sagður berum orðum í svarinu — sama regla og
+  //   gildir um þeirra ÞRÍÁ grunna í ríkisfjármálum: aldrei bera saman á milli grunna.
+  { rx: /sveitarfélag.*(skuld|fjárhag|rekstr|afkom)|skuldir.*sveitarf|fjárhagur.*sveitarf|útsvar|hvernig stæður.*(bær|sveitarf)|skuldsett/i, file: 'sveitarfelog_fin.json', pg: '/sveitarfelog/', fn: (j, q) => {
+    const m = j._meta || {}, ql = q.toLowerCase();
+    const nofn = Object.keys(j).filter((k) => !k.startsWith('_'));
+    if (!nofn.length) return '';
+    const grunnur = ' ⚠ A-hluti (aðalsjóður og skyld starfsemi), EKKI samstæða með B-hluta (veitur, hafnir) — tölurnar eru því lægri en samstæðuskuldir sem sveitarfélögin birta oft sjálf.';
+    for (const n of nofn) {
+      const rot = n.toLowerCase().replace(/(borg|bær|kaupstaður|hreppur|byggð)$/i, '');
+      if (rot.length >= 4 && ql.includes(rot)) {
+        const v = j[n];
+        return 'FJÁRHAGUR ' + n + ' (' + (m.ar || '') + ', ársreikningur): tekjur ' + thus(v.tekjur / 1000) + ' m.kr, gjöld '
+          + thus(v.gjold / 1000) + ' m.kr, rekstrarniðurstaða ' + (v.nidur > 0 ? '+' : '') + thus(v.nidur / 1000) + ' m.kr'
+          + (v.nidur < 0 ? ' (HALLI)' : '') + '. Skuldir ' + thus(v.skuldir / 1000) + ' m.kr'
+          + (v.skuldir_ibui != null ? ', eða ' + thus(v.skuldir_ibui) + ' þ.kr á íbúa' : '')
+          + (v.utsvar != null ? '. Útsvar ' + is(v.utsvar) + '%' : '') + '.' + grunnur;
+      }
+    }
+    const verst = nofn.filter((n) => j[n].skuldir_ibui != null)
+      .sort((a, b) => j[b].skuldir_ibui - j[a].skuldir_ibui).slice(0, 4);
+    return 'FJÁRHAGUR SVEITARFÉLAGA (' + (m.ar || '') + ', ' + nofn.length + ' sveitarfélög úr ársreikningum um Samband íslenskra sveitarfélaga). '
+      + 'Hæstu skuldir á íbúa: ' + verst.map((n) => n + ' ' + thus(j[n].skuldir_ibui) + ' þ.kr').join(', ')
+      + '. Nefndu sveitarfélagið fyrir nánari tölur.' + grunnur;
+  } },
   // ── AUG-LOTA 2 (14.9.2026): tíu gagnasett til viðbótar ──────────────────────────────────────
   // ⚠ ÖLL ÚR OPNUM, ÓGIRTUM SÍÐUM — engin skörun við greiddar vörur. Fyrirtækjatengd gögn
   //   (rekstrarleyfi, ársreikninga-KPI, lánshæfismat) eru VILJANDI SLEPPT: þau eru kjarninn í

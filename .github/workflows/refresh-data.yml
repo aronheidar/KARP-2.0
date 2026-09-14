@@ -83,6 +83,9 @@ jobs:
           node skriptur/build_leitarvel.js      || true
           node skriptur/build_raunvirdi.js      || true
           node skriptur/build_sveitarstjorar.js || true
+          # ⚠ BÆTT VIÐ 14.9.2026. ÁÐUR var sveitarfelog_fin.json HANDSETT án byggingarskriftu — hún
+          #   stóð óbreytt frá 29.6 og bar hvorki ártal né heimild, svo Spyrðu Karp mátti ekki nota hana.
+          node skriptur/build_sveitarfelog_fin.js || true
           node skriptur/build_pep.js            || true
           node skriptur/build_sendirad.js       || true
           node skriptur/build_utbod.js          || true
