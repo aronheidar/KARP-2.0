@@ -5,7 +5,7 @@
 // hættir maður að treysta báðum.
 
 export const ADKALLANDI_SEK = 48 * 3600;   // beiðni sem hefur beðið svo lengi fær áherslu, ekki eigin línu
-const CTO_FAST_SEK = 3600;                 // CTO-keyrsla tekur mínútur; klukkustund þýðir að eitthvað féll
+const CTO_FAST_SEK = 3600;                 // CTO-keyrsla og samþykkt→merge taka bæði mínútur; klukkustund þýðir að eitthvað féll
 
 function rod(starfsmadur, tegund, titill, vidbot, sidan, slod) {
   return { starfsmadur, tegund, titill, vidbot: vidbot || '', sidan: Number(sidan) || 0, slod };
@@ -22,11 +22,21 @@ export function bidurThin({ tickets = {}, bilanir = [], now = 0 } = {}) {
     const sidan = Number(t.updated || t.created || 0);
     const slod = '#ticket-' + t.id;
     // Sértækasta ástandið ræður svo hver beiðni birtist AÐEINS einu sinni.
+    // ⚠ Skörun er raunhæf: beiðni getur lent bæði í moot_osent og moot_bida (nýr Moot-fundur eftir að
+    // Aron kaus en áður en svarið fór út). moot_osent vinnur: samþykkt-en-ósent er áþreifanleg aðgerð,
+    // ný atkvæðagreiðsla getur beðið.
     if (osent.has(t.id)) ut.push(rod('sigrun', 'moot_osent', '#' + t.id + ' — samþykkt svar ósent', t.efni, sidan, slod));
     else if (mootBida.has(t.id)) ut.push(rod('sigrun', 'moot', '#' + t.id + ' — Moot bíður atkvæðis', t.efni, sidan, slod));
     else if (t.stada === 'nytt' || t.stada === 'stadfest') ut.push(rod('sigrun', 'svar', '#' + t.id + ' — bíður svars', t.efni, sidan, slod));
     else if (t.stada === 'tillaga') ut.push(rod('hrafn', 'tillaga', '#' + t.id + ' — CTO-tillaga tilbúin', t.efni, sidan, slod));
-    else if (t.stada === 'cto' && Number(now) - sidan > CTO_FAST_SEK) ut.push(rod('hrafn', 'cto_fast', '#' + t.id + ' — keyrsla hefur staðið í meira en klukkustund', t.efni, sidan, slod));
+    // `cto` og `samthykkt` eiga bæði að ganga yfir á mínútum (keyrsla annars vegar, merge+deploy hins
+    // vegar). Sitji beiðni lengur er ræsingin fallin — og þá bíður hún Arons þótt staðan segi „í vinnslu".
+    else if ((t.stada === 'cto' || t.stada === 'samthykkt') && Number(now) - sidan > CTO_FAST_SEK) {
+      const cto = t.stada === 'cto';
+      ut.push(rod('hrafn', cto ? 'cto_fast' : 'merge_fast',
+        '#' + t.id + (cto ? ' — keyrsla hefur staðið í meira en klukkustund' : ' — samþykkt en merge hefur ekki skilað sér'),
+        t.efni, sidan, slod));
+    }
   }
   for (const b of (Array.isArray(bilanir) ? bilanir : [])) {
     if (!b || b.alvarleiki !== 'hatt') continue;   // miðlungs/lágt sést á spjaldi Hrafns, truflar ekki forstofuna

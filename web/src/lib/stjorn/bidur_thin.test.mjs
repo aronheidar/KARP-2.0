@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { ADKALLANDI_SEK, bidurFyrir, bidurThin } from './bidur_thin.mjs';
+import { TICKET_STODUR } from '../hjalp_agent.mjs';
 
 const NU = 1_800_000_000;
 const t = (id, stada, updated, auka = {}) => Object.assign({ id, stada, updated, created: updated - 60, efni: 'Efni ' + id }, auka);
@@ -61,4 +62,26 @@ test('tóm eða gölluð gögn skila tómum lista í stað þess að kasta', () 
   assert.deepEqual(bidurThin({}), []);
   assert.deepEqual(bidurThin({ tickets: { list: null }, bilanir: null, now: NU }), []);
   assert.deepEqual(bidurThin(), []);
+});
+
+test('samþykkt beiðni sem situr föst: merge skilaði sér ekki → bíður Arons eftir klukkustund', () => {
+  const nyleg = bidurThin({ now: NU, tickets: { list: [t(4, 'samthykkt', NU - 600)] } });
+  assert.deepEqual(nyleg, [], 'merge er nýræst — ekkert að gera');
+  const fost = bidurThin({ now: NU, tickets: { list: [t(4, 'samthykkt', NU - 3601)] } });
+  assert.equal(fost.length, 1);
+  assert.equal(fost[0].starfsmadur, 'hrafn');
+  assert.equal(fost[0].tegund, 'merge_fast');
+  assert.match(fost[0].titill, /samþykkt en merge/);
+});
+
+test('skörun moot_osent og moot_bida: samþykkt-en-ósent vinnur og beiðnin birtist einu sinni', () => {
+  const r = bidurThin({ now: NU, tickets: { list: [t(5, 'stadfest', NU - 100)], moot_osent: [5], moot_bida: [5] } });
+  assert.equal(r.length, 1);
+  assert.equal(r[0].tegund, 'moot_osent');
+});
+
+test('ástandsheitin sem listinn byggir á eru raunveruleg — samstillist ástandsvélinni', () => {
+  for (const stada of ['nytt', 'stadfest', 'tillaga', 'cto', 'samthykkt']) {
+    assert.ok(TICKET_STODUR.includes(stada), stada + ' er ekki lengur til í TICKET_STODUR — bidurThin þagnar þegjandi');
+  }
 });
