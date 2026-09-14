@@ -17,6 +17,7 @@
 // Keyrsla: node skriptur/build_leiga.js
 // ─────────────────────────────────────────────────────────────
 const fs = require('fs');
+const { writeJsonUnlessEmpty } = require('./_seigla.js');   // tóm veita yfirskrifar aldrei heila skrá
 const path = require('path');
 
 const URL = 'https://frs3o1zldvgn.objectstorage.eu-frankfurt-1.oci.customer-oci.com/n/frs3o1zldvgn/b/public_data_for_download/o/leiguskra.csv';
@@ -140,6 +141,13 @@ const median = (arr) => { if (!arr.length) return null; const a = [...arr].sort(
   const yoy = (vm.length && viTil) ? (() => { const [y, mm] = viTil.split('-'); const p = (y - 1) + '-' + mm; return VI[p] ? Math.round((VI[viTil] / VI[p] - 1) * 1000) / 10 : null; })() : null;
   const out = { updated: new Date().toISOString().slice(0, 10), source: 'Leiguskrá HMS (leiguskra.csv, þinglýstir samningar) + vísitala leiguverðs HMS (leiguvisitala.csv)', maxDate: maxD, muniYear: lastFullYear, total: rows.length, latest, quarters, byMuni,
     visitala: vm.length ? { fra: vm[0], til: viTil, stig: VI, yoy, heimild: 'HMS — vísitala leiguverðs (sameinuð; 2023-05=100), höfuðborgarsvæðið, markaðsleiga' } : null, nu };
-  fs.writeFileSync(OUT, JSON.stringify(out));
+  // ⚠ SEIGLA (14.9.2026): leiga.json fæðir fasta samhengispakka Spyrðu Karp, AUG-lagið og
+  //   /fasteignir/. Tómmerkin hér eru `quarters` OG `nu` — skráin er ekki nýtileg án hvorugs:
+  //   `nu` er talan sem borin er fram sem líðandi leiguverð, `quarters` er forsenda hennar.
+  //   ⚠ Undirskrárnar (leigusaga/, hms/leiguverd.json) eru skrifaðar OFAR og eru ekki varðar hér —
+  //     þær eru afleiddar af sama `saga`-fylki, svo tómt skrap skilar tómum undirskrám líka.
+  //     Það er úrbót sem bíður; þessi vörn nær yfir skrána sem spjallið og síðan lesa.
+  const _tomt = (d) => !d || (!(Array.isArray(d.quarters) && d.quarters.length) && !(d.nu && d.nu.medM2));
+  writeJsonUnlessEmpty(OUT, out, { isEmpty: _tomt, label: 'leiga.json' });
   console.log('Skrifað:', OUT, '·', latest ? `nýjast ${latest.q}: ${latest.medM2} kr/m² (${latest.n} samningar)` : '—', '· nú (framreiknað):', nu ? nu.medM2 + ' kr/m² ' + nu.m : '—');
 })();

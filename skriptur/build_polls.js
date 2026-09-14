@@ -6,6 +6,7 @@
 // Heimild birt í mælaborðinu (Wikipedia + listed pollsters), CC BY-SA.
 
 const fs = require('fs');
+const { writeJsonUnlessEmpty } = require('./_seigla.js');   // tóm veita yfirskrifar aldrei heila skrá
 const path = require('path');
 const DIR = path.join(__dirname, '..', 'gogn') + path.sep;
 const PAGE = 'Next_Icelandic_parliamentary_election';
@@ -105,11 +106,16 @@ const main = async () => {
     polls: polls,
     election2024: election
   };
-  fs.writeFileSync(DIR + 'polls.json', JSON.stringify(out));
-  // public-afrit (LOTA 51): Spyrðu-Karp-RAG sækir kannanirnar á keyrslutíma
+  // ⚠ SEIGLA (14.9.2026): polls.json fæðir fasta samhengispakkann, AUG-lagið og /kannanir/.
+  //   Tóm könnunaskrá þýddi að Spyrðu Karp missti fylgistölur án þess að nokkuð yrði rautt.
+  const _tomt = (d) => !d || !Array.isArray(d.polls) || !d.polls.length;
+  const _r = writeJsonUnlessEmpty(DIR + 'polls.json', out, { isEmpty: _tomt, label: 'polls.json' });
   const PUB = path.join(__dirname, '..', 'web', 'public', 'gogn');
-  fs.mkdirSync(PUB, { recursive: true });
-  fs.writeFileSync(path.join(PUB, 'polls.json'), JSON.stringify(out));
+  if (!_r.kept) {
+    // public-afrit (LOTA 51): Spyrðu-Karp-RAG sækir kannanirnar á keyrslutíma
+    fs.mkdirSync(PUB, { recursive: true });
+    fs.writeFileSync(path.join(PUB, 'polls.json'), JSON.stringify(out));
+  }
   console.log('WROTE polls.json | kannanir:', polls.length, '| election baseline:', !!election, '| bytes:', fs.statSync(DIR + 'polls.json').size);
   console.log('pollsters:', JSON.stringify([...new Set(polls.map(p => p.pollster))]));
   console.log('date range:', polls.length ? polls[0].date + ' → ' + polls[polls.length - 1].date : '—');

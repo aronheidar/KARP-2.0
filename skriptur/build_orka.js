@@ -8,6 +8,7 @@
 //   Samtals[MWh],Samtals[GWh],…). Sundurliðun eftir uppruna er frá 1992; heildartala frá 1969.
 
 const fs = require('fs');
+const { writeJsonUnlessEmpty } = require('./_seigla.js');   // tóm veita yfirskrifar aldrei heila skrá
 const path = require('path');
 const XLSX = require('xlsx');
 const DIR = path.join(__dirname, '..', 'gogn') + path.sep;
@@ -32,7 +33,9 @@ const URL = 'https://vefskrar.orkustofnun.is/Talnaefni/OS-2025-1-throun-raforkuf
     note: 'Raforkuframleiðsla á Íslandi eftir uppruna, GWh. Sundurliðun eftir uppruna frá 1992; heildartala frá 1969.',
     rows: out
   };
-  fs.writeFileSync(DIR + 'orka.json', JSON.stringify(data));
+  // ⚠ SEIGLA (14.9.2026): orka.json fæðir fasta samhengispakkann, AUG-lagið og /orka/.
+  const _tomt = (d) => !d || !Array.isArray(d.rows) || !d.rows.length;
+  writeJsonUnlessEmpty(DIR + 'orka.json', data, { isEmpty: _tomt, label: 'orka.json' });
   console.log('orka.json | ár:', out.length, out[0].y, '→', out[out.length - 1].y, '| bytes:', fs.statSync(DIR + 'orka.json').size);
   const last = out[out.length - 1], ren = ((last.hydro + last.geo + (last.wind || 0)) / last.total * 100);
   console.log('nýjasta ár:', JSON.stringify(last), '| endurnýjanlegt:', ren.toFixed(2) + '%');

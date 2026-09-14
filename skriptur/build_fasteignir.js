@@ -9,6 +9,7 @@
 //   Verð (KAUPVERD) er í þús.kr. Miðgildi notað (robust gegn útlögum).
 
 const fs = require('fs');
+const { writeJsonUnlessEmpty } = require('./_seigla.js');   // tóm veita yfirskrifar aldrei heila skrá
 const path = require('path');
 const DIR = path.join(__dirname, '..', 'gogn') + path.sep;
 const URL = 'https://frs3o1zldvgn.objectstorage.eu-frankfurt-1.oci.customer-oci.com/n/frs3o1zldvgn/b/public_data_for_download/o/kaupskra.csv';
@@ -136,10 +137,17 @@ function summ(a) { return a.length ? { m2: Math.round(median(a.slice())), p25: p
     byMuni: byMuni, byRegionType: byRegionType, byMuniWindow: months[Math.max(0, months.length - 12)].m + '–' + lastM,
     matStats, direction
   };
-  fs.writeFileSync(DIR + 'fasteignir.json', JSON.stringify(out));
-  // public-afrit (LOTA 51): verðmatið á /vaktir/ og Spyrðu-Karp-RAG sækja skrána á keyrslutíma
-  fs.mkdirSync(path.join(__dirname, '..', 'web', 'public', 'gogn'), { recursive: true });
-  fs.writeFileSync(path.join(__dirname, '..', 'web', 'public', 'gogn', 'fasteignir.json'), JSON.stringify(out));
+  // ⚠ SEIGLA (14.9.2026): fasteignir.json fæðir BÆÐI fasta samhengispakka Spyrðu Karp, AUG-lagið OG
+  //   /fasteignir/ + verðmatið. Skili HMS engu og við skrifum tómt yfir, hverfur fasteignaverð úr öllum
+  //   þremur í einu — nákvæmlega þögla bilunin sem numbeo varð fyrir (tóm skrá í þrár vikur, 22.8–14.9).
+  //   BÁÐUM skrifum er sleppt saman: annars færi tóma útgáfan í þjónaða tréð þótt rótin héldi sér.
+  const _tomt = (d) => !d || !Array.isArray(d.months) || !d.months.length;
+  const _r = writeJsonUnlessEmpty(DIR + 'fasteignir.json', out, { isEmpty: _tomt, label: 'fasteignir.json' });
+  if (!_r.kept) {
+    // public-afrit (LOTA 51): verðmatið á /vaktir/ og Spyrðu-Karp-RAG sækja skrána á keyrslutíma
+    fs.mkdirSync(path.join(__dirname, '..', 'web', 'public', 'gogn'), { recursive: true });
+    fs.writeFileSync(path.join(__dirname, '..', 'web', 'public', 'gogn', 'fasteignir.json'), JSON.stringify(out));
+  }
   console.log('skrár alls:', total, '| nothæf íbúðakaup:', kept, '| mánuðir:', months.length, '| bytes:', fs.statSync(DIR + 'fasteignir.json').size);
   console.log('nýjasti mánuður:', JSON.stringify(months[months.length - 1]));
 
