@@ -3,6 +3,7 @@
 // -> web/public/gogn/sector_kpi.json : { updated, source, ar, map:{<isat-forskeyti>:{...hlutföll,label}}, heild:{...} }
 // Runtime: company f.isat[0] -> tölustafir -> lengsta forskeyti í map (annars heild).
 import fs from 'node:fs';
+import { writeJsonUnlessEmpty } from './_seigla.js';   // tóm veita yfirskrifar aldrei heila skrá
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -114,7 +115,8 @@ function jsAccessor(js) {
   for (const p in map) delete map[p]._plen;
 
   const data = { updated: new Date().toISOString().slice(0, 10), source: 'Hagstofa Íslands — FYR08010 Rekstrar- og efnahagsyfirlit', ar: usedYear ? +usedYear : null, n: Object.keys(map).length, map, heild };
-  fs.writeFileSync(OUT, JSON.stringify(data));
+  // ⚠ SEIGLA: sector_kpi.json — rekstrarkenniтölur greina; AUG-færsla + /atvinnugreinar/ (greidd skýrsla).
+  writeJsonUnlessEmpty(OUT, data, { isEmpty: (d) => !d || !d.map || !Object.keys(d.map).length, label: 'sector_kpi.json' });
   console.log('sector_kpi.json | forskeyti:', Object.keys(map).length, '| ár:', data.ar, '| bytes:', fs.statSync(OUT).size);
   // sanngæfa
   const demo = (dig) => { let b = null, bl = -1; for (const p in map) if (dig.startsWith(p) && p.length > bl) { b = map[p]; bl = p.length; } return b || heild; };

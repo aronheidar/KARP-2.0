@@ -5,6 +5,7 @@
 // Aðeins LÖGAÐILA-kt (dagur 41–71) í byKt → forðast fjölda-birtingu einstaklings-kt (skráin opinber á /gogn/).
 // Sjá memory/iceland-islandis-graphql-audit.md. Neytandi: worker /api/loftfor?kt= + #fs-loftfor flís.
 import fs from 'node:fs';
+import { writeJsonUnlessEmpty } from './_seigla.js';   // tóm veita yfirskrifar aldrei heila skrá
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -51,7 +52,8 @@ async function page(pageNumber, pageSize) {
     source: 'Loftfaraskrá Samgöngustofu um island.is (aircraftRegistryAllAircrafts)',
     n: all.length, logadilar: Object.keys(byKt).length, nofn, byKt,
   };
-  fs.writeFileSync(OUT, JSON.stringify(data));
+  // ⚠ SEIGLA: loftfor.json — firmaLookup í Spyrðu Karp OG /okutaeki-skip/.
+  writeJsonUnlessEmpty(OUT, data, { isEmpty: (d) => !d || !d.n, label: 'loftfor.json' });
   console.log('loftfor.json | loftför:', all.length, '| lögaðilar:', data.logadilar, '| bytes:', fs.statSync(OUT).size);
   // sýnishorn
   for (const kt of Object.keys(byKt).sort((a, b) => byKt[b].length - byKt[a].length).slice(0, 5)) console.log('   ', kt, byKt[kt].length, 'loftför →', byKt[kt].slice(0, 3).map((x) => x.skrnr + '/' + (x.tegund || '').slice(0, 20)).join(', '));

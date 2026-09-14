@@ -12,6 +12,7 @@
 //  ÚTKOMA: web/public/gogn/midlavog.json  →  /frettir/ birtir vogina.
 // =============================================================================
 import fs from 'node:fs';
+import { writeJsonUnlessEmpty } from './_seigla.js';   // tóm veita yfirskrifar aldrei heila skrá
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { outletBias } from '../web/src/lib/midlavog.mjs';
@@ -77,8 +78,11 @@ if (!efni.length) { console.error('✗ engir aðilar fundust — sleppi.'); proc
     fyrri.a = [...new Set([...(fyrri.a || []), ...(x.a || [])])];
   }
   const einkvaem = [...byslug.values()];
-  fs.writeFileSync(path.join(ROOT, 'web', 'public', 'gogn', 'frettaadilar.json'),
-    JSON.stringify({ updated: new Date().toISOString().slice(0, 10), adilar: einkvaem }, null, 1));
+  // ⚠ SEIGLA: frettaadilar.json ber 183 aðila-síður á /frettir/ (Fjölmiðlavaktin, greidd vara) og
+  //   sitemap-ið neðar er afleitt af henni. Tómur aðilalisti þýðir að síðurnar hverfa.
+  writeJsonUnlessEmpty(path.join(ROOT, 'web', 'public', 'gogn', 'frettaadilar.json'),
+    { updated: new Date().toISOString().slice(0, 10), adilar: einkvaem },
+    { isEmpty: (d) => !d || !Array.isArray(d.adilar) || !d.adilar.length, label: 'frettaadilar.json' });
   // Sitemap fyrir SSR-síðurnar (Astro-sitemap sér þær ekki — þær eru ekki til á byggingartíma).
   const urls = einkvaem.map((a) => `  <url><loc>https://karp.is/frettir/${a.slug}/</loc><changefreq>daily</changefreq></url>`).join('\n');
   fs.writeFileSync(path.join(ROOT, 'web', 'public', 'sitemap-frettaadilar.xml'),
@@ -113,7 +117,8 @@ const out = {
   ...vog,
 };
 const dest = path.join(ROOT, 'web', 'public', 'gogn', 'midlavog.json');
-fs.writeFileSync(dest, JSON.stringify(out, null, 1));
+// ⚠ SEIGLA: midlavog.json = AUG-færsla + /frettir/. Tómur miðlalisti = skrap brast.
+writeJsonUnlessEmpty(dest, out, { isEmpty: (d) => !d || !Array.isArray(d.outlets) || !d.outlets.length, label: 'midlavog.json' });
 console.log(`\n✔ midlavog.json → ${vog.outlets.length} miðlar · ${vog.entities} sameiginleg efni · ${cells.length} frumur`);
 for (const o of vog.outlets.slice(0, 12)) {
   console.log(`   ${String(o.bias > 0 ? '+' + o.bias : o.bias).padStart(4)}  ${o.s.padEnd(24)} (hrár ${o.rawTone > 0 ? '+' : ''}${o.rawTone} · ${o.n} fréttir · ${o.entities} efni)`);

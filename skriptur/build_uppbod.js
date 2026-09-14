@@ -5,6 +5,7 @@
 // KEYRSLA: node skriptur/build_uppbod.js   (engir lyklar)
 
 const fs = require('fs');
+const { writeJsonUnlessEmpty } = require('./_seigla.js');   // tóm veita yfirskrifar aldrei heila skrá
 const path = require('path');
 const DIR = path.join(__dirname, '..', 'gogn') + path.sep;
 const PUB = path.join(__dirname, '..', 'web', 'public', 'gogn');
@@ -39,10 +40,15 @@ const PUB = path.join(__dirname, '..', 'web', 'public', 'gogn');
     note: 'auctionType segir stöðu (byrjun/framhald/sölu lokið). Uppboðsauglýsingar eru opinberar skv. lögum um nauðungarsölu.',
     rows,
   };
+  // ⚠ SEIGLA: uppbod.json = AUG-færsla + /vaktir/. Skráin er SAFN (auðglýstar OG „Sölu lokið") svo
+  //   hún fer ekki niður í núll á eðlilegan hátt — tóm skrá þýðir að skrapið brast, ekki að engin
+  //   uppboð séu til. BÁÐUM skrifum sleppt saman svo þjónaða tréð fái ekki tómu útgáfuna.
   const s = JSON.stringify(out);
-  fs.writeFileSync(DIR + 'uppbod.json', s);
-  fs.mkdirSync(PUB, { recursive: true });
-  fs.writeFileSync(path.join(PUB, 'uppbod.json'), s);
+  const _r = writeJsonUnlessEmpty(DIR + 'uppbod.json', out, { isEmpty: (d) => !d || !Array.isArray(d.rows) || !d.rows.length, label: 'uppbod.json' });
+  if (!_r.kept) {
+    fs.mkdirSync(PUB, { recursive: true });
+    fs.writeFileSync(path.join(PUB, 'uppbod.json'), s);
+  }
   const teg = {};
   rows.forEach((x) => { teg[x.flokkur] = (teg[x.flokkur] || 0) + 1; });
   console.log('uppbod.json:', rows.length, 'uppboð (' + fast + ' fasteignir) |', (s.length / 1024).toFixed(1), 'KB | flokkar:', JSON.stringify(teg));
