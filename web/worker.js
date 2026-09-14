@@ -1,6 +1,7 @@
 import { greinaSql, GREINAR } from './src/lib/greinar.mjs';
 import { CAT, sectionOfType, asciiId } from './src/lib/frettavel-cat.mjs';
 import { buildTimalina } from './src/lib/firma-timalina.mjs';
+import { felagTitill } from './src/lib/felag-titill.mjs';   // <title> á /fyrirtaeki/<kt>/ — þrepast niður svo hann klippist ekki í SERP
 import { firmaKandidatar, firmaNafn } from './src/lib/firma-nafn.mjs';
 import { heitiFlokks } from './src/lib/flokkar.mjs';   // bókstafur → flokksheiti (ein uppspretta)   // þáttun spurningar → nafn/kt (prófuð)
 import { aggregateFirma } from './src/lib/firma-greining.mjs';
@@ -1727,7 +1728,7 @@ async function fyrirtaekiSidaHandler(request, env, ctx) {
   const f = d && d.felag;
   if (!f || !f.nafn) return env.ASSETS.fetch(request);      // ekkert raunfélag → 404, EKKI tóm 200
   const canonical = 'https://karp.is/fyrirtaeki/' + kt + '/';
-  const title = htmlEsc(f.nafn) + ' (' + ktSep(kt) + ') — ársreikningur, eigendur, kennitala | Karp';
+  const title = htmlEsc(felagTitill(f.nafn, kt));
   const dParts = [f.form, f.isat && f.isat[0], f.postfang || f.logheimili, f.afskrad ? 'Afskráð' : (f.stada || 'Virk skráning')].filter(Boolean).join(' · ');
   const desc = htmlEsc((f.nafn + ' — kt. ' + ktSep(kt) + '. ' + dParts + '. Ársreikningar, endanlegir eigendur, tengsl og umfjöllun á Karp.').slice(0, 280));
   const ld = JSON.stringify(orgJsonLd(f, kt, canonical)).replace(/</g, '\\u003c');
