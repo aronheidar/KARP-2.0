@@ -99,3 +99,50 @@ test('endapunktur: GET má með lykli, POST verk KREFST lotu', async (t) => {
   assert.equal((await js(await adminBilanirHandler(req('GET', K), env, {}))).ok, true);
   assert.deepEqual(await js(await adminBilanirHandler(req('POST', K, { verk: 'laga karp2' }), env, {})), { ok: false, error: 'lota' });
 });
+
+test('fallin CTO-keyrsla ratar á listann með vægasta alvarleikanum', async (t) => {
+  stubGh(t, Object.assign({}, GH_ALLT_GOTT, {
+    'workflows/cto.yml/runs': { d: { workflow_runs: [{ conclusion: 'failure', created_at: '2026-09-14T09:00:00Z', html_url: 'cto-url' }] } },
+  }));
+  const r = await saekjaBilanir(mkEnv(mkState()), { thvinga: true });
+  const b = r.bilanir.find((x) => x.uppspretta === 'CTO');
+  assert.ok(b, 'CTO-bilun fannst');
+  assert.equal(b.alvarleiki, 'lagt');
+  assert.equal(b.slod, 'cto-url');
+});
+
+test('ein uppspretta niðri þurrkar ekki út hinar — listinn er hlutbyggður og merktur', async (t) => {
+  stubGh(t, Object.assign({}, GH_ALLT_GOTT, {
+    'workflows/ci.yml/runs': { d: { workflow_runs: [{ conclusion: 'failure', head_sha: 'abc', created_at: '2026-09-14T10:00:00Z', html_url: 'ci-url' }] } },
+    'pulls?state=open': { status: 500, d: { message: 'boom' } },
+  }));
+  const r = await saekjaBilanir(mkEnv(mkState()), { thvinga: true });
+  assert.equal(r.ok, true);
+  assert.ok(r.bilanir.some((b) => b.uppspretta === 'CI'), 'rautt main sést þrátt fyrir að PR-uppsprettan félli');
+  assert.equal(r.villa, 'hluti');
+  assert.deepEqual(r.vantar, ['PR']);
+});
+
+test('allar uppsprettur niðri → síðasti þekkti listi stendur og villan er merkt', async (t) => {
+  const state = mkState(); const env = mkEnv(state);
+  stubGh(t, Object.assign({}, GH_ALLT_GOTT, {
+    'workflows/ci.yml/runs': { d: { workflow_runs: [{ conclusion: 'failure', head_sha: 'abc', created_at: '2026-09-14T10:00:00Z', html_url: 'ci-url' }] } },
+  }));
+  await saekjaBilanir(env, { thvinga: true });
+  globalThis.fetch = async () => { throw new Error('net'); };
+  const r = await saekjaBilanir(env, { thvinga: true });
+  assert.equal(r.villa, 'github');
+  assert.ok(r.bilanir.some((b) => b.uppspretta === 'CI'), 'gamli listinn hvarf ekki');
+});
+
+test('langur listi er klipptur á heilum færslum — geymt JSON þáttast alltaf', async (t) => {
+  const state = mkState();
+  const margir = Array.from({ length: 60 }, (_, i) => ({ number: i + 1, title: 'x'.repeat(400), created_at: new Date(Date.now() - 30 * 86400000).toISOString(), html_url: 'u' + i, head: { ref: 'b' + i } }));
+  stubGh(t, Object.assign({}, GH_ALLT_GOTT, { 'pulls?state=open': { d: margir } }));
+  await saekjaBilanir(mkEnv(state), { thvinga: true });
+  const geymt = state.bilanir.v;
+  assert.ok(geymt.length <= 8000, 'geymt innan marka');
+  const þattad = JSON.parse(geymt);   // kastar ef JSON var skorið í sundur
+  assert.ok(Array.isArray(þattad.bilanir) && þattad.bilanir.length > 0);
+  assert.ok(þattad.bilanir.every((b) => b.lysing.length <= 200));
+});

@@ -38,6 +38,20 @@ async function _blGeymt(env) {
   try { return { gogn: JSON.parse(r.v), uppfaert: Number(r.updated) }; } catch (e) { return null; }
 }
 
+/** Snyrtir listann fyrir geymslu. ⚠ Klippt er AFTAN AF LISTANUM, aldrei á miðju JSON-i: hálft JSON
+ *  þáttast ekki og þá hyrfi síðasti þekkti listi einmitt þegar GitHub er niðri og hans er mest þörf. */
+function _blSnyrta(bilanir) {
+  const snyrt = bilanir.slice(0, 40).map((b) => ({
+    uppspretta: String(b.uppspretta || '').slice(0, 40),
+    lysing: String(b.lysing || '').slice(0, 200),
+    sidan: Number(b.sidan) || 0,
+    alvarleiki: b.alvarleiki,
+    slod: String(b.slod || '').slice(0, 300),
+  }));
+  while (snyrt.length > 1 && JSON.stringify({ bilanir: snyrt }).length > 8000) snyrt.pop();
+  return snyrt;
+}
+
 /** Sækir bilanalistann (eða skilar geymdum innan fyrningar). */
 export async function saekjaBilanir(env, { thvinga = false } = {}) {
   if (!env.GITHUB_DISPATCH_TOKEN) return { ok: false, error: 'unconfigured' };
@@ -45,40 +59,55 @@ export async function saekjaBilanir(env, { thvinga = false } = {}) {
   if (!thvinga && geymt && geymt.uppfaert > _blNow() - _BL_FYRNING) return Object.assign({ ok: true, sott: geymt.uppfaert }, geymt.gogn);
 
   const bilanir = [];
+  let vantar = [];
   try {
-    const [ci, cto, checks, prs] = await Promise.all([
+    const [ci, cto, checks, prs] = (await Promise.allSettled([
       _blGh(env, 'actions/workflows/ci.yml/runs?branch=main&per_page=5'),
       _blGh(env, 'actions/workflows/cto.yml/runs?per_page=5'),
       _blGh(env, 'commits/main/check-runs'),
       _blGh(env, 'pulls?state=open'),
-    ]);
-    const sidasta = ((ci && ci.workflow_runs) || [])[0];
-    if (sidasta && sidasta.conclusion === 'failure') {
-      bilanir.push({ uppspretta: 'CI', lysing: 'main er rautt — síðasta keyrsla féll', sidan: _blSek(sidasta.created_at), alvarleiki: 'hatt', slod: sidasta.html_url });
+    ])).map((r) => (r.status === 'fulfilled' ? r.value : null));
+    vantar = [['CI', ci], ['CTO', cto], ['Bygging', checks], ['PR', prs]].filter(([, v]) => v === null).map(([n]) => n);
+    if (vantar.length === 4) throw new Error('allar uppsprettur');
+
+    if (ci) {
+      const sidasta = ((ci && ci.workflow_runs) || [])[0];
+      if (sidasta && sidasta.conclusion === 'failure') {
+        bilanir.push({ uppspretta: 'CI', lysing: 'main er rautt — síðasta keyrsla féll', sidan: _blSek(sidasta.created_at), alvarleiki: 'hatt', slod: sidasta.html_url });
+      }
     }
-    for (const c of ((checks && checks.check_runs) || [])) {
-      if (c.conclusion !== 'failure') continue;
-      bilanir.push({ uppspretta: 'Bygging', lysing: c.name + ' fellur á main', sidan: _blSek(c.completed_at), alvarleiki: 'midlungs', slod: c.details_url });
+    if (checks) {
+      for (const c of ((checks && checks.check_runs) || [])) {
+        if (c.conclusion !== 'failure') continue;
+        bilanir.push({ uppspretta: 'Bygging', lysing: c.name + ' fellur á main', sidan: _blSek(c.completed_at), alvarleiki: 'midlungs', slod: c.details_url });
+      }
     }
-    const ctoFell = ((cto && cto.workflow_runs) || []).filter((r) => r.conclusion === 'failure')[0];
-    if (ctoFell) {
-      bilanir.push({ uppspretta: 'CTO', lysing: 'síðasta CTO-keyrsla féll', sidan: _blSek(ctoFell.created_at), alvarleiki: 'lagt', slod: ctoFell.html_url });
+    if (cto) {
+      const ctoFell = ((cto && cto.workflow_runs) || []).filter((r) => r.conclusion === 'failure')[0];
+      if (ctoFell) {
+        bilanir.push({ uppspretta: 'CTO', lysing: 'síðasta CTO-keyrsla féll', sidan: _blSek(ctoFell.created_at), alvarleiki: 'lagt', slod: ctoFell.html_url });
+      }
     }
-    const markPr = _blNow() - _BL_PR_DAGAR * 86400;
-    for (const p of (Array.isArray(prs) ? prs : [])) {
-      const stofnad = _blSek(p.created_at);
-      if (stofnad > markPr) continue;
-      bilanir.push({ uppspretta: 'PR', lysing: 'PR #' + p.number + ' hefur staðið opinn: ' + (p.title || ''), sidan: stofnad, alvarleiki: 'midlungs', slod: p.html_url });
+    if (prs) {
+      const markPr = _blNow() - _BL_PR_DAGAR * 86400;
+      for (const p of (Array.isArray(prs) ? prs : [])) {
+        const stofnad = _blSek(p.created_at);
+        if (stofnad > markPr) continue;
+        bilanir.push({ uppspretta: 'PR', lysing: 'PR #' + p.number + ' hefur staðið opinn: ' + (p.title || ''), sidan: stofnad, alvarleiki: 'midlungs', slod: p.html_url });
+      }
     }
   } catch (e) {
     // Síðasti þekkti listi stendur; spjaldið segir frá því að hann sé ekki ferskur.
     return Object.assign({ ok: true, villa: 'github', sott: geymt ? geymt.uppfaert : 0 }, (geymt && geymt.gogn) || { bilanir: [] });
   }
 
-  const gogn = { bilanir };
+  const snyrt = _blSnyrta(bilanir);
+  const gogn = { bilanir: snyrt };
   await env.TENGSL.prepare("INSERT INTO stjorn_sync (k, v, updated) VALUES ('bilanir', ?, ?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated")
-    .bind(JSON.stringify(gogn).slice(0, 8000), _blNow()).run().catch(() => {});
-  return { ok: true, sott: _blNow(), bilanir };
+    .bind(JSON.stringify(gogn), _blNow()).run().catch(() => {});
+  const skil = { ok: true, sott: _blNow(), bilanir: snyrt };
+  if (vantar.length) { skil.villa = 'hluti'; skil.vantar = vantar; }
+  return skil;
 }
 
 /** /api/admin/bilanir — GET listinn · POST {verk} ræsir Hrafn á frjálsu verkefni.
