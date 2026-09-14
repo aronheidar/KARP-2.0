@@ -715,7 +715,27 @@ async function firmaLookup(q, ctx, env) {
       }
     }
   } catch (e) {}
-  return bits.join(' ').slice(0, 1800) + ' (sjá /fyrirtaeki/)';
+  // ── Vísun á fyrirtækjaskýrsluna ────────────────────────────────────────────
+  // Spjallið svarar úr SÖMU veitum og 990 kr fyrirtækjaskýrslan byggir á og gefur ókeypis stóran
+  // hluta þess sem hún auglýsir (eigendur, rekstrarform, ÍSAT, ársreikningaskil, styrki,
+  // Lögbirtingablaðið, vörumerki, eftirlit). Tveir kostir stóðu: taka það af spjallinu, eða benda
+  // á það sem spjallið á EKKI. Fyrri kosturinn gerir spjallið verra fyrir notandann án þess að
+  // selja neitt — sá síðari gerir það að sölurás. Valið er skjalfest, ekki tilviljun.
+  // ⚠ ÞETTA ER VÍSUN, EKKI AUGLÝSING. Módelinu er sagt berum orðum: svaraðu spurningunni fyrst,
+  //   ein setning í lokin, aldrei endurtekin. Spjall sem selur í hverju svari hættir að vera nothæft.
+  // ⚠⚠ ORÐALAG: „lánshæfisvísbending", ALDREI „lánshæfismat". /fyrirtaeki/ tekur sjálf fram að
+  //   einkunnin sé samsett vísbending úr opinberum gögnum en EKKI formlegt lánshæfismat
+  //   (fyrirtaeki.astro, „🎯 KARP lánshæfismat (v2) — … EKKI formlegt lánshæfismat"). Sölutexti
+  //   má aldrei lofa meiru en varan segist sjálf vera.
+  // ⚠ VERÐ ER VILJANDI EKKI HÉR — það stendur í UM KARP-línunum sem koma úr KB-inu í
+  //   hjalp_agent.mjs. Tvær verðskrár í sama svari verða ósamstiga við fyrstu verðbreytingu.
+  // ⚠ Bætt við EFTIR slice(): vísunin má aldrei ýta staðreyndum um félagið út úr svarinu.
+  const visun = ' — DÝPRI GREINING (svaraðu spurningunni fyrst; nefndu þetta í EINNI stuttri setningu '
+    + 'í lokin og aðeins ef spurt var um félagið sjálft; aldrei oftar en einu sinni): fyrirtækjaskýrsla '
+    + 'Karp á /fyrirtaeki/ bætir við rekstrartölum úr ársreikningum, lánshæfisvísbendingu A–E '
+    + '(samsett úr opinberum gögnum — ekki formlegt lánshæfismat), tengslakorti og tímalínu atburða. '
+    + 'Verð er í UM KARP-línunum hér að ofan.';
+  return bits.join(' ').slice(0, 1800) + ' (sjá /fyrirtaeki/)' + visun;
 }
 
 async function spyrduHandler(request, env, ctx) {

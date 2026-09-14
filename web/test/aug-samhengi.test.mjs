@@ -189,3 +189,35 @@ test('síðukort: engar tvíteknar slóðir', () => {
   const tvi = slodir.filter((u, i) => slodir.indexOf(u) !== i);
   assert.deepEqual([...new Set(tvi)], []);
 });
+
+// ── Vísun á fyrirtækjaskýrsluna (sölurás, ekki auglýsing) ────────────────────
+// firmaLookup þarf lifandi veitur og verður ekki keyrt hér; prófum textann sem er fastur í
+// einingunni. Tvennt má ekki reka: orðalagið um lánshæfi, og að vísunin sé klippt af slice().
+test('vísunin lofar ekki formlegu lánshæfismati', async () => {
+  const { readFileSync } = await import('node:fs');
+  const src = readFileSync(new URL('../worker.js', import.meta.url), 'utf8');
+  const i = src.indexOf('const visun =');
+  assert.ok(i > 0, 'vísunin fannst ekki í worker.js');
+  const blokk = src.slice(i, i + 900);
+  assert.match(blokk, /lánshæfisvísbending/, 'á að segja „lánshæfisvísbending"');
+  assert.match(blokk, /ekki formlegt lánshæfismat/, 'fyrirvarinn verður að fylgja');
+  // /fyrirtaeki/ segir sjálf að einkunnin sé EKKI formlegt lánshæfismat — sölutextinn má ekki
+  // segja annað. Leyfum orðið aðeins innan fyrirvarans.
+  const utanFyrirvara = blokk.replace(/ekki formlegt lánshæfismat/g, '');
+  assert.equal(/lánshæfismat/.test(utanFyrirvara), false, '„lánshæfismat" utan fyrirvarans');
+});
+
+test('vísunin ber ekki verð — það á eina uppsprettu í KB-inu', () => {
+  // Tvær verðskrár í sama svari verða ósamstiga við fyrstu verðbreytingu.
+  const { AUG } = { AUG: null };   // (ekki notað — lesum skrána beint)
+  const src = readFileSync(new URL('../worker.js', import.meta.url), 'utf8');
+  const i = src.indexOf('const visun =');
+  const blokk = src.slice(i, i + 900);
+  assert.equal(/\d{3,}\s*kr|990|1\.900|3\.900|9\.900/.test(blokk), false, 'verð á ekki að standa í vísuninni');
+});
+
+test('vísunin er bætt við EFTIR slice — má ekki ýta staðreyndum út', () => {
+  const src = readFileSync(new URL('../worker.js', import.meta.url), 'utf8');
+  assert.match(src, /\.slice\(0, 1800\) \+ ' \(sjá \/fyrirtaeki\/\)' \+ visun/,
+    'vísunin verður að koma á eftir slice(), ekki inni í bits');
+});
