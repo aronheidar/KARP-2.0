@@ -7,7 +7,7 @@
 // Öll verð hér eru kr/m² — kallandi deilir með 1000 ef hann vill þ.kr/m².
 
 export const OUTLO = 180000, OUTHI = 2600000;      // sía burt bílskúra/hlutasölur/útlaga (kr/m²)
-export const MAT = { dagar: 560, staerd: 0.3, arBil: 15, min: 6, teygni: -0.31 };   // 18 mán · ±30% stærð · ±15 byggingarár · ≥6 sambærilegar · stærðarteygni
+export const MAT = { dagar: 560, staerd: 0.3, arBil: 15, min: 6, teygni: -0.31, radiusKm: 1 };   // 18 mán · ±30% stærð · ±15 byggingarár · ≥6 sambærilegar · stærðarteygni · 1 km radíus
 // teygni: m²-verð fellur með stærð — log(m²-verð)/log(stærð) = −0,31 (mælt 19.8.2026 á 30.697 sölum úr sölu-úrtaki HMS
 // fyrir fasteignamat 2027, innan svæðis+söluárs+byggingaráratugar; fjölbýli −0,32, sérbýli −0,28). 10% stærri eign ≈ 3%
 // lægra m²-verð, svo sambærileg 30% stærri en eignin er ~8% „ódýrari" á fermetrann og togaði miðgildið áður. Hver
@@ -17,6 +17,26 @@ export const MAT = { dagar: 560, staerd: 0.3, arBil: 15, min: 6, teygni: -0.31 }
 export const midgildi = (a) => { if (!a || !a.length) return null; const s = a.slice().sort((x, y) => x - y); const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
 export const hundradsmark = (a, q) => { if (!a || !a.length) return null; const s = a.slice().sort((x, y) => x - y); const i = (s.length - 1) * q, lo = Math.floor(i), hi = Math.ceil(i); return s[lo] + (s[hi] - s[lo]) * (i - lo); };
 export const tsOf = (d) => new Date(d + 'T00:00:00').getTime();
+
+// Fjarlægð milli hnita í km (haversine). Jörðin sem kúla dugar hér — skekkjan er undir metra
+// á þeim vegalengdum sem máli skipta (< 5 km).
+export function fjarlaegdKm(a, b) {
+  if (!a || !b) return Infinity;
+  const R = 6371, rad = Math.PI / 180;
+  const dLa = (b[0] - a[0]) * rad, dLo = (b[1] - a[1]) * rad;
+  const x = Math.sin(dLa / 2) ** 2 + Math.cos(a[0] * rad) * Math.cos(b[0] * rad) * Math.sin(dLo / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(x)));
+}
+
+// Hnit heimilisfangs úr hnit/<pn>.json. ⚠ Lyklarnir þar eru LÁGSTAFA („bæjarlind 8"), svo
+// uppfletting á „Bæjarlind 8" skilar engu án samræmingar.
+export function hnitAf(kort, heimilisfang) {
+  if (!kort || !heimilisfang) return null;
+  const v = kort[String(heimilisfang).toLowerCase().replace(/\s+/g, ' ').trim()];
+  if (!v || v.length < 2) return null;
+  const la = +v[0], lo = +v[1];
+  return (Number.isFinite(la) && Number.isFinite(lo)) ? [la, lo] : null;
+}
 
 // Sambærilegar sölur fyrir eign { teg, fm, ar? } á tímapunkti `now`:
 //   sama tegund · ±30% stærð · ppm innan útlagamarka · innan 18 mán á undan `now` (og STRANGT fyrir `now`
@@ -44,17 +64,35 @@ export function veljaSamberilegar(sales, subj, opts) {
     const med = comps.filter((s) => s.ar && Math.abs(s.ar - ar) <= o.arBil);
     if (med.length >= o.min) { comps = med; arSia = true; }
   }
-  return { comps, arSia };
+  // Radíus-sía (15.9.2026): póstnúmer er of grófur mælikvarði á hverfi. 110 og 230 spanna hvort um sig
+  // ólíka markaði, og sambærileg eign í hinum endanum dregur matið á ská. Beitt með SÖMU reglu og
+  // árasían — aðeins ef ≥min standa eftir, annars er þunnur grunnur verri en breiður.
+  // Mælt á 35 pn / 3.579 þinglýstum sölum: miðgildisskekkja 6,6% → 5,9%, batnaði í 25 af 35.
+  // Mest þar sem grunnurinn var verstur: 230 7,5% → 6,0%, 810 9,7% → 7,3%, 108 8,6% → 6,5%.
+  // Ávinningurinn hverfur yfir 1,5 km — það staðfestir að þetta er örstaðsetning en ekki tilviljun.
+  // ⚠ Virk AÐEINS ef `o.hnit` fylgir; án þess hegðar fallið sér óbreytt (gamlir kallendur óhaggaðir).
+  let radiusKm = null;
+  if (o.hnit && o.radiusKm > 0) {
+    const mid = subj.hnit || hnitAf(o.hnit, subj.a);
+    if (mid) {
+      const naer = comps.filter((s) => {
+        const h = s.hnit || hnitAf(o.hnit, s.a);
+        return h && fjarlaegdKm(mid, h) <= o.radiusKm;
+      });
+      if (naer.length >= o.min) { comps = naer; radiusKm = o.radiusKm; }
+    }
+  }
+  return { comps, arSia, radiusKm };
 }
 
 // Mat: miðgildi + fjórðungsbil ppm sambærilegra. null ef færri en min — þá á kallandi að falla á breiðari grunn.
 export function metaUrSolusogu(sales, subj, opts) {
   const o = Object.assign({}, MAT, opts || {});
-  const { comps, arSia } = veljaSamberilegar(sales, subj, o);
+  const { comps, arSia, radiusKm } = veljaSamberilegar(sales, subj, o);
   if (comps.length < o.min) return null;
   const fm = +subj.fm || 0, t = o.teygni || 0;
   const v = comps.map((s) => (t && fm > 0 && s.fm > 0) ? s.ppm * Math.pow(s.fm / fm, -t) : s.ppm);   // stærðarleiðrétt m²-verð
-  return { m: midgildi(v), lo: hundradsmark(v, 0.25), hi: hundradsmark(v, 0.75), n: comps.length, arSia, staerdLeidr: !!(t && fm > 0), comps };
+  return { m: midgildi(v), lo: hundradsmark(v, 0.25), hi: hundradsmark(v, 0.75), n: comps.length, arSia, radiusKm, staerdLeidr: !!(t && fm > 0), comps };
 }
 
 // Bakpróf: hver sala síðustu `manudir` mánaða metin með SÖMU aðferð út frá sölum Á UNDAN henni.
@@ -72,7 +110,10 @@ export function bakprof(sales, opts) {
     const td = tsOf(t.d);
     if (!(td >= fra && td <= now)) continue;
     profad++;
-    const r = metaUrSolusogu(list, { teg: t.teg, fm: t.fm, ar: t.ar }, Object.assign({}, o, { now: td, strangt: true, sleppa: t }));
+    // ⚠ `a` og `hnit` VERÐA að fylgja viðfanginu, annars getur radíus-sían ekki flett upp staðsetningu
+    //   og bakprófið mælir aðra aðferð en varan keyrir. (Fannst 15.9: radíusinn skilaði núll breytingu
+    //   af því viðfangið var strípað niður í teg/fm/ar.)
+    const r = metaUrSolusogu(list, { teg: t.teg, fm: t.fm, ar: t.ar, a: t.a, hnit: t.hnit }, Object.assign({}, o, { now: td, strangt: true, sleppa: t }));
     if (!r) continue;
     errs.push(Math.abs(r.m / t.ppm - 1));
   }

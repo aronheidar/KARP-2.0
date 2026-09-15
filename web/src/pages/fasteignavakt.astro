@@ -864,6 +864,9 @@ const jsonLd = {
         }
         const selfN = selfUnits.length;
         const sales = pn ? await solPn(pn) : null;
+        // Hnit þurfa að liggja fyrir ÁÐUR en matið er reiknað: radíus-sían í fasteignamat.mjs
+        // flettir sambærilegum upp í þessu korti. Án þess er hún óvirk í þögn.
+        const hn = pn ? await hnitPn(pn) : null;
         const ppm = (r) => (r.fm > 15 ? r.v / r.fm : null);
         let est = null, comps = [];
         // 1) STÆRÐARNÆMT mat úr sölusögu: sama tegund, ±30% stærð, sl. 18 mán
@@ -871,8 +874,8 @@ const jsonLd = {
         // sambærilegar í ±15 ár þegar nóg er eftir — mælt 8,3% → 6,7% miðgildisskekkja á 12 pn.
         let r1 = null;
         if (sales && sales.length) {
-          r1 = metaUrSolusogu(sales, { teg, fm, ar: self && self.ar ? +self.ar : null }, { now: Date.now() });
-          if (r1) est = { heiti: 'sambærilegum eignum í póstnúmeri ' + pn + ' (' + teg + ', ±30% stærð' + (r1.staerdLeidr ? ' stærðarleiðrétt' : '') + (r1.arSia ? ', byggingarár ±15 ár' : '') + ', sl. 18 mán)', n: r1.n, m: r1.m / 1000, lo: r1.lo / 1000, hi: r1.hi / 1000 };
+          r1 = metaUrSolusogu(sales, { teg, fm, ar: self && self.ar ? +self.ar : null, a: selfAddr }, { now: Date.now(), hnit: hn });
+          if (r1) est = { heiti: 'sambærilegum eignum í póstnúmeri ' + pn + ' (' + teg + ', ±30% stærð' + (r1.staerdLeidr ? ' stærðarleiðrétt' : '') + (r1.arSia ? ', byggingarár ±15 ár' : '') + (r1.radiusKm ? ', innan ' + r1.radiusKm + ' km' : '') + ', sl. 18 mán)', n: r1.n, m: r1.m / 1000, lo: r1.lo / 1000, hi: r1.hi / 1000 };
         }
         // 2) fallback: 180-daga kaupskrá (gata → póstnúmer)
         if (!est) {
@@ -892,8 +895,7 @@ const jsonLd = {
         const verd = est.m * fm, lo = (est.lo || est.m) * fm, hi = (est.hi || est.m) * fm;
         const subj = { teg, fm, ppm: est.m * 1000 };
 
-        // GPS-hnit + hverfi úr staðfangaskrá (LOTA 68) — kort + fjarlægð á sambærilegar
-        const hn = pn ? await hnitPn(pn) : null;
+        // GPS-hnit + hverfi úr staðfangaskrá (LOTA 68) — kort + fjarlægð á sambærilegar. `hn` er sótt ofar.
         const subjC = (hn && selfAddr && hn[selfAddr]) || null;      // [lat, lng, hverfi|'', landnr, heinum]
         // 🏛️ Fasteignaskrá HMS: opinber eininga-listi per heimilisfang — ÍBÚÐARMERKINGAR (merking „010201" = hæð 2,
         // íbúð 1 → íbúð 201), skráð stærð, fasteignamat, brunabótamat. Sama fyrir hús sem kaupskráin þekkir ekki.
@@ -958,7 +960,8 @@ const jsonLd = {
         // metanlegar — nákvæmnis-tala úr 8 sölum er ekki tala. Engin fegrun: ef svæðið er erfitt sést það.
         let nakvHtml = '';
         if (r1 && sales && sales.length) {
-          const bk = bakprof(sales, { now: Date.now() });
+          // ⚠ hnit VERÐA að fylgja, annars mælir bakprófið aðra aðferð en matið hér að ofan notar.
+          const bk = bakprof(sales, { now: Date.now(), hnit: hn });
           if (bk) {
             const pc = (x) => Math.round(x * 100) + '%';
             const litur = bk.midgildi <= 0.08 ? '#42d086' : bk.midgildi <= 0.12 ? '#e8b84b' : '#ef6a6a';

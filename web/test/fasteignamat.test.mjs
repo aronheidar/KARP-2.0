@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { midgildi, hundradsmark, tsOf, veljaSamberilegar, metaUrSolusogu, bakprof, OUTLO, OUTHI, MAT } from '../src/lib/fasteignamat.mjs';
+import { midgildi, hundradsmark, tsOf, veljaSamberilegar, metaUrSolusogu, bakprof, fjarlaegdKm, hnitAf, OUTLO, OUTHI, MAT } from '../src/lib/fasteignamat.mjs';
 
 const NU = tsOf('2026-08-19');
 const D = (dagarAftur) => new Date(NU - dagarAftur * 864e5).toISOString().slice(0, 10);
@@ -137,7 +137,7 @@ test('bakprof: tómt → null', () => {
 });
 
 test('MAT: stillingarnar sem matið og bakprófið deila', () => {
-  assert.deepEqual(MAT, { dagar: 560, staerd: 0.3, arBil: 15, min: 6, teygni: -0.31 });
+  assert.deepEqual(MAT, { dagar: 560, staerd: 0.3, arBil: 15, min: 6, teygni: -0.31, radiusKm: 1 });
 });
 
 // ── Stærðarleiðrétting ────────────────────────────────────────────────────────
@@ -209,4 +209,79 @@ test('matDomur: frávik = (mat×hlutfall)/est − 1 með þröskuldum ±10%/±20
   assert.equal(matDomur(100, 70, h).domur, 'mjog_lagt');    // 73,5 → −26,5%
   assert.equal(matDomur(0, 90, h), null); assert.equal(matDomur(100, 0, h), null);
   assert.deepEqual(Object.keys(MATHL).sort(), ['hatt', 'min', 'mjog']);
+});
+
+// ── Radíus-sía (15.9.2026) ────────────────────────────────────────────────────
+// Hnit úr staðfangaskrá. ⚠ Lyklarnir þar eru LÁGSTAFA.
+const KORT = {
+  'gata 1': [64.1043, -21.8612, '', 1, 2],
+  'gata 3': [64.1046, -21.8620, '', 1, 2],
+  'fjarri 1': [64.2500, -21.8000, '', 1, 2],
+};
+
+test('fjarlaegdKm: sama gata undir 120 m, 16 km norðar mælist rétt', () => {
+  assert.ok(fjarlaegdKm(KORT['gata 1'], KORT['gata 3']) < 0.12);
+  const langt = fjarlaegdKm(KORT['gata 1'], KORT['fjarri 1']);
+  assert.ok(langt > 15 && langt < 18, 'km: ' + langt);
+});
+
+test('fjarlaegdKm: samhverf og þolir null', () => {
+  const a = KORT['gata 1'], b = KORT['fjarri 1'];
+  assert.equal(fjarlaegdKm(a, b).toFixed(6), fjarlaegdKm(b, a).toFixed(6));
+  assert.equal(fjarlaegdKm(null, b), Infinity);
+  assert.equal(fjarlaegdKm(a, undefined), Infinity);
+});
+
+test('hnitAf: hástafir og aukabil trufla ekki, gallað skilar null', () => {
+  assert.deepEqual(hnitAf(KORT, '  GATA   1 '), [64.1043, -21.8612]);
+  assert.equal(hnitAf(KORT, 'Hvergigata 1'), null);
+  assert.equal(hnitAf(null, 'gata 1'), null);
+  assert.equal(hnitAf({ 'x 1': ['abc', 'def'] }, 'x 1'), null);
+});
+
+test('ÁN hnita hegðar veljaSamberilegar sér ÓBREYTT (gamlir kallendur óhaggaðir)', () => {
+  const sales = Array.from({ length: 7 }, (_, i) => sala({ a: 's' + i }));
+  const r = veljaSamberilegar(sales, { teg: 'Fjölbýli', fm: 100, ar: 2000, a: 'gata 1' }, { now: NU });
+  assert.equal(r.comps.length, 7);
+  assert.equal(r.radiusKm, null);
+});
+
+test('MEÐ hnitum fellur fjarlæg sala út', () => {
+  const naer = Array.from({ length: 6 }, (_, i) => sala({ a: 'n' + i, hnit: [64.1044, -21.8613] }));
+  const sales = [...naer, sala({ a: 'fjarri 1' })];
+  const r = veljaSamberilegar(sales, { teg: 'Fjölbýli', fm: 100, ar: 2000, a: 'gata 1' }, { now: NU, hnit: KORT });
+  assert.equal(r.radiusKm, MAT.radiusKm);
+  assert.equal(r.comps.length, 6);
+  assert.ok(!r.comps.some((x) => x.a === 'fjarri 1'));
+});
+
+test('radíus SLEPPT ef of fáar standa eftir — þunnur grunnur er verri en breiður', () => {
+  const sales = [sala({ a: 'gata 3' }), ...Array.from({ length: 5 }, (_, i) => sala({ a: 'f' + i, hnit: [64.25 + i * 0.001, -21.8] }))];
+  const r = veljaSamberilegar(sales, { teg: 'Fjölbýli', fm: 100, ar: 2000, a: 'gata 1' }, { now: NU, hnit: KORT });
+  assert.equal(r.radiusKm, null);
+  assert.equal(r.comps.length, 6);
+});
+
+test('radíus sleppt þegar viðfangið sjálft á engin hnit', () => {
+  const sales = Array.from({ length: 6 }, (_, i) => sala({ a: 'n' + i, hnit: [64.1044, -21.8613] }));
+  const r = veljaSamberilegar(sales, { teg: 'Fjölbýli', fm: 100, ar: 2000, a: 'hus utan korts' }, { now: NU, hnit: KORT });
+  assert.equal(r.radiusKm, null);
+  assert.equal(r.comps.length, 6);
+});
+
+test('metaUrSolusogu skilar radiusKm áfram svo síðan geti sagt frá honum', () => {
+  const sales = Array.from({ length: 6 }, (_, i) => sala({ a: 'n' + i, hnit: [64.1044, -21.8613], ppm: 500000 + i }));
+  const r = metaUrSolusogu(sales, { teg: 'Fjölbýli', fm: 100, ar: 2000, a: 'gata 1' }, { now: NU, hnit: KORT });
+  assert.equal(r.radiusKm, MAT.radiusKm);
+});
+
+// ⚠ Ver villuna sem gerði radíusinn ÓVIRKAN Í ÞÖGN 15.9.2026. bakprof byggði viðfangið sem
+// { teg, fm, ar } og sleppti heimilisfanginu, svo uppflettingin skilaði engu. Mælingin leit
+// rétt út, hún var bara nákvæmlega óbreytt — sem er versta tegund af villu.
+test('bakprof sendir heimilisfang viðfangsins áfram (annars mælir það ranga aðferð)', () => {
+  const sed = [];
+  const njosn = new Proxy(KORT, { get(t, k) { if (typeof k === 'string') sed.push(k); return t[k]; } });
+  const sales = Array.from({ length: 40 }, (_, i) => sala({ a: 'gata 1', d: D(i * 4), ppm: 480000 + i * 500, fm: 95 + (i % 10) }));
+  bakprof(sales, { now: NU, hnit: njosn, minN: 1 });
+  assert.ok(sed.includes('gata 1'), 'bakprof fletti aldrei upp heimilisfangi viðfangsins: ' + JSON.stringify(sed.slice(0, 5)));
 });
