@@ -16,6 +16,10 @@ export function hrafnGogn(overview = {}, bilanirSvar = {}, bidurListi = [], now 
   const listi = Array.isArray(tx.list) ? tx.list : [];
   const bilanir = Array.isArray(bilanirSvar.bilanir) ? bilanirSvar.bilanir : [];
   const rautt = bilanir.some((b) => b.uppspretta === 'CI');
+  // ⚠ Vitum EKKI litinn ef CI-uppsprettan sjálf svaraði ekki. Að sýna „grænt" af því engin CI-bilun
+  //    barst væri að lesa þögn sem góðar fréttir — nákvæmlega það sem lét tvær fallnar keyrslur
+  //    liggja óséðar 14.9. Aðrar uppsprettur sem vantar breyta engu um lit main.
+  const ciVantar = Array.isArray(bilanirSvar.vantar) && bilanirSvar.vantar.includes('CI');
   const lagfaeringar = listi.filter((t) => t.cto_pr).length;
   const iVinnslu = listi.filter((t) => t.stada === 'cto').length;
   const sidast = listi.filter((t) => t.cto_pr).reduce((m, t) => Math.max(m, Number(t.updated) || 0), 0);
@@ -38,7 +42,7 @@ export function hrafnGogn(overview = {}, bilanirSvar = {}, bidurListi = [], now 
       .concat(listi.filter((t) => t.cto_pr).slice(0, 3).map((t) => ({ texti: '#' + t.id + ' ' + (t.efni || '') + ' — PR tilbúinn', hvenaer: dagsTexti(t.updated) })))
       .slice(0, 5),
     tolur: [
-      { n: rautt ? 'rautt' : 'grænt', l: 'main', s: bilanir.length + ' bilanir' },
+      { n: ciVantar ? 'óvíst' : (rautt ? 'rautt' : 'grænt'), l: 'main', s: ciVantar ? 'CI svaraði ekki' : bilanir.length + ' bilanir' },
       { n: String(lagfaeringar), l: 'skiluðu lagfæringu', s: 'talið eftir PR' },
       { n: String(iVinnslu), l: 'í vinnslu', s: '' },
       { n: String(bilanir.filter((b) => b.alvarleiki === 'hatt').length), l: 'háar bilanir', s: '' },

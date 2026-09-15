@@ -63,3 +63,12 @@ test('hlutbyggður listi er merktur ófullnægjandi og nefnir hvaða uppsprettur
   assert.notEqual(g.stada, hrafnGogn(OV, { ok: true, villa: 'github', bilanir: [], sott: NU - 7200 }, [], NU).stada,
     'hluti og github eru sitthvort ástandið — annað er gamalt, hitt er ferskt en gapað');
 });
+
+test('main-kubburinn segir óvíst þegar CI-uppsprettan svaraði ekki — en veit litinn þegar önnur uppspretta vantar', () => {
+  const vantarCi = hrafnGogn(OV, { ok: true, villa: 'hluti', vantar: ['CI', 'PR'], bilanir: [] }, [], NU);
+  const t1 = vantarCi.tolur.find((x) => x.l === 'main');
+  assert.equal(t1.n, 'óvíst');
+  assert.match(t1.s, /CI svaraði ekki/);
+  const vantarPr = hrafnGogn(OV, { ok: true, villa: 'hluti', vantar: ['PR'], bilanir: [] }, [], NU);
+  assert.equal(vantarPr.tolur.find((x) => x.l === 'main').n, 'grænt', 'CI svaraði — liturinn er þekktur');
+});

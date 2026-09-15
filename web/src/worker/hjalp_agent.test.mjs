@@ -182,3 +182,12 @@ test('sjalfvirk telur mál sem agentinn kláraði — ekki þau sem fengu bara s
   const r = await ticketsOverview(mkEnv(state));
   assert.equal(r.sjalfvirk, 1, 'aðeins mál B — staðfesting ein og sér er ekki lausn, og mál Arons telst ekki');
 });
+
+test('ticketsOverview skilar rofa-stöðum beggja starfsmanna úr stjorn_sync', async () => {
+  const state = mkState();
+  state.sync.rofi_hrafn = '1';
+  state.sync.hjalp_agent_off = '0';
+  const r = await ticketsOverview(mkEnv(state));
+  assert.equal(r.rofar.rofi_hrafn, true, 'slökkt á Hrafni skilar sér');
+  assert.equal(r.rofar.hjalp_agent_off, false, 'kveikt á Sigrúnu skilar sér');
+});
