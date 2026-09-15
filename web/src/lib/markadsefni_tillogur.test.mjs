@@ -24,11 +24,17 @@ test('heitt málefni er HLUTFALL, ekki fjöldi — þrefalt venjulegt er frétt,
   assert.ok(!verdbolga || verdbolga.hlutfall < 2, 'jafndreifð umfjöllun er ekki heit');
 });
 
-test('málefni með of fáar greinar í glugganum kemst ekki á listann — hávaði er ekki frétt', () => {
-  const h = heitMalefni(frettir('óveður', 2, 3), MALEFNI, { nu: NU });
-  assert.deepEqual(h.map((x) => x.malefni), [], 'tvær greinar duga ekki');
-  const h2 = heitMalefni(frettir('óveður', 6, 5), MALEFNI, { nu: NU });
-  assert.deepEqual(h2.map((x) => x.malefni), ['Veður']);
+test('hávaði slær ALDREI út alvöru frétt: málefni án sögu kemst ekki á listann, hversu snöggt sem það kemur', () => {
+  // Sex splunkunýjar veðurgreinar og engin saga: við vitum ekki hvað er venjulegt fyrir veður,
+  // svo við megum ekki fullyrða að þetta sé margfalt venjulegt.
+  assert.deepEqual(heitMalefni(frettir('óveður', 6, 5), MALEFNI, { nu: NU }).map((x) => x.malefni), []);
+  // Tvær greinar duga ekki heldur — hvorki í glugga né sögu.
+  assert.deepEqual(heitMalefni(frettir('óveður', 2, 3), MALEFNI, { nu: NU }).map((x) => x.malefni), []);
+  // Raunveruleg frétt: toppur í vikunni OFAN Á sögu → kemst á listann og situr efst.
+  const raunveruleg = [...frettir('kvóta', 12, 7), ...frettir('kvóta', 12, 90), ...frettir('óveður', 6, 5)];
+  const h = heitMalefni(raunveruleg, MALEFNI, { nu: NU });
+  assert.deepEqual(h.map((x) => x.malefni), ['Sjávarútvegur'], 'hávaðinn er hvergi, fréttin er ein eftir');
+  assert.ok(h[0].hlutfall > 2 && h[0].hlutfall < 10, 'hlutfallið er trúverðugt, ekki sprengt: ' + h[0].hlutfall);
 });
 
 test('pararVidVoru: aðeins málefni sem við eigum RAUNVERULEGA tölu um', () => {
@@ -38,6 +44,14 @@ test('pararVidVoru: aðeins málefni sem við eigum RAUNVERULEGA tölu um', () =
   assert.equal(pararVidVoru(null), null);
   for (const [nafn, v2] of Object.entries(VORUKORT)) {
     assert.ok(v2.vara && v2.slod && v2.tala, nafn + ' ber vöru, slóð og lýsingu á tölunni');
+  }
+});
+
+test('hver lykill í VORUKORT er RAUNVERULEGT málefnaheiti — annars parast hann aldrei', async () => {
+  const { default: MALEFNI_RAUN } = await import('../data/malefni.json', { with: { type: 'json' } });
+  const heiti = new Set(MALEFNI_RAUN.map((x) => x.n));
+  for (const lykill of Object.keys(VORUKORT)) {
+    assert.ok(heiti.has(lykill), '„' + lykill + '" er ekki til í malefni.json — pörunin er dauður kóði');
   }
 });
 

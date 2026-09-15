@@ -10,15 +10,18 @@ import { matchNews } from './lobbyvakt.mjs';
  *  betra að þegja en að stinga upp á efni sem við getum ekki stutt með okkar eigin gögnum. */
 export const VORUKORT = {
   'Sjávarútvegur': { vara: 'Kvótavaktin', slod: '/kvotavaktin/', tala: 'samþjöppun aflamarks — hlutur tíu stærstu' },
-  'Fiskveiðar': { vara: 'Kvótavaktin', slod: '/kvotavaktin/', tala: 'samþjöppun aflamarks — hlutur tíu stærstu' },
-  'Ríkisfjármál': { vara: 'Fjárlagagögnin', slod: '/rikisfjarmal/', tala: 'afkoma ríkissjóðs og skuldaþróun' },
+  'Uppsjávarveiðar': { vara: 'Kvótavaktin', slod: '/kvotavaktin/', tala: 'samþjöppun aflamarks — hlutur tíu stærstu' },
   'Fjárlög': { vara: 'Fjárlagagögnin', slod: '/rikisfjarmal/', tala: 'afkoma ríkissjóðs og skuldaþróun' },
-  'Skattar': { vara: 'Skattasíðan', slod: '/skattar/', tala: 'skattbyrði eftir tekjuhópum' },
+  'Skattamál': { vara: 'Skattasíðan', slod: '/skattar/', tala: 'tekjur ríkissjóðs eftir skattstofni' },
   'Verðbólga': { vara: 'Vaxtasíðan', slod: '/vextir/', tala: 'verðbólga og stýrivextir í samhengi' },
   'Húsnæðismál': { vara: 'Fasteignavaktin', slod: '/fasteignaverd/', tala: 'fermetraverð eftir hverfum' },
-  'Fasteignamarkaður': { vara: 'Fasteignavaktin', slod: '/fasteignaverd/', tala: 'fermetraverð eftir hverfum' },
   'Opinber innkaup': { vara: 'Útboðsvaktin', slod: '/utbod/', tala: 'umfang útboða og hverjir hreppa þau' },
-  'Vinnumarkaður': { vara: 'Vinnumarkaðssíðan', slod: '/vinnumarkadur/', tala: 'atvinnuleysi eftir landshlutum' },
+  'Vinnumarkaður': { vara: 'Vinnumarkaðurinn', slod: '/vinnumarkadur/', tala: 'atvinnuleysi eftir landshlutum' },
+  'Atvinnuleysi': { vara: 'Vinnumarkaðurinn', slod: '/vinnumarkadur/', tala: 'atvinnuleysi eftir landshlutum' },
+  'Ferðaþjónusta': { vara: 'Atvinnugreina-skýrslur', slod: '/atvinnugreinar/', tala: 'velta og afkoma greinarinnar' },
+  'Landbúnaður': { vara: 'Atvinnugreina-skýrslur', slod: '/atvinnugreinar/', tala: 'velta og afkoma greinarinnar' },
+  'Byggingariðnaður': { vara: 'Atvinnugreina-skýrslur', slod: '/atvinnugreinar/', tala: 'velta og afkoma greinarinnar' },
+  'Fiskeldi': { vara: 'Atvinnugreina-skýrslur', slod: '/atvinnugreinar/', tala: 'velta og afkoma greinarinnar' },
 };
 export function pararVidVoru(nafn) {
   return (typeof nafn === 'string' && Object.prototype.hasOwnProperty.call(VORUKORT, nafn)) ? VORUKORT[nafn] : null;
@@ -26,7 +29,7 @@ export function pararVidVoru(nafn) {
 
 /** Hvaða málefni eru óvenju fyrirferðarmikil í glugganum miðað við eigin grunnlínu safnsins.
  *  `lagmark` ver gegn hávaða: þrjár greinar sem stökkva úr einni eru ekki tilefni. */
-export function heitMalefni(frettir, malefni, { nu = 0, gluggi = 7, vidmid = 90, lagmark = 5 } = {}) {
+export function heitMalefni(frettir, malefni, { nu = 0, gluggi = 7, vidmid = 90, lagmark = 5, lagmarkSaga = 12, mykt = 1 } = {}) {
   const f = Array.isArray(frettir) ? frettir : [];
   const m = Array.isArray(malefni) ? malefni : [];
   if (!f.length || !m.length) return [];
@@ -44,10 +47,14 @@ export function heitMalefni(frettir, malefni, { nu = 0, gluggi = 7, vidmid = 90,
       if (ts >= fraGluggi) vika++;
     }
     if (vika < lagmark) continue;
-    // Grunnlína = meðalvika yfir viðmiðunartímann. Gólf á 0,5 svo nýtt málefni (engin saga) verði ekki
-    // með óendanlegt hlutfall og troðist alltaf efst.
-    const grunnlina = Math.max(0.5, (allt / vidmid) * gluggi);
-    ut.push({ malefni: mal.n, flokkur: mal.f, um: mal.um, vika, allt, hlutfall: Math.round((vika / grunnlina) * 10) / 10 });
+    // ⚠ Málefni án SÖGU hefur enga „venjulega viku" til að vera þrefalt á við. Gamla gólfið (0,5) lét
+    //   sex splunkunýjar greinar mælast 12× venjulegt — hærra en raunveruleg, viðvarandi umfjöllun náði
+    //   nokkurn tímann, svo hávaðinn raðaðist ofar en fréttin. Við þegjum frekar en að þykjast vita.
+    if (allt < lagmarkSaga) continue;
+    const grunnlina = (allt / vidmid) * gluggi;
+    // Mýking: án hennar sprengja örfáar greinar hlutfallið þegar grunnlínan er nálægt núlli.
+    const hlutfall = Math.round(((vika + mykt) / (grunnlina + mykt)) * 10) / 10;
+    ut.push({ malefni: mal.n, flokkur: mal.f, um: mal.um, vika, allt, hlutfall });
   }
   return ut.sort((a, b) => b.hlutfall - a.hlutfall);
 }
