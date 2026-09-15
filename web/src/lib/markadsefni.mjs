@@ -35,7 +35,7 @@ export function hopaFaerslur(posts) {
       continue;
     }
     eftirHop.set(lykill, {
-      group: lykill, ts, texti: efnislina(f), state: f.state || '',
+      lykill, group: f.group || null, ts, texti: efnislina(f), state: f.state || '',
       birt: f.state === 'PUBLISHED', rasir: [f.integration.providerIdentifier],
     });
   }

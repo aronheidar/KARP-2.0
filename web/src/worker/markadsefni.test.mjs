@@ -80,6 +80,19 @@ test('samstilling skráir ný verk sem óflokkuð og tvískráir ekki það sem 
   assert.equal(r2.ny, 0, 'sama færsla skráist ekki tvisvar');
 });
 
+test('færslu án group er SLEPPT sýnilega — hún tvískráist ekki við hverja samstillingu', async (t) => {
+  const state = mkState(); const env = mkEnv(state);
+  const an = { id: 'x1', state: 'QUEUE', content: 'Verk án hóps', publishDate: '2026-09-20T09:00:00.000Z', integration: { id: LI, providerIdentifier: 'linkedin-page', name: 'Karp' } };
+  stubFetch(t, { status: 200, d: { posts: [an] } });
+  const r1 = await samstillaEfni(env);
+  assert.equal(r1.ny, 0, 'ekkert skráð');
+  assert.equal(r1.sleppt.length, 1);
+  assert.equal(r1.sleppt[0].astaeda, 'ekkert_group');
+  const r2 = await samstillaEfni(env);
+  assert.equal(state.efni.length, 0, 'og hún tvískráist ekki við næstu samstillingu heldur');
+  assert.equal(r2.sleppt.length, 1);
+});
+
 test('endapunktur: GET má með lykli, POST krefst lotu', async (t) => {
   const state = mkState(); const env = mkEnv(state);
   stubFetch(t, { status: 200, d: { posts: [] } });
@@ -104,6 +117,13 @@ test('slökkt á Bjarka stöðvar framleiðslu — rofinn er rofi, ekki ljós', 
   assert.equal(j.ok, false);
   assert.equal(j.dispatch && j.dispatch.error || j.error, 'rofi');
   assert.equal(log.filter((x) => String(x.url).includes('api.github.com')).length, 0, 'engin keyrsla ræst');
+});
+
+test('rofa-staða Bjarka skilar sér í GET-svarið', async (t) => {
+  const state = mkState(); state.sync = Object.assign({}, state.sync || {}, { rofi_bjarki: '1' });
+  const env = mkEnv(state); stubFetch(t, { status: 200, d: { posts: [] } });
+  const r = await adminMarkadsefniHandler(new Request('https://karp.is/api/admin/markadsefni', { headers: { 'X-Admin-Key': 'adm-key' } }), env, {});
+  assert.equal((await r.json()).rofi, true);
 });
 
 test('merkja tekur aðeins raunverulegt málefnaheiti — ekki hvað sem er', async (t) => {

@@ -38,7 +38,7 @@ async function _meAdminUid(env, request) {
 
 /** Er slökkt á Bjarka (upplýsingar fyrir /stjorn/ — hnappar sem ræsa framleiðslu geta lesið þetta). */
 async function _meRofiBjarki(env) {
-  const r = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='rofi_bjarki'").first().catch(() => null);
+  const r = await env.TENGSL.prepare('SELECT v FROM stjorn_sync WHERE k=?').bind('rofi_bjarki').first().catch(() => null);
   return !!(r && String(r.v) === '1');
 }
 
@@ -76,10 +76,13 @@ export async function saekjaPostiz(env, { thvinga = false } = {}) {
  *      jafnvel þótt `v.state` sjálft aðeins endurspegli fyrstu færsluna sem sást. Notum ÞVÍ `v.birt`, aldrei
  *      `v.state`, og uppfærum `birt` í töflunni um leið og gamla línan var óbirt en nýja er birt.
  *   2. Vanti `group` á upprunalegu Postiz-færslunni fellur hópunin í hopaFaerslur á staka-færslu-id — sama
- *      verk getur þá birst undir TVEIMUR ólíkum `group`-gildum eftir því hvenær Postiz náði að tengja
- *      rásirnar saman. Fingrafar (titill+birtingartími) grípur það: verk sem á sér ekki þekktan `group` EN
- *      passar við titil+tíma sem þegar er skráð fer ekki inn sem ný lína, heldur í `sleppt` með ástæðu —
- *      þögul tvítalning er verri en sýnileg sleppa. */
+ *      verk gæti þá borið ólíkt `group` eftir því hvenær Postiz náði að tengja rásirnar saman, og engin
+ *      leið er til að para slíka færslu örugglega við línu sem þegar er skráð. Fyrri tilraun bar saman
+ *      fingrafar (titill+samstillingartími) við (titill+birtingartími) — TVÆR óskyldar klukkur sem stemma
+ *      nánast aldrei, svo verkið tvískráðist í hvert sinn sem samstillt var. Þögul tvítalning er verri en
+ *      sýnileg sleppa: færsla án `group` (þ.e. `hopaFaerslur` skilaði `group: null`) fer ÞVÍ ALDREI inn —
+ *      hún lendir í `sleppt` með ástæðu `'ekkert_group'`, og pörun við þekktar línur byggir eingöngu á
+ *      `postiz_id` (sem geymir `group`). */
 export async function samstillaEfni(env) {
   const p = await saekjaPostiz(env, { thvinga: true });   // „samstilla“ er ÁKALL um ferska mynd, ekki 10 mín gamla
   const verk = Array.isArray(p.verk) ? p.verk : [];
@@ -87,29 +90,26 @@ export async function samstillaEfni(env) {
   const nuverandi = await env.TENGSL.prepare('SELECT id, postiz_id, efnistok, birt, titill, created FROM markadsefni').all().catch(() => ({ results: [] }));
   const rows = (nuverandi && nuverandi.results) || [];
   const medPostizId = new Map(rows.filter((x) => x && x.postiz_id).map((x) => [x.postiz_id, x]));
-  const fingrafar = new Set(rows.map((x) => x.titill + '|' + x.created));
 
   let ny = 0, uppfaerd = 0;
   const sleppt = [];
   for (const v of verk) {
+    // ⚠ Færsla án `group` er ekki nógu vel auðkennd til að para hana við línu í safninu. Fyrri tilraun
+    //   bar saman samstillingartíma og birtingartíma — tvær óskyldar klukkur sem stemma aldrei — svo
+    //   verkið tvískráðist í hvert sinn. Þögul tvítalning er verri en sýnileg sleppa.
+    if (!v.group) { sleppt.push({ texti: v.texti, astaeda: 'ekkert_group' }); continue; }
     const fyrra = medPostizId.get(v.group);
     if (fyrra) {
       if (v.birt && !fyrra.birt) {
-        await env.TENGSL.prepare('UPDATE markadsefni SET birt=? WHERE id=?').bind(v.ts || nu, fyrra.id).run().catch(() => {});
-        uppfaerd++;
+        const skrifadi = await env.TENGSL.prepare('UPDATE markadsefni SET birt=? WHERE id=?').bind(v.ts || nu, fyrra.id).run().then(() => true).catch(() => false);
+        if (skrifadi) uppfaerd++; else sleppt.push({ texti: v.texti, astaeda: 'vistun_brast' });
       }
       continue;
     }
-    const fp = v.texti + '|' + v.ts;
-    if (fingrafar.has(fp)) {
-      sleppt.push({ group: v.group, titill: v.texti, ástæða: 'samsvarandi titill og birtingartími þegar til — group vantaði líklega á Postiz-færsluna' });
-      continue;
-    }
-    await env.TENGSL.prepare(
+    const skrifadi = await env.TENGSL.prepare(
       'INSERT INTO markadsefni (created, titill, tegund, efnistok, tala, heimild, lota, postiz_id, rasir, birt, skra) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
-    ).bind(nu, v.texti, 'myndband', null, null, null, null, v.group, JSON.stringify(v.rasir || []), v.birt ? (v.ts || nu) : null, null).run().catch(() => {});
-    fingrafar.add(fp);
-    ny++;
+    ).bind(nu, v.texti, 'myndband', null, null, null, null, v.group, JSON.stringify(v.rasir || []), v.birt ? (v.ts || nu) : null, null).run().then(() => true).catch(() => false);
+    if (skrifadi) ny++; else sleppt.push({ texti: v.texti, astaeda: 'vistun_brast' });
   }
   const skil = { ok: true, ny, uppfaerd, sleppt };
   if (p.villa) skil.villa = p.villa;   // sagt frá stöðnuðum grunni — samstillt var á móti síðustu þekktu mynd

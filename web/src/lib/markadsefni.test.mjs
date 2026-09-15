@@ -33,6 +33,14 @@ test('færslur á EWB-rásum eru síaðar burt áður en hópað er', () => {
   assert.equal(verk[0].group, 'g1');
 });
 
+test('færsla án group er merkt sem slík — hún er ekki nógu vel auðkennd til að para hana örugglega', () => {
+  const an = { id: 'x1', state: 'QUEUE', content: 'Texti', publishDate: new Date(NU * 1000).toISOString(), integration: { id: LI, providerIdentifier: 'linkedin-page', name: 'Karp' } };
+  const verk = hopaFaerslur([an]);
+  assert.equal(verk.length, 1);
+  assert.equal(verk[0].group, null, 'group er null, ekki id-ið í dulargervi');
+  assert.equal(verk[0].lykill, 'x1', 'hópað var á id');
+});
+
 test('dagatal: hve langt nær það fram í tímann — talan sem segir hvort þú sért á eftir', () => {
   const verk = hopaFaerslur([p('a', 'g1', LI, 2), p('b', 'g2', LI, 9), p('c', 'g3', LI, -3, 'PUBLISHED')]);
   const d = dagatal(verk, NU);
