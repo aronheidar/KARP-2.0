@@ -80,7 +80,7 @@ jobs:
           ---
           UMHVERFI: web/ er Astro-vefurinn (Cloudflare Worker), gogn/ og web/public/gogn/ hafa raungögn KARP (fjárlög, kvóti, fasteignaverð, hagvísar o.fl.). web/src/data/malefni.json er listinn yfir málefni sem myndböndin flokkast undir (heiti í n-reitnum). Skoðaðu þessi gögn eftir þörfum til að finna RAUNVERULEGA tölu sem á við verkið — aldrei skálda tölu.
           VERKEFNI:
-          1. Skrifaðu EINA nýja render-skriptu (Node .mjs) í skriptur/markadsefni/ — lýsandi skráarnafn, t.d. skriptur/markadsefni/render-<stutt-heiti>.mjs. Fylgdu sama mynstri og fyrri framleiðslulotur: teiknaðu ramma á canvas (t.d. með @napi-rs/canvas — settu upp pakkann með `npm install --prefix skriptur/markadsefni <pakki>`, EKKI `cd` fyrst, svo package.json/lock í rót verkefnisins haldist algerlega ósnert), skrifaðu ramma sem PNG-skrár undir /tmp/ (t.d. /tmp/karp-render-frames/), keyrðu svo `ffmpeg` (þegar uppsett á vélinni) til að sauma rammana saman í mp4.
+          1. Skrifaðu EINA nýja render-skriptu (Node .mjs) í skriptur/markadsefni/ — lýsandi skráarnafn, t.d. skriptur/markadsefni/render-<stutt-heiti>.mjs. Fylgdu sama mynstri og fyrri framleiðslulotur: teiknaðu ramma á canvas með `@napi-rs/canvas`, mataðu hvern ramma BEINT (hrátt pixlabuffer — ENGAR PNG-milliskrár og EKKERT utanaðkomandi kerfisforrit til að sauma myndskeiðið saman, ekkert slíkt er uppsett á keyrsluvélinni) inn í `h264-mp4-encoder` og skrifaðu mp4-ið beint þaðan. Settu pakkana upp með `npm install --prefix skriptur/markadsefni @napi-rs/canvas h264-mp4-encoder` — EKKI `cd` fyrst — svo package.json/lock í rót verkefnisins haldist algerlega ósnert (henni má ALDREI breyta).
           2. Keyrðu skriptuna sjálf(ur) og staðfestu (t.d. `test -s`) að úttakið sé raunverulega til og ekki tómt — treystu ALDREI á að skipunin hafi ekki kvartað.
           3. Skrifaðu lokaafurðina (mp4) NÁKVÆMLEGA á slóðina markadsefni-out.mp4 í rót verkefnisins — sama slóð í hvert sinn, því næsta skref í keyrslunni leitar þar og hvergi annars staðar.
           4. Skrifaðu lýsigögn í markadsefni-out.json í rót verkefnisins — HREINT JSON (engar athugasemdir), með nákvæmlega þessum sjö strengja-lyklum: titill (stuttur innri titill fyrir Karp-safnið), tegund (alltaf "myndband"), efnistok (heiti úr malefni.json sem best á við, eða null ef ekkert hæfir), tala (lykiltalan sem FASTUR STRENGUR, t.d. "4,7 ma.kr." — ALDREI reiknuð tala), heimild (hvaðan talan kom — skráarnafn eða vefslóð úr gogn/), texti (birtingartexti fyrir LinkedIn/Facebook, 2-6 línur, KARP-tónn, engin emoji-runa), skra (slóð render-skriptunnar sem þú skrifaðir í lið 1, t.d. "skriptur/markadsefni/render-fjarlog.mjs").
@@ -103,7 +103,7 @@ jobs:
           console.log('prompt', p.length, 'stafir');
           EOF
           node markadsefni_prompt.cjs
-          claude -p "$(cat markadsefni_prompt.txt)" --permission-mode bypassPermissions --allowedTools "Read,Write,Edit,Glob,Grep,Bash(npm install:*),Bash(npm init:*),Bash(npx:*),Bash(node:*),Bash(ffmpeg:*),Bash(mkdir:*),Bash(ls:*),Bash(test:*)" --max-turns 60 > markadsefni_run.log 2>&1 || true
+          claude -p "$(cat markadsefni_prompt.txt)" --permission-mode bypassPermissions --allowedTools "Read,Write,Edit,Glob,Grep,Bash(npm install:*),Bash(npm init:*),Bash(npx:*),Bash(node:*),Bash(mkdir:*),Bash(ls:*),Bash(test:*)" --max-turns 60 > markadsefni_run.log 2>&1 || true
           tail -c 3000 markadsefni_run.log
 
       - name: Staðfesta að myndbandið sé raunverulega til (útgöngukóði segir ekki alltaf satt)
@@ -129,14 +129,16 @@ jobs:
         run: |
           UPLOAD=$(postiz upload markadsefni-out.mp4)
           echo "upload svar: $UPLOAD"
-          VIDEO_URL=$(echo "$UPLOAD" | jq -r '.path // empty')
+          UPLOAD_JSON=$(printf '%s\n' "$UPLOAD" | sed -n '/^[[{]/,$p')
+          VIDEO_URL=$(printf '%s\n' "$UPLOAD_JSON" | jq -r '.path // empty' 2>/dev/null || true)
           if [ -z "$VIDEO_URL" ]; then echo "::error::postiz upload skilaði engri slóð — sjá svarið að ofan"; exit 1; fi
           TEXTI=$(node -e "const m=JSON.parse(require('fs').readFileSync('markadsefni-out.json','utf8')); console.log(String(m.texti || m.titill || '').slice(0,2900))")
           DAGS=$(date -u -d 'tomorrow 08:30' +%Y-%m-%dT%H:%M:%SZ)
           # ⚠ Karp-rásirnar EINGÖNGU — reikningurinn ber líka EWB-rásir sem ALDREI mega fá efni héðan.
           SVAR=$(postiz posts:create -c "$TEXTI" -m "$VIDEO_URL" -s "$DAGS" -t draft -i "cmt92pcw000r9p20yv7b53018,cmt92q6mr00pbmp0ykfa92r3v")
           echo "posts:create svar: $SVAR"
-          GROUP=$(echo "$SVAR" | jq -r 'if type=="array" then (.[0].group // .[0].id // empty) else (.group // .id // empty) end' 2>/dev/null || true)
+          SVAR_JSON=$(printf '%s\n' "$SVAR" | sed -n '/^[[{]/,$p')
+          GROUP=$(printf '%s\n' "$SVAR_JSON" | jq -r 'if type=="array" then (.[0].group // empty) else (.group // empty) end' 2>/dev/null || true)
           # ⚠ Án `group` er drögin ótengjanleg við línuna í safninu: næsta samstilling sæi hana sem nýtt
           #   verk og skráði ANNAÐ eintak. Þögul tvítalning er verri en sýnileg bilun — fellum frekar
           #   keyrsluna. Drögin standa í Postiz og myndbandið fylgir sem artifact, svo ekkert tapast.

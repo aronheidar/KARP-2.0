@@ -116,13 +116,30 @@ export async function samstillaEfni(env) {
   return skil;
 }
 
-/** Heit málefni (síðustu 90 daga) parað við það sem KARP á tölu um, að frádregnu því sem þegar er birt. */
+/** Geymdu tillögurnar úr `stjorn_sync` (eða null ef aldrei reiknaðar / ólæsilegt JSON). */
+async function _meTillogurGeymt(env) {
+  const r = await env.TENGSL.prepare("SELECT v, updated FROM stjorn_sync WHERE k='markads_tillogur'").first().catch(() => null);
+  if (!r) return null;
+  try { return { gogn: JSON.parse(r.v), uppfaert: Number(r.updated) }; } catch (e) { return null; }
+}
+
+/** Heit málefni (síðustu 90 daga) parað við það sem KARP á tölu um, að frádregnu því sem þegar er birt.
+ *  ⚠ `FROM news`-fyrirspurnin er þökuð (ORDER BY ts DESC LIMIT 4000) OG niðurstaðan geymd í `stjorn_sync`
+ *  með sömu 10 mín fyrningu og Postiz-sóknin notar (_ME_FYRNING) — annars keyrir hún við HVERJA hleðslu
+ *  /stjorn/. D1-lestrarþakið hefur ÁÐUR læst Aroni úti af karp.is (authLogin gerir DB-bilun að „rangt
+ *  lykilorð“), svo óþökuð/ógeymd fyrirspurn sem endurtekur sig í hvert sinn er ekki fræðileg áhætta. */
 async function _meTillogur(env, nu) {
+  const geymt = await _meTillogurGeymt(env);
+  if (geymt && geymt.uppfaert > nu - _ME_FYRNING) return geymt.gogn;
+
   const fra = nu - 90 * 86400;
-  const frettirR = await env.TENGSL.prepare('SELECT title, body, ts FROM news WHERE ts >= ?').bind(fra).all().catch(() => ({ results: [] }));
+  const frettirR = await env.TENGSL.prepare('SELECT title, body, ts FROM news WHERE ts >= ? ORDER BY ts DESC LIMIT 4000').bind(fra).all().catch(() => ({ results: [] }));
   const heitt = heitMalefni(frettirR.results || [], MALEFNI, { nu });
   const safnR = await env.TENGSL.prepare('SELECT efnistok, birt FROM markadsefni WHERE birt IS NOT NULL').all().catch(() => ({ results: [] }));
-  return tillogur(heitt, safnR.results || [], nu);
+  const gogn = tillogur(heitt, safnR.results || [], nu);
+  await env.TENGSL.prepare("INSERT INTO stjorn_sync (k, v, updated) VALUES ('markads_tillogur', ?, ?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated")
+    .bind(JSON.stringify(gogn), nu).run().catch(() => {});
+  return gogn;
 }
 
 /** /api/admin/markadsefni — GET dagatal+safn+tillögur · POST samstilla/merkja/framleida/skra.
@@ -161,7 +178,9 @@ export async function adminMarkadsefniHandler(request, env, ctx) {
     const titill = String(b.titill || '').trim().slice(0, 300);
     if (!titill) return _ajson({ ok: false, error: 'titill' });
     const tegund = b.tegund != null ? String(b.tegund).slice(0, 40) : 'myndband';
-    const efnistok = b.efnistok != null ? String(b.efnistok).slice(0, 200) : null;
+    // ⚠ Ógilt efnistak verður NULL, ekki villa: þá birtist verkið sem „óflokkað" og fæst leiðrétt.
+    //    Væri það vistað óbreytt myndi það hvorki síast úr tillögum né teljast óflokkað — og rotna þegjandi.
+    const efnistokSkra = MALEFNI.some((m) => m.n === b.efnistok) ? b.efnistok : null;
     const tala = b.tala != null ? String(b.tala).slice(0, 200) : null;
     const heimild = b.heimild != null ? String(b.heimild).slice(0, 300) : null;
     const lota = b.lota != null ? (parseInt(b.lota, 10) || null) : null;
@@ -169,7 +188,7 @@ export async function adminMarkadsefniHandler(request, env, ctx) {
     const skra = b.skra != null ? String(b.skra).slice(0, 300) : null;
     const r = await env.TENGSL.prepare(
       'INSERT INTO markadsefni (created, titill, tegund, efnistok, tala, heimild, lota, postiz_id, rasir, birt, skra) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
-    ).bind(_meNow(), titill, tegund, efnistok, tala, heimild, lota, postiz_id, JSON.stringify([]), null, skra).run().catch(() => null);
+    ).bind(_meNow(), titill, tegund, efnistokSkra, tala, heimild, lota, postiz_id, JSON.stringify([]), null, skra).run().catch(() => null);
     if (!r) return _ajson({ ok: false, error: 'vistun' });
     return _ajson({ ok: true, id: r.meta && r.meta.last_row_id });
   }

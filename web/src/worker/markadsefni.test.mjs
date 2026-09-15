@@ -8,11 +8,13 @@ function fakeDb(state) {
   const exec = (sql, args) => {
     if (/SELECT v, updated FROM stjorn_sync WHERE k='postiz'/.test(sql)) return state.postiz || null;
     if (/^INSERT INTO stjorn_sync \(k, v, updated\) VALUES \('postiz'/.test(sql)) { state.postiz = { v: args[0], updated: args[1] }; return { meta: {} }; }
+    if (/SELECT v, updated FROM stjorn_sync WHERE k='markads_tillogur'/.test(sql)) return state.tillogur || null;
+    if (/^INSERT INTO stjorn_sync \(k, v, updated\) VALUES \('markads_tillogur'/.test(sql)) { state.tillogur = { v: args[0], updated: args[1] }; return { meta: {} }; }
     if (/^SELECT v FROM stjorn_sync WHERE k=\?$/.test(sql)) { const k = args[0]; return state.sync[k] != null ? { v: state.sync[k] } : null; }
     if (/^SELECT .* FROM markadsefni/.test(sql)) return { results: state.efni };
-    if (/^INSERT INTO markadsefni/.test(sql)) { state.efni.push({ id: state.efni.length + 1, titill: args[1], postiz_id: args[7], birt: args[9] }); return { meta: { last_row_id: state.efni.length } }; }
+    if (/^INSERT INTO markadsefni/.test(sql)) { state.efni.push({ id: state.efni.length + 1, titill: args[1], efnistok: args[3], postiz_id: args[7], birt: args[9] }); return { meta: { last_row_id: state.efni.length } }; }
     if (/^UPDATE markadsefni SET/.test(sql)) { state.uppfaert = (state.uppfaert || 0) + 1; return { meta: {} }; }
-    if (/SELECT title, body, ts FROM news/.test(sql)) return { results: state.news || [] };
+    if (/SELECT title, body, ts FROM news/.test(sql)) { state.newsFyrirspurnir = (state.newsFyrirspurnir || 0) + 1; return { results: state.news || [] }; }
     if (/SELECT is_admin FROM users WHERE id=\?/.test(sql)) return state.users[args[0]] || null;
     throw new Error('fakeDb: óþekkt SQL: ' + sql);
   };
@@ -134,7 +136,7 @@ test('skra virkar með X-Admin-Key — engin lota þarf — og skráir drög (bi
     method: 'POST', headers: Object.assign({ 'content-type': 'application/json' }, K), body: JSON.stringify(b),
   }), env, {}).then((r) => r.json());
   const svar = await post({
-    action: 'skra', titill: 'Fjárlögin 2027 — fyrsti afgangur í 8 ár', efnistok: 'Ríkisfjármál',
+    action: 'skra', titill: 'Fjárlögin 2027 — fyrsti afgangur í 8 ár', efnistok: 'Fjárlög',
     tala: '4,7 ma.kr.', heimild: 'fjarlog.json', postiz_id: 'g-nytt', tegund: 'myndband', lota: 5, skra: 'render-fjarlog.mjs',
   });
   assert.equal(svar.ok, true);
@@ -143,6 +145,15 @@ test('skra virkar með X-Admin-Key — engin lota þarf — og skráir drög (bi
   assert.equal(state.efni[0].titill, 'Fjárlögin 2027 — fyrsti afgangur í 8 ár');
   assert.equal(state.efni[0].postiz_id, 'g-nytt');
   assert.equal(state.efni[0].birt, null, 'drög eru ALDREI birt');
+  // gilt heiti varðveitist, ógilt verður óflokkað
+  assert.equal(state.efni[0].efnistok, 'Fjárlög', 'gilt heiti ("Fjárlög" er til í malefni.json) varðveitist óbreytt');
+  const svar2 = await post({
+    action: 'skra', titill: 'Annað verk', efnistok: 'Ríkisfjármál',
+    tala: null, heimild: null, postiz_id: 'g-annad', tegund: 'myndband', lota: 5, skra: null,
+  });
+  assert.equal(svar2.ok, true, 'ógilt efnistak fellir ALDREI keyrsluna — Claude semur frjálsan texta');
+  assert.equal(state.efni.length, 2);
+  assert.equal(state.efni[1].efnistok, null, 'ógilt heiti ("Ríkisfjármál" er ekki til — rétt heiti er "Fjárlög") verður óflokkað, ekki hafnað');
 });
 
 test('framleida hafnar X-Admin-Key án lotu — skra er EINA undantekningin', async (t) => {
@@ -166,4 +177,14 @@ test('merkja tekur aðeins raunverulegt málefnaheiti — ekki hvað sem er', as
   assert.deepEqual(await post({ action: 'merkja', id: 1, efnistok: 'Ekki til sem málefni' }), { ok: false, error: 'efnistok' });
   const g = await post({ action: 'merkja', id: 1, efnistok: 'Sjávarútvegur', tala: '48%', heimild: 'Fiskistofa' });
   assert.equal(g.ok, true);
+});
+
+test('tillögur eru geymdar — fréttafyrirspurnin keyrir ekki við hverja hleðslu (D1-lestrarþakið hefur læst Aroni úti áður)', async (t) => {
+  const state = mkState(); const env = mkEnv(state);
+  stubFetch(t, { status: 200, d: { posts: [] } });
+  const get = () => adminMarkadsefniHandler(new Request('https://karp.is/api/admin/markadsefni', { headers: { 'X-Admin-Key': 'adm-key' } }), env, {}).then((r) => r.json());
+  await get();
+  const fyrirspurnir = state.newsFyrirspurnir || 0;
+  await get();
+  assert.equal(state.newsFyrirspurnir, fyrirspurnir, 'engin ný fréttafyrirspurn innan fyrningar');
 });
