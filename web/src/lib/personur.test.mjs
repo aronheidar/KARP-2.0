@@ -206,3 +206,12 @@ test('ROFAR: aðeils starfsmenn með vél fá rofa; Sigrún heldur gamla lyklinu
   for (const gildra of ['__proto__', 'constructor', 'toString', 'hasOwnProperty']) assert.equal(rofiLykill(gildra), null, gildra);
   for (const rusl of [undefined, 42, {}, [], true]) assert.equal(rofiLykill(rusl), null, String(rusl));
 });
+
+test('Bjarki er markaðsfulltrúi og fær rofa — CMO lýsir stefnumótun sem Aron sinnir sjálfur', () => {
+  const b = persona('bjarki');
+  assert.equal(b.hlutverk, 'markaðsfulltrúi');
+  assert.equal(b.undirskrift, 'Bjarki — markaðsfulltrúi Karp');
+  assert.equal(rofiLykill('bjarki'), 'rofi_bjarki');
+  assert.ok(!JSON.stringify(PERSONUR).includes('CMO'), 'ekkert „CMO" eftir í persónuskránni');
+  for (const id of Object.keys(ROFAR)) assert.ok(PERSONA_IDS.includes(id), id + ' er til');
+});
