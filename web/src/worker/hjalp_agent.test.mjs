@@ -21,6 +21,9 @@ function fakeDb(state) {
     if (/SELECT v FROM stjorn_sync WHERE k='(\w+)'/.test(sql)) { const k = sql.match(/k='(\w+)'/)[1]; return state.sync[k] != null ? { v: state.sync[k] } : null; }
     if (/^SELECT v FROM stjorn_sync WHERE k=\?$/.test(sql)) { const k = args[0]; return state.sync[k] != null ? { v: state.sync[k] } : null; }
     if (/^INSERT INTO stjorn_sync \(k, v, updated\)/.test(sql)) { state.sync[args[0]] = args[1]; return { meta: {} }; }
+    if (/^SELECT k, v FROM stjorn_sync WHERE k IN \('hjalp_agent_off','rofi_hrafn'\)$/.test(sql)) {
+      return { results: ['hjalp_agent_off', 'rofi_hrafn'].filter((k) => state.sync[k] != null).map((k) => ({ k, v: state.sync[k] })) };
+    }
     // ── ticketsOverview ──────────────────────────────────────────────────────────────────────────────────────────
     if (/^SELECT id, created, updated, uppruni, nafn, netfang, flokkur, tegund, forgangur, efni, lysing, stada, ack_sent, svar_sent, cto_pr FROM tickets ORDER BY created DESC LIMIT 60$/.test(sql)) return { results: Object.values(state.tickets) };
     if (/^SELECT m\.ticket_id, MAX\(CASE WHEN m\.sent_by='moot' THEN m\.ts END\) t_moot, MAX\(CASE WHEN m\.sent_by='aron' THEN m\.ts END\) t_atkv FROM ticket_msgs m JOIN tickets t ON t\.id=m\.ticket_id WHERE m\.dir='moot' AND t\.stada IN \([?,]+\) GROUP BY m\.ticket_id$/.test(sql)) return { results: [] };

@@ -324,5 +324,9 @@ export async function ticketsOverview(env) {
   const sjalfv = await env.TENGSL.prepare(
     "SELECT COUNT(*) n FROM tickets t WHERE t.svar_sent IS NOT NULL AND NOT EXISTS (SELECT 1 FROM ticket_msgs m WHERE m.ticket_id=t.id AND m.dir='out' AND m.sent_by='aron')",
   ).first().catch(() => null);
-  return { list, open: list.filter((t) => OPNAR_STODUR.includes(t.stada)).length, by, off, moot_bida, moot_osent, sjalfvirk: Number(sjalfv && sjalfv.n) || 0 };
+  // 🛑 Rofa-staðan hvers starfsmanns (spjöldin þurfa að vita hvort slökkt sé) — EIN fyrirspurn fyrir báða
+  // lykla. Eins og allar hinar hér má hún aldrei fella yfirlitið þótt hún bregðist (t.d. töfluleysi).
+  const rofaRadir = await env.TENGSL.prepare("SELECT k, v FROM stjorn_sync WHERE k IN ('hjalp_agent_off','rofi_hrafn')").all().catch(() => ({ results: [] }));
+  const rofar = {}; for (const r of (rofaRadir.results || [])) rofar[r.k] = String(r.v) === '1';
+  return { list, open: list.filter((t) => OPNAR_STODUR.includes(t.stada)).length, by, off, moot_bida, moot_osent, sjalfvirk: Number(sjalfv && sjalfv.n) || 0, rofar };
 }
