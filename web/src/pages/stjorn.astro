@@ -15,6 +15,15 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         <span class="stj-sub">Rekstraryfirlit — aðeins stjórnendur</span>
       </header>
 
+      <section class="stj-block" id="stj-bidur-wrap" hidden>
+        <h2>Bíður þín <span class="stj-hola-n" id="stj-bidur-n"></span></h2>
+        <div id="stj-bidur"></div>
+      </section>
+
+      <nav class="stj-rond" id="stj-rond" aria-label="Starfsfólk"></nav>
+      <div id="stj-spjald" hidden></div>
+      <div id="stj-forstofa">
+
       <section class="stj-cards" id="stj-cards"></section>
 
       <section class="stj-block" id="stj-heilsa-wrap" hidden>
@@ -75,6 +84,8 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         <h2>🧾 Aðgerðaskrá <span style="color:var(--faint);font-size:12px;font-weight:400">— síðustu admin-aðgerðir</span></h2>
         <div id="stj-audit" class="stj-kv"></div>
       </section>
+
+      </div>
 
       <!-- 🏛️ Moot — ráðsalur persónanna (Bobiverse). Salurinn (8 sæti + Arons-stóll) er byggður einu sinni á keyrslutíma úr
            avatarSvg() (fastir SVG-strengir úr personur.mjs); allt annað sem birtist hér kemur úr /api/admin/moot og fer gegnum esc(). -->
@@ -323,14 +334,62 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     @keyframes stj-moot-glow { 0%, 100% { stroke-opacity: .3; } 50% { stroke-opacity: 1; } }
     @media (max-width: 640px) { .stj-moot-salur { grid-template-columns: repeat(3, 1fr); } .stj-moot-kort { grid-template-columns: 1fr; } }
     @media (prefers-reduced-motion: reduce) { .stj-moot-seat--komin, .stj-moot-innlegg, .stj-moot-nidurstada, .stj-moot-gavel, .stj-moot-seat--talar svg, .stj-moot-seat--bidur .stj-moot-aron-stoll { animation: none; } }
+    /* 🚪 Forstofa + andlitarönd (Task 8) — hluti af sömu global-blokk: bæði eru sett með innerHTML á keyrslutíma. */
+    .stj-rond { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0 22px; }
+    .stj-andlit { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; text-decoration: none; color: inherit; background: var(--card); transition: border-color .15s, transform .15s; }
+    .stj-andlit:hover { border-color: var(--gold); transform: translateY(-2px); }
+    .stj-andlit--virkt { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
+    .stj-andlit-nafn { font-weight: 600; font-size: 14px; }
+    .stj-andlit-hlutverk { font-size: 11px; color: var(--faint); }
+    .stj-andlit-tala { position: absolute; top: 6px; right: 8px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: #c0392b; color: #fff; font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+    .stj-bidur-rod { display: grid; grid-template-columns: minmax(0,auto) minmax(0,1fr) minmax(0,1fr) auto; gap: 10px; align-items: baseline; padding: 9px 12px; border-bottom: 1px solid var(--line); text-decoration: none; color: inherit; }
+    .stj-bidur-rod:hover { background: rgba(246,177,59,.06); }
+    .stj-bidur-rod--adkallandi { border-left: 3px solid #c0392b; padding-left: 9px; }
+    .stj-bidur-hver { font-size: 13px; color: var(--faint); white-space: nowrap; }
+    .stj-bidur-titill { font-weight: 600; }
+    .stj-bidur-vidbot, .stj-bidur-bid { color: var(--faint); font-size: 13px; }
+    .stj-bidur-bid { text-align: right; white-space: nowrap; }
+    .stj-spjald-haus { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+    .stj-spjald-nafn h2 { margin: 0; }
+    .stj-spjald-nafn h2 span { font-weight: 400; font-size: 14px; color: var(--faint); }
+    .stj-spjald-stada, .stj-spjald-sidast { margin: 2px 0 0; font-size: 13px; color: var(--faint); }
+    .stj-hola { margin: 0 0 22px; }
+    .stj-hola h3 { margin: 0 0 8px; font-size: 15px; }
+    .stj-hola-n { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: #c0392b; color: #fff; font-size: 12px; font-weight: 700; vertical-align: middle; }
+    .stj-hola--bidur .stj-bidur-rod { grid-template-columns: minmax(0,1fr) minmax(0,1fr) auto; }
+    .stj-vinnsla { list-style: none; margin: 0; padding: 0; }
+    .stj-vinnsla li { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+    .stj-vinnsla-hvenaer { color: var(--faint); white-space: nowrap; }
+    .stj-heimildir { margin: 0; padding-left: 18px; color: var(--faint); font-size: 14px; }
+    .stj-heimildir li { margin: 3px 0; }
+    .stj-tilbaka { display: inline-block; margin-bottom: 14px; color: var(--faint); text-decoration: none; }
+    .stj-tilbaka:hover { color: var(--gold); }
   </style>
 
   <script>
     import { loadUser } from '../lib/auth.js';
     import { PERSONUR, MOOT_ADGERDIR, MOOT_JA_TEXTI, mootVilluTexti, persona, avatarSvg, veljaFundarmenn } from '../lib/personur.mjs';   // 🏛️ Moot: avatarar + hnappatextar + villutextar (hrein .mjs, Vite byggir)
+    import { bidurThin } from '../lib/stjorn/bidur_thin.mjs';
+    import { spjald, esc, bidTexti } from '../lib/stjorn/spjald.mjs';   // esc: EIN uppspretta — gamla staðbundna útgáfan vantaði einfalda gæsalöpp
+    import { sigrunGogn } from '../lib/stjorn/sigrun.mjs';
+    import { hrafnGogn } from '../lib/stjorn/hrafn.mjs';
     const $ = (id) => document.getElementById(id);
-    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     const dIS = (ts) => { try { const d = new Date(ts * 1000); return d.getUTCDate() + '.' + (d.getUTCMonth() + 1) + '. ' + String(d.getUTCFullYear()).slice(2); } catch (e) { return ''; } };
+    // Starfsmenn með spjald. ⚠ Bættu EKKI við andliti fyrr en vélin á bak við það er komin —
+    // tóm skúffa þjálfar mann í að hætta að opna skúffur (hönnunarákvörðun 14.9).
+    const STARFSMENN = ['sigrun', 'hrafn'];
+    let sidastaSvar = null, sidustuBilanir = { ok: false, bilanir: [] };
+
+    function syna(hash) {
+      const id = String(hash || '').replace(/^#/, '');
+      const virkur = STARFSMENN.includes(id) ? id : '';
+      $('stj-forstofa').hidden = !!virkur;
+      $('stj-bidur-wrap').hidden = !!virkur || !($('stj-bidur').children.length);
+      $('stj-spjald').hidden = !virkur;
+      $('stj-rond').querySelectorAll('.stj-andlit').forEach((a) => a.classList.toggle('stj-andlit--virkt', a.dataset.id === virkur));
+      if (virkur) teiknaSpjald(virkur);
+    }
+    function teiknaSpjald(id) {}   // ⏳ tóm bráðabirgðaútgáfa — næsta verk teiknar spjald() með sigrunGogn()/hrafnGogn() inn í #stj-spjald
     const SVC = { kvoti: 'Kvótavaktin', utbod: 'Útboðsvaktin', frettir: 'Fjölmiðlavakt', fasteign: 'Fasteignavakt', thingskyrslur: 'Þingmannaskýrslur' };
     const REP = { fyrirtaeki: 'Fyrirtækjaskýrslur', eigendur: 'Eigendaskýrslur', areidanleiki: 'Áreiðanleikamat', fasteign: 'Fasteignamöt', thingmadur: 'Þingmannaskýrslur' };
 
@@ -634,6 +693,33 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       renderTickets(ov.tickets || { list: [], open: 0, by: {}, off: false });
       // 🏛️ Moot — ráðsalurinn (sama tickets-listi; moot_bida = mál sem bíða atkvæðis Arons)
       renderMoot(ov.tickets || { list: [], moot_bida: [], moot_osent: [] });
+
+      // 🚪 Forstofa: „Bíður þín" (EIN uppspretta, bidur_thin.mjs) + andlitaröndin sem skiptir yfir í spjald.
+      sidastaSvar = ov;   // svarið úr /api/admin/overview, sótt í Promise.all ofar í boot()
+      sidustuBilanir = await fetch('/api/admin/bilanir', { credentials: 'include' }).then((r) => r.json()).catch(() => ({ ok: false, bilanir: [] }));
+      const bidur = bidurThin({ tickets: ov.tickets || {}, bilanir: sidustuBilanir.bilanir || [], now: ov.now || Math.floor(Date.now() / 1000) });
+
+      $('stj-bidur').innerHTML = bidur.map((r) => {
+        const p = persona(r.starfsmadur) || { nafn: '', emoji: '' };
+        return `<a class="stj-bidur-rod${r.adkallandi ? ' stj-bidur-rod--adkallandi' : ''}" href="${esc(r.slod)}" data-starfsmadur="${esc(r.starfsmadur)}">`
+          + `<span class="stj-bidur-hver">${esc(p.emoji)} ${esc(p.nafn)}</span>`
+          + `<span class="stj-bidur-titill">${esc(r.titill)}</span>`
+          + `<span class="stj-bidur-vidbot">${esc(r.vidbot || '')}</span>`
+          + `<span class="stj-bidur-bid">${esc(bidTexti(r.bid))}</span></a>`;
+      }).join('');
+      $('stj-bidur-n').textContent = bidur.length ? String(bidur.length) : '';
+      $('stj-bidur-wrap').hidden = !bidur.length;
+
+      $('stj-rond').innerHTML = STARFSMENN.map((id) => {
+        const p = persona(id), n = bidur.filter((r) => r.starfsmadur === id).length;
+        return `<a class="stj-andlit" href="#${id}" data-id="${id}" title="${esc(p.nafn)} — ${esc(p.hlutverk)}">`
+          + avatarSvg(id, { size: 64 })
+          + `<span class="stj-andlit-nafn">${esc(p.nafn)}</span>`
+          + `<span class="stj-andlit-hlutverk">${esc(p.hlutverk)}</span>`
+          + (n ? `<span class="stj-andlit-tala">${n}</span>` : '') + '</a>';
+      }).join('');
+
+      syna(location.hash);
     }
 
     const TIX_STADA = { nytt: ['Nýtt', 'var(--gold)'], stadfest: ['Bíður svars', 'var(--gold)'], svarad: ['Svarað', '#2e8b57'], cto: ['Hjá CTO', '#5b8dd6'], tillaga: ['Tillaga bíður þín', '#c0392b'], samthykkt: ['Samþykkt — merge & deploy í gangi', '#5b8dd6'], lagad: ['Lagað', '#2e8b57'], lokad: ['Lokað', 'var(--faint)'], hafnad: ['Hafnað', 'var(--faint)'] };
@@ -1050,6 +1136,7 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       d.scrollIntoView({ block: 'start' });
     }
 
+    window.addEventListener('hashchange', () => { if (!location.hash.startsWith('#ticket-')) syna(location.hash); });
     if (document.readyState !== 'loading') boot(); else document.addEventListener('DOMContentLoaded', boot);
     document.addEventListener('astro:page-load', boot);
   </script>
