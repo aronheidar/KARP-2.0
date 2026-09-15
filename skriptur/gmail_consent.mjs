@@ -43,6 +43,18 @@ function bidaEftirKoda() {
       const u = new URL(req.url, 'http://localhost:' + PORT);
       if (u.pathname !== '/oauth') { res.writeHead(404).end(); return; }
       const code = u.searchParams.get('code'), villa = u.searchParams.get('error');
+      // Google sendir ALLTAF annaðhvort code eða error. Berist hvorugt kom flakkið ekki frá
+      // Google heldur beint úr vafra. Algengast er að smellt sé á sjálfa redirect-slóðina sem
+      // prentuð er í skrefi 1 (hún er stutt og skeljar gera hana smellanlega, ólíkt löngu
+      // Google-slóðinni sem brotnar yfir línur). Áður drap slíkt flakk þjóninn og sagði
+      // "Haett vid" þótt notandinn hefði aldrei séð samþykkissíðuna. Núna bíðum við áfram.
+      if (!code && !villa) {
+        res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+        res.end('<meta charset="utf-8"><body style="font:16px system-ui;padding:40px;background:#0b0f1a;color:#f6f7fb">'
+          + '<h2>Þetta er ekki slóðin</h2><p>Hún á bara að fara í Authorized redirect URIs hjá Google.</p>'
+          + '<p>Farðu aftur í skelina og opnaðu <b>löngu</b> slóðina úr skrefi 2.</p></body>');
+        return;   // þjónninn heldur áfram að hlusta
+      }
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
       res.end('<meta charset="utf-8"><body style="font:16px system-ui;padding:40px;background:#0b0f1a;color:#f6f7fb">'
         + (code ? '<h2 style="color:#46e08a">✔ Samþykkt</h2><p>Þú mátt loka þessum flipa — skriptan klárar afganginn.</p>'
@@ -80,6 +92,12 @@ try {
   });
   p('\n1) Bættu þessari slóð við „Authorized redirect URIs" á biðlaranum (ef hún er ekki þar):\n   ' + REDIRECT);
   p('\n2) Opnaðu þessa slóð í vafra og samþykktu MEÐ aron@karp.is:\n\n' + slod + '\n');
+  // Opnum sjálf svo enginn þurfi að afrita nokkur hundruð stafa slóð úr skel sem brýtur hana.
+  if (!process.env.GMAIL_CONSENT_NO_OPEN) try {
+    const opna = process.platform === 'win32' ? ['cmd', ['/c', 'start', '', slod.replace(/&/g, '^&')]]
+      : process.platform === 'darwin' ? ['open', [slod]] : ['xdg-open', [slod]];
+    spawn(opna[0], opna[1], { stdio: 'ignore', detached: true }).unref();
+  } catch (e) { /* prentaða slóðin dugar */ }
   p('   ⚠ Google varar við „óstaðfestu appi" ef biðlarinn er í Testing — það er þitt eigið app: Advanced → Continue.\n');
 
   const code = await bidaEftirKoda();
