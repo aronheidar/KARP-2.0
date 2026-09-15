@@ -23,9 +23,20 @@ function strengir(x) {
 
 /** Aðeins kjölfestur á sömu síðu og https-slóðir. `javascript:` og `data:` eiga ekkert erindi í href
  *  sem er byggt úr gögnum — og stafa-escape stöðvar þau ekki. */
-function slodOrugg(s) {
+export function slodOrugg(s) {
   const t = String(s == null ? '' : s);
   return /^(#|https:\/\/)/.test(t) ? t : '#';
+}
+
+/** Ein „bíður þín"-röð. EIN uppspretta: forstofan (með andliti eiganda) og spjöldin (án þess) nota
+ *  sama sniðmát — annars endar annað eintakið fyrr eða síðar án slóða-varnarinnar. */
+export function bidurRod(r, { andlit = '' } = {}) {
+  return '<a class="stj-bidur-rod' + (r.adkallandi ? ' stj-bidur-rod--adkallandi' : '') + '" href="' + esc(slodOrugg(r.slod)) + '" data-tegund="' + esc(r.tegund) + '"'
+    + (r.starfsmadur ? ' data-starfsmadur="' + esc(r.starfsmadur) + '"' : '') + '>'
+    + (andlit ? '<span class="stj-bidur-hver">' + esc(andlit) + '</span>' : '')
+    + '<span class="stj-bidur-titill">' + esc(r.titill) + '</span>'
+    + (r.vidbot ? '<span class="stj-bidur-vidbot">' + esc(r.vidbot) + '</span>' : '')
+    + '<span class="stj-bidur-bid">' + esc(bidTexti(r.bid)) + '</span></a>';
 }
 
 /** „fyrir 2 klst" / „fyrir 3 daga" — biðtími er það sem segir hvort eitthvað sé að gleymast. */
@@ -44,10 +55,7 @@ function hola(titill, innihald, n, aukastett) {
 
 export function spjald({ id, nafn, hlutverk, avatar = '', stada = '', sidast = '', bidur = [], vinnsla = [], tolur = [], heimildir = [], rofi = null } = {}) {
   const bidurListi = fylki(bidur);
-  const bidurHtml = bidurListi.map((r) => '<a class="stj-bidur-rod' + (r.adkallandi ? ' stj-bidur-rod--adkallandi' : '') + '" href="' + esc(slodOrugg(r.slod)) + '" data-tegund="' + esc(r.tegund) + '">'
-    + '<span class="stj-bidur-titill">' + esc(r.titill) + '</span>'
-    + (r.vidbot ? '<span class="stj-bidur-vidbot">' + esc(r.vidbot) + '</span>' : '')
-    + '<span class="stj-bidur-bid">' + esc(bidTexti(r.bid)) + '</span></a>').join('');
+  const bidurHtml = bidurListi.map((r) => bidurRod(r)).join('');
   const vinnslaHtml = fylki(vinnsla).map((v) => '<li><span class="stj-vinnsla-texti">' + esc(v.texti) + '</span>'
     + (v.hvenaer ? '<span class="stj-vinnsla-hvenaer">' + esc(v.hvenaer) + '</span>' : '') + '</li>').join('');
   const tolurHtml = fylki(tolur).map((t) => '<div class="stj-card"><div class="n">' + esc(t.n) + '</div><div class="l">' + esc(t.l) + '</div>'

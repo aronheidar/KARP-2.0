@@ -40,23 +40,25 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       </section>
 
       <section class="stj-block">
-        <h2>👥 Notendur (<span id="stj-ucount">0</span>)</h2>
-        <div class="stj-toolbar">
-          <input type="search" id="stj-search" class="stj-search" placeholder="Leita — netfang, nafn eða kt…" autocomplete="off" />
-          <div class="stj-filters" id="stj-filters">
-            <button type="button" class="stj-chip on" data-f="all">Allir</button>
-            <button type="button" class="stj-chip" data-f="paying">Borgandi</button>
-            <button type="button" class="stj-chip" data-f="unverified">Óstaðfest</button>
-            <button type="button" class="stj-chip" data-f="sub">Með áskrift</button>
-            <button type="button" class="stj-chip" data-f="admin">Stjórnendur</button>
+        <details id="stj-notendur-d">
+          <summary><h2 style="display:inline">👥 Viðskiptavinir (<span id="stj-ucount">0</span>)</h2></summary>
+          <div class="stj-toolbar">
+            <input type="search" id="stj-search" class="stj-search" placeholder="Leita — netfang, nafn eða kt…" autocomplete="off" />
+            <div class="stj-filters" id="stj-filters">
+              <button type="button" class="stj-chip on" data-f="all">Allir</button>
+              <button type="button" class="stj-chip" data-f="paying">Borgandi</button>
+              <button type="button" class="stj-chip" data-f="unverified">Óstaðfest</button>
+              <button type="button" class="stj-chip" data-f="sub">Með áskrift</button>
+              <button type="button" class="stj-chip" data-f="admin">Stjórnendur</button>
+            </div>
           </div>
-        </div>
-        <div class="stj-tablewrap">
-          <table class="stj-table" id="stj-users">
-            <thead><tr><th data-sort="id">#</th><th data-sort="email">Netfang</th><th>Tegund</th><th data-sort="name">Nafn</th><th data-sort="tier">Þrep</th><th>Áskriftir</th><th data-sort="reports">Skýrslur</th><th data-sort="verified">Staðf.</th><th data-sort="created">Skráð</th><th></th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
+          <div class="stj-tablewrap">
+            <table class="stj-table" id="stj-users">
+              <thead><tr><th data-sort="id">#</th><th data-sort="email">Netfang</th><th>Tegund</th><th data-sort="name">Nafn</th><th data-sort="tier">Þrep</th><th>Áskriftir</th><th data-sort="reports">Skýrslur</th><th data-sort="verified">Staðf.</th><th data-sort="created">Skráð</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </details>
       </section>
 
       <section class="stj-grid2">
@@ -370,7 +372,7 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     import { loadUser } from '../lib/auth.js';
     import { PERSONUR, MOOT_ADGERDIR, MOOT_JA_TEXTI, mootVilluTexti, persona, avatarSvg, veljaFundarmenn } from '../lib/personur.mjs';   // 🏛️ Moot: avatarar + hnappatextar + villutextar (hrein .mjs, Vite byggir)
     import { bidurThin } from '../lib/stjorn/bidur_thin.mjs';
-    import { spjald, esc, bidTexti } from '../lib/stjorn/spjald.mjs';   // esc: EIN uppspretta — gamla staðbundna útgáfan vantaði einfalda gæsalöpp
+    import { spjald, esc, bidurRod } from '../lib/stjorn/spjald.mjs';   // esc+bidurRod: EIN uppspretta — gamla staðbundna sniðmátið vantaði slóða-vörnina (slodOrugg)
     import { sigrunGogn } from '../lib/stjorn/sigrun.mjs';
     import { hrafnGogn } from '../lib/stjorn/hrafn.mjs';
     const $ = (id) => document.getElementById(id);
@@ -383,13 +385,54 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     function syna(hash) {
       const id = String(hash || '').replace(/^#/, '');
       const virkur = STARFSMENN.includes(id) ? id : '';
+      // Heimahöfn: tix-wrap er ALLTAF fluttur hingað fyrst — appendChild FLYTUR hnútinn (aldrei
+      // innerHTML-afritun) svo atburðahlustarar og opnir þræðir haldi sér. ⚠ Nauðsynlegt HÉR (ekki
+      // bara í boot()): án þess myndi teiknaSpjald hrynja þegar boot() endurteiknar sama spjald aftur
+      // (t.d. eftir rofa-smell) — gamla innerHTML-ið eyðir hnútnum og appendChild(null) á eftir kastar.
+      $('stj-forstofa').appendChild($('stj-tix-wrap'));
       $('stj-forstofa').hidden = !!virkur;
       $('stj-bidur-wrap').hidden = !!virkur || !($('stj-bidur').children.length);
       $('stj-spjald').hidden = !virkur;
+      $('stj-moot-wrap').hidden = !!virkur;   // Moot á heima í forstofu — ekki ofan á starfsmannaspjaldi
       $('stj-rond').querySelectorAll('.stj-andlit').forEach((a) => a.classList.toggle('stj-andlit--virkt', a.dataset.id === virkur));
       if (virkur) teiknaSpjald(virkur);
     }
-    function teiknaSpjald(id) {}   // ⏳ tóm bráðabirgðaútgáfa — næsta verk teiknar spjald() með sigrunGogn()/hrafnGogn() inn í #stj-spjald
+
+    function teiknaSpjald(id) {
+      const d = sidastaSvar || {}, nu = d.now || Math.floor(Date.now() / 1000);
+      const bidur = bidurThin({ tickets: d.tickets || {}, bilanir: sidustuBilanir.bilanir || [], now: nu });
+      const p = persona(id);
+      const gogn = id === 'sigrun' ? sigrunGogn(d, bidur, nu) : hrafnGogn(d, sidustuBilanir, bidur, nu);
+      // ⚠ boot() endurteiknar spjaldið OFT (eftir hverja ticket-/rofa-aðgerð) — hálfskrifað verk má
+      // ekki hverfa þegjandi undir höndum notandans, svo innihaldið er geymt yfir endurteikninguna.
+      const gamaltVerk = id === 'hrafn' && $('stj-verk') ? $('stj-verk').value : '';
+      $('stj-spjald').innerHTML = '<a class="stj-tilbaka" href="#">← Forstofa</a>'
+        + spjald(Object.assign({ id, nafn: p.nafn, hlutverk: p.hlutverk, avatar: avatarSvg(id, { size: 64 }) }, gogn))
+        + (id === 'sigrun' ? '<div id="stj-spjald-tix"></div>' : '');
+      if (id === 'sigrun') $('stj-spjald-tix').appendChild($('stj-tix-wrap'));   // beiðnalistinn FLYST, ekki afritast
+      $('stj-spjald').querySelectorAll('.stj-rofi').forEach((b) => b.addEventListener('click', async () => {
+        b.disabled = true;
+        await tixPost({ action: 'rofi', starfsmadur: id, off: b.dataset.off !== '1' });
+        boot();
+      }));
+      if (id === 'hrafn') {
+        const verkHtml = '<section class="stj-hola"><h3>Senda Hrafn á verk</h3>'
+          + '<textarea id="stj-verk" rows="2" placeholder="T.d. karp2-byggingin fellur við hvert push — finndu hvers vegna og lagaðu eða slökktu á henni"></textarea>'
+          + '<button type="button" class="stj-btn" id="stj-verk-send">🛠️ Senda á Hrafn</button>'
+          + '<span class="stj-note" id="stj-verk-svar"></span></section>';
+        $('stj-spjald').insertAdjacentHTML('beforeend', verkHtml);
+        if (gamaltVerk) $('stj-verk').value = gamaltVerk;
+        $('stj-verk-send').onclick = async () => {
+          const verk = $('stj-verk').value.trim();
+          if (verk.length < 10) { $('stj-verk-svar').textContent = 'Lýstu verkinu aðeins nánar.'; return; }
+          $('stj-verk-send').disabled = true;
+          const r = await fetch('/api/admin/bilanir', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ verk }) }).then((x) => x.json()).catch(() => null);
+          $('stj-verk-send').disabled = false;
+          $('stj-verk-svar').textContent = r && r.ok ? 'Keyrsla ræst — PR birtist hér þegar hún skilar.'
+            : r && r.error === 'rofi' ? 'Slökkt er á Hrafni.' : 'Villa — reyndu aftur.';
+        };
+      }
+    }
     const SVC = { kvoti: 'Kvótavaktin', utbod: 'Útboðsvaktin', frettir: 'Fjölmiðlavakt', fasteign: 'Fasteignavakt', thingskyrslur: 'Þingmannaskýrslur' };
     const REP = { fyrirtaeki: 'Fyrirtækjaskýrslur', eigendur: 'Eigendaskýrslur', areidanleiki: 'Áreiðanleikamat', fasteign: 'Fasteignamöt', thingmadur: 'Þingmannaskýrslur' };
 
@@ -699,13 +742,10 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       sidustuBilanir = await fetch('/api/admin/bilanir', { credentials: 'include' }).then((r) => r.json()).catch(() => ({ ok: false, bilanir: [] }));
       const bidur = bidurThin({ tickets: ov.tickets || {}, bilanir: sidustuBilanir.bilanir || [], now: ov.now || Math.floor(Date.now() / 1000) });
 
+      // EIN uppspretta með spjöldunum (bidurRod, spjald.mjs) — hér fylgir andlit eigandans með.
       $('stj-bidur').innerHTML = bidur.map((r) => {
         const p = persona(r.starfsmadur) || { nafn: '', emoji: '' };
-        return `<a class="stj-bidur-rod${r.adkallandi ? ' stj-bidur-rod--adkallandi' : ''}" href="${esc(r.slod)}" data-starfsmadur="${esc(r.starfsmadur)}">`
-          + `<span class="stj-bidur-hver">${esc(p.emoji)} ${esc(p.nafn)}</span>`
-          + `<span class="stj-bidur-titill">${esc(r.titill)}</span>`
-          + `<span class="stj-bidur-vidbot">${esc(r.vidbot || '')}</span>`
-          + `<span class="stj-bidur-bid">${esc(bidTexti(r.bid))}</span></a>`;
+        return bidurRod(r, { andlit: p.emoji + ' ' + p.nafn });
       }).join('');
       $('stj-bidur-n').textContent = bidur.length ? String(bidur.length) : '';
       $('stj-bidur-wrap').hidden = !bidur.length;

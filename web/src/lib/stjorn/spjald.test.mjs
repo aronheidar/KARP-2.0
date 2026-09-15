@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { esc, spjald } from './spjald.mjs';
+import { esc, spjald, bidurRod } from './spjald.mjs';
 
 const GRUNNUR = { id: 'sigrun', nafn: 'Sigrún', hlutverk: 'þjónustufulltrúi', avatar: '<svg id="a"></svg>', stada: '1 opin beiðni', sidast: 'í dag 18:00' };
 
@@ -104,4 +104,15 @@ test('GÖLLUÐ GÖGN: spjaldið teiknast áfram þótt listaviðfang sé rangrar
   const meðRusli = spjald(Object.assign({}, GRUNNUR, { bidur: [null, { titill: 'gild', vidbot: '', slod: '#a', bid: 0, adkallandi: false, tegund: 'svar' }], heimildir: [null, 'gild heimild', 42] }));
   assert.match(meðRusli, /gild/);
   assert.match(meðRusli, /gild heimild/);
+});
+
+test('bidurRod er EIN uppspretta — slóðavörnin fylgir hvort sem andlit er með eða ekki', () => {
+  const r = { titill: 't', vidbot: '', slod: 'javascript:alert(1)', bid: 60, adkallandi: false, tegund: 'svar', starfsmadur: 'hrafn' };
+  for (const andlit of ['', 'Hrafn']) {
+    const h = bidurRod(r, { andlit });
+    assert.ok(!h.includes('javascript:'), 'slóðin stöðvuð (andlit: ' + (andlit || 'ekkert') + ')');
+    assert.match(h, /href="#"/);
+  }
+  assert.match(bidurRod(r, { andlit: 'Hrafn' }), /stj-bidur-hver/);
+  assert.ok(!bidurRod(r).includes('stj-bidur-hver'), 'ekkert andlit þegar það er ekki beðið um það');
 });
