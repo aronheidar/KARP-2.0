@@ -64,8 +64,10 @@ export async function adminOverviewHandler(request, env) {
   // Nýleg umsvif: síðustu skýrslukaup (með netfangi).
   const recentReps = (await env.TENGSL.prepare('SELECT rg.report_key, rg.granted, u.email FROM reports_granted rg LEFT JOIN users u ON u.id=rg.user_id ORDER BY rg.granted DESC LIMIT 12').all().catch(() => ({ results: [] }))).results || [];
   // S2b: rekstrar-samantekt Node-stjórnborðsins (samþykktir/tickets/herferðir/ledger) ef ýtt hefur verið.
-  const syncRow = await env.TENGSL.prepare("SELECT v, updated FROM stjorn_sync WHERE k='summary'").first().catch(() => null);
-  let stjorn = null; if (syncRow) { try { stjorn = Object.assign(JSON.parse(syncRow.v), { syncedAt: syncRow.updated }); } catch (e) {} }
+  // ⚠ 15.9: `stjorn`-farmur gamla Node-appsins er ekki lengur sóttur né sendur. Hann var 1,5 kB á hverja
+  //    uppfærslu stjórnborðsins, ENGINN las hann eftir að 🤖 Rekstur-blokkin var fjarlægð 13.9, og
+  //    ticket-listinn í honum stangaðist á við D1 — hann sýndi þrjú mál sem eru ekki til. Appið sjálft
+  //    var aflagt 13.9. Röðin `stjorn_sync k='summary'` má standa; hana les enginn.
   // ── Endurnýjunarvakt: áskriftir/þrep sem renna út næstu 7/30 daga (án prufu) + brottfall (nýlega útrunnið). ──
   const soon7 = now + 7 * day, soon30 = now + 30 * day;
   const expSubList = sSubs.filter((s) => s.until <= soon30).map((s) => ({ kind: 'service', id: s.user_id, what: s.service, until: s.until }));
@@ -100,7 +102,6 @@ export async function adminOverviewHandler(request, env) {
   let audit = []; try { audit = JSON.parse((_auditRow && _auditRow.v) || '[]'); if (!Array.isArray(audit)) audit = []; } catch (e) { audit = []; }
   audit = audit.slice(-50).reverse();
   return _ajson({
-    stjorn,
     ok: true, now,
     users: uList,
     stats: {
