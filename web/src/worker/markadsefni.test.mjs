@@ -8,6 +8,7 @@ function fakeDb(state) {
   const exec = (sql, args) => {
     if (/SELECT v, updated FROM stjorn_sync WHERE k='postiz'/.test(sql)) return state.postiz || null;
     if (/^INSERT INTO stjorn_sync \(k, v, updated\) VALUES \('postiz'/.test(sql)) { state.postiz = { v: args[0], updated: args[1] }; return { meta: {} }; }
+    if (/^SELECT v FROM stjorn_sync WHERE k=\?$/.test(sql)) { const k = args[0]; return state.sync[k] != null ? { v: state.sync[k] } : null; }
     if (/^SELECT .* FROM markadsefni/.test(sql)) return { results: state.efni };
     if (/^INSERT INTO markadsefni/.test(sql)) { state.efni.push({ id: state.efni.length + 1, titill: args[1], postiz_id: args[7], birt: args[9] }); return { meta: { last_row_id: state.efni.length } }; }
     if (/^UPDATE markadsefni SET/.test(sql)) { state.uppfaert = (state.uppfaert || 0) + 1; return { meta: {} }; }
@@ -17,8 +18,8 @@ function fakeDb(state) {
   };
   return { prepare(sql) { let a = []; const st = { bind(...x) { a = x; return st; }, async first() { return exec(sql, a); }, async all() { return exec(sql, a); }, async run() { return exec(sql, a); } }; return st; } };
 }
-const mkState = () => ({ efni: [], news: [], users: { 8: { is_admin: 1 }, 9: { is_admin: 0 } } });
-const mkEnv = (state, over = {}) => Object.assign({ TENGSL: fakeDb(state), ADMIN_API_KEY: 'adm-key', SESSION_SECRET: 'leyndó', POSTIZ_API_KEY: 'pk_test' }, over);
+const mkState = () => ({ efni: [], news: [], users: { 8: { is_admin: 1 }, 9: { is_admin: 0 } }, sync: {} });
+const mkEnv = (state, over = {}) => Object.assign({ TENGSL: fakeDb(state), ADMIN_API_KEY: 'adm-key', SESSION_SECRET: 'leyndó', POSTIZ_API_KEY: 'pk_test', GITHUB_DISPATCH_TOKEN: 'ghp_test' }, over);
 function stubFetch(t, svar) {
   const log = [];
   const orig = globalThis.fetch;
@@ -29,6 +30,11 @@ function stubFetch(t, svar) {
   };
   t.after(() => { globalThis.fetch = orig; });
   return log;
+}
+/** Kökulotu-auðkenning fyrir POST-próf sem eiga að fara í gegnum lotuna, ekki X-Admin-Key (afritað úr hjalp_agent.test.mjs). */
+async function cookieFor(env, uid) {
+  const exp = Math.floor(Date.now() / 1000) + 3600;
+  return 'karp_session=' + encodeURIComponent(uid + '.' + exp + '.' + await _hmac(env, uid + '.' + exp));
 }
 const faersla = (id, group, rasId, iso, state = 'QUEUE') => ({ id, group, state, content: 'Texti', publishDate: iso, integration: { id: rasId, providerIdentifier: 'linkedin-page', name: 'Karp' } });
 
@@ -83,4 +89,31 @@ test('endapunktur: GET má með lykli, POST krefst lotu', async (t) => {
   const K = { 'X-Admin-Key': 'adm-key' };
   assert.equal((await js(await adminMarkadsefniHandler(req('GET', K), env, {}))).ok, true);
   assert.deepEqual(await js(await adminMarkadsefniHandler(req('POST', K, { action: 'samstilla' }), env, {})), { ok: false, error: 'lota' });
+});
+
+// ── rofi_bjarki: rofinn verður að vera rofi, ekki ljós (gat sem yfirferð Verks 5 fann) ─────────────────────────────
+test('slökkt á Bjarka stöðvar framleiðslu — rofinn er rofi, ekki ljós', async (t) => {
+  const state = mkState(); state.sync = Object.assign({}, state.sync, { rofi_bjarki: '1' });
+  const env = mkEnv(state); const log = stubFetch(t, { status: 200, d: { posts: [] } });
+  const C = { Cookie: await cookieFor(env, 8) };
+  const r = await adminMarkadsefniHandler(new Request('https://karp.is/api/admin/markadsefni', {
+    method: 'POST', headers: Object.assign({ 'content-type': 'application/json' }, C),
+    body: JSON.stringify({ action: 'framleida', verk: 'Myndband um samþjöppun aflamarks' }),
+  }), env, {});
+  const j = await r.json();
+  assert.equal(j.ok, false);
+  assert.equal(j.dispatch && j.dispatch.error || j.error, 'rofi');
+  assert.equal(log.filter((x) => String(x.url).includes('api.github.com')).length, 0, 'engin keyrsla ræst');
+});
+
+test('merkja tekur aðeins raunverulegt málefnaheiti — ekki hvað sem er', async (t) => {
+  const state = mkState(); state.efni.push({ id: 1, titill: 'Verk', postiz_id: 'g1', efnistok: null, birt: null });
+  const env = mkEnv(state); stubFetch(t, { status: 200, d: { posts: [] } });
+  const C = { Cookie: await cookieFor(env, 8) };
+  const post = (b) => adminMarkadsefniHandler(new Request('https://karp.is/api/admin/markadsefni', {
+    method: 'POST', headers: Object.assign({ 'content-type': 'application/json' }, C), body: JSON.stringify(b),
+  }), env, {}).then((r) => r.json());
+  assert.deepEqual(await post({ action: 'merkja', id: 1, efnistok: 'Ekki til sem málefni' }), { ok: false, error: 'efnistok' });
+  const g = await post({ action: 'merkja', id: 1, efnistok: 'Sjávarútvegur', tala: '48%', heimild: 'Fiskistofa' });
+  assert.equal(g.ok, true);
 });

@@ -162,13 +162,20 @@ export async function processNewTicket(env, t) {
   return { g, auto: auto ? auto.id : null, off };
 }
 
-/** repository_dispatch á KARP-2.0.
- *  ⚠ Rofinn `rofi_hrafn` stöðvar AÐEINS 'cto' — sjálfstæða vinnu Hrafns. Hann stöðvar EKKI 'cto_merge':
- *  það er merge á tillögu sem liggur þegar fyrir og krefst innskráðrar lotu Arons (`samthykkja` hafnar
- *  X-Admin-Key). Rofinn ver gegn því að agentinn vinni upp á sitt eindæmi, ekki gegn Aroni sjálfum. */
+/** Atburðir sem rofi starfsmanns stöðvar. ⚠ `cto_merge` er VÍSVITANDI ekki hér: það er merge á tillögu
+ *  sem liggur þegar fyrir og krefst innskráðrar lotu Arons (ákvörðun skráð 14.9, negld með prófi). Rofinn
+ *  ver gegn því að agent vinni upp á sitt eindæmi, ekki gegn Aroni sjálfum. */
+const _ROFI_ATBURDIR = { cto: 'rofi_hrafn', markadsefni: 'rofi_bjarki' };
+
+/** repository_dispatch á KARP-2.0. Hvort atburður stöðvast fer eftir kortinu `_ROFI_ATBURDIR` fyrir ofan —
+ *  alhæft svo enginn kallstaður (hjalp_agent.mjs, markadsefni.mjs, …) geti gleymt gátuninni sem sértilvik.
+ *  ⚠ `cto_merge` er VÍSVITANDI EKKI í kortinu: það er merge á tillögu sem liggur þegar fyrir og krefst
+ *  innskráðrar lotu Arons (`samthykkja` hafnar X-Admin-Key). Rofinn ver gegn því að agentinn vinni upp á
+ *  sitt eindæmi, ekki gegn Aroni sjálfum. */
 export async function _ghDispatch(env, eventType, payload) {
   if (!env.GITHUB_DISPATCH_TOKEN) return { ok: false, error: 'unconfigured' };
-  if (eventType === 'cto' && await _rofiA(env, 'rofi_hrafn')) return { ok: false, error: 'rofi' };
+  const rofiL = _ROFI_ATBURDIR[eventType];
+  if (rofiL && await _rofiA(env, rofiL)) return { ok: false, error: 'rofi' };
   const r = await fetch('https://api.github.com/repos/aronheidar/KARP-2.0/dispatches', {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + env.GITHUB_DISPATCH_TOKEN, 'Accept': 'application/vnd.github+json', 'User-Agent': 'karp21-worker', 'Content-Type': 'application/json' },
