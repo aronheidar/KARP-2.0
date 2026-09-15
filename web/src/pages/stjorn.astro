@@ -375,12 +375,13 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     import { spjald, esc, bidurRod } from '../lib/stjorn/spjald.mjs';   // esc+bidurRod: EIN uppspretta — gamla staðbundna sniðmátið vantaði slóða-vörnina (slodOrugg)
     import { sigrunGogn } from '../lib/stjorn/sigrun.mjs';
     import { hrafnGogn } from '../lib/stjorn/hrafn.mjs';
+    import { bjarkiGogn } from '../lib/stjorn/bjarki.mjs';
     const $ = (id) => document.getElementById(id);
     const dIS = (ts) => { try { const d = new Date(ts * 1000); return d.getUTCDate() + '.' + (d.getUTCMonth() + 1) + '. ' + String(d.getUTCFullYear()).slice(2); } catch (e) { return ''; } };
     // Starfsmenn með spjald. ⚠ Bættu EKKI við andliti fyrr en vélin á bak við það er komin —
     // tóm skúffa þjálfar mann í að hætta að opna skúffur (hönnunarákvörðun 14.9).
-    const STARFSMENN = ['sigrun', 'hrafn'];
-    let sidastaSvar = null, sidustuBilanir = { ok: false, bilanir: [] };
+    const STARFSMENN = ['sigrun', 'hrafn', 'bjarki'];
+    let sidastaSvar = null, sidustuBilanir = { ok: false, bilanir: [] }, sidastaMarkads = { ok: false };
 
     function syna(hash) {
       const id = String(hash || '').replace(/^#/, '');
@@ -403,10 +404,13 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       const d = sidastaSvar || {}, nu = d.now || Math.floor(Date.now() / 1000);
       const bidur = bidurThin({ tickets: d.tickets || {}, bilanir: sidustuBilanir.bilanir || [], now: nu });
       const p = persona(id);
-      const gogn = id === 'sigrun' ? sigrunGogn(d, bidur, nu) : hrafnGogn(d, sidustuBilanir, bidur, nu);
+      const gogn = id === 'sigrun' ? sigrunGogn(d, bidur, nu)
+        : id === 'hrafn' ? hrafnGogn(d, sidustuBilanir, bidur, nu)
+        : bjarkiGogn(sidastaMarkads, bidur, nu);
       // ⚠ boot() endurteiknar spjaldið OFT (eftir hverja ticket-/rofa-aðgerð) — hálfskrifað verk má
       // ekki hverfa þegjandi undir höndum notandans, svo innihaldið er geymt yfir endurteikninguna.
       const gamaltVerk = id === 'hrafn' && $('stj-verk') ? $('stj-verk').value : '';
+      const gamaltBjarkaVerk = id === 'bjarki' && $('stj-bjarki-verk') ? $('stj-bjarki-verk').value : '';
       $('stj-spjald').innerHTML = '<a class="stj-tilbaka" href="#">← Forstofa</a>'
         + spjald(Object.assign({ id, nafn: p.nafn, hlutverk: p.hlutverk, avatar: avatarSvg(id, { size: 64 }) }, gogn))
         + (id === 'sigrun' ? '<div id="stj-spjald-tix"></div>' : '');
@@ -431,6 +435,36 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
           $('stj-verk-send').disabled = false;
           $('stj-verk-svar').textContent = r && r.ok ? 'Keyrsla ræst — PR birtist hér þegar hún skilar.'
             : r && r.error === 'rofi' ? 'Slökkt er á Hrafni.' : 'Villa — reyndu aftur.';
+        };
+      }
+      if (id === 'bjarki') {
+        const bjarkiHtml = '<section class="stj-hola"><h3>Postiz-dagatalið</h3>'
+          + '<button type="button" class="stj-btn" id="stj-bjarki-sync">🔄 Samstilla við Postiz</button>'
+          + '<span class="stj-note" id="stj-bjarki-sync-svar"></span></section>'
+          + '<section class="stj-hola"><h3>Fela Bjarka að semja efni</h3>'
+          + '<textarea id="stj-bjarki-verk" rows="2" placeholder="T.d. Myndband um samþjöppun aflamarks — nota nýjustu Fiskistofu-töluna"></textarea>'
+          + '<button type="button" class="stj-btn" id="stj-bjarki-send">📣 Semja efni</button>'
+          + '<span class="stj-note" id="stj-bjarki-svar"></span></section>';
+        $('stj-spjald').insertAdjacentHTML('beforeend', bjarkiHtml);
+        $('stj-bjarki-sync').onclick = async () => {
+          $('stj-bjarki-sync').disabled = true;
+          $('stj-bjarki-sync-svar').textContent = 'Samstilli…';
+          const r = await fetch('/api/admin/markadsefni', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'samstilla' }) }).then((x) => x.json()).catch(() => null);
+          $('stj-bjarki-sync').disabled = false;
+          $('stj-bjarki-sync-svar').textContent = r && r.ok
+            ? ('sótt: ' + (r.ny || 0) + ' ný · ' + (r.uppfaerd || 0) + ' uppfærð' + (r.sleppt && r.sleppt.length ? ' · ' + r.sleppt.length + ' sleppt' : ''))
+            : 'Villa — reyndu aftur.';
+          if (r && r.ok) boot();
+        };
+        if (gamaltBjarkaVerk) $('stj-bjarki-verk').value = gamaltBjarkaVerk;
+        $('stj-bjarki-send').onclick = async () => {
+          const verk = $('stj-bjarki-verk').value.trim();
+          if (verk.length < 10) { $('stj-bjarki-svar').textContent = 'Lýstu verkinu aðeins nánar.'; return; }
+          $('stj-bjarki-send').disabled = true;
+          const r = await fetch('/api/admin/markadsefni', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'framleida', verk }) }).then((x) => x.json()).catch(() => null);
+          $('stj-bjarki-send').disabled = false;
+          $('stj-bjarki-svar').textContent = r && r.ok ? 'Framleiðsla ræst — birtist í safninu þegar hún skilar.'
+            : r && r.dispatch && r.dispatch.error === 'rofi' ? 'Slökkt er á Bjarka.' : 'Villa — reyndu aftur.';
         };
       }
     }
@@ -741,6 +775,7 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       // 🚪 Forstofa: „Bíður þín" (EIN uppspretta, bidur_thin.mjs) + andlitaröndin sem skiptir yfir í spjald.
       sidastaSvar = ov;   // svarið úr /api/admin/overview, sótt í Promise.all ofar í boot()
       sidustuBilanir = await fetch('/api/admin/bilanir', { credentials: 'include' }).then((r) => r.json()).catch(() => ({ ok: false, bilanir: [] }));
+      sidastaMarkads = await fetch('/api/admin/markadsefni', { credentials: 'include' }).then((r) => r.json()).catch(() => ({ ok: false }));
       const bidur = bidurThin({ tickets: ov.tickets || {}, bilanir: sidustuBilanir.bilanir || [], now: ov.now || Math.floor(Date.now() / 1000) });
 
       // EIN uppspretta með spjöldunum (bidurRod, spjald.mjs) — hér fylgir andlit eigandans með.
