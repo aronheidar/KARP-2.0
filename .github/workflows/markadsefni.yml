@@ -137,6 +137,14 @@ jobs:
           SVAR=$(postiz posts:create -c "$TEXTI" -m "$VIDEO_URL" -s "$DAGS" -t draft -i "cmt92pcw000r9p20yv7b53018,cmt92q6mr00pbmp0ykfa92r3v")
           echo "posts:create svar: $SVAR"
           GROUP=$(echo "$SVAR" | jq -r 'if type=="array" then (.[0].group // .[0].id // empty) else (.group // .id // empty) end' 2>/dev/null || true)
+          # ⚠ Án `group` er drögin ótengjanleg við línuna í safninu: næsta samstilling sæi hana sem nýtt
+          #   verk og skráði ANNAÐ eintak. Þögul tvítalning er verri en sýnileg bilun — fellum frekar
+          #   keyrsluna. Drögin standa í Postiz og myndbandið fylgir sem artifact, svo ekkert tapast.
+          if [ -z "$GROUP" ]; then
+            echo "::error::Drögin urðu til í Postiz en group-auðkenni fannst ekki í svarinu — skrái EKKI í safnið"
+            echo "Svarið var: $SVAR"
+            exit 1
+          fi
           echo "group=$GROUP" >> "$GITHUB_OUTPUT"
 
       - name: Skrá í KARP (action 'skra' — X-Admin-Key, engin lota þarf fyrir þessa einu aðgerð)
