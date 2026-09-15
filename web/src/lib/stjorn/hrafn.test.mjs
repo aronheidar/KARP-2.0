@@ -72,3 +72,11 @@ test('main-kubburinn segir óvíst þegar CI-uppsprettan svaraði ekki — en ve
   const vantarPr = hrafnGogn(OV, { ok: true, villa: 'hluti', vantar: ['PR'], bilanir: [] }, [], NU);
   assert.equal(vantarPr.tolur.find((x) => x.l === 'main').n, 'grænt', 'CI svaraði — liturinn er þekktur');
 });
+
+test('ógilt svar frá bilanalista er óvissa, ekki grænt ljós', () => {
+  for (const svar of [{ ok: false, error: 'unconfigured' }, { ok: false }, {}, { ok: true, villa: 'github', bilanir: [] }]) {
+    const g = hrafnGogn(OV, svar, [], NU);
+    assert.equal(g.tolur.find((x) => x.l === 'main').n, 'óvíst', JSON.stringify(svar));
+  }
+  assert.match(hrafnGogn(OV, { ok: false, error: 'unconfigured' }, [], NU).stada, /náðist ekki/);
+});

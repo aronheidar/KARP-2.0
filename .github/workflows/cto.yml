@@ -131,7 +131,7 @@ jobs:
           BAD2=$(git status --porcelain | awk '{print $2}' | grep -E '^web/migrations/|^web/wrangler.toml|^\.github/' || true)
           if [ -n "$BAD$BAD2" ]; then echo "Óleyfilegar breytingar: $BAD $BAD2"; git checkout -- . ; git clean -fd; echo "pr=" >> $GITHUB_OUTPUT; echo "note=Óleyfilegar skrár snertar — breytingum hent" >> $GITHUB_OUTPUT; exit 0; fi
           if git diff --quiet && [ -z "$(git status --porcelain)" ]; then echo "pr=" >> $GITHUB_OUTPUT; echo "note=Engin kóðabreyting" >> $GITHUB_OUTPUT; printf '%s' "$SUM" > /tmp/sum.md; exit 0; fi
-          BR="cto/${TICKET:-verk-$GITHUB_RUN_ID}"
+          BR="${TICKET:+cto/ticket-$TICKET}"; BR="${BR:-cto/verk-$GITHUB_RUN_ID}"
           TITILL="${TICKET:+hjálparbeiðni #$TICKET}"; TITILL="${TITILL:-frjálst verk (run $GITHUB_RUN_ID)}"
           printf '%s' "$SUM" > /tmp/sum.md
           git checkout -B "$BR"

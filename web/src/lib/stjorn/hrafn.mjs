@@ -16,10 +16,12 @@ export function hrafnGogn(overview = {}, bilanirSvar = {}, bidurListi = [], now 
   const listi = Array.isArray(tx.list) ? tx.list : [];
   const bilanir = Array.isArray(bilanirSvar.bilanir) ? bilanirSvar.bilanir : [];
   const rautt = bilanir.some((b) => b.uppspretta === 'CI');
-  // ⚠ Vitum EKKI litinn ef CI-uppsprettan sjálf svaraði ekki. Að sýna „grænt" af því engin CI-bilun
-  //    barst væri að lesa þögn sem góðar fréttir — nákvæmlega það sem lét tvær fallnar keyrslur
-  //    liggja óséðar 14.9. Aðrar uppsprettur sem vantar breyta engu um lit main.
-  const ciVantar = Array.isArray(bilanirSvar.vantar) && bilanirSvar.vantar.includes('CI');
+  // ⚠ Við vitum EKKI lit main nema ferskt CI-svar hafi borist. Ógilt svar (token vantar, netvilla,
+  //    admin-gátt féll) og gamall listi telja BÁÐIR sem óvissa — „grænt" af því ekkert barst er
+  //    nákvæmlega þögnin sem lét tvær fallnar keyrslur liggja óséðar 14.9.
+  const svarOgilt = bilanirSvar.ok === false || !Array.isArray(bilanirSvar.bilanir);
+  const ciVantar = svarOgilt || bilanirSvar.villa === 'github'
+    || (Array.isArray(bilanirSvar.vantar) && bilanirSvar.vantar.includes('CI'));
   const lagfaeringar = listi.filter((t) => t.cto_pr).length;
   const iVinnslu = listi.filter((t) => t.stada === 'cto').length;
   const sidast = listi.filter((t) => t.cto_pr).reduce((m, t) => Math.max(m, Number(t.updated) || 0), 0);
@@ -27,7 +29,9 @@ export function hrafnGogn(overview = {}, bilanirSvar = {}, bidurListi = [], now 
   // ⚠ Tvö ólík „ekki treysta þessu blint" ástand frá /api/admin/bilanir, og þau þýða ekki það sama:
   //   'github' = ENGIN uppspretta svaraði — listinn er alfarið sá gamli, geymdur. 'hluti' = SUMAR svöruðu
   //   ekki en aðrar gerðu — listinn er ferskur en ófullnægjandi, og vantar-fylkið segir nákvæmlega hvaðan.
-  const stada = bilanirSvar.villa === 'github'
+  const stada = svarOgilt
+    ? 'bilanalistinn náðist ekki (' + (bilanirSvar.error || 'villa') + ')'
+    : bilanirSvar.villa === 'github'
     ? 'GitHub svarar ekki — listinn er frá ' + (dagsTexti(bilanirSvar.sott) || 'fyrri keyrslu')
     : bilanirSvar.villa === 'hluti'
     ? 'listinn er ófullnægjandi — vantar svör frá: ' + (Array.isArray(bilanirSvar.vantar) ? bilanirSvar.vantar.join(', ') : '?')

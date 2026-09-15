@@ -393,7 +393,8 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       $('stj-forstofa').hidden = !!virkur;
       $('stj-bidur-wrap').hidden = !!virkur || !($('stj-bidur').children.length);
       $('stj-spjald').hidden = !virkur;
-      $('stj-moot-wrap').hidden = !!virkur;   // Moot á heima í forstofu — ekki ofan á starfsmannaspjaldi
+      // Ráðsalurinn fylgir beiðnunum: þær flytjast inn á spjald Sigrúnar og Moot er opnaður úr þeim.
+      const moot = $('stj-moot-wrap'); if (moot) moot.hidden = virkur === 'hrafn';
       $('stj-rond').querySelectorAll('.stj-andlit').forEach((a) => a.classList.toggle('stj-andlit--virkt', a.dataset.id === virkur));
       if (virkur) teiknaSpjald(virkur);
     }
@@ -1176,7 +1177,15 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       d.scrollIntoView({ block: 'start' });
     }
 
-    window.addEventListener('hashchange', () => { if (!location.hash.startsWith('#ticket-')) syna(location.hash); });
+    window.addEventListener('hashchange', () => {
+      if (!location.hash.startsWith('#ticket-')) { syna(location.hash); return; }
+      // Djúptengill í beiðni: farðu þangað sem beiðnalistinn er núna, opnaðu þráðinn og skrunaðu að honum.
+      const d = document.getElementById(location.hash.slice(1));
+      if (!d) return;
+      if (!d.closest('#stj-spjald') && !$('stj-spjald').hidden) syna('');
+      d.open = true;
+      d.scrollIntoView({ block: 'start' });
+    });
     if (document.readyState !== 'loading') boot(); else document.addEventListener('DOMContentLoaded', boot);
     document.addEventListener('astro:page-load', boot);
   </script>
