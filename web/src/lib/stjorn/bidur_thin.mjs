@@ -12,8 +12,9 @@ function rod(starfsmadur, tegund, titill, vidbot, sidan, slod) {
 }
 
 /** @returns {Array} raðað elst fyrst — það sem hefur beðið lengst er efst. */
-export function bidurThin({ tickets = {}, bilanir = [], now = 0 } = {}) {
+export function bidurThin({ tickets = {}, bilanir = [], now = 0, markads = null } = {}) {
   const ut = [];
+  const nu = Number(now) || 0;   // ⚠ reiknuð HÉR (ekki neðst) svo markaðsefna-blokkin fyrir neðan geti notað hana
   const listi = Array.isArray(tickets && tickets.list) ? tickets.list : [];
   const osent = new Set((tickets && tickets.moot_osent) || []);
   const mootBida = new Set((tickets && tickets.moot_bida) || []);
@@ -42,7 +43,20 @@ export function bidurThin({ tickets = {}, bilanir = [], now = 0 } = {}) {
     if (!b || b.alvarleiki !== 'hatt') continue;   // miðlungs/lágt sést á spjaldi Hrafns, truflar ekki forstofuna
     ut.push(rod('hrafn', 'bilun', b.lysing, b.uppspretta, b.sidan, b.slod || '#hrafn'));
   }
-  const nu = Number(now) || 0;
+  // 📣 Markaðsefni: dagatalið að tæmast, óflokkuð verk og tilbúnar tillögur. Þetta á heima HÉR en ekki
+  //    inni í spjaldinu — annars sæi forstofan þær ekki og talan á andlitinu yrði núll þótt eitthvað bíði.
+  const mk = (markads && typeof markads === 'object') ? markads : null;
+  if (mk) {
+    const dag = mk.dagatal || {};
+    if (Number(dag.dagarFram) > 0 && Number(dag.dagarFram) < 7) {
+      ut.push(rod('bjarki', 'dagatal', 'Dagatalið tæmist eftir ' + Math.round(dag.dagarFram) + ' daga', 'næsta lota þarf að fara af stað', nu, '#bjarki'));
+    }
+    const oflokkud = (Array.isArray(mk.safn) ? mk.safn : []).filter((v) => v && !v.efnistok).length;
+    if (oflokkud) ut.push(rod('bjarki', 'oflokkad', oflokkud + ' verk eru óflokkuð', 'án efnistaka veit hann ekki hvað við höfum sagt áður', nu, '#bjarki'));
+    for (const t of (Array.isArray(mk.tillogur) ? mk.tillogur : [])) {
+      if (t && t.malefni) ut.push(rod('bjarki', 'tillaga', 'Tillaga: ' + t.malefni, t.rok || '', nu, '#bjarki'));
+    }
+  }
   return ut
     .map((r) => Object.assign(r, { bid: Math.max(0, nu - r.sidan), adkallandi: nu - r.sidan > ADKALLANDI_SEK }))
     .sort((a, b) => a.sidan - b.sidan);

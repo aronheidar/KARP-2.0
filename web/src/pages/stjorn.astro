@@ -402,7 +402,7 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
 
     function teiknaSpjald(id) {
       const d = sidastaSvar || {}, nu = d.now || Math.floor(Date.now() / 1000);
-      const bidur = bidurThin({ tickets: d.tickets || {}, bilanir: sidustuBilanir.bilanir || [], now: nu });
+      const bidur = bidurThin({ tickets: d.tickets || {}, bilanir: sidustuBilanir.bilanir || [], markads: sidastaMarkads, now: nu });
       const p = persona(id);
       const gogn = id === 'sigrun' ? sigrunGogn(d, bidur, nu)
         : id === 'hrafn' ? hrafnGogn(d, sidustuBilanir, bidur, nu)
@@ -776,7 +776,7 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       sidastaSvar = ov;   // svarið úr /api/admin/overview, sótt í Promise.all ofar í boot()
       sidustuBilanir = await fetch('/api/admin/bilanir', { credentials: 'include' }).then((r) => r.json()).catch(() => ({ ok: false, bilanir: [] }));
       sidastaMarkads = await fetch('/api/admin/markadsefni', { credentials: 'include' }).then((r) => r.json()).catch(() => ({ ok: false }));
-      const bidur = bidurThin({ tickets: ov.tickets || {}, bilanir: sidustuBilanir.bilanir || [], now: ov.now || Math.floor(Date.now() / 1000) });
+      const bidur = bidurThin({ tickets: ov.tickets || {}, bilanir: sidustuBilanir.bilanir || [], markads: sidastaMarkads, now: ov.now || Math.floor(Date.now() / 1000) });
 
       // EIN uppspretta með spjöldunum (bidurRod, spjald.mjs) — hér fylgir andlit eigandans með.
       $('stj-bidur').innerHTML = bidur.map((r) => {

@@ -2,8 +2,6 @@
 // Engin fetch, engin env, ekkert Date.now() — allt kemur með svarinu sjálfu og með `now` frá kallanda.
 import { bidurFyrir } from './bidur_thin.mjs';
 
-const DAGATAL_LAGT_MORK = 7; // færri en heil vika eftir af tímasettu efni telst vera að tæmast
-
 function dagsTexti(ts) {
   if (!ts) return '';
   const d = new Date(Number(ts) * 1000);
@@ -38,58 +36,31 @@ function vinnslaRadir(dagatal, safn) {
 export function bjarkiGogn(svar = {}, bidurListi = [], now = 0) {
   const dagatal = (svar.dagatal && typeof svar.dagatal === 'object') ? svar.dagatal : {};
   const safn = Array.isArray(svar.safn) ? svar.safn : [];
-  const tillogur = Array.isArray(svar.tillogur) ? svar.tillogur : [];
   const iRod = Number(dagatal.iRod) || 0;
   const dagarFram = Number(dagatal.dagarFram) || 0;
+
+  // ⚠ Villuboðin eru HREIÐRUÐ inni í svar.postiz — endapunkturinn skilar {ok:true, postiz:{ok,error,villa}, …}.
+  //    Fyrri útgáfa las svar.error/svar.villa á toppstigi og hefði því ALDREI sagt frá óstilltri tengingu.
+  const postiz = (svar && svar.postiz && typeof svar.postiz === 'object') ? svar.postiz : {};
+  const ekkertSvar = !svar || svar.ok === false;                    // síðan náði ekki í endapunktinn
+  const ostillt = postiz.error === 'unconfigured';
+  const gamalt = postiz.villa === 'postiz';
 
   // ⚠ Sami lærdómur og af spjaldi Hrafns: „main grænt" þegar EKKERT svar barst kenndi manni að
   //   hætta að treysta grænum lit í blindni. Hér: Postiz-tengingin óstillt eða þögul segir það
   //   BERUM ORÐUM — aldrei „N í röðinni" þegar við í raun ekki vitum töluna.
-  const stada = svar.error === 'unconfigured'
+  const stada = ekkertSvar
+    ? 'Stjórnborðið náði ekki sambandi við vélina'
+    : ostillt
     ? 'Postiz-tenging óstillt'
-    : svar.villa === 'postiz'
+    : gamalt
     ? 'Postiz svarar ekki — dagatalið er frá síðustu heppnuðu sókn'
     : iRod + ' í röðinni · dagatalið nær ' + dagarFram + ' daga fram';
 
+  // ⚠ Raðirnar (dagatal að tæmast, óflokkað verk, tillögur) eru smíðaðar í bidurThin núna — annars sæi
+  //   forstofan þær aldrei og talan á andlitinu yrði núll þótt eitthvað biði. Hér er AÐEINS síað, nákvæmlega
+  //   eins og sigrun.mjs og hrafn.mjs gera.
   const bidur = bidurFyrir(bidurListi, 'bjarki');
-  // ⚠ Borið saman við mörkin AÐEINS þegar dagarFram er raunveruleg tala úr svarinu — vanti dagatalið
-  //   alveg þýðir það ekkert, ekki núll daga eftir. Sama regla: aldrei giska þegar ekkert svar barst.
-  if (typeof dagatal.dagarFram === 'number' && dagatal.dagarFram < DAGATAL_LAGT_MORK) {
-    bidur.push({
-      tegund: 'dagatal',
-      titill: 'Dagatalið er að tæmast — aðeins ' + dagatal.dagarFram + ' dagar eftir',
-      vidbot: '',
-      slod: '#bjarki',
-      bid: 0,
-      adkallandi: true,
-    });
-  }
-  // Óflokkað verk: án efnistaka veit enginn — hvorki maður né mælaborð — um hvað það fjallaði.
-  for (const s of safn) {
-    if (s && typeof s === 'object' && !s.efnistok) {
-      bidur.push({
-        tegund: 'oflokkad',
-        titill: '#' + s.id + ' — óflokkað verk bíður flokkunar',
-        vidbot: s.titill || '',
-        slod: '#bjarki',
-        bid: 0,
-        adkallandi: false,
-      });
-    }
-  }
-  // Hver tillaga er sitt eigið „bíður þín": rökin (vidbot) eru það sem sannfærir — ekki bara talan.
-  for (const t of tillogur) {
-    if (t && typeof t === 'object') {
-      bidur.push({
-        tegund: 'tillaga',
-        titill: (t.malefni || 'Efnishugmynd') + ' — efnishugmynd handa ' + (t.vara || 'nýrri síðu'),
-        vidbot: t.rok || '',
-        slod: t.slod || '#bjarki',
-        bid: 0,
-        adkallandi: false,
-      });
-    }
-  }
 
   return {
     stada,

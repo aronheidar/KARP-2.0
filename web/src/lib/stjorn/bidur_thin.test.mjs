@@ -85,3 +85,14 @@ test('ástandsheitin sem listinn byggir á eru raunveruleg — samstillist ásta
     assert.ok(TICKET_STODUR.includes(stada), stada + ' er ekki lengur til í TICKET_STODUR — bidurThin þagnar þegjandi');
   }
 });
+
+test('markaðsefni skilar sér í sameiginlega listann — annars sæi forstofan hvorki tæmt dagatal né tillögur', () => {
+  const r = bidurThin({ now: NU, markads: {
+    dagatal: { dagarFram: 5 },
+    safn: [{ efnistok: null }, { efnistok: 'Sjávarútvegur' }],
+    tillogur: [{ malefni: 'Verðbólga', rok: 'þrefalt venjulegt' }],
+  } });
+  assert.deepEqual(r.map((x) => x.tegund).sort(), ['dagatal', 'oflokkad', 'tillaga']);
+  assert.ok(r.every((x) => x.starfsmadur === 'bjarki'));
+  assert.deepEqual(bidurThin({ now: NU, markads: { dagatal: { dagarFram: 20 }, safn: [], tillogur: [] } }), [], 'rúmt dagatal og ekkert óflokkað = ekkert bíður');
+});
