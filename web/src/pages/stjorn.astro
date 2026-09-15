@@ -1177,15 +1177,36 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       d.scrollIntoView({ block: 'start' });
     }
 
-    window.addEventListener('hashchange', () => {
-      if (!location.hash.startsWith('#ticket-')) { syna(location.hash); return; }
-      // Djúptengill í beiðni: farðu þangað sem beiðnalistinn er núna, opnaðu þráðinn og skrunaðu að honum.
-      const d = document.getElementById(location.hash.slice(1));
+    // ── Leiðin milli forstofu og spjalda ────────────────────────────────────────────────────────────────
+    // ⚠ Astro-leiðarinn (ClientRouter, sjá Layout.astro) grípur smelli á tengla og notar history.pushState —
+    //   og pushState kveikir ALDREI á 'hashchange'. Hashchange-hlustari einn og sér dugði því ekki: smellur á
+    //   andlit breytti slóðinni en ekkert gerðist fyrr en síðan var endurhlaðin. Við tökum smellina sjálf og
+    //   köllum syna() beint; hashchange og popstate standa eftir fyrir handvirka slóðabreytingu, bókamerki
+    //   og til-baka-hnappinn.
+    function opnaBeidni(hash) {
+      const d = document.getElementById(hash.slice(1));
       if (!d) return;
-      if (!d.closest('#stj-spjald') && !$('stj-spjald').hidden) syna('');
+      if (!d.closest('#stj-spjald') && !$('stj-spjald').hidden) syna('');   // beiðnalistinn liggur á forstofunni
       d.open = true;
       d.scrollIntoView({ block: 'start' });
+    }
+    function fara(hash, ytaSogu) {
+      const h = hash === '#' ? '' : String(hash || '');
+      const id = h.replace(/^#/, '');
+      if (h.startsWith('#ticket-')) { opnaBeidni(h); return; }
+      // Venjulegur kjölfestutengill innan síðunnar (t.d. „Opna í ráðsal" → #stj-moot-wrap): aðeins skruna.
+      if (id && !STARFSMENN.includes(id)) { const el = document.getElementById(id); if (el) el.scrollIntoView({ block: 'start' }); return; }
+      if (ytaSogu) { try { history.pushState(null, '', h || location.pathname); } catch (e) {} }
+      syna(h);
+    }
+    document.addEventListener('click', (e) => {
+      const a = e.target && e.target.closest && e.target.closest('#stj-body a[href^="#"]');
+      if (!a) return;
+      e.preventDefault();
+      fara(a.getAttribute('href'), true);
     });
+    window.addEventListener('hashchange', () => fara(location.hash, false));
+    window.addEventListener('popstate', () => fara(location.hash, false));
     if (document.readyState !== 'loading') boot(); else document.addEventListener('DOMContentLoaded', boot);
     document.addEventListener('astro:page-load', boot);
   </script>
