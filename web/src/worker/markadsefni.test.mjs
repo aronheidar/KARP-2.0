@@ -126,6 +126,36 @@ test('rofa-staða Bjarka skilar sér í GET-svarið', async (t) => {
   assert.equal((await r.json()).rofi, true);
 });
 
+// ── 'skra' (Verk 8): eina POST-aðgerðin sem GH Action-keyrslan (engin lota) má nota ────────────────
+test('skra virkar með X-Admin-Key — engin lota þarf — og skráir drög (birt=NULL)', async (t) => {
+  const state = mkState(); const env = mkEnv(state); stubFetch(t, { status: 200, d: { posts: [] } });
+  const K = { 'X-Admin-Key': 'adm-key' };
+  const post = (b) => adminMarkadsefniHandler(new Request('https://karp.is/api/admin/markadsefni', {
+    method: 'POST', headers: Object.assign({ 'content-type': 'application/json' }, K), body: JSON.stringify(b),
+  }), env, {}).then((r) => r.json());
+  const svar = await post({
+    action: 'skra', titill: 'Fjárlögin 2027 — fyrsti afgangur í 8 ár', efnistok: 'Ríkisfjármál',
+    tala: '4,7 ma.kr.', heimild: 'fjarlog.json', postiz_id: 'g-nytt', tegund: 'myndband', lota: 5, skra: 'render-fjarlog.mjs',
+  });
+  assert.equal(svar.ok, true);
+  assert.ok(svar.id, 'skilar id');
+  assert.equal(state.efni.length, 1);
+  assert.equal(state.efni[0].titill, 'Fjárlögin 2027 — fyrsti afgangur í 8 ár');
+  assert.equal(state.efni[0].postiz_id, 'g-nytt');
+  assert.equal(state.efni[0].birt, null, 'drög eru ALDREI birt');
+});
+
+test('framleida hafnar X-Admin-Key án lotu — skra er EINA undantekningin', async (t) => {
+  const state = mkState(); const env = mkEnv(state); stubFetch(t, { status: 200, d: { posts: [] } });
+  const K = { 'X-Admin-Key': 'adm-key' };
+  const r = await adminMarkadsefniHandler(new Request('https://karp.is/api/admin/markadsefni', {
+    method: 'POST', headers: Object.assign({ 'content-type': 'application/json' }, K),
+    body: JSON.stringify({ action: 'framleida', verk: 'Myndband um fjárlögin 2027' }),
+  }), env, {});
+  assert.deepEqual(await r.json(), { ok: false, error: 'lota' });
+  assert.equal(state.efni.length, 0, 'ekkert skráð, engin keyrsla ræst');
+});
+
 test('merkja tekur aðeins raunverulegt málefnaheiti — ekki hvað sem er', async (t) => {
   const state = mkState(); state.efni.push({ id: 1, titill: 'Verk', postiz_id: 'g1', efnistok: null, birt: null });
   const env = mkEnv(state); stubFetch(t, { status: 200, d: { posts: [] } });

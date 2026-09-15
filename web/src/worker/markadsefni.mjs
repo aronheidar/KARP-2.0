@@ -125,8 +125,10 @@ async function _meTillogur(env, nu) {
   return tillogur(heitt, safnR.results || [], nu);
 }
 
-/** /api/admin/markadsefni — GET dagatal+safn+tillögur · POST samstilla/merkja/framleida.
- *  Auth: GET má með X-Admin-Key; POST KREFST lotu — það skrifar í Postiz og ræsir framleiðslu í
+/** /api/admin/markadsefni — GET dagatal+safn+tillögur · POST samstilla/merkja/framleida/skra.
+ *  Auth: GET má með X-Admin-Key. POST 'skra' má EINNIG með lykli (GH Action-keyrslan sem framleiðir
+ *  myndbandið hefur enga lotu) — hún skrifar bara drög-línu, aldrei í Postiz. Öll ÖNNUR POST-aðgerð
+ *  (samstilla/merkja/framleida) KREFST lotu: þær skrifa í Postiz eða ræsa framleiðslu í
  *  framleiðsluumhverfi. Lykill má lesa en ekki ákveða slíkt (sama regla og `samthykkja`/Moot-atkvæði). */
 export async function adminMarkadsefniHandler(request, env, ctx) {
   const key = request.headers.get('X-Admin-Key');
@@ -148,9 +150,31 @@ export async function adminMarkadsefniHandler(request, env, ctx) {
   if (request.method !== 'POST') return _ajson({ ok: false, error: 'method' });
   if (!byKey) { const csrf = adminCsrfVilla(request); if (csrf) return _ajson({ ok: false, error: csrf }); }   // kökulotu-leið: same-origin + JSON
   const b = (await request.json().catch(() => null)) || {};
-  if (!uid) return _ajson({ ok: false, error: 'lota' });   // X-Admin-Key má lesa en ekki skrifa í Postiz né ræsa framleiðslu
-
   const action = String(b.action || '');
+
+  // ⚠ 'skra' er EINA POST-aðgerðin sem X-Admin-Key (engin lota) má nota — GH Action-keyrslan sem
+  //   framleiðir myndbandið hefur enga lotu Arons. Hún skrifar ALDREI í Postiz og ræsir ekkert, aðeins
+  //   skráir eina drög-línu (birt=NULL — drög eru ekki birt) eftir að keyrslan sjálf (föst skref, ekki
+  //   Claude) hefur þegar hlaðið myndbandinu upp sem drögum. 'samstilla'/'merkja'/'framleida' krefjast
+  //   áfram lotu — sjá lota-vörnina rétt fyrir neðan, ÓBREYTT.
+  if (action === 'skra') {
+    const titill = String(b.titill || '').trim().slice(0, 300);
+    if (!titill) return _ajson({ ok: false, error: 'titill' });
+    const tegund = b.tegund != null ? String(b.tegund).slice(0, 40) : 'myndband';
+    const efnistok = b.efnistok != null ? String(b.efnistok).slice(0, 200) : null;
+    const tala = b.tala != null ? String(b.tala).slice(0, 200) : null;
+    const heimild = b.heimild != null ? String(b.heimild).slice(0, 300) : null;
+    const lota = b.lota != null ? (parseInt(b.lota, 10) || null) : null;
+    const postiz_id = b.postiz_id != null ? String(b.postiz_id).slice(0, 200) : null;
+    const skra = b.skra != null ? String(b.skra).slice(0, 300) : null;
+    const r = await env.TENGSL.prepare(
+      'INSERT INTO markadsefni (created, titill, tegund, efnistok, tala, heimild, lota, postiz_id, rasir, birt, skra) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+    ).bind(_meNow(), titill, tegund, efnistok, tala, heimild, lota, postiz_id, JSON.stringify([]), null, skra).run().catch(() => null);
+    if (!r) return _ajson({ ok: false, error: 'vistun' });
+    return _ajson({ ok: true, id: r.meta && r.meta.last_row_id });
+  }
+
+  if (!uid) return _ajson({ ok: false, error: 'lota' });   // X-Admin-Key má lesa en ekki skrifa í Postiz né ræsa framleiðslu
   if (action === 'samstilla') return _ajson(await samstillaEfni(env));
   if (action === 'merkja') {
     const efnistok = String(b.efnistok || '');
