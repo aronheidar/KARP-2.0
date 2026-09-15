@@ -25,8 +25,11 @@ jobs:
         run: npm ci
         working-directory: web
       # Úttekt 30.7: 16 prófaskrár (246 próf) keyrðu HVERGI í CI — rotnuðu óséð. ENGIN || true hér: rauð próf fella keyrsluna.
-      - name: Einingapróf (web lib + web/test)
-        run: node --test src/lib/*.test.mjs src/worker/*.test.mjs test/*.test.mjs
+      # ⚠ 15.9: ÞRIÐJA tilfellið af sömu rotnun — `src/lib/stjorn/*.test.mjs` (23 próf) voru utan þessa
+      # glóba þótt `npm test` keyrði þau, svo þau gættu einskis í CI. Listinn býr því NÚNA á EINUM stað:
+      # `web/package.json`. Ný prófamappa fer ÞANGAÐ, ekki hingað.
+      - name: Einingapróf (web — listinn er í package.json)
+        run: npm test
         working-directory: web
       # ⚠ 13.9: skriptur/lib/*.test.mjs voru UTAN gluggans — prófin þar keyrðu hvergi, sami
       # rotnunar-fasi og úttektin 30.7 fann í web. Báðar möppur nú inni.
