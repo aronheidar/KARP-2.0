@@ -73,19 +73,17 @@ export async function saekjaPostiz(env, { thvinga = false } = {}) {
 
 /** Postiz-verk → efnissafnið í D1. Skráir ný verk sem óflokkuð (`efnistok=NULL`) og uppfærir `birt` á
  *  þeim sem hafa birst síðan.
- *  ⚠ TVÆR gildrur sem yfirferð fann í hopaFaerslur (ÓHREYFÐ, utan þessa verks — sjá ../lib/markadsefni.mjs):
- *   1. Færslur í sama `group` geta borið ÓLÍKT `state` (LinkedIn farið út, Facebook ekki). `v.birt` er samt
- *      alltaf rétti mælikvarðinn — hopaFaerslur setur hann `true` um leið og EIN rás í hópnum er PUBLISHED,
- *      jafnvel þótt `v.state` sjálft aðeins endurspegli fyrstu færsluna sem sást. Notum ÞVÍ `v.birt`, aldrei
- *      `v.state`, og uppfærum `birt` í töflunni um leið og gamla línan var óbirt en nýja er birt.
- *   2. Vanti `group` á upprunalegu Postiz-færslunni fellur hópunin í hopaFaerslur á staka-færslu-id — sama
- *      verk gæti þá borið ólíkt `group` eftir því hvenær Postiz náði að tengja rásirnar saman, og engin
- *      leið er til að para slíka færslu örugglega við línu sem þegar er skráð. Fyrri tilraun bar saman
- *      fingrafar (titill+samstillingartími) við (titill+birtingartími) — TVÆR óskyldar klukkur sem stemma
- *      nánast aldrei, svo verkið tvískráðist í hvert sinn sem samstillt var. Þögul tvítalning er verri en
- *      sýnileg sleppa: færsla án `group` (þ.e. `hopaFaerslur` skilaði `group: null`) fer ÞVÍ ALDREI inn —
- *      hún lendir í `sleppt` með ástæðu `'ekkert_group'`, og pörun við þekktar línur byggir eingöngu á
- *      `postiz_id` (sem geymir `group`). */
+ *  ⚠⚠ `postiz_id` geymir FÆRSLU-AUÐKENNI, ekki `group`. Mæling á reikningnum 16.9 felldi þá forsendu að
+ *     sama verk á tveimur rásum deili `group`: `group === id` í öllum 41 færslum og 18 pör deildu texta og
+ *     tíma en báru sitt hvort `group`. `group` auðkennir því birtingu en ekki verk. Þar á ofan skilar
+ *     `posts:create` engu `group`, svo framleiðslukeyrslan á enga leið til að vísa í það — færslu-
+ *     auðkennin eru einu auðkennin sem BÁÐAR hliðar þekkja. Parað er á þeim, og ný lína geymir það fyrsta.
+ *  ⚠ Lína telst fundin ef EITTHVERT auðkenni verksins er þegar skráð: keyrslan skráir eitt auðkenni en
+ *     lestrarhliðin skilar þeim öllum. Væri parað á eitt fast auðkenni réði röðin í svari Postiz því
+ *     hvort verkið tvískráðist.
+ *  ⚠ Færslur í sama verki geta borið ÓLÍKT `state` (LinkedIn farið út, Facebook ekki). `v.birt` er rétti
+ *     mælikvarðinn — hopaFaerslur setur hann `true` um leið og EIN rás er PUBLISHED. Notum ÞVÍ `v.birt`,
+ *     aldrei `v.state`, og uppfærum `birt` í töflunni um leið og gamla línan var óbirt en nýja er birt. */
 export async function samstillaEfni(env) {
   const p = await saekjaPostiz(env, { thvinga: true });   // „samstilla“ er ÁKALL um ferska mynd, ekki 10 mín gamla
   const verk = Array.isArray(p.verk) ? p.verk : [];
@@ -100,8 +98,9 @@ export async function samstillaEfni(env) {
     // ⚠ Færsla án `group` er ekki nógu vel auðkennd til að para hana við línu í safninu. Fyrri tilraun
     //   bar saman samstillingartíma og birtingartíma — tvær óskyldar klukkur sem stemma aldrei — svo
     //   verkið tvískráðist í hvert sinn. Þögul tvítalning er verri en sýnileg sleppa.
-    if (!v.group) { sleppt.push({ texti: v.texti, astaeda: 'ekkert_group' }); continue; }
-    const fyrra = medPostizId.get(v.group);
+    const audkenni = (Array.isArray(v.ids) && v.ids.length) ? v.ids : (v.group ? [v.group] : []);
+    if (!audkenni.length) { sleppt.push({ texti: v.texti, astaeda: 'engin_audkenni' }); continue; }
+    const fyrra = audkenni.map((a) => medPostizId.get(a)).find(Boolean);
     if (fyrra) {
       if (v.birt && !fyrra.birt) {
         const skrifadi = await env.TENGSL.prepare('UPDATE markadsefni SET birt=? WHERE id=?').bind(v.ts || nu, fyrra.id).run().then(() => true).catch(() => false);
@@ -111,7 +110,7 @@ export async function samstillaEfni(env) {
     }
     const skrifadi = await env.TENGSL.prepare(
       'INSERT INTO markadsefni (created, titill, tegund, efnistok, tala, heimild, lota, postiz_id, rasir, birt, skra) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
-    ).bind(nu, v.texti, 'myndband', null, null, null, null, v.group, JSON.stringify(v.rasir || []), v.birt ? (v.ts || nu) : null, null).run().then(() => true).catch(() => false);
+    ).bind(nu, v.texti, 'myndband', null, null, null, null, audkenni[0], JSON.stringify(v.rasir || []), v.birt ? (v.ts || nu) : null, null).run().then(() => true).catch(() => false);
     if (skrifadi) ny++; else sleppt.push({ texti: v.texti, astaeda: 'vistun_brast' });
   }
   const skil = { ok: true, ny, uppfaerd, sleppt };

@@ -138,21 +138,25 @@ jobs:
           SVAR=$(postiz posts:create -c "$TEXTI" -m "$VIDEO_URL" -s "$DAGS" -t draft -i "cmt92pcw000r9p20yv7b53018,cmt92q6mr00pbmp0ykfa92r3v")
           echo "posts:create svar: $SVAR"
           SVAR_JSON=$(printf '%s\n' "$SVAR" | sed -n '/^[[{]/,$p')
-          GROUP=$(printf '%s\n' "$SVAR_JSON" | jq -r 'if type=="array" then (.[0].group // empty) else (.group // empty) end' 2>/dev/null || true)
-          # ⚠ Án `group` er drögin ótengjanleg við línuna í safninu: næsta samstilling sæi hana sem nýtt
-          #   verk og skráði ANNAÐ eintak. Þögul tvítalning er verri en sýnileg bilun — fellum frekar
-          #   keyrsluna. Drögin standa í Postiz og myndbandið fylgir sem artifact, svo ekkert tapast.
-          if [ -z "$GROUP" ]; then
-            echo "::error::Drögin urðu til í Postiz en group-auðkenni fannst ekki í svarinu — skrái EKKI í safnið"
+          # ⚠⚠ `posts:create` skilar EKKI `group` — aðeins [{ postId, integration }] fyrir hvora rás.
+          #   Fyrsta raunkeyrslan (16.9) féll hér, og leitin að hópnum leiddi í ljós að `group` hópar
+          #   ekkert hvort eð er: Postiz gefur hverri einustu færslu sitt eigið. Safnið parar því á
+          #   FÆRSLU-AUÐKENNI, sem báðar hliðar þekkja. LC_ALL=C svo röðunin stemmi við .sort() í JS.
+          AUDKENNI=$(printf '%s\n' "$SVAR_JSON" | jq -r 'if type=="array" then .[] else . end | (.postId // .id // empty)' 2>/dev/null | LC_ALL=C sort | head -1 || true)
+          # ⚠ Án auðkennis eru drögin ótengjanleg við línuna í safninu: næsta samstilling sæi þau sem
+          #   nýtt verk og skráði ANNAÐ eintak. Þögul tvítalning er verri en sýnileg bilun — fellum
+          #   frekar keyrsluna. Drögin standa í Postiz og myndbandið fylgir sem artifact.
+          if [ -z "$AUDKENNI" ]; then
+            echo "::error::Drögin urðu til í Postiz en ekkert færslu-auðkenni fannst í svarinu — skrái EKKI í safnið"
             echo "Svarið var: $SVAR"
             exit 1
           fi
-          echo "group=$GROUP" >> "$GITHUB_OUTPUT"
+          echo "audkenni=$AUDKENNI" >> "$GITHUB_OUTPUT"
 
       - name: Skrá í KARP (action 'skra' — X-Admin-Key, engin lota þarf fyrir þessa einu aðgerð)
         env:
           KARP_ADMIN_KEY: ${{ secrets.KARP_ADMIN_KEY }}
-          POSTIZ_GROUP: ${{ steps.postiz.outputs.group }}
+          POSTIZ_AUDKENNI: ${{ steps.postiz.outputs.audkenni }}
         run: |
           node -e "
             const fs = require('fs');
@@ -164,7 +168,7 @@ jobs:
               efnistok: m.efnistok || null,
               tala: m.tala || null,
               heimild: m.heimild || null,
-              postiz_id: process.env.POSTIZ_GROUP || null,
+              postiz_id: process.env.POSTIZ_AUDKENNI || null,
               lota: process.env.LOTA || null,
               skra: m.skra || null,
             };

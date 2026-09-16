@@ -77,22 +77,46 @@ test('samstilling skráir ný verk sem óflokkuð og tvískráir ekki það sem 
   stubFetch(t, { status: 200, d: { posts: [faersla('a', 'g1', LI, '2026-09-20T09:00:00.000Z')] } });
   const r1 = await samstillaEfni(env);
   assert.equal(r1.ny, 1);
-  assert.equal(state.efni[0].postiz_id, 'g1');
+  assert.equal(state.efni[0].postiz_id, 'a', 'færslu-auðkennið, ekki `group` — Postiz gefur hverri færslu sitt eigið');
   const r2 = await samstillaEfni(env);
   assert.equal(r2.ny, 0, 'sama færsla skráist ekki tvisvar');
 });
 
-test('færslu án group er SLEPPT sýnilega — hún tvískráist ekki við hverja samstillingu', async (t) => {
+test('færsla án `group` skráist samt — parað er á færslu-auðkenni, sem er alltaf til', async (t) => {
+  // ⚠ Áður var `group` skilyrði og slík færsla var sleppt. Mæling 16.9 sýndi að `group` auðkennir
+  //   birtingu en ekki verk (`group === id` í öllum 41 færslum), svo pörun byggir nú á færslu-
+  //   auðkennum. Þá er ekkert því til fyrirstöðu að skrá færslu sem vantar `group`.
   const state = mkState(); const env = mkEnv(state);
   const an = { id: 'x1', state: 'QUEUE', content: 'Verk án hóps', publishDate: '2026-09-20T09:00:00.000Z', integration: { id: LI, providerIdentifier: 'linkedin-page', name: 'Karp' } };
   stubFetch(t, { status: 200, d: { posts: [an] } });
   const r1 = await samstillaEfni(env);
-  assert.equal(r1.ny, 0, 'ekkert skráð');
-  assert.equal(r1.sleppt.length, 1);
-  assert.equal(r1.sleppt[0].astaeda, 'ekkert_group');
+  assert.equal(r1.ny, 1, '`group` er ekki lengur skilyrði — auðkennið dugar');
+  assert.equal(state.efni[0].postiz_id, 'x1');
   const r2 = await samstillaEfni(env);
-  assert.equal(state.efni.length, 0, 'og hún tvískráist ekki við næstu samstillingu heldur');
-  assert.equal(r2.sleppt.length, 1);
+  assert.equal(r2.ny, 0, 'og hún tvískráist ekki við næstu samstillingu');
+  assert.equal(state.efni.length, 1);
+});
+
+test('verk án NOKKURS auðkennis er sleppt sýnilega — það er ekki hægt að para það', async (t) => {
+  const state = mkState(); const env = mkEnv(state);
+  const an = { state: 'QUEUE', content: 'Hvorki id né group', publishDate: '2026-09-20T09:00:00.000Z', integration: { id: LI, providerIdentifier: 'linkedin-page', name: 'Karp' } };
+  stubFetch(t, { status: 200, d: { posts: [an] } });
+  const r = await samstillaEfni(env);
+  assert.equal(r.ny, 0, 'ekkert skráð');
+  assert.equal(r.sleppt.length, 1);
+  assert.equal(r.sleppt[0].astaeda, 'engin_audkenni');
+});
+
+test('sama verk á tveimur rásum með ÓLÍK `group` verður EIN lína — raunmynstrið frá Postiz', async (t) => {
+  const state = mkState(); const env = mkEnv(state);
+  const FB = 'cmt92q6mr00pbmp0ykfa92r3v';
+  const fb = { id: 'cmB', group: 'uuid-2', state: 'QUEUE', content: 'Texti', publishDate: '2026-09-20T09:00:00.000Z', integration: { id: FB, providerIdentifier: 'facebook', name: 'Karp' } };
+  stubFetch(t, { status: 200, d: { posts: [faersla('cmA', 'uuid-1', LI, '2026-09-20T09:00:00.000Z'), fb] } });
+  const r1 = await samstillaEfni(env);
+  assert.equal(r1.ny, 1, 'eitt verk, ekki tvö — þetta tvítaldi hvert myndband áður');
+  assert.equal(state.efni[0].postiz_id, 'cmA', 'fyrsta auðkennið í stafrófsröð');
+  const r2 = await samstillaEfni(env);
+  assert.equal(r2.ny, 0, 'og hvorugt auðkennið skráist aftur');
 });
 
 test('endapunktur: GET má með lykli, POST krefst lotu', async (t) => {

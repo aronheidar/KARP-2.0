@@ -66,3 +66,42 @@ test('efnislina: fyrsta setning innihaldsins, klippt, án línuskila', () => {
   assert.equal(efnislina({}), '(enginn texti)');
   assert.equal(efnislina(null), '(enginn texti)');
 });
+
+// ── Hópun: `group` parar EKKERT (mælt á reikningnum 16.9) ─────────────────────────────────────────
+// Fyrri prófgögn gáfu báðum rásum sama `group` og staðfestu þannig forsendu sem er röng. Raunmæling:
+// `group === id` í öllum 41 færslum og 18 pör deildu texta og tíma en höfðu sitt hvort `group`.
+
+test('sama verk á tveimur rásum sameinast þótt `group` sé ÓLÍKT — Postiz gefur hverri færslu sitt', () => {
+  const verk = hopaFaerslur([p('cmA1', 'uuid-1', LI, 2), p('cmB2', 'uuid-2', FB, 2)]);
+  assert.equal(verk.length, 1, 'eitt verk, ekki tvö — annars tvítelur dagatalið hvert myndband');
+  assert.deepEqual(verk[0].rasir.sort(), ['facebook', 'linkedin-page']);
+  assert.deepEqual(verk[0].ids, ['cmA1', 'cmB2'], 'bæði færslu-auðkennin fylgja verkinu');
+  assert.equal(verk[0].lykill, 'cmA1', 'lykillinn er fyrsta færslu-auðkennið, ekki `group`');
+});
+
+test('hópað er á FULLAN texta — tvö ólík verk mega deila fyrstu setningu', () => {
+  const verk = hopaFaerslur([
+    p('a', 'g1', LI, 2, 'QUEUE', 'Sama upphaf. Fyrra verkið.'),
+    p('b', 'g2', FB, 2, 'QUEUE', 'Sama upphaf. Seinna verkið.'),
+  ]);
+  assert.equal(verk.length, 2, 'ólíkur texti er ólík verk þótt upphafssetningin sé sú sama');
+});
+
+test('sami texti á ólíkum tíma er TVÖ verk — endurbirting er ekki sama birtingin', () => {
+  const verk = hopaFaerslur([p('a', 'g1', LI, 2), p('b', 'g2', LI, 9)]);
+  assert.equal(verk.length, 2);
+});
+
+test('ein rás í villu sést þótt hin hafi birst — villan er það sem kallar á aðgerð', () => {
+  const verk = hopaFaerslur([p('a', 'g1', LI, -1, 'PUBLISHED'), p('b', 'g2', FB, -1, 'ERROR')]);
+  assert.equal(verk.length, 1);
+  assert.equal(verk[0].birt, true, 'önnur rásin fór út');
+  assert.equal(verk[0].state, 'ERROR', 'og hin brást — staðan sem þarf aðgerð, ekki sú sem sást fyrst');
+});
+
+test('hálfbirt verk telst ekki birt til fulls — QUEUE ræður meðan ein rás bíður', () => {
+  const verk = hopaFaerslur([p('a', 'g1', LI, -1, 'PUBLISHED'), p('b', 'g2', FB, -1, 'QUEUE')]);
+  assert.equal(verk.length, 1);
+  assert.equal(verk[0].state, 'QUEUE');
+  assert.equal(verk[0].birt, true, '`birt` er samt satt — samstillingin notar hann, ekki `state`');
+});
