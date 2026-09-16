@@ -5,8 +5,14 @@
 --   við því sem Postiz veit ekki: UM HVAÐ verkið fjallaði og HVAÐA TÖLU það byggði á. Án þess getur
 --   Bjarki ekki svarað hvort við höfum sagt þetta áður — og þá er hann bara dagatal með andliti.
 --
--- ⚠ postiz_id geymir HÓPINN (`group`), ekki auðkenni stakrar færslu: sama myndband á LinkedIn og
---   Facebook kemur sem tvær færslur með sameiginlegt group. Hópurinn er verkið; færslan er birtingin.
+-- ⚠⚠ LEIÐRÉTT 16.9 — upphaflega stóð hér að postiz_id geymdi HÓPINN (`group`) og að sama myndband á
+--   LinkedIn og Facebook kæmi sem tvær færslur með sameiginlegt group. ÞAÐ ER RANGT. Mæling á
+--   reikningnum: `group === id` í öllum 41 færslum, og 18 pör deildu texta og birtingartíma en báru
+--   sitt hvort `group`. Postiz gefur hverri einustu færslu sitt eigið group, svo það auðkennir
+--   BIRTINGU en ekki verk. Þar á ofan skilar `posts:create` engu group, aðeins [{postId,integration}].
+-- ⚠ postiz_id geymir því FÆRSLU-AUÐKENNI (cuid) — það fyrsta í stafrófsröð af auðkennum verksins.
+--   Samstillingin telur línu fundna ef EITTHVERT auðkenni verksins er þegar skráð. Hópað er á
+--   birtingartíma + fullan texta; sjá `hopaFaerslur` í ../src/lib/markadsefni.mjs.
 CREATE TABLE IF NOT EXISTS markadsefni (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
   created    INTEGER NOT NULL,
@@ -16,7 +22,7 @@ CREATE TABLE IF NOT EXISTS markadsefni (
   tala       TEXT,                               -- talan sem verkið byggir á, sem TEXTI ("1.708,5 ma.kr.")
   heimild    TEXT,                               -- hvaðan talan kom
   lota       INTEGER,                            -- framleiðslulota
-  postiz_id  TEXT,                               -- `group` í Postiz — eitt verk, ekki ein birting
+  postiz_id  TEXT,                               -- færslu-auðkenni (cuid) úr Postiz, ekki `group` — sjá að ofan
   rasir      TEXT,                               -- JSON-fylki rásarheita
   birt       INTEGER,                            -- unix þegar það fór út (NULL = drög eða í röð)
   skra       TEXT                                -- skráarnafn (upplýsingar, ekki vefslóð)
