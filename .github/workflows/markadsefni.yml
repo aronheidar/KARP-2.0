@@ -137,12 +137,28 @@ jobs:
           # ⚠ Karp-rásirnar EINGÖNGU — reikningurinn ber líka EWB-rásir sem ALDREI mega fá efni héðan.
           SVAR=$(postiz posts:create -c "$TEXTI" -m "$VIDEO_URL" -s "$DAGS" -t draft -i "cmt92pcw000r9p20yv7b53018,cmt92q6mr00pbmp0ykfa92r3v")
           echo "posts:create svar: $SVAR"
-          SVAR_JSON=$(printf '%s\n' "$SVAR" | sed -n '/^[[{]/,$p')
-          # ⚠⚠ `posts:create` skilar EKKI `group` — aðeins [{ postId, integration }] fyrir hvora rás.
-          #   Fyrsta raunkeyrslan (16.9) féll hér, og leitin að hópnum leiddi í ljós að `group` hópar
-          #   ekkert hvort eð er: Postiz gefur hverri einustu færslu sitt eigið. Safnið parar því á
-          #   FÆRSLU-AUÐKENNI, sem báðar hliðar þekkja. LC_ALL=C svo röðunin stemmi við .sort() í JS.
-          AUDKENNI=$(printf '%s\n' "$SVAR_JSON" | jq -r 'if type=="array" then .[] else . end | (.postId // .id // empty)' 2>/dev/null | LC_ALL=C sort | head -1 || true)
+          printf '%s\n' "$SVAR" > postiz_svar.txt
+          cat > postiz_audkenni.cjs <<'EOF'
+          // Dregur fyrsta færslu-auðkennið (í stafrófsröð) út úr svari `postiz posts:create`.
+          //
+          // ⚠ Postiz-CLI prentar mannamál Á UNDAN JSON-inu („✅ Post created successfully!"), svo hrá
+          //   þáttun fellur í 100% tilvika. Byrjum á fyrsta [ eða { sem stendur fremst á línu.
+          // ⚠⚠ Svarið er [{ postId, integration }] — eitt stak per rás og EKKERT `group`. Fyrsta
+          //   raunkeyrslan (16.9) féll á því að leita að `group`, og leitin leiddi í ljós að `group`
+          //   hópar ekkert hvort eð er: Postiz gefur hverri einustu færslu sitt eigið. Safnið parar
+          //   því á FÆRSLU-AUÐKENNUM, sem báðar hliðar þekkja. Röðum og tökum það fyrsta svo valið
+          //   ráðist ekki af röðinni í svarinu.
+          // ⚠ Þetta er node en ekki jq svo hægt sé að prófa það á þróunarvélinni áður en það fer út.
+          const fs = require('fs');
+          const t = fs.readFileSync(process.argv[2] || 'postiz_svar.txt', 'utf8');
+          const i = t.search(/^[\[{]/m);
+          if (i < 0) process.exit(0);
+          let d = null;
+          try { d = JSON.parse(t.slice(i)); } catch (e) { process.exit(0); }
+          const ids = (Array.isArray(d) ? d : [d]).map((x) => String((x && (x.postId || x.id)) || '')).filter(Boolean).sort();
+          if (ids.length) console.log(ids[0]);
+          EOF
+          AUDKENNI=$(node postiz_audkenni.cjs postiz_svar.txt)
           # ⚠ Án auðkennis eru drögin ótengjanleg við línuna í safninu: næsta samstilling sæi þau sem
           #   nýtt verk og skráði ANNAÐ eintak. Þögul tvítalning er verri en sýnileg bilun — fellum
           #   frekar keyrsluna. Drögin standa í Postiz og myndbandið fylgir sem artifact.
