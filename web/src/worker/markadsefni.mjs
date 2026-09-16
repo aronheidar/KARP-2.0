@@ -13,6 +13,9 @@ import MALEFNI from '../data/malefni.json' with { type: 'json' };
 
 const _meNow = () => Math.floor(Date.now() / 1000);
 const _ME_FYRNING = 600;
+// ⚠ Tillögur mega vera nokkurra klukkustunda gamlar: mælikvarðinn er vikutaktur, ekki mínútutaktur.
+//    Löng geymsla er vörnin gegn D1-álaginu — EKKI þak á fyrirspurnina, sem skerðir grunnlínuna (sjá neðar).
+const _ME_TILLOGUR_FYRNING = 6 * 3600;
 const _ME_API = 'https://api.postiz.com/public/v1';
 
 /** Geymda Postiz-niðurstaðan úr `stjorn_sync` (eða null ef aldrei sótt / ólæsilegt JSON). */
@@ -123,22 +126,52 @@ async function _meTillogurGeymt(env) {
   try { return { gogn: JSON.parse(r.v), uppfaert: Number(r.updated) }; } catch (e) { return null; }
 }
 
-/** Heit málefni (síðustu 90 daga) parað við það sem KARP á tölu um, að frádregnu því sem þegar er birt.
- *  ⚠ `FROM news`-fyrirspurnin er þökuð (ORDER BY ts DESC LIMIT 4000) OG niðurstaðan geymd í `stjorn_sync`
- *  með sömu 10 mín fyrningu og Postiz-sóknin notar (_ME_FYRNING) — annars keyrir hún við HVERJA hleðslu
- *  /stjorn/. D1-lestrarþakið hefur ÁÐUR læst Aroni úti af karp.is (authLogin gerir DB-bilun að „rangt
- *  lykilorð“), svo óþökuð/ógeymd fyrirspurn sem endurtekur sig í hvert sinn er ekki fræðileg áhætta. */
-async function _meTillogur(env, nu) {
-  const geymt = await _meTillogurGeymt(env);
-  if (geymt && geymt.uppfaert > nu - _ME_FYRNING) return geymt.gogn;
-
-  const fra = nu - 90 * 86400;
-  const frettirR = await env.TENGSL.prepare('SELECT title, body, ts FROM news WHERE ts >= ? ORDER BY ts DESC LIMIT 4000').bind(fra).all().catch(() => ({ results: [] }));
-  const heitt = heitMalefni(frettirR.results || [], MALEFNI, { nu });
-  const safnR = await env.TENGSL.prepare('SELECT efnistok, birt FROM markadsefni WHERE birt IS NOT NULL').all().catch(() => ({ results: [] }));
-  const gogn = tillogur(heitt, safnR.results || [], nu);
+/** Geymir tillögur í `stjorn_sync` — sameiginlegt fyrir fullu leiðina og þöggunar-leiðina hér fyrir neðan
+ *  (grunnlína sem ekki nær yfir tímabilið), svo báðar skrifi nákvæmlega eins. */
+async function _meGeymaTillogur(env, gogn, nu) {
   await env.TENGSL.prepare("INSERT INTO stjorn_sync (k, v, updated) VALUES ('markads_tillogur', ?, ?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated")
     .bind(JSON.stringify(gogn), nu).run().catch(() => {});
+}
+
+/** Heit málefni (síðustu 90 daga) parað við það sem KARP á tölu um, að frádregnu því sem þegar er birt.
+ *  ⚠ Niðurstaðan er geymd í `stjorn_sync` með sér-fyrningu (_ME_TILLOGUR_FYRNING, 6 klst — tillögur mega
+ *  vera gamlar, vikutaktur en ekki mínútutaktur), annars keyrir fréttafyrirspurnin við HVERJA hleðslu
+ *  /stjorn/. D1-lestrarþakið hefur ÁÐUR læst Aroni úti af karp.is (authLogin gerir DB-bilun að „rangt
+ *  lykilorð“).
+ *  ⚠⚠ ÞAKIÐ MÁ ALDREI SKERÐA GLUGGANN — mælt í framleiðslu: 22.107 fréttir liggja í 90 daga glugganum, en
+ *  gamla `LIMIT 4000` náði aðeins 15 daga aftur, svo grunnlínan „venjuleg vika" reiknaðist úr fimmtungi
+ *  tímabilsins og hlutföllin urðu röng (allt önnur málefni röðuðust efst — sama fyrirspurn skilaði
+ *  „Fjárlög 3,7×" með fullum glugga en „Vinnumarkaður 6× · Fiskeldi 5,2×" með þjappaða glugganum).
+ *  Geymslan hér að ofan er rétta vörnin gegn D1-álaginu — sjá THAK (öryggisventill, ekki mælikvarði) og
+ *  grunnlínu-gátunina hér fyrir neðan sem þegir frekar en að birta hlutfall sem er ekki mælt. */
+async function _meTillogur(env, nu) {
+  const geymt = await _meTillogurGeymt(env);
+  if (geymt && geymt.uppfaert > nu - _ME_TILLOGUR_FYRNING) return geymt.gogn;
+
+  const fra = nu - 90 * 86400;
+  // ⚠⚠ ÞAKIÐ MÁ ALDREI SKERÐA GLUGGANN. `LIMIT 4000` náði aðeins 15 daga aftur (22.107 fréttir liggja í
+  //    90 daga glugganum), svo grunnlínan „venjuleg vika" var reiknuð úr fimmtungi af tímabilinu og
+  //    hlutföllin urðu röng — allt önnur málefni röðuðust efst. 30.000 er ÖRYGGISVENTILL gegn
+  //    stjórnlausum lestri, ekki mælikvarði; nái hann þaki er niðurstaðan ónothæf (sjá gátun neðar).
+  const THAK = 30000;
+  const frettirR = await env.TENGSL.prepare('SELECT title, body, ts FROM news WHERE ts >= ? ORDER BY ts DESC LIMIT ?').bind(fra, THAK).all().catch(() => ({ results: [] }));
+  const frettir = frettirR.results || [];
+
+  // Grunnlínan verður að ná yfir raunverulegt tímabil. Nái gögnin aðeins fáa daga aftur — af því þakið
+  // small eða safnið er nýtt — er ekkert „venjulegt" til að bera saman við. Þá þegjum við frekar en að
+  // birta hlutfall sem lítur út fyrir að vera mælt.
+  const elsta = frettir.length ? Math.min(...frettir.map((f) => Number(f.ts) || 0)) : 0;
+  const grunnlinuDagar = elsta ? Math.floor((nu - elsta) / 86400) : 0;
+  if (frettir.length >= THAK || grunnlinuDagar < 60) {
+    const tomt = [];
+    await _meGeymaTillogur(env, tomt, nu);
+    return tomt;
+  }
+
+  const heitt = heitMalefni(frettir, MALEFNI, { nu });
+  const safnR = await env.TENGSL.prepare('SELECT efnistok, birt FROM markadsefni WHERE birt IS NOT NULL').all().catch(() => ({ results: [] }));
+  const gogn = tillogur(heitt, safnR.results || [], nu);
+  await _meGeymaTillogur(env, gogn, nu);
   return gogn;
 }
 

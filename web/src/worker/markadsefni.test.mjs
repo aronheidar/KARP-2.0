@@ -188,3 +188,13 @@ test('tillögur eru geymdar — fréttafyrirspurnin keyrir ekki við hverja hle�
   await get();
   assert.equal(state.newsFyrirspurnir, fyrirspurnir, 'engin ný fréttafyrirspurn innan fyrningar');
 });
+
+test('grunnlína sem nær ekki yfir tímabilið gefur ENGAR tillögur — þöggun er betri en hlutfall sem er ekki mælt', async (t) => {
+  const NU = Math.floor(Date.now() / 1000);
+  const state = mkState();
+  // 300 fréttir en aðeins 20 daga aftur: ekkert „venjulegt" til að bera saman við
+  state.news = Array.from({ length: 300 }, (_, i) => ({ title: 'Frett um kvóta ' + i, body: '', ts: NU - Math.floor((i / 299) * 20 * 86400) }));
+  const env = mkEnv(state); stubFetch(t, { status: 200, d: { posts: [] } });
+  const g = await adminMarkadsefniHandler(new Request('https://karp.is/api/admin/markadsefni', { headers: { 'X-Admin-Key': 'adm-key' } }), env, {}).then((r) => r.json());
+  assert.deepEqual(g.tillogur, [], 'tuttugu daga saga dugar ekki fyrir níutíu daga grunnlínu');
+});
