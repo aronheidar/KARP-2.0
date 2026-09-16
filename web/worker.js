@@ -27,6 +27,7 @@ import { adminMootHandler } from './src/worker/moot.mjs';   // 🏛️ Moot: rá
 import { adminGmailHandler, gmailIntakeCron } from './src/worker/gmail_intake.mjs';   // 📥 póstur beint á hjalp@ → ticket (3-tíma cron + hnappur á /stjorn/)
 import { adminBilanirHandler } from './src/worker/bilanir.mjs';   // 🛠️ bilanalisti Hrafns: CI, byggingar, gleymdir PR-ar
 import { adminMarkadsefniHandler } from './src/worker/markadsefni.mjs';   // 📣 markaðsfulltrúi: Postiz-dagatal, efnissafn, tillögur
+import { adminFjarmalHandler } from './src/worker/fjarmal.mjs';   // 💰 fjármálastjóri: Áskell × D1, misræmi og MRR
 import { augGet } from './src/worker/felag.mjs';
 import { _kycGate, _searchVariants, kycVikuDigest, rg } from './src/worker/veitur.mjs';
 import { authMeHandler, karpUserId } from './src/worker/auth.mjs';
@@ -3039,6 +3040,7 @@ export default {
     if (url.pathname === '/api/admin/gmail') return adminGmailHandler(request, env, ctx);   // 📥 innlestur pósts á hjalp@: GET síðasta keyrsla · POST sækja núna
     if (url.pathname === '/api/admin/bilanir') return adminBilanirHandler(request, env, ctx);   // 🛠️ GET listinn · POST {verk} ræsir Hrafn
     if (url.pathname === '/api/admin/markadsefni') return adminMarkadsefniHandler(request, env, ctx);   // 📣 GET dagatal+safn+tillögur · POST samstilla/merkja/framleida
+    if (url.pathname === '/api/admin/fjarmal') return adminFjarmalHandler(request, env, ctx);   // 💰 GET samstemming · POST saekja/hrafn
     if (url.pathname === '/api/villa') return villaHandler(request, ctx);
     if (url.pathname === '/api/domar') return domarHandler(ctx);
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);
