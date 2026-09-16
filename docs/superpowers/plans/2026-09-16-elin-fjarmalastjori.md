@@ -163,6 +163,16 @@ test('þjónustuáskrift (svc) notar PRICE_SVC en ekki PRICE_TIER', () => {
     verdskra: VERD, now: NU,
   });
   assert.equal(r.mrrD1, 9900);
+  assert.equal(r.verdrek.length, 0, 'verðið stemmir við PRICE_SVC');
+});
+
+test('verðrek er líka mælt á þjónustuverðum — þau eru jafn harðkóðuð og þrepaverðin', () => {
+  const r = samstemma({ samningar: [], heimildir: [], verdskra: { kvoti: 11900 }, now: NU });
+  assert.deepEqual(r.verdrek, [{ vara: 'kvoti', askell: 11900, fast: 9900 }]);
+});
+
+test('vara sem á sér ekkert fast verð rekur sig ekki', () => {
+  const r = samstemma({ samningar: [], heimildir: [], verdskra: { eitthvad_nytt: 4900 }, now: NU });
   assert.equal(r.verdrek.length, 0);
 });
 
@@ -251,10 +261,12 @@ export function samstemma({ samningar = [], heimildir = [], verdskra = {}, now =
     misraemi.push({ tegund: 'gefins', kt: ktHreint(h.kt), vara: String(h.vara), verd: fastVerd(h), sidan: Number(h.until) || nu });
   }
 
-  // Verðrek: aðeins fyrir vörur sem eiga fast verð í töflunni. Vara utan hennar hefur ekkert að reka sig frá.
+  // Verðrek: aðeins fyrir vörur sem eiga fast verð í kóðanum. Vara utan beggja taflna hefur ekkert að
+  // reka sig frá. ⚠ BÁÐAR töflurnar eru skoðaðar — þjónustuverð eru jafn harðkóðuð og þrepaverð og
+  // reka sig eins.
   const verdrek = [];
   for (const [vara, askell] of Object.entries(verdskra || {})) {
-    const fast = PRICE_TIER[vara];
+    const fast = PRICE_TIER[vara] != null ? PRICE_TIER[vara] : PRICE_SVC[vara];
     if (fast != null && Number(askell) !== fast) verdrek.push({ vara, askell: Number(askell), fast });
   }
 
@@ -265,7 +277,7 @@ export function samstemma({ samningar = [], heimildir = [], verdskra = {}, now =
 - [ ] **Skref 4: Keyrðu prófin og staðfestu að þau standist**
 
 Keyrsla (úr `web/`): `node --test src/lib/fjarmal.test.mjs`
-Búist við: `pass 13`, `fail 0`.
+Búist við: `pass 15`, `fail 0`.
 
 - [ ] **Skref 5: Committa**
 
@@ -973,7 +985,7 @@ git commit -m "Fjórða andlitið — Elín fjármálastjóri á /stjorn/"
 ```bash
 cd web && npm test
 ```
-Búist við: `pass 883` (848 + 13 + 8 + 9 + 4 + 1 = 35 ný), `fail 0`.
+Búist við: `pass 885` (848 + 15 + 8 + 9 + 4 + 1 = 37 ný), `fail 0`.
 
 ⚠ Stemmi talan ekki er það merki, ekki formsatriði: annaðhvort gleymdist prófskrá eða próf sem átti að
 falla stóðst af tilviljun. Teldu muninn áður en þú heldur áfram.
