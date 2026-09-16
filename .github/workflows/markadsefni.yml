@@ -168,9 +168,23 @@ jobs:
               lota: process.env.LOTA || null,
               skra: m.skra || null,
             };
-            fetch('https://karp.is/api/admin/markadsefni', {
-              method: 'POST',
-              headers: { 'X-Admin-Key': process.env.KARP_ADMIN_KEY, 'content-type': 'application/json' },
-              body: JSON.stringify(body),
-            }).then((r) => r.text()).then((t) => { console.log('skra ->', t); });
+            (async () => {
+              const r = await fetch('https://karp.is/api/admin/markadsefni', {
+                method: 'POST',
+                headers: { 'X-Admin-Key': process.env.KARP_ADMIN_KEY, 'content-type': 'application/json' },
+                body: JSON.stringify(body),
+              });
+              const t = await r.text();
+              console.log('skra ->', r.status, t);
+              // Endapunkturinn svarar 200 LÍKA þegar vistun mistekst ({ok:false,error:'vistun'}), svo
+              // status dugar ekki — við lesum ok-reitinn. Þegði þetta stæðu drögin eftir í Postiz með
+              // enga línu í safninu, og samstillingin skráði seinna berstrípaða dagatalslínu án titils,
+              // tölu og heimildar. Það er nákvæmlega munurinn á efnissafni og dagatali með andliti.
+              let j = null; try { j = JSON.parse(t); } catch (e) { j = null; }
+              if (!r.ok || !j || j.ok !== true) {
+                console.log('::error::skra mistókst — drögin eru komin í Postiz en línan vantar í safnið. Svar: ' + r.status + ' ' + t.slice(0, 300));
+                process.exit(1);
+              }
+              console.log('skráð í safnið, id =', j.id);
+            })();
           "
