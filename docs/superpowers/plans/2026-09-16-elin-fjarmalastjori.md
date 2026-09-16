@@ -298,7 +298,11 @@ git commit -m "Samstemming Áskels og D1 — fríprófun er þriðji flokkur, hv
 **Viðmót:**
 - Neytir: `samstemma` úr `../lib/fjarmal.mjs` (Verk 1).
 - Framleiðir: `adminFjarmalHandler(request, env, ctx)` og `saekjaFjarmal(env, { thvinga })`.
-  Svarform GET: `{ ok, fjarmal: { ok, error?, villa?, sott, misraemi, fripofanir, mrrAskell, mrrD1, verdrek }, rofi }`.
+  Svarform GET: `{ ok, fjarmal: { ok, error?, villa?, sott, misraemi, fripofanir, mrrAskell, mrrD1,
+  mrrAskellOvisst, verdUppsprettur, tvirukkun, verdrek, rennurUt }, rofi }`.
+  ⚠ `mrrAskellOvisst`, `verdUppsprettur` og `tvirukkun` koma ÓBREYTT úr `samstemma` og VERÐA að berast
+  áfram. Þau eru niðurstaða Verks 1 um að við vitum ekki enn hvaða snið Áskell notar — henti þessi
+  eining þeim er talan aftur orðin fullyrðing sem enginn getur rakið.
   ⚠ Villan er HREIÐRUÐ undir `fjarmal`, ekki á toppstigi — Verk 3 les hana þaðan.
 
 - [ ] **Skref 1: Skrifaðu fallandi prófin**
@@ -476,6 +480,11 @@ export async function saekjaFjarmal(env, { thvinga = false } = {}) {
   if (!thvinga && geymt && geymt.uppfaert > _fjNow() - _FJ_FYRNING) return Object.assign({ ok: true, sott: geymt.uppfaert }, geymt.gogn);
   try {
     const nu = _fjNow();
+    // ⚠ Prufunotendur VERÐA að falla út, annars eru tölurnar tvær ósamanburðarhæfar og misræmið sem
+    //   þær áttu að finna verður að þeim sjálfum. `stjornbord.mjs:40-51` les sama lista úr stjorn_sync.
+    const _tRow = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='test_ids'").first().catch(() => null);
+    let _tArr = []; try { _tArr = JSON.parse((_tRow && _tRow.v) || '[]'); if (!Array.isArray(_tArr)) _tArr = []; } catch (e) { _tArr = []; }
+    const prufur = new Set(_tArr.map(Number).filter(Boolean));
     const [samningarR, verdR, subsR, usrR] = await Promise.allSettled([
       _fjSaekjaAllt(env, '/subscription-contracts/?page_size=100'),
       _fjSaekjaAllt(env, '/catalog/prices/?active=all'),
@@ -494,7 +503,7 @@ export async function saekjaFjarmal(env, { thvinga = false } = {}) {
     const heimildir = [
       ...((subsR.status === 'fulfilled' && subsR.value.results) || []).map((x) => Object.assign({}, x, { tegund: 'svc' })),
       ...((usrR.status === 'fulfilled' && usrR.value.results) || []).map((x) => Object.assign({}, x, { tegund: 'tier' })),
-    ];
+    ].filter((h) => !prufur.has(Number(h.uid)));
     const gogn = samstemma({ samningar: samningarR.value, heimildir, verdskra, now: nu });
     if (subsR.status !== 'fulfilled' || usrR.status !== 'fulfilled') gogn.villa = 'd1_hluti';
     await env.TENGSL.prepare("INSERT INTO stjorn_sync (k, v, updated) VALUES ('fjarmal', ?, ?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated")
@@ -601,6 +610,17 @@ test('MRR úr Áskeli er efsta talan þegar allt stemmir', () => {
   assert.equal(g.tolur[0].s, '', 'enginn mismunur, engin undirlína');
 });
 
+test('finnist engin upphæð á virku staki stendur óvíst — hálf tala lítur eins út og heil', () => {
+  const g = elinGogn(svar(heilt({ mrrAskellOvisst: true })), [], NU);
+  assert.equal(g.tolur[0].n, 'óvíst');
+});
+
+test('vinnslulistinn raðar eftir PENINGUM, ekki tíma', () => {
+  const m = (kt, verd) => ({ tegund: 'gefins', kt, vara: 'kvoti', verd, sidan: NU });
+  const g = elinGogn(svar(heilt({ misraemi: [m('1111111111', 1000), m('2222222222', 99000)] })), [], NU);
+  assert.match(g.vinnsla[0].texti, /99\.000/, 'dýrasta misræmið er efst');
+});
+
 test('náist ekki í Áskel stendur óvíst — ALDREI D1-talan ein', () => {
   // ⚠ Beinn lærdómur af hrafn.mjs: þrjú ástönd sýndu öll „main grænt" þegar ekkert svar barst.
   const g = elinGogn(svar(heilt({ villa: 'askell' })), [], NU);
@@ -687,7 +707,9 @@ export function elinGogn(svar, bidurListi, now) {
   const s = (svar && typeof svar === 'object') ? svar : {};
   const f = (s.fjarmal && typeof s.fjarmal === 'object') ? s.fjarmal : {};
   const ostillt = f.error === 'unconfigured';
-  const naest = !ostillt && !f.villa && f.ok !== false;   // náðist ferskt og villulaust
+  // ⚠ `mrrAskellOvisst` fellir töluna líka: fannst engin upphæð á einhverju virku staki er hún ekki
+  //   tæmandi, og hálf tala lítur eins út og heil. Betra er óvíst en tala sem enginn getur rakið.
+  const naest = !ostillt && !f.villa && f.ok !== false && !f.mrrAskellOvisst;
   const misraemi = Array.isArray(f.misraemi) ? f.misraemi : [];
   const frip = Array.isArray(f.fripofanir) ? f.fripofanir : [];
 
@@ -702,7 +724,9 @@ export function elinGogn(svar, bidurListi, now) {
         : misraemi.length ? misraemi.length + ' misræmi milli Áskels og réttinda'
           : 'Áskell og réttindin stemma';
 
-  const vinnsla = misraemi.slice().sort((a, b) => (a.sidan || 0) - (b.sidan || 0)).slice(0, 5).map((m) => ({
+  // ⚠ Raðað eftir PENINGUM, ekki tíma. `sidan` er fasti (`nu`) á hverju staki eftir Verk 1, svo röðun
+  //   eftir honum væri núll-aðgerð og „fimm efstu" yrðu fimm handahófskennd í stað fimm dýrustu.
+  const vinnsla = misraemi.slice().sort((a, b) => (Number(b.verd) || 0) - (Number(a.verd) || 0)).slice(0, 5).map((m) => ({
     texti: ktGrima(m.kt) + ' · ' + (m.vara || '') + ' · ' + (TEXTI[m.tegund] || m.tegund) + ' · ' + kr(m.verd) + ' kr/mán',
     hvenaer: dagsTexti(m.sidan),
   }));
@@ -732,7 +756,7 @@ export function elinGogn(svar, bidurListi, now) {
 - [ ] **Skref 4: Keyrðu prófin og staðfestu að þau standist**
 
 Keyrsla (úr `web/`): `node --test src/lib/stjorn/elin.test.mjs`
-Búist við: `pass 9`, `fail 0`.
+Búist við: `pass 11`, `fail 0`.
 
 - [ ] **Skref 5: Committa**
 
@@ -985,7 +1009,7 @@ git commit -m "Fjórða andlitið — Elín fjármálastjóri á /stjorn/"
 ```bash
 cd web && npm test
 ```
-Búist við: `pass 885` (848 + 15 + 8 + 9 + 4 + 1 = 37 ný), `fail 0`.
+Búist við: engin föll. ⚠ Talan sjálf er hreyfanleg — Verk 1 óx úr 15 prófum í 32 við yfirferð, og fleiri geta bæst við. REIKNAÐU væntanlegu töluna út frá því sem hvert verk skilaði og berðu saman. Stemmi hún ekki er það merki, ekki formsatriði: annaðhvort gleymdist prófskrá eða próf sem átti að falla stóðst af tilviljun.
 
 ⚠ Stemmi talan ekki er það merki, ekki formsatriði: annaðhvort gleymdist prófskrá eða próf sem átti að
 falla stóðst af tilviljun. Teldu muninn áður en þú heldur áfram.
