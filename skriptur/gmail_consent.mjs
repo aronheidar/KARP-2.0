@@ -68,6 +68,22 @@ function bidaEftirKoda() {
   });
 }
 
+/** Endurnyjar wrangler-innskraninguna GAGNVIRKT og stadfestir ad hun virki.
+ *  Af hverju thetta kemur FYRST: wrangler notar OAuth-token sem rennur ut eftir um klukkustund og
+ *  getur adeins endurnyjad thad gagnvirkt. Skrefid sem skrifar leyndarmalid pipar gildid inn a stdin,
+ *  sem gerir wrangler ogagnvirka, og tha neitar hun med "In a non-interactive environment, it is
+ *  necessary to set a CLOUDFLARE_API_TOKEN". Thad gerdist 15. OG 16.9.2026, i baedi skiptin EFTIR ad
+ *  notandinn var buinn med allan OAuth-dansinn, svo samthykkid tapadist tvisvar. Nuna fellur thetta
+ *  a tveimur sekundum adur en nokkud er lagt a notandann. */
+function wranglerTilbuinn() {
+  return new Promise((leysa) => {
+    const w = spawn(process.platform === 'win32' ? 'npx.cmd' : 'npx', ['wrangler', 'whoami'],
+      { cwd: WEB, stdio: 'inherit', shell: process.platform === 'win32' });
+    w.on('error', () => leysa(false));
+    w.on('close', (k) => leysa(k === 0));
+  });
+}
+
 /** Setur leyndarmál í Cloudflare um STDIN — gildið fer aldrei í skipanalínu, skrá né skjá. */
 function setjaSecret(nafn, gildi) {
   return new Promise((leysa, hafna) => {
@@ -82,6 +98,12 @@ const j = async (r) => { const d = await r.json().catch(() => ({})); if (!r.ok) 
 
 try {
   p('\n🔑 Gmail-lesheimild fyrir hjalp@karp.is — einskiptis samþykki\n');
+  p('0) Stadfesti wrangler-innskraningu. Hun rennur ut og endurnyjast adeins gagnvirkt.');
+  if (!await wranglerTilbuinn()) {
+    throw new Error('wrangler er ekki innskrad. Keyrdu  npx wrangler login  i thessum sama glugga og reyndu aftur. '
+      + 'Thetta er athugad HER svo thu tapir ekki samthykkinu a sidasta skrefi, eins og gerdist 15. og 16.9.');
+  }
+  p('');
   const id = await spyrja('Google OAuth Client ID: ', process.env.GMAIL_CLIENT_ID);
   const secret = await spyrja('Google OAuth Client Secret: ', process.env.GMAIL_CLIENT_SECRET);
   if (!id || !secret) throw new Error('Client ID og Secret eru bæði nauðsynleg');
