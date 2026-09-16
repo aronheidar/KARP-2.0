@@ -990,7 +990,8 @@ const jsonLd = {
         // ── 🏛️ FASTEIGNAMATS-LEIÐIN — annað, óháð mat: gildandi fasteignamat eignarinnar × miðgildi hlutfalls kaupverðs/mats
         // í þinglýstum kaupum sl. 12 mán í svæðinu (mat_hlutfall.json, build_fasteignaskra.js). Kaupskráin ber NÚGILDANDI
         // 2026-mat + fyrirhugað 2027-mat hverrar seldrar eignar → sjálfvirkt fyrir ~94 þús. eignir; annars innsláttur.
-        // Mælt (HMS-úrtak, 7.700 sölur): 5,5% miðgildisskekkja / 75% innan ±10% — sambærilegar 6,5% / 67%; blanda bætir ekki.
+        // Mælt 16.9.2026 (7.828 sölur, 42 pn, báðar leiðir á SAMA úrtaki — `skriptur/maela_verdmat.mjs`):
+        // fasteignamat × hlutfall 5,5% miðgildisskekkja / 74% innan ±10%; sambærilegar 5,8% / 71%.
         // „Er matið þitt rétt?" = (mat×hlutfall)/Karp-mat − 1 → í takt (±10%) / hátt / lágt. Sjá matDomur í fasteignamat.mjs.
         let fmatHtml = '';
         let fmatRender = null;
@@ -1025,7 +1026,7 @@ const jsonLd = {
                 + `<div class="fmat-dom fmat-${DOM[0]}"><b>${DOM[1]}.</b> ${DOM[2]}</div>`;
             };
             const selG = veljaMatHlutfall(HL, Object.assign({ argerd: 'g' }, fmatCtx));
-            const tip = 'Tvö óháð möt: (1) sambærilegar sölur (hér að ofan) og (2) gildandi fasteignamat eignarinnar margfaldað með miðgildi hlutfalls kaupverðs og fasteignamats í þinglýstum kaupum síðustu 12 mánaða í svæðinu — kaupskrá HMS ber núgildandi mat hverrar seldrar eignar. Mælt á 7.700 sölum 2025–26 (hver metin eingöngu úr fyrri sölum): leið 2 víkur 5,5% frá söluverði að miðgildi og hittir innan ±10% í 75% tilvika; leið 1 6,5% og 67%. Blöndun bætir ekki — þess vegna eru þau sýnd hlið við hlið. Beri þeim ekki saman um meira en ~10% er annað hvort fasteignamatið eða forsendurnar (stærð/tegund) líklega skakkar.';
+            const tip = 'Tvö óháð möt: (1) sambærilegar sölur (hér að ofan) og (2) gildandi fasteignamat eignarinnar margfaldað með miðgildi hlutfalls kaupverðs og fasteignamats í þinglýstum kaupum síðustu 12 mánaða í svæðinu — kaupskrá HMS ber núgildandi mat hverrar seldrar eignar. Mælt á 7.828 þinglýstum sölum síðustu 12 mánaða, í 42 póstnúmerum með nægu sölumagni, þar sem hver sala er metin eingöngu úr eldri sölum: leið 2 víkur 5,5% frá söluverði að miðgildi og hittir innan ±10% í 74% tilvika; leið 1 5,8% og 71%. Þau eru sýnd hlið við hlið en ekki blönduð, því þegar tvö óháð möt eru ósammála er það sjálft upplýsing. Beri þeim ekki saman um meira en ~10% er annað hvort fasteignamatið eða forsendurnar (stærð/tegund) líklega skakkar.';
             const head = `<div class="fv-head" style="margin-top:14px">Fasteignamats-leiðin — annað, óháð mat <i class="tip" tabindex="0" data-tip="${esc(tip)}">?</i></div>`;
             const adferd = selG ? `<div class="fvm-note">Aðferð: fasteignamat eignarinnar × miðgildi hlutfalls kaupverðs/fasteignamats í þinglýstum kaupum sl. 12 mán (${esc(tegOf(selG))} í ${esc(stadOf(selG))}, kaupskrá HMS). Hvorugt matið er verðmat löggilts fasteignasala.</div>` : '';
             const matG = self && self.mat > 0 ? self.mat : 0, matN = self && self.matN > 0 ? self.matN : 0;

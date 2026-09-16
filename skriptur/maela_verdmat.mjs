@@ -17,7 +17,14 @@
 // ⚠⚠ LEKAVÖRN Í LEIÐ 2. mat_hlutfall.json er kyrrmynd reiknuð úr sölum SÍÐUSTU 12 MÁNAÐA. Að baktesta
 //   sölu úr þeim sama glugga með hlutfalli sem sá þá sölu er leki, og hann fegrar leið 2. Þess vegna er
 //   hlutfallið hér endurreiknað per eign úr sölum STRANGT Á UNDAN henni, alveg eins og leið 1 gerir.
-//   Talan sem kemur út er því lægri en 5,5 sem stóð í athugasemdunum, og hún er sú sem heldur.
+//   Niðurstaðan heldur samt: 5,5% stóðst endurmælingu, lekinn var ekki að fegra hana.
+//
+// MÆLT 16.9.2026 á öllu landinu (7.828 sölur, 42 pn með ≥20 sölum í 12 mánaða glugga):
+//   1) sambaerilegar sölur      5,8% miðgildisskekkja · 71% innan ±10%
+//   2) fasteignamat × hlutfall  5,5% · 74%
+//      blanda (meðaltal)        5,4% · 75%  — ⚠ gömul athugasemd sagði „blanda bætir EKKI“ og það er
+//      ekki lengur rétt, en 0,1 prosentustig á 7.828 sölum er hávaði. Þær eru áfram sýndar hlið við
+//      hlið af öðrum ástæðum: þegar tvö óháð möt eru ósammala er það sjálft upplýsing, og blanda felur hana.
 
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -62,7 +69,7 @@ function hlutfallAUndan(sogur, subj, fyrir) {
   return null;
 }
 
-const villur1 = [], villur2 = [], perPn = [];
+const villur1 = [], villur2 = [], villurB = [], perPn = [];
 let heild = 0, badar = 0;
 
 for (const pn of pnListi) {
@@ -72,7 +79,7 @@ for (const pn of pnListi) {
   // Hnit OG matssvæði á hverja sölu. Lyklar hnitaskrárinnar eru LÁGSTAFA (gildra sem hefur bitið áður).
   for (const r of sol) { const h = hnit[nlyk(r.a)]; if (h) { r.hnit = [h[0], h[1]]; r.zone = h[5] != null ? +h[5] : null; } r.pn = pn; }
 
-  const v1 = [], v2 = [];
+  const v1 = [], v2 = [], vB = [];
   for (const t of sol) {
     if (!t || !(t.fm > 15) || !(t.ppm > 0)) continue;
     const td = tsOf(t.d);
@@ -87,10 +94,14 @@ for (const pn of pnListi) {
     badar++;
     v1.push(Math.abs(r1.m / t.ppm - 1));
     v2.push(Math.abs((t.mat * hl.h) / t.kv - 1));
+    // Blandan er mæld LÍKA, því fullyrðingin „blanda bætir ekki" er það sem réttlætir að leiðirnar
+    // séu sýndar hlið við hlið í stað einnar tölu. Ómæld fullyrðing sem ber uppi hönnunarákvörðun
+    // er verri en engin. Bæði mötin færð í heildarverð svo meðaltalið sé af sömu stærð.
+    vB.push(Math.abs((((r1.m * t.fm) / 1000) + (t.mat * hl.h)) / 2 / t.kv - 1));
   }
   if (v1.length >= 20) {
     perPn.push({ pn, n: v1.length, m1: midgildi(v1), m2: midgildi(v2) });
-    villur1.push(...v1); villur2.push(...v2);
+    villur1.push(...v1); villur2.push(...v2); villurB.push(...vB);
   }
 }
 
@@ -110,12 +121,14 @@ const lina = (heiti, s) => console.log('  ' + heiti.padEnd(26)
 
 if (!villur1.length) { console.log('Engin eign stóðst báðar leiðir — athugaðu gögnin.'); process.exit(1); }
 
-const s1 = samantekt(villur1), s2 = samantekt(villur2);
+const s1 = samantekt(villur1), s2 = samantekt(villur2), sB = samantekt(villurB);
 console.log('\nNÁKVÆMNI VERÐMATS — bakpróf, hver sala metin EINGÖNGU úr eldri sölum');
 console.log('Gluggi: síðustu ' + MANUDIR + ' mánuðir · ' + perPn.length + ' póstnúmer · '
   + heild + ' sölur í glugganum, ' + badar + ' metnar af BÁÐUM leiðum (' + villur1.length + ' í uppgjöri)\n');
 lina('1) Sambærilegar sölur', s1);
 lina('2) Fasteignamat × hlutfall', s2);
+lina('   blanda (þriðja leið)', sB);
+
 
 const betri = s1.midgildi <= s2.midgildi ? '1) sambærilegar sölur' : '2) fasteignamat × hlutfall';
 console.log('\nBetri leið á þessu úrtaki: ' + betri);

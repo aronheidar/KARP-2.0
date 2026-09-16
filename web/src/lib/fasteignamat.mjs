@@ -130,9 +130,21 @@ export function bakprof(sales, opts) {
 // Kaupskrá HMS ber NÚGILDANDI fasteignamat hverrar seldrar eignar (2026) og fyrirhugað (2027) — snapshot við
 // útdrátt, ekki matið við söluna (mælt: matN/mat ≈ 1,01 í öllum sölumánuðum; kv/mat 0,98→1,056 2024-06→2026-08).
 // build_fasteignaskra.js reiknar miðgildi kaupverð/mat sl. 12 mán per matssvæði, póstnúmer og land
-// (web/public/gogn/hms/mat_hlutfall.json: [miðgildi, q25, q75, n] × g/n × a/f/s). Mælt á HMS-úrtaki (7.700 sölur
-// 2025-03→2026-02, strangt á undan): fasteignamat × svæðis-hlutfall 5,5% miðgildisskekkja / 75% innan ±10% —
-// sambærilegar sölur 6,5% / 67% á sama úrtaki; blanda bætir EKKI (5,7%). Tvö óháð möt → sýnd hlið við hlið.
+// (web/public/gogn/hms/mat_hlutfall.json: [miðgildi, q25, q75, n] × g/n × a/f/s).
+//
+// ⚠⚠ NÁKVÆMNISTÖLUR EIGA HEIMA Í `skriptur/maela_verdmat.mjs`, EKKI HÉR. Þær voru mældar handvirkt
+// þrisvar með ólíkum úrtökum, og afurðin bar á endanum sex ólíkar tölur sem engin sagði á hvaða úrtaki
+// hún var mæld. Verstur var samanburðurinn „5,5% á móti 6,5%" sem stóð hér: hann setti 7.700 sölur á
+// móti 3.579 og mældi því úrtökin, ekki aðferðirnar. Keyrðu skriptuna í stað þess að vitna í
+// athugasemd — hún mælir báðar leiðir á NÁKVÆMLEGA sama úrtaki, með einni skipun.
+//
+// Mælt 16.9.2026, allt landið, 7.828 sölur í 42 pn, hver metin eingöngu úr eldri sölum:
+//   fasteignamat × svæðis-hlutfall   5,5% miðgildisskekkja · 74% innan ±10%
+//   sambærilegar sölur               5,8% · 71%      (radíus-sían skýrir bilið við gamla 6,5%)
+//   blanda (meðaltal)                5,4% · 75%
+// Gamla athugasemdin sagði „blanda bætir EKKI" og það er ekki lengur rétt, en 0,1 prósentustig á 7.828
+// sölum er hávaði. Leiðirnar eru samt sýndar hlið við hlið af annarri ástæðu: þegar tvö óháð möt eru
+// ósammála er það sjálft upplýsing fyrir notandann, og blanda felur hana.
 export const MATHL = { min: 10, hatt: 0.10, mjog: 0.20 };   // lágmarks-n per þrep · frávik „hátt/lágt" · „mjög"
 export const tegLykill = (teg) => (teg === 'Fjölbýli' ? 'f' : ['Sérbýli', 'Einbýli', 'Raðhús', 'Parhús'].includes(teg) ? 's' : null);
 
