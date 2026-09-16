@@ -125,24 +125,25 @@ export function samstemma({ samningar = [], heimildir = [], verdskra = {}, now =
     mrrD1 += fastVerd(h);
     const lykill = kt + '|' + vara;
     let b = hMap.get(lykill);
-    if (!b) { b = { kt, vara, virdi: 0, ekkiGjof: 0 }; hMap.set(lykill, b); }
-    if (!erGjof(h)) { b.ekkiGjof += 1; b.virdi += fastVerd(h); }
+    if (!b) { b = { kt, vara, verd: 0, ekkiGjof: 0 }; hMap.set(lykill, b); }
+    if (!erGjof(h)) { b.ekkiGjof += 1; b.verd += fastVerd(h); }
   }
 
   for (const [lykill, b] of sMap) {
     if (b.fri) { fripofanir.push({ kt: b.kt, vara: b.vara, verd: b.verdFri }); continue; }
     mrrAskell += b.verdVirkt;
     if (b.greidandi.size > 1) tvirukkun.push({ kt: b.kt, vara: b.vara, fjoldi: b.greidandi.size, verd: b.verdVirkt });
-    // ⚠ `sidan: nu` — merkingin er „þetta sáum við núna", sem er satt. Raðað er eftir `virdi`.
+    // ⚠ `sidan: nu` — merkingin er „þetta sáum við núna", sem er satt. Efra lagið raðar eftir `verd`,
+    //   lækkandi (dýrasta efst) — ekki eftir `sidan`, sem er fasti.
     if (!hMap.has(lykill)) {
-      misraemi.push({ tegund: 'borgar_fyrir_ekkert', kt: b.kt, vara: b.vara, verd: b.verdVirkt, virdi: b.verdVirkt, sidan: nu });
+      misraemi.push({ tegund: 'borgar_fyrir_ekkert', kt: b.kt, vara: b.vara, verd: b.verdVirkt, sidan: nu });
     }
   }
   for (const [lykill, b] of hMap) {
     if (sMap.has(lykill) || !b.ekkiGjof) continue;
     // ⚠ Áður stóð hér `sidan: h.until` — FRAMTÍÐARdagsetning sem efra lagið birti sem „síðan".
-    //   Efra lagið raðar eftir `virdi`, ekki upploginni dagsetningu.
-    misraemi.push({ tegund: 'gefins', kt: b.kt, vara: b.vara, verd: b.virdi, virdi: b.virdi, sidan: nu, fjoldi: b.ekkiGjof });
+    //   Efra lagið raðar eftir `verd`, lækkandi (dýrasta efst), ekki upploginni dagsetningu.
+    misraemi.push({ tegund: 'gefins', kt: b.kt, vara: b.vara, verd: b.verd, sidan: nu });
   }
 
   // Verðrek: aðeins fyrir vörur sem eiga fast verð í kóðanum. Vara utan beggja taflna hefur ekkert að

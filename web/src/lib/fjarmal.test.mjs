@@ -187,6 +187,18 @@ test('upphæð 0 er GILD upphæð — fullur afsláttur má ALDREI falla á list
   assert.deepEqual(medPrice.verdUppsprettur, { lidur: 1, verdskra: 0, ekkert: 0 });
 });
 
+test('verdskra á verðinu 0 er GILT verð — 0 er ekki „ekkert"', () => {
+  // ⚠ Sama gildran og gamla `Number(it.price) || verdskra[vara] || 0` lestrin, bara á VERÐSKRÁR-þrepinu
+  //   í lidVerd(): liðurinn ber enga eigin upphæð, svo fallið VERÐUR að falla niður á verðskrána — og
+  //   0 þar er svar sem fannst, ekki „ekkert fannst". `== null`-prófið á `skra`, ALDREI `||` eða `if (skra)`.
+  const r = samstemma({
+    samningar: [samnL('1234567890', [{ product_reference: 'fyrirtaeki' }])],
+    heimildir: [], verdskra: { fyrirtaeki: 0 }, now: NU,
+  });
+  assert.deepEqual(r.verdUppsprettur, { lidur: 0, verdskra: 1, ekkert: 0 }, 'uppsprettan er verdskra, ekki ekkert');
+  assert.equal(r.mrrAskellOvisst, false, '0 er þekkt verð — engin óvissa');
+});
+
 test('amount hefur FORGANG yfir price', () => {
   const r = samstemma({
     samningar: [samnL('1234567890', [{ product_reference: 'fyrirtaeki', amount: 4900, price: 'price_9aBcDeF' }])],
@@ -276,6 +288,21 @@ test('ekki-fríprófun VINNUR alltaf — óháð röð samninganna', () => {
   }
 });
 
+test('tvær fríprófanir á SÖMU kt+vöru LEGGJAST SAMAN í fripofanir[].verd, yfirskrifa ekki', () => {
+  // ⚠ Prófið hér fyrir ofan („ekki-fríprófun VINNUR alltaf") nær þessu EKKI: þar er virkur samningur á
+  //   sömu kt+vöru, svo b.fri verður false og fripofanir verður tómt fyrir þann lykil. Hér er ENGINN
+  //   virkur samningur á kt+vöru — bara tvær fríprófanir sem eiga að safnast saman, ekki yfirskrifast.
+  const r = samstemma({
+    samningar: [
+      samnL('1234567890', [{ product_reference: 'fyrirtaeki', price: 2900 }], 'trial', 'c_ein'),
+      samnL('1234567890', [{ product_reference: 'fyrirtaeki', price: 6900 }], 'trial', 'c_tvo'),
+    ],
+    heimildir: [], verdskra: VERD, now: NU,
+  });
+  assert.equal(r.fripofanir.length, 1, 'einn lykill, kt+vara');
+  assert.equal(r.fripofanir[0].verd, 9800, '2900 + 6900, ekki síðasta gildið eitt og sér');
+});
+
 test('sömu gögn í ÖFUGRI röð gefa sömu niðurstöðu', () => {
   const s1 = samnL('1111111111', [{ product_reference: 'fyrirtaeki', price: 6900 }], 'trial', 'c1');
   const s2 = samnL('1111111111', [{ product_reference: 'fyrirtaeki', price: 5900 }], 'active', 'c2');
@@ -321,10 +348,10 @@ test('mrrD1 telur PER RÖÐ eins og stjórnborðið — tveir notendur á sömu 
   });
   assert.equal(r.mrrD1, 13800, 'tvær raðir = tvisvar 6900');
   assert.equal(r.misraemi.length, 1, 'en misræmið er EITT — sama kt+vara');
-  assert.equal(r.misraemi[0].virdi, 13800, 'virðið sem er gefið er virði beggja raðanna');
+  assert.equal(r.misraemi[0].verd, 13800, 'verðið sem er gefið er samtala beggja raðanna');
 });
 
-test('sidan er ALLTAF „núna" og virdi ber upphæðina — until er FRAMTÍÐ, ekki „síðan"', () => {
+test('sidan er ALLTAF „núna", aldrei D1-heimildarinnar `until` — hvort sem misræmið er gefins eða borgar_fyrir_ekkert', () => {
   const r = samstemma({
     samningar: [samn('1111111111', 'fyrirtaeki')],
     heimildir: [heim('2222222222', 'fyrirtaeki')],
@@ -333,6 +360,5 @@ test('sidan er ALLTAF „núna" og virdi ber upphæðina — until er FRAMTÍÐ,
   assert.equal(r.misraemi.length, 2);
   for (const m of r.misraemi) {
     assert.equal(m.sidan, NU, m.tegund + ': „þetta sáum við núna" er það eina sem er satt');
-    assert.equal(m.virdi, m.verd, m.tegund + ': virdi = upphæðin, svo raða megi eftir peningum');
   }
 });
