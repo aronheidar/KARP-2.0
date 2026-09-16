@@ -450,10 +450,14 @@ async function _fjRofi(env) {
 }
 
 async function _fjAdminUid(env, request) {
-  const s = await readSession(request, env).catch(() => null);
-  if (!s || !s.uid) return 0;
-  const u = await env.TENGSL.prepare('SELECT is_admin FROM users WHERE id=?').bind(s.uid).first().catch(() => null);
-  return (u && u.is_admin === 1) ? s.uid : 0;
+  // ⚠ readSession tekur (env, request) Í ÞESSARI RÖÐ og skilar TÖLU (0 eða uid), ekki hlut með .uid.
+  //   Staðfest gegn auth.mjs:32 og öllum níu köllurum, þar á meðal _meAdminUid í markadsefni.mjs og
+  //   _blAdminUid í bilanir.mjs. Væru viðföngin öfug fengi HVER innskráður stjórnandi error:admin að
+  //   eilífu í vafranum — og ekkert próf sem notar X-Admin-Key sæi það nokkurn tímann.
+  const uid = await readSession(env, request).catch(() => 0);
+  if (!uid || !env.TENGSL) return 0;
+  const u = await env.TENGSL.prepare('SELECT is_admin FROM users WHERE id=?').bind(uid).first().catch(() => null);
+  return (u && u.is_admin === 1) ? uid : 0;
 }
 
 /** Áskell síðuflettir. ⚠ Svar sem er ekki fylki er VILLA, ekki tómur listi — annars sýnist
