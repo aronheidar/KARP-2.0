@@ -68,20 +68,59 @@ function bidaEftirKoda() {
   });
 }
 
-/** Endurnyjar wrangler-innskraninguna GAGNVIRKT og stadfestir ad hun virki.
- *  Af hverju thetta kemur FYRST: wrangler notar OAuth-token sem rennur ut eftir um klukkustund og
- *  getur adeins endurnyjad thad gagnvirkt. Skrefid sem skrifar leyndarmalid pipar gildid inn a stdin,
- *  sem gerir wrangler ogagnvirka, og tha neitar hun med "In a non-interactive environment, it is
- *  necessary to set a CLOUDFLARE_API_TOKEN". Thad gerdist 15. OG 16.9.2026, i baedi skiptin EFTIR ad
- *  notandinn var buinn med allan OAuth-dansinn, svo samthykkid tapadist tvisvar. Nuna fellur thetta
- *  a tveimur sekundum adur en nokkud er lagt a notandann. */
-function wranglerTilbuinn() {
+// Cloudflare-reikningurinn sem karp21 lifir a (aronheidars@gmail.com). Audkenni, ekki lykill:
+// thad stendur i hverri einustu Cloudflare-slod. Fastinn er her svo skriptan geti greint RANGAN
+// reikning fra thvi ad vera oinnskradur, en thad tvennt litur eins ut utan fra.
+const KARP21_REIKNINGUR = 'a938f34a2712e9b2c6c5d9ec30177ef8';
+
+/** Keyrir `wrangler whoami` og skilar textanum. Stdout er GRIPID, ekki erft, svo haegt se ad lesa hann. */
+function wranglerWhoami() {
   return new Promise((leysa) => {
     const w = spawn(process.platform === 'win32' ? 'npx.cmd' : 'npx', ['wrangler', 'whoami'],
-      { cwd: WEB, stdio: 'inherit', shell: process.platform === 'win32' });
-    w.on('error', () => leysa(false));
-    w.on('close', (k) => leysa(k === 0));
+      { cwd: WEB, stdio: ['ignore', 'pipe', 'pipe'], shell: process.platform === 'win32' });
+    let ut = '';
+    w.stdout.on('data', (d) => { ut += d; });
+    w.stderr.on('data', (d) => { ut += d; });
+    w.on('error', () => leysa(''));
+    w.on('close', () => leysa(ut));
   });
+}
+
+/**
+ * Stadfestir ad wrangler se innskrad A RETTAN REIKNING, adur en nokkud er lagt a notandann.
+ * Skilar villuskilabodum sem streng, eda null se allt i lagi.
+ *
+ * ⚠⚠ Hvers vegna thetta er svona nakvaemt (16.9.2026, thrjar klukkustundir i ruslid):
+ * Skriptan fell fimm sinnum a SIDASTA skrefi med "In a non-interactive environment, it is necessary
+ * to set a CLOUDFLARE_API_TOKEN", alltaf EFTIR ad notandinn var buinn med allan OAuth-dansinn.
+ * Sama skipun virkadi hja theim sem adstodadi, svo leitad var ad muninum i skelinni, i ferlinu, i
+ * stdin-medhondlun readline og i utgafustodu worker-sins. Ekkert af thvi var orsokin. Notandinn var
+ * innskradur a ANNAN Cloudflare-reikning (aron@karp.is) sem hefur fullar heimildir a sinu eigin
+ * svaedi og engar a thvi sem hysir karp21. Reikningsnumerid stod i villuslod Cloudflare allan timann.
+ *
+ * Tvennt sem profid VERDUR ad gera og hid einfalda gerdi ekki:
+ *   1. LESA TEXTANN. `wrangler whoami` skilar utgangskoda 0 LIKA thegar hun segir
+ *      "You are not authenticated" — fyrri utgafa profsins athugadi adeins kodann og hleypti thvi i gegn.
+ *   2. BERA SAMAN REIKNINGINN. Innskrad a rangan reikning litur nakvaemlega eins ut og innskrad.
+ */
+async function wranglerTilbuinn() {
+  const ut = await wranglerWhoami();
+  if (!ut) return 'wrangler svaradi engu. Profadu `npx wrangler whoami` beint.';
+  if (/not authenticated|please run .?wrangler login/i.test(ut)) {
+    return 'wrangler er EKKI innskrad. Keyrdu `npx wrangler login` i thessum sama glugga'
+      + ' og veldu aronheidars@gmail.com.';
+  }
+  const reikningur = (ut.match(/[0-9a-f]{32}/) || [])[0];
+  const netfang = (ut.match(/associated with the email ([^\s]+@[^\s]+?)\.?\s/) || [])[1];
+  if (!reikningur) return 'Fann ekkert reikningsnumer i svari `wrangler whoami`. Keyrdu hana beint og athugadu.';
+  if (reikningur !== KARP21_REIKNINGUR) {
+    return 'RANGUR CLOUDFLARE-REIKNINGUR. Innskrad sem ' + (netfang || 'okunnugt')
+      + ' a reikning ' + reikningur + ', en karp21 lifir a ' + KARP21_REIKNINGUR
+      + ' (aronheidars@gmail.com). Keyrdu `npx wrangler logout`, svo `npx wrangler login`,'
+      + ' og veldu RETTA Google-reikninginn.';
+  }
+  p('   wrangler: ' + (netfang || 'innskrad') + ' · reikningur ' + reikningur.slice(0, 8) + '…');
+  return null;
 }
 
 /** Setur leyndarmál í Cloudflare um STDIN — gildið fer aldrei í skipanalínu, skrá né skjá. */
@@ -98,10 +137,11 @@ const j = async (r) => { const d = await r.json().catch(() => ({})); if (!r.ok) 
 
 try {
   p('\n🔑 Gmail-lesheimild fyrir hjalp@karp.is — einskiptis samþykki\n');
-  p('0) Stadfesti wrangler-innskraningu. Hun rennur ut og endurnyjast adeins gagnvirkt.');
-  if (!await wranglerTilbuinn()) {
-    throw new Error('wrangler er ekki innskrad. Keyrdu  npx wrangler login  i thessum sama glugga og reyndu aftur. '
-      + 'Thetta er athugad HER svo thu tapir ekki samthykkinu a sidasta skrefi, eins og gerdist 15. og 16.9.');
+  p('0) Stadfesti wrangler-innskraningu OG ad hun se a rettum Cloudflare-reikningi.');
+  const wVilla = await wranglerTilbuinn();
+  if (wVilla) {
+    throw new Error(wVilla + '\n\nThetta er athugad HER, adur en thu eydir tima i OAuth-dansinn, '
+      + 'svo samthykkid tapist ekki a sidasta skrefi eins og gerdist 15. og 16.9.');
   }
   p('');
   const id = await spyrja('Google OAuth Client ID: ', process.env.GMAIL_CLIENT_ID);
