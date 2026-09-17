@@ -7,7 +7,7 @@
    27
   ],
   "std": 6.3,
-  "n": 188
+  "n": 189
  },
  "husnaedi_land": {
   "range": [
@@ -15,7 +15,7 @@
    33
   ],
   "std": 8.5,
-  "n": 188
+  "n": 189
  },
  "atvinnuleysi": {
   "range": [
@@ -55,8 +55,8 @@
   ],
   "n": 36
  },
- "rateHouseCorr": -0.37,
- "corrHbs": -0.37,
+ "rateHouseCorr": -0.38,
+ "corrHbs": -0.38,
  "corrLand": -0.42,
  "rateN": 145,
  "forecast": {

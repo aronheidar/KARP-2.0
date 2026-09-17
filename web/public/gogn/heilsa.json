@@ -1,94 +1,94 @@
 {
- "builtAt": "2026-09-16T16:08:27.502Z",
+ "builtAt": "2026-09-17T12:27:56.800Z",
  "freshness": [
   {
    "label": "Fréttavélin",
    "file": "frettavel.json",
-   "iso": "2026-09-16T15:59:32.558Z",
+   "iso": "2026-09-17T12:08:34.697Z",
    "maxAge": 158400000
   },
   {
    "label": "Sérlyfjaskrá",
    "file": "lyf.json",
-   "iso": "2026-09-16",
+   "iso": "2026-09-17",
    "maxAge": 158400000
   },
   {
    "label": "Útboð",
    "file": "utbod.json",
-   "iso": "2026-09-16T14:55:40.565Z",
+   "iso": "2026-09-17T10:58:54.957Z",
    "maxAge": 158400000
   },
   {
    "label": "Lögbirtingablaðið",
    "file": "logbirting.json",
-   "iso": "2026-09-16",
+   "iso": "2026-09-17",
    "maxAge": 158400000
   },
   {
    "label": "Heilbrigðiseftirlit",
    "file": "eftirlit.json",
-   "iso": "2026-09-16T15:38:32.343Z",
+   "iso": "2026-09-17T11:44:56.507Z",
    "maxAge": 158400000
   },
   {
    "label": "Byggingarleyfi",
    "file": "byggingarleyfi_vakt.json",
-   "iso": "2026-09-16",
+   "iso": "2026-09-17",
    "maxAge": 158400000
   },
   {
    "label": "Lobbývakt",
    "file": "lobbyvakt.json",
-   "iso": "2026-09-16",
+   "iso": "2026-09-17",
    "maxAge": 158400000
   },
   {
    "label": "Stjórnartíðindi",
    "file": "stjornartidindi.json",
-   "iso": "2026-09-16",
+   "iso": "2026-09-17",
    "maxAge": 158400000
   },
   {
    "label": "Seðlabanki",
    "file": "sedlabanki.json",
-   "iso": "2026-09-16T15:36:53.452Z",
+   "iso": "2026-09-17T11:43:14.863Z",
    "maxAge": 158400000
   },
   {
    "label": "Hugverk / vörumerki",
    "file": "hugverk.json",
-   "iso": "2026-09-16",
+   "iso": "2026-09-17",
    "maxAge": 158400000
   },
   {
    "label": "Dómar",
    "file": "domar_ai.json",
-   "iso": "2026-09-16T15:59:24.964Z",
+   "iso": "2026-09-17T12:08:19.949Z",
    "maxAge": 158400000
   },
   {
    "label": "Markaðir",
    "file": "markadir.json",
-   "iso": "2026-09-16",
+   "iso": "2026-09-17",
    "maxAge": 158400000
   },
   {
    "label": "Styrkir",
    "file": "styrkir.json",
-   "iso": "2026-09-16",
+   "iso": "2026-09-17",
    "maxAge": 777600000
   },
   {
    "label": "PEP-listi",
    "file": "pep.json",
-   "iso": "2026-09-16",
+   "iso": "2026-09-17",
    "maxAge": 777600000
   },
   {
    "label": "Kvótavaktin",
    "file": "kvoti.json",
-   "iso": "2026-09-16T16:07:00.505Z",
+   "iso": "2026-09-17T12:26:01.487Z",
    "maxAge": 777600000
   },
   {
@@ -118,21 +118,21 @@
   {
    "label": "Fjárhagur sveitarfélaga",
    "file": "sveitarfelog_fin.json",
-   "iso": "2026-09-16T14:55:21.591Z",
+   "iso": "2026-09-17T10:58:34.903Z",
    "maxAge": 3456000000
   }
  ],
  "coverage": {
   "arsreikningar": {
-   "total": 1114,
-   "withKpi": 1011,
+   "total": 1117,
+   "withKpi": 1014,
    "engin": 103,
    "scanned": 10,
    "pct": 91
   },
   "eigendur": {
-   "total": 28,
-   "engin": 3
+   "total": 31,
+   "engin": 4
   }
  }
 }
