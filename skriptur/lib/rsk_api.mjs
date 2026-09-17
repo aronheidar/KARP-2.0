@@ -62,3 +62,34 @@ export function buildApiFetcher({ proxyBase, rskKey, timeout, fetchImpl }) {
 
   return { fetchApi };
 }
+
+/**
+ * Samantektarlína fyrir nótt sem STÖÐVAÐIST — `null` þegar ekkert stopp varð.
+ *
+ * ⚠ Hvers vegna: stoppið skildi aðeins eftir stderr-línu og keyrslan varð GRÆN. Uppurinn
+ *   kvóti er VÆNTANLEGT ástand héðan í frá (ekki bilun) og á því að standa í samantekt
+ *   keyrslunnar, eins og heilsu-hliðið gerir — annars hættir grunnurinn að vaxa í þögn.
+ *
+ * @param {string|null} skilabod villuskilaboðin sem stöðvuðu nóttina (`e.message`)
+ * @param {{unnid?:number, budget?:number}} [taln]
+ */
+export function stoppLina(skilabod, taln) {
+  const m = String(skilabod == null ? '' : skilabod).trim();
+  if (!m) return null;
+  const { unnid, budget } = taln || {};
+  const komst = (unnid == null ? '?' : unnid) + '/' + (budget == null ? '?' : budget) + ' API-köll';
+  // Kvóti og ógildur lykill kalla á ÓLÍK viðbrögð — bíða af sér mánaðamót vs. skipta um lykil.
+  if (/KVÓTI UPPURINN/.test(m) || erKvotaSvar(403, m)) {
+    return '⛔ **Nóttin stöðvaðist: mánaðarkvóti RSK er uppurinn.** Komst í ' + komst
+      + '. Biðröðin er ÓSNERT (engin `notfound`-mengun) — grunnurinn úreltist frekar en að spillast.'
+      + ' Kvótinn fyllist 1. næsta mánaðar; til að flýta þarf annan áskriftarlykil.';
+  }
+  if (/AUTH 401/.test(m)) {
+    // ⚠ Orðið „kvóti" kemur hvergi fyrir hér, líka ekki í neitun: prófið ver aðgreininguna með
+    //   berum orðaleitum og „EKKI kvóti" myndi ýmist fella það eða kenna því að líta framhjá.
+    //   Línan segir hvað ÞETTA ER og hvað þarf að gera — það er líka betri texti.
+    return '⛔ **Nóttin stöðvaðist: RSK hafnaði lyklinum (401).** Komst í ' + komst
+      + '. Lykillinn sjálfur er ógildur eða útrunninn; mánaðamót laga það ekki og skipta þarf um lykil.';
+  }
+  return '⛔ **Nóttin stöðvaðist:** `' + m.split(' :: ')[0] + '`. Komst í ' + komst + '.';
+}

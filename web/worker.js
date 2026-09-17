@@ -1903,7 +1903,7 @@ async function firmaTimalinaHandler(request, env, ctx) {
   return sjson({ updated: new Date().toISOString(), kt, nafn, n: atburdir.length, aggreidanleiki: { kt: ['gjaldthrot', 'vorumerki'], nafn: ['styrkur', 'frett'] }, atburdir });
 }
 
-async function fyrirtaekiSidaHandler(request, env, ctx) {
+export async function fyrirtaekiSidaHandler(request, env, ctx) {
   const url = new URL(request.url);
   // Tvö form: /fyrirtaeki/<kt>/ (eldra) og /fyrirtaeki/<slug>-<kt>/ (kanónískt).
   // ⚠ kt er lesin AFTAST: félagsnöfn enda sjálf oft á tölum („F-610 ehf.", „101 streetfood").
@@ -1923,7 +1923,9 @@ async function fyrirtaekiSidaHandler(request, env, ctx) {
     if (canonPath && beidniSlod !== canonPath) return Response.redirect(url.origin + canonPath, 301);
     return res;
   }
-  const dr = await fyrirtaekiHandler(new Request('https://k.internal/api/fyrirtaeki?q=' + kt), env, ctx);
+  // ⚠ ENA staðurinn sem biður um langa RSK-gluggann: 44.917 aðgreindar SSR-slóðir eru það
+  //   eina sem magnið er vandamál á. Allt annað — seldu skýrslurnar þar á meðal — fær stutta.
+  const dr = await fyrirtaekiHandler(new Request('https://k.internal/api/fyrirtaeki?q=' + kt), env, ctx, { fjoldi: true });
   const d = await dr.json().catch(() => null);
   const f = d && d.felag;
   if (!f || !f.nafn) return env.ASSETS.fetch(request);      // ekkert raunfélag → 404, EKKI tóm 200
@@ -1948,11 +1950,20 @@ async function fyrirtaekiSidaHandler(request, env, ctx) {
   return res;
 }
 
-async function fyrirtaekiHandler(request, env, ctx) {
+/**
+ * @param {object} [valk]
+ * @param {boolean} [valk.fjoldi] Fjölda-leiðin: /fyrirtaeki/<kt>/ SSR yfir 44.917 slóðir.
+ *   ⚠⚠ SÉR JAÐAR-LYKILL. Þessi færsla getur borið allt að 7 daga gömul RSK-gögn innan í sér
+ *      (sjá _RSK_CACHE_FJOLDI í veitur.mjs) og má því ALDREI lenda þar sem greidda leiðin les
+ *      — sama fall ber gögnin í seldu 990-skýrsluna (gjaldþrota-borði, E-þak lánshæfismats).
+ *   ⚠ Fall-viðfang, EKKI slóðarbreyta: /api/fyrirtaeki er opinn endapunktur.
+ */
+export async function fyrirtaekiHandler(request, env, ctx, valk) {
   const q = (new URL(request.url).searchParams.get('q') || '').trim().slice(0, 60);
   if (q.length < 2) return sjson({ error: 'q' });
+  const fjoldi = !!(valk && valk.fjoldi);
   const cache = caches.default;
-  const cacheKey = new Request('https://cache.karp.internal/api/fyrirtaeki?q=' + encodeURIComponent(q.toLowerCase()));
+  const cacheKey = new Request('https://cache.karp.internal/api/fyrirtaeki?q=' + encodeURIComponent(q.toLowerCase()) + (fjoldi ? '&fjoldi=1' : ''));
   let res = await cache.match(cacheKey);
   if (res) return res;
   const H = { 'User-Agent': 'karp.is fyrirtaekjaskra (aronheidars@gmail.com)' };
@@ -1991,7 +2002,7 @@ async function fyrirtaekiHandler(request, env, ctx) {
   let rskVantar = null;
   if (out.felag && /^\d{10}$/.test(out.felag.kt || kt)) {
     try {
-      const rr = await rskHandler(new Request('https://k.internal/api/rsk?kt=' + (out.felag.kt || kt)), env, ctx);
+      const rr = await rskHandler(new Request('https://k.internal/api/rsk?kt=' + (out.felag.kt || kt)), env, ctx, { fjoldi });
       const rd = await rr.json().catch(() => null);
       if (!rd || !rd.holdur) rskVantar = { astaeda: (rd && rd.unconfigured) ? 'ostillt' : 'svarar_ekki', status: (rd && rd.status) || null };
       if (rd && rd.holdur) {

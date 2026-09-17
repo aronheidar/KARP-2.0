@@ -12,7 +12,7 @@ import { extractKts, nextPrefixes } from './lib/sweep.mjs';
 import { makeD1 } from './lib/d1_rest.mjs';
 import { buildScrapeFetcher } from './lib/rsk_fetch.mjs';
 import { metaNott } from './lib/nott_heilsa.mjs';   // þögul nótt (allt féll) á móti rólegri nótt (ekkert á dagskrá)
-import { buildApiFetcher } from './lib/rsk_api.mjs';
+import { buildApiFetcher, stoppLina } from './lib/rsk_api.mjs';
 
 const DRY = process.argv.includes('--dry-run');
 const bi = process.argv.indexOf('--budget');
@@ -90,6 +90,7 @@ const fetchText = (path, gilt) => skrapari.fetchText(path, gilt);
 const acc = { felog: [], folk: [], hlutverk: [], eign: [], queueMark: [], queueRetry: [], queueAdd: [], sweepMark: [], sweepAdd: [] };
 const seenLastSql = [];
 let used = 0, ok = 0, notfound = 0, errs = 0, discovered = 0, eigDone = 0;
+let stoppAstaeda = null;   // banvænt stopp (kvóti/401) — verður að RATA Í SAMANTEKTINA, ekki bara í loggann
 const errBy = {};   // sundurliðun villna eftir HTTP-stöðu (t.d. {"retry:429": n}) — sést í nætur-samantekt
 
 // ── 1) Nafnaleitar-sweep FYRST (ferskur runner) ───────────────────────────────
@@ -127,7 +128,10 @@ for (const kt of batch) {
   await sleep(API_DELAY);
   let api;
   try { api = await fetchApi(kt); }
-  catch (e) { console.error('STÖÐVA nótt:', e.message); break; }   // AUTH eða uppurinn kvóti → hætta strax (biðröð ÓSNERT, engin 'notfound'-mengun)
+  // AUTH eða uppurinn kvóti → hætta strax (biðröð ÓSNERT, engin 'notfound'-mengun).
+  // ⚠ Ástæðan er MUNUÐ og rituð í samantekt keyrslunnar — `break` einn og sér skildi eftir
+  //   græna keyrslu og eina stderr-línu, og uppurinn kvóti er nú væntanlegt ástand.
+  catch (e) { stoppAstaeda = e.message; console.error('STÖÐVA nótt:', e.message); break; }
   if (api.retry) { acc.queueRetry.push(kt); errs++; errBy['retry:' + api.retry] = (errBy['retry:' + api.retry] || 0) + 1; continue; }   // tímabundið → attempts++ (helst pending)
   if (api.notfound) { acc.queueMark.push({ kt, status: 'notfound' }); notfound++; continue; }
   if (api.error) { acc.queueMark.push({ kt, status: 'error' }); errs++; errBy['error:' + api.error] = (errBy['error:' + api.error] || 0) + 1; continue; }
@@ -156,6 +160,15 @@ for (const kt of batch) {
 }
 
 // ── 3) Skrifa + beita ─────────────────────────────────────────────────────────
+// ⚠ Stopp-línan er rituð HÉR, á undan öllum útgönguleiðum (tóm nótt / --dry-run / villa í
+//   D1-beitingu), svo hún geti ekki tapast eftir því hvernig keyrslan endar.
+const stoppMd = stoppLina(stoppAstaeda, { unnid: used, budget: BUDGET });
+if (stoppMd) {
+  console.error(stoppMd);
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    try { fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## Tengslagrunnur — nótt ${today}\n\n${stoppMd}\n\n`); } catch (e) {}
+  }
+}
 const body = [buildNightSql({ today, ...acc }), ...seenLastSql].join('\n').trim();
 console.error(`Þáttað: ${ok} ok · ${notfound} ekki-til · ${errs} villur · ${discovered} uppgötvuð · ${sweepFound} úr sweep · ${eigDone} eigenda-skröp · ${used} API-köll.`);
 if (errs) console.error(`Villu-sundurliðun: ${JSON.stringify(errBy)}`);

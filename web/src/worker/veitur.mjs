@@ -556,18 +556,45 @@ function rskClean(kt, d, keepPersonKt) {
 }
 
 // ── RSK-kvótinn (17.9.2026) ───────────────────────────────────────────────────────────────
-// ⚠⚠ Jákvæð svör lifðu í 24 KLST. Þann 14.9 fór felagaskra.json úr 6.527 félögum í 44.918 og
-//    sitemap-ið fylgdi — og /fyrirtaeki/<kt>/ er worker-SSR, svo HVER leitarvélarheimsókn á
-//    hverja þeirra 44.917 slóða kallaði á mælda APIð. Mánaðarkvótinn brann upp á rúmum tveimur
-//    vikum og Azure svarar nú 403 „Out of call volume quota" við hverju kalli.
-//    Fyrirtækjaskrá breytist í MÁNUÐUM, ekki dögum: 7 dagar deila sama kvóta á ~7× fleiri
-//    síðuflettingar án þess að gögnin verði merkjanlega eldri.
-const _RSK_CACHE_JAKVAETT = 7 * 24 * 3600;   // 604800 s
-// Hve lengi worker MAN að lykill sé uppurinn. KLUKKUSTUNDIR, ekki dagar: kvótinn núllstillist
-// 1. hvers mánaðar og þá á kerfið að jafna sig sjálft án handtaks.
-const _RSK_KVOTI_TTL = 6 * 3600;
+// ⚠⚠ ORSÖKIN VAR AÐGREINDAR SLÓÐIR × GAGNAVER × TTL — EKKI FLETTINGAR. Þann 14.9 fór
+//    felagaskra.json úr 6.527 félögum í 44.918 og sitemap-ið fylgdi. Hver slóð er sitt eigið
+//    cache-stak, og jaðar-cache Cloudflare er PER GAGNAVERI, svo neðri mörk kallanna eru
+//    (fjöldi slóða) × (gagnaver sem leitarvélin snertir) × (1 / TTL) — óháð því hversu oft
+//    hver slóð er flett. Bæði `fyrirtaekiSidaHandler` (worker.js:1944, síðan sjálf) og
+//    `fyrirtaekiHandler` (worker.js:2014, /api/fyrirtaeki) cache-uðu ÞEGAR í 24 klst, svo
+//    flettingarnar sjálfar voru aldrei drifkrafturinn; það var 6,9× fjölgun AÐGREINDRA SLÓÐA
+//    ofan á 24 klst TTL. Mánaðarkvótinn brann upp á rúmum tveimur vikum og Azure svarar nú
+//    403 „Out of call volume quota". ⚠ Leitaðu að SLÓÐAFJÖLDA og TTL næst, ekki að umferð.
+//
+// ── SAUMURINN: sama fall þjónar 44.917 SEO-síðum OG seldu 990-skýrslunni ──────────────────
+// ⚠⚠ Langi glugginn má AÐEINS þjóna fjöldanum. /api/rsk er overlay-að á /api/fyrirtaeki
+//    (worker.js:1996) og ÞAÐAN les selda skýrslan gjaldþrota-borðann (fyrirtaeki.astro:732,
+//    `fs-throt`) og E-þak lánshæfismatsins (:1016, `cap: 20`). Einn sameiginlegur gluggi hefði fært versta
+//    ferskleikagat GJALDÞROTAMERKIS Á SELDRI SKÝRSLU úr ~2 sólarhringum í ~8 daga.
+//    Fyrirtækjaskrá breytist í mánuðum, svo 7 dagar eru meinlausir fyrir SEO-síðu — og
+//    óverjandi fyrir vöru sem einhver borgaði fyrir.
+//
+// Sjálfgefið er STUTTI glugginn. Fjölda-leiðin biður sérstaklega um þann langa
+// (`valk.fjoldi`, FALL-VIÐFANG en ekki slóðarbreyta — /api/rsk og /api/fyrirtaeki eru opnir
+// endapunktar og `?fjoldi=1` utan frá myndi opna gatið aftur). Nýr neytandi fær því fersk
+// gögn sjálfkrafa; sá sem þolir stöðnun verður að segja það.
+const _RSK_CACHE_FJOLDI = 7 * 24 * 3600;      // 604800 s — opinberu SSR-slóðirnar, opt-in
+const _RSK_CACHE_SJALFGEFID = 24 * 3600;      // 86400 s  — allt annað, þ.m.t. greiddu leiðirnar
+const _RSK_CACHE_NEIKVAETT = 600;             // 10 mín   — tímabundin 404 má ALDREI festast
+// Hve lengi worker MAN að lykill sé uppurinn. ⚠ MÁNUÐUR Í LYKLINUM, ekki TTL: kvótinn fyllist
+// 1. hvers mánaðar og TTL-minni (6 klst) hélt „uppurinn" fram yfir áfyllingu — og af því
+// caches.default er PER GAGNAVERI jöfnuðu þau sig á víxl, svo sami notandi fékk ólíkt svar
+// eftir því hvaða gagnaver afgreiddi hann. Mánuður í lyklinum gerir endurheimtina nákvæma og
+// kostar ekkert: færslan verður einfaldlega óaðgengileg við mánaðamót.
+const _RSK_KVOTI_TTL = 31 * 24 * 3600;
 
-const _rskKvotiKey = (nafn) => new Request('https://cache.karp.internal/rsk-kvoti/' + nafn);
+/** Cache-slóð kvótaminnisins fyrir `nafn` í þeim mánuði sem `nu` fellur í (UTC). Hrein — prófuð. */
+export function rskKvotiSlod(nafn, nu) {
+  const manudur = new Date(nu == null ? Date.now() : nu).toISOString().slice(0, 7);   // YYYY-MM
+  return 'https://cache.karp.internal/rsk-kvoti/' + manudur + '/' + nafn;
+}
+
+const _rskKvotiKey = (nafn) => new Request(rskKvotiSlod(nafn));
 
 async function rskKvotiUppurinn(nafn) {
   try { return !!(await caches.default.match(_rskKvotiKey(nafn))); } catch (e) { return false; }
@@ -604,16 +631,51 @@ async function rskSaekjaKt(kt, env) {
   return sidast || { status: 0, body: '', kvoti: false };
 }
 
-export async function rskHandler(request, env, ctx) {
+/** Svar-smiður: sami bolur, ólíkur gluggi eftir því hver spurði. */
+function rskSvar(out, maxAge) {
+  return new Response(JSON.stringify(out), {
+    status: 200,
+    headers: {
+      'content-type': 'application/json; charset=utf-8',
+      'access-control-allow-origin': '*',
+      'cache-control': out.holdur ? 'public, max-age=' + maxAge : 'no-store',
+    },
+  });
+}
+
+/**
+ * @param {object} [valk]
+ * @param {boolean} [valk.fjoldi] Fjölda-leiðin (44.917 opinberar SSR-slóðir) — þolir 7 daga.
+ *   ⚠ ALDREI lesið úr slóðinni: /api/rsk er opinn og þá gæti hver sem er valið stöðnuð gögn.
+ */
+export async function rskHandler(request, env, ctx, valk) {
   const u = new URL(request.url);
   const kt = (u.searchParams.get('kt') || '').replace(/\D/g, '');
   // (?debug=1 fjarlægt 30.7.2026 — hjáveitti jaðar-cache á mælt/hraðatakmarkað APIM-uppstreymi, ógáttað.)
   if (kt.length !== 10) return sjson({ kt, holdur: false });
-  if (!env.RSK_KEY) return sjson({ kt, holdur: false, unconfigured: true });
+  // ⚠ NOKKUR lykill dugar. Áður stóð `!env.RSK_KEY` hér og uppsetning með AÐEINS varalyklinum
+  //   svaraði `unconfigured` — gildra við nákvæmlega þau lyklaskipti sem varaleiðin er til fyrir.
+  if (!env.RSK_KEY && !env.RSK_KEY2) return sjson({ kt, holdur: false, unconfigured: true });
+  const fjoldi = !!(valk && valk.fjoldi);
+  const gluggi = fjoldi ? _RSK_CACHE_FJOLDI : _RSK_CACHE_SJALFGEFID;
   const cache = caches.default;
+  // EIN færsla þjónar báðum leiðum — tvær myndu tvöfalda mælda kallið, sem er það sem allt
+  // þetta verk snýst um að spara. `sott` sker úr hver má bera hana fram.
   const cacheKey = new Request('https://cache.karp.internal/api/rsk?kt=' + kt);
-  const hit = await cache.match(cacheKey); if (hit) return hit;
+  const nu = Math.floor(Date.now() / 1000);
+  let gamalt = null;
+  const hit = await cache.match(cacheKey);
+  if (hit) {
+    let j = null; try { j = await hit.json(); } catch (e) {}
+    if (j && j.holdur) {
+      // Færsla ÁN `sott` er frá því fyrir sauminn — aldur hennar er óþekktur og því úreltur.
+      const aldur = j.sott ? nu - j.sott : Infinity;
+      if (fjoldi || aldur <= _RSK_CACHE_SJALFGEFID) return rskSvar(j, gluggi);
+      gamalt = j;   // of gömul fyrir þessa leið → ný mæling, en geymd sem varaskeifa
+    }
+  }
   let out = { kt, holdur: false };
+  let kvoti = false;
   try {
     const r = await rskSaekjaKt(kt, env);
     if (r.status >= 200 && r.status < 300) {
@@ -624,40 +686,71 @@ export async function rskHandler(request, env, ctx) {
       // ⚠⚠ MERKING, EKKI ÞÖGN: án `kvoti` les neytandinn `holdur:false` sem „engin gögn" og
       //    `afskraning` (gjaldþrot/gjaldþol) hverfur ÚR 990-áreiðanleikamatinu án þess að
       //    nokkuð segi frá — skýrslan lítur út eins og hrein þegar hún er í raun ómæld.
-      //    Neytendur sem eiga eftir að lesa þetta: worker.js:1987 (`if (rd && rd.holdur)`,
+      //    Neytendur sem eiga eftir að lesa þetta: worker.js:1998 (`if (rd && rd.holdur)`,
       //    overlay á felag.afskraning fyrir KYC) og fyrirtaeki.astro. Þeim er VÍSVITANDI
       //    ekki breytt hér — þetta verk merkir svarið, næsta verk les merkið.
-      if (r.kvoti) out.kvoti = true;
+      if (r.kvoti) { out.kvoti = true; kvoti = true; }
     }
   } catch (e) {}
+  // Mislukkuð endurmæling á úreltri færslu: ÚRELT ER SKÁRRA EN HORFIÐ. Gjaldþrotamerki sem
+  // hverfur er verra en gjaldþrotamerki sem er of gamalt — svo lengi sem aldurinn SÉST.
+  // Borið fram `no-store` svo úrelta eintakið festist ekki aftur á jaðrinum.
+  if (!out.holdur && gamalt) {
+    const merkt = { ...gamalt, urelt: true };
+    if (kvoti) merkt.kvoti = true;
+    return new Response(JSON.stringify(merkt), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'no-store' } });
+  }
   // ⚠ Neikvæð svör ALDREI cache-uð (annars festist tímabundin 404/villa á jaðri — nú í 7 daga,
   //   sem er enn verra en 24h var). Kvóta-svar allra síst: það myndi festa „engin gögn" á félag
   //   sem er í fullu fjöri, og einmitt sá lestur er villandi.
-  const res = new Response(JSON.stringify(out), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': out.holdur ? 'public, max-age=' + _RSK_CACHE_JAKVAETT : 'no-store' } });
-  if (out.holdur) ctx.waitUntil(cache.put(cacheKey, res.clone()));
-  return res;
+  if (out.holdur) {
+    out.sott = nu;
+    // GEYMT með langa glugganum óháð því hver spurði — fjölda-leiðin á að njóta mælingarinnar.
+    // BORIÐ FRAM með glugga þess sem spurði, svo niðurstreymis-cache erfi ekki 7 dagana.
+    ctx.waitUntil(cache.put(cacheKey, rskSvar(out, _RSK_CACHE_FJOLDI)));
+  }
+  return rskSvar(out, gluggi);
 }
 
-async function rskFetchRaw(kt, env, ctx) {
+/**
+ * Þjónar tengslanetHandler (þak 12 félög í kalli — það var EKKI lekinn, svo engin opt-in hér:
+ * sjálfgefni glugginn gildir). Skilar ALLTAF hlut: `{ kt, holdur, kvoti? }`.
+ * ⚠⚠ `kvoti` VERÐUR að berast áfram — áður skilaði fallið `null` og /api/tengslanet svaraði
+ *    `holdur:false` án ástæðu, eða verra: `holdur:true` með færri félögum.
+ */
+export async function rskFetchRaw(kt, env, ctx) {
   const cache = caches.default;
   const cacheKey = new Request('https://cache.karp.internal/rsk-raw?kt=' + kt);
   const hit = await cache.match(cacheKey);
-  if (hit) { try { const j = await hit.json(); return j.holdur ? j : null; } catch (e) {} }
+  if (hit) { try { const j = await hit.json(); if (j) return j; } catch (e) {} }
   try {
-    // Þjónar tengslanetHandler með þaki upp á 12 félög í kalli — það er EKKI lekinn, en sömu
-    // rök gilda um ferskleika fyrirtækjaskrár, svo jákvæði tíminn fylgir sama fasta.
     const r = await rskSaekjaKt(kt, env);
     let out = { kt, holdur: false };
     if (r.status >= 200 && r.status < 300) {
       let d = null; try { d = JSON.parse(r.body); } catch (e) {}
       if (d && typeof d === 'object') out = rskClean(kt, d, true);
+    } else if (r.kvoti) {
+      // Ekkert var mælt. Hvorki geyma né þegja.
+      return { kt, holdur: false, kvoti: true };
     }
-    // jákvæð svör 7 daga; NEIKVÆÐ áfram stutt (10 mín) svo endurtekin köll á sama kt hamri ekki
-    // mælda APIð. ⚠ Sú 10-mínútna regla er ÓBREYTT og má ekki lengjast með jákvæða tímanum.
-    const res = new Response(JSON.stringify(out), { headers: { 'content-type': 'application/json', 'cache-control': 'public, max-age=' + (out.holdur ? _RSK_CACHE_JAKVAETT : 600) } });
+    // jákvæð svör sjálfgefna gluggann; NEIKVÆÐ stutt (10 mín) svo endurtekin köll á sama kt
+    // hamri ekki mælda APIð. ⚠ Sú 10-mínútna regla er BINDANDI og má ALDREI lengjast með
+    // jákvæða tímanum — próf ver hana nú, ekki athugasemd.
+    const res = new Response(JSON.stringify(out), { headers: { 'content-type': 'application/json', 'cache-control': 'public, max-age=' + (out.holdur ? _RSK_CACHE_SJALFGEFID : _RSK_CACHE_NEIKVAETT) } });
     ctx.waitUntil(cache.put(cacheKey, res));
-    return out.holdur ? out : null;
-  } catch (e) { return null; }
+    return out;
+  } catch (e) { return { kt, holdur: false }; }
+}
+
+/**
+ * Hve lengi má geyma tengslanets-svar. Hrein — prófuð.
+ * ⚠⚠ `kvoti` NÚLLAR geymsluna líka þegar `holdur` er satt: náist rót-kt úr cache en hin
+ *    félögin falli á kvóta verður svarið hálft net sem LÍTUR ÚT EINS OG HEILT — og 12 klst
+ *    geymsla á því er verri en engin geymsla.
+ */
+export function tengslNetTtl(out, kvoti) {
+  if (!out || !out.holdur || kvoti) return 0;
+  return out.n_felog > 1 ? 43200 : 900;   // fullbyggt 12 klst; óbyggt tré stutt svo það taki fljótt við
 }
 
 export async function rskProxyHandler(request, env) {
@@ -872,7 +965,7 @@ export async function tengslanetHandler(request, env, ctx) {
   const kt = (u.searchParams.get('kt') || '').replace(/\D/g, '');
   const kort = u.searchParams.get('kort') === '1';   // 🕸️ kort-hamur: strangari nafna-felun (sjá maskaKortSvar)
   if (kt.length !== 10 || !rskErFyrirtaeki(kt)) return sjson({ kt, holdur: false });   // aðeins lögaðila-kt í mælda APIð
-  if (!env.RSK_KEY) return sjson({ kt, holdur: false, unconfigured: true });
+  if (!env.RSK_KEY && !env.RSK_KEY2) return sjson({ kt, holdur: false, unconfigured: true });   // NOKKUR lykill dugar (sjá rskHandler)
   // Innskráðir eingöngu (hluti keyptu eigendaskýrslunnar; ver líka mælda APIð gegn opinni upptalningu).
   // ⚠ VERÐUR að standa Á UNDAN cache-treffinu — annars þjónaði jaðarinn óinnskráðum úr cache.
   const uid = await karpUserId(request, env);
@@ -893,7 +986,10 @@ export async function tengslanetHandler(request, env, ctx) {
     }
   } catch (e) {}
   felog = felog.slice(0, 12);
-  const raw = (await Promise.all(felog.map((k) => rskFetchRaw(k, env, ctx)))).filter(Boolean);
+  const svor = await Promise.all(felog.map((k) => rskFetchRaw(k, env, ctx)));
+  // ⚠ Kvóti á EINHVERJU félagi þýðir að netið er ómælt að hluta — líka þegar rótin náðist.
+  const kvoti = svor.some((s) => s && s.kvoti);
+  const raw = svor.filter((s) => s && s.holdur);
   const rot = raw.find((r) => r.kt === kt);
   let out = { kt, holdur: false };
   if (rot) {
@@ -929,8 +1025,10 @@ export async function tengslanetHandler(request, env, ctx) {
     stjornendur.sort((a, b) => (b.onnur.length ? 1 : 0) - (a.onnur.length ? 1 : 0));
     out = { kt, holdur: true, n_felog: raw.length, felog: raw.map((r) => ({ kt: r.kt, nafn: r.nafn })), stjornendur: stjornendur.slice(0, 20), krossar: krossar.slice(0, 12), heimild: 'Fyrirtækjaskrá Skattsins (opinbert API) — fyrirsvar þvert á greint eignarhaldsnet' };
   }
-  // net óbyggt (n_felog=1) → stutt TTL svo fullbyggt tré taki fljótt við; fullt net → 12h
-  const ttl = out.holdur ? (out.n_felog > 1 ? 43200 : 900) : 0;
+  // net óbyggt (n_felog=1) → stutt TTL svo fullbyggt tré taki fljótt við; fullt net → 12h;
+  // ⚠ net sem VANTAR í vegna kvóta → ALDREI geymt (sjá tengslNetTtl).
+  const ttl = tengslNetTtl(out, kvoti);
+  if (kvoti) out.kvoti = true;   // MERKING, EKKI ÞÖGN — sama regla og í rskHandler
   if (out.holdur) out = await tengslGrunnurEnrich(env, out, kt);   // 🕸️ landsvísu-auðgun (null-þolið; strippar _kt)
   const body = kort ? maskaKortSvar(out) : out;   // 🕸️ nafna-felun aðeins í kort-ham
   const res = new Response(JSON.stringify(body), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': ttl ? 'public, max-age=' + ttl : 'no-store' } });
