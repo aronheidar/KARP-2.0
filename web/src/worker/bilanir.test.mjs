@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { adminBilanirHandler, saekjaBilanir } from './bilanir.mjs';
+import { adminBilanirHandler, fallnarVaktir, saekjaBilanir } from './bilanir.mjs';
 
 const NU = () => Math.floor(Date.now() / 1000);
 function fakeDb(state) {
@@ -33,6 +33,9 @@ const GH_ALLT_GOTT = {
   'workflows/cto.yml/runs': { d: { workflow_runs: [] } },
   'commits/main/check-runs': { d: { check_runs: [{ name: 'Workers Builds: karp21', conclusion: 'success', completed_at: '2026-09-14T10:05:00Z', details_url: 'u' }] } },
   'pulls?state=open': { d: [] },
+  // 17.9.2026: fimmta uppsprettan — föllnu GAGNAKEYRSLURNAR. Hrafn vaktaði áður aðeins ci/cto, svo
+  // rautt næturcrawl hefði hvergi sést (sama gat og lét numbeo liggja dautt í þrjár vikur).
+  'actions/runs?status=failure': { d: { workflow_runs: [] } },
 };
 
 test('allt í lagi → tómur bilanalisti', async (t) => {
@@ -145,4 +148,55 @@ test('langur listi er klipptur á heilum færslum — geymt JSON þáttast allta
   const þattad = JSON.parse(geymt);   // kastar ef JSON var skorið í sundur
   assert.ok(Array.isArray(þattad.bilanir) && þattad.bilanir.length > 0);
   assert.ok(þattad.bilanir.every((b) => b.lysing.length <= 200));
+});
+
+// ── Föllnu gagnakeyrslurnar (17.9.2026) ─────────────────────────────────────
+const NUS = Math.floor(Date.parse('2026-09-17T09:00:00Z') / 1000);
+const keyrsla = (o) => Object.assign({ conclusion: 'failure', path: '.github/workflows/tengslagrunnur.yml', name: 'Tengslagrunnur', created_at: '2026-09-17T08:47:00Z', html_url: 'u' }, o);
+
+test('fallin gagnakeyrsla ratar á listann', () => {
+  const r = fallnarVaktir([keyrsla({})], NUS);
+  assert.equal(r.length, 1);
+  assert.equal(r[0].uppspretta, 'Vakt');
+  assert.ok(r[0].lysing.includes('Tengslagrunnur'));
+  assert.equal(r[0].alvarleiki, 'hatt');
+});
+
+test('ci og cto eru EKKI tvítilkynnt — þau eiga sín eigin stök', () => {
+  const r = fallnarVaktir([
+    keyrsla({ path: '.github/workflows/ci.yml', name: 'ci' }),
+    keyrsla({ path: '.github/workflows/cto.yml', name: 'cto' }),
+  ], NUS);
+  assert.equal(r.length, 0);
+});
+
+test('aðeins NÝJASTA fallið per vinnuflæði — ekki eitt stak per keyrslu', () => {
+  const r = fallnarVaktir([
+    keyrsla({ created_at: '2026-09-17T08:47:00Z' }),
+    keyrsla({ created_at: '2026-09-16T08:47:00Z' }),
+    keyrsla({ created_at: '2026-09-15T08:47:00Z' }),
+  ], NUS);
+  assert.equal(r.length, 1);
+});
+
+test('gamalt fall er ekki frétt', () => {
+  assert.equal(fallnarVaktir([keyrsla({ created_at: '2026-09-01T08:47:00Z' })], NUS).length, 0);
+});
+
+test('aðeins failure telst bilun', () => {
+  for (const c of ['success', 'cancelled', 'skipped', null]) {
+    assert.equal(fallnarVaktir([keyrsla({ conclusion: c })], NUS).length, 0, String(c) + ' má ekki teljast bilun');
+  }
+});
+
+test('rusl fellir ekki listann', () => {
+  for (const x of [null, undefined, 'x', 7, [null], [{}]]) assert.ok(Array.isArray(fallnarVaktir(x, NUS)));
+});
+
+test('fallin næturkeyrsla birtist í heildarlistanum', async (t) => {
+  stubGh(t, Object.assign({}, GH_ALLT_GOTT, {
+    'actions/runs?status=failure': { d: { workflow_runs: [{ conclusion: 'failure', path: '.github/workflows/tengslagrunnur.yml', name: 'Tengslagrunnur (næturlegur crawl)', created_at: new Date().toISOString(), html_url: 'u' }] } },
+  }));
+  const r = await saekjaBilanir(mkEnv(mkState()), { thvinga: true });
+  assert.ok(r.bilanir.some((b) => b.uppspretta === 'Vakt' && /Tengslagrunnur/.test(b.lysing)), 'næturcrawlið á að sjást hjá Hrafni');
 });

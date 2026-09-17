@@ -11,6 +11,7 @@ import { buildNightSql, buildSeenLastSql } from './lib/tengsl_sql.mjs';
 import { extractKts, nextPrefixes } from './lib/sweep.mjs';
 import { makeD1 } from './lib/d1_rest.mjs';
 import { buildScrapeFetcher } from './lib/rsk_fetch.mjs';
+import { metaNott } from './lib/nott_heilsa.mjs';   // þögul nótt (allt féll) á móti rólegri nótt (ekkert á dagskrá)
 
 const DRY = process.argv.includes('--dry-run');
 const bi = process.argv.indexOf('--budget');
@@ -170,7 +171,21 @@ if (Object.keys(skrapStats.villur).length) {
   console.error(`Skrap-sundurliðun: ${JSON.stringify(skrapStats.villur)}${skrapStats.proxyDautt ? ' · RSK-proxy SLÖKKT þessa nótt (sótti beint)' : ''}`);
 }
 
-if (!body) { console.error('Ekkert SQL að skrifa (tóm nótt).'); process.exit(0); }
+// ⚠⚠ ÞÖGUL NÓTT MÁ EKKI VERA GRÆN. 17.9.2026 skrifaði þessi skripta núll, slökkti á sér sjálf þegar
+// báðir varnarrofar sprungu, prentaði sundurliðunina — og skilaði útgangskóða 0. Enginn hefði séð að
+// grunnurinn hætti að stækka. Hún VISSI af biluninni og sagði engum. Sjá lib/nott_heilsa.mjs.
+const heilsa = metaNott({ ok, errs, discovered, sweepFound, villur: skrapStats.villur, proxyDautt: skrapStats.proxyDautt, scrapeStop });
+if (heilsa.thogul) {
+  console.error('⛔ ' + heilsa.skilabod);
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## ⛔ Þögul nótt — ${heilsa.astaeda}
+
+${heilsa.skilabod}
+`);
+  }
+  process.exit(1);
+}
+if (!body) { console.error('Ekkert SQL að skrifa (róleg nótt — ekkert á dagskrá, engin bilunarmerki).'); process.exit(0); }
 // N1 (topplistar): viðhalda felog.isat_primary fyrir NÝ félög (fyrsti ÍSAT-kóði úr isat-JSON) — annars
 // birtast þau hvorki í topplistum né sækir ársreikninga-trickle þau (SELECT hans krefst isat_primary).
 const isatPrimarySql = "UPDATE felog SET isat_primary = json_extract(isat, '$[0].id') WHERE isat IS NOT NULL AND isat <> '[]' AND isat_primary IS NULL;";

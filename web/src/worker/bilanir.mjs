@@ -14,6 +14,35 @@ const _blNow = () => Math.floor(Date.now() / 1000);
 const _blRepo = 'aronheidar/KARP-2.0';
 const _BL_FYRNING = 600;          // sek
 const _BL_PR_DAGAR = 7;           // opinn PR eldri en þetta telst gleymdur
+const _BL_VAKT_DAGAR = 3;         // föllnum gagnakeyrslum eldri en þetta er sleppt (hávaði, ekki frétt)
+// ⚠ ci.yml og cto.yml eru sótt SÉR hér að neðan — annars tvítilkynntust þau.
+const _BL_EIGIN = ['ci.yml', 'cto.yml'];
+
+/**
+ * Föllnu GAGNAKEYRSLURNAR — allt annað en ci/cto. Eitt stak per vinnuflæði (nýjasta fallið).
+ *
+ * ⚠⚠ AF HVERJU ÞETTA VAR BÆTT VIÐ (17.9.2026). Hrafn vaktaði AÐEINS ci.yml og cto.yml. Næturkráðið
+ * á tengslagrunninum skrifaði núll heila nótt af því RSK-áskriftin fór að skila 403, og þótt keyrslan
+ * hefði orðið rauð hefði hún hvergi sést — enginn horfir á GitHub. Það er nákvæmlega ástæðan fyrir
+ * því að numbeo-skrapið gat legið dautt í ÞRJÁR VIKUR (sjá build_heilsa.mjs). Vakt sem enginn les er
+ * engin vakt.
+ */
+export function fallnarVaktir(runs, nu) {
+  const mark = (Number.isFinite(nu) ? nu : Math.floor(Date.now() / 1000)) - _BL_VAKT_DAGAR * 86400;
+  const sed = new Set();
+  const ut = [];
+  for (const r of (Array.isArray(runs) ? runs : [])) {
+    if (!r || r.conclusion !== 'failure') continue;
+    const skra = String(r.path || '').split('/').pop();
+    if (!skra || _BL_EIGIN.includes(skra)) continue;   // ci/cto eiga sín eigin stök
+    if (sed.has(skra)) continue;                       // aðeins nýjasta fallið per vinnuflæði
+    const sidan = _blSek(r.created_at);
+    if (sidan < mark) continue;                        // gamalt fall er ekki frétt
+    sed.add(skra);
+    ut.push({ uppspretta: 'Vakt', lysing: (r.name || skra) + ' féll', sidan, alvarleiki: 'hatt', slod: r.html_url });
+  }
+  return ut;
+}
 
 async function _blGh(env, slod) {
   const r = await fetch('https://api.github.com/repos/' + _blRepo + '/' + slod, {
@@ -61,14 +90,15 @@ export async function saekjaBilanir(env, { thvinga = false } = {}) {
   const bilanir = [];
   let vantar = [];
   try {
-    const [ci, cto, checks, prs] = (await Promise.allSettled([
+    const [ci, cto, checks, prs, vaktir] = (await Promise.allSettled([
       _blGh(env, 'actions/workflows/ci.yml/runs?branch=main&per_page=5'),
       _blGh(env, 'actions/workflows/cto.yml/runs?per_page=5'),
       _blGh(env, 'commits/main/check-runs'),
       _blGh(env, 'pulls?state=open'),
+      _blGh(env, 'actions/runs?status=failure&per_page=20'),
     ])).map((r) => (r.status === 'fulfilled' ? r.value : null));
-    vantar = [['CI', ci], ['CTO', cto], ['Bygging', checks], ['PR', prs]].filter(([, v]) => v === null).map(([n]) => n);
-    if (vantar.length === 4) throw new Error('allar uppsprettur');
+    vantar = [['CI', ci], ['CTO', cto], ['Bygging', checks], ['PR', prs], ['Vaktir', vaktir]].filter(([, v]) => v === null).map(([n2]) => n2);
+    if (vantar.length === 5) throw new Error('allar uppsprettur');
 
     if (ci) {
       const sidasta = ((ci && ci.workflow_runs) || [])[0];
@@ -87,6 +117,10 @@ export async function saekjaBilanir(env, { thvinga = false } = {}) {
       if (ctoFell) {
         bilanir.push({ uppspretta: 'CTO', lysing: 'síðasta CTO-keyrsla féll', sidan: _blSek(ctoFell.created_at), alvarleiki: 'lagt', slod: ctoFell.html_url });
       }
+    }
+    if (vaktir) {
+      // Gagnakeyrslur (nætur-crawl, refresh-data, on-demand byggingar) sem féllu — sjá fallnarVaktir.
+      for (const b of fallnarVaktir((vaktir && vaktir.workflow_runs) || [], _blNow())) bilanir.push(b);
     }
     if (prs) {
       const markPr = _blNow() - _BL_PR_DAGAR * 86400;
