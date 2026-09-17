@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ADKALLANDI_SEK, bidurFyrir, bidurThin } from './bidur_thin.mjs';
+import { ADKALLANDI_SEK, MANUDUR_SEK, VIKA_SEK, bidurFyrir, bidurThin, rennurUtInnan } from './bidur_thin.mjs';
 import { TICKET_STODUR } from '../hjalp_agent.mjs';
 
 const NU = 1_800_000_000;
@@ -246,4 +246,93 @@ test('rennur_ut stendur áfram þótt misræmin falli — ófullkominn listi er 
   const elin = r.filter((x) => x.starfsmadur === 'elin');
   assert.equal(elin.length, 1);
   assert.equal(elin[0].tegund, 'rennur_ut');
+});
+
+// ── Heildaryfirferð, atriði 1: tvírukkun var reiknuð, geymd, send — og enginn las hana ──────────
+// ⚠⚠ `samstemma()` skilar `tvirukkun` (kt+vara sem TVEIR ólíkir samningar borga fyrir) og
+//    worker/fjarmal.mjs ber reitinn út alla leið. Hvorki `bidur_thin.mjs` né `elin.mjs` snerti hann:
+//    mælt gaf viðskiptavinur sem var rukkaður tvisvar fyrir sömu vöru „Áskell og réttindin stemma",
+//    núll misræmi og núll raðir. Tvírukkun er peningar sem viðskiptavinurinn á INNI HJÁ OKKUR.
+const tvir = (kt, fjoldi = 2, verd = 13800) => ({ kt, vara: 'fyrirtaeki', fjoldi, verd });
+
+test('tvírukkun Elínar ratar á forstofuna — eigin tegund, ekki falin inni í misræmunum', () => {
+  const r = bidurThin({ now: NU_E, fjarmal: { fjarmal: { ok: true, tvirukkun: [tvir('1234567890')] } } });
+  const elin = r.filter((x) => x.starfsmadur === 'elin');
+  assert.equal(elin.length, 1);
+  assert.equal(elin[0].tegund, 'tvirukkun', 'tvírukkun er ekki misræmi — hún þarf eigin tegund svo hægt sé að telja hana sér');
+  assert.equal(elin[0].slod, '#elin');
+});
+
+test('tvírukkunar-röðin segir að VIÐ rukkum of mikið, ekki að við séum ósammála Áskeli', () => {
+  // ⚠ Orðalagið er kjarni atriðisins: misræmi = „við og Áskell erum ósammála"; tvírukkun = „við erum
+  //   að rukka of mikið". Röð sem les eins og misræmi sendir lesandann að leita að röngum galla.
+  const r = bidurThin({ now: NU_E, fjarmal: { fjarmal: { ok: true, tvirukkun: [tvir('1234567890', 2, 13800)] } } });
+  const rod0 = r.find((x) => x.tegund === 'tvirukkun');
+  assert.match(rod0.titill, /tvírukkun/i);
+  assert.match(rod0.vidbot, /rukkum/i, 'vidbot verður að segja hver er að rukka — við');
+  assert.match(rod0.vidbot, /13\.800/, 'upphæðin sem um ræðir sést');
+  assert.match(String(rod0.titill + rod0.vidbot), /2/, 'fjöldi greiðenda sést — tvisvar er annað en þrisvar');
+});
+
+test('full kennitala fer ALDREI í tvírukkunar-röðina', () => {
+  const r = bidurThin({ now: NU_E, fjarmal: { fjarmal: { ok: true, tvirukkun: [tvir('1234567890')] } } });
+  const rod0 = r.find((x) => x.tegund === 'tvirukkun');
+  assert.ok(!String(rod0.titill + rod0.vidbot).includes('1234567890'), 'full kennitala fer ALDREI í titil/vidbot');
+  assert.match(rod0.titill, /123456-••••/, 'fyrri hlutinn dugar til að þekkja manneskjuna');
+});
+
+test('tvírukkunar-röðin notar sama nú og hinar raðir Elínar — verður aldrei aðkallandi af aldri', () => {
+  const r = bidurThin({ now: NU_E, fjarmal: { fjarmal: { ok: true,
+    tvirukkun: [tvir('1234567890')],
+    misraemi: [misr('2222222222')],
+  } } });
+  const elin = r.filter((x) => x.starfsmadur === 'elin');
+  assert.equal(elin.length, 2);
+  assert.ok(elin.every((x) => x.sidan === NU_E), 'tvær ólíkar klukkur í sama svari er sjálft gallinn');
+  assert.ok(elin.every((x) => x.adkallandi === false));
+});
+
+test('tvírukkun stendur ÁFRAM þótt misræmin falli — hún er mæld Áskels-megin, ekki í pöruninni', () => {
+  // ⚠⚠ `d1_hluti` og `oaudkennt` gera PÖRUNINA hálfa og framleiða misræmi sem eiga sér enga stoð.
+  //    Tvírukkun er hins vegar talin innan Áskels-listans EINS (tveir samningar á sama kt+vöru) og
+  //    snertir heimildalistann hvergi. Stak sem vantar gefur FÆRRI tvírukkanir, aldrei uppspunnar —
+  //    nákvæmlega sama rök og halda `rennur_ut` inni hér að ofan.
+  const r = bidurThin({ now: NU_E, fjarmal: { fjarmal: {
+    ok: true, villa: 'd1_hluti',
+    misraemi: [misr('1111111111')],
+    tvirukkun: [tvir('9876543210')],
+    verdUppsprettur: { lidur: 0, verdskra: 0, ekkert: 0, oaudkennt: 3 }, mrrAskellOvisst: true,
+  } } });
+  const elin = r.filter((x) => x.starfsmadur === 'elin');
+  assert.equal(elin.length, 1);
+  assert.equal(elin[0].tegund, 'tvirukkun');
+});
+
+test('ekkert tvirukkun-fylki fellir ekki listann', () => {
+  assert.doesNotThrow(() => bidurThin({ now: NU_E, fjarmal: { fjarmal: { ok: true } } }));
+  assert.equal(bidurThin({ now: NU_E, fjarmal: { fjarmal: { ok: true, tvirukkun: null } } }).length, 0);
+  assert.equal(bidurThin({ now: NU_E, fjarmal: { fjarmal: { ok: true, tvirukkun: [null, undefined] } } }).length, 0);
+});
+
+// ── Heildaryfirferð, atriði 3: EIN uppspretta fyrir viku-gluggann ────────────────────────────────
+// ⚠ `elin.mjs` telur „z innan viku" undir „endurnýjast"-flísinni. Afriti hún regluna í stað þess að
+//   flytja hana inn reka talan á flísinni og fjöldi raðanna í sundur við fyrstu breytingu — og þá
+//   segir spjaldið „3 innan viku" meðan „Bíður þín" sýnir tvær.
+test('rennurUtInnan er EIN uppspretta viku-/mánaðargluggans — bæði mörk og endanleg tala', () => {
+  assert.equal(rennurUtInnan({ until: NU_E + 3 * 86400 }, NU_E, VIKA_SEK), true);
+  assert.equal(rennurUtInnan({ until: NU_E + 10 * 86400 }, NU_E, VIKA_SEK), false, 'utan viku');
+  assert.equal(rennurUtInnan({ until: NU_E + 10 * 86400 }, NU_E, MANUDUR_SEK), true, 'innan mánaðar');
+  assert.equal(rennurUtInnan({ until: NU_E - 86400 }, NU_E, MANUDUR_SEK), false, 'þegar útrunnið er farið, ekki „endurnýjast"');
+  assert.equal(rennurUtInnan({ until: undefined }, NU_E, MANUDUR_SEK), false, '`NaN > x` er ósatt — stak án dagsetningar má ekki lauma sér framhjá');
+  assert.equal(rennurUtInnan(null, NU_E, MANUDUR_SEK), false);
+});
+
+test('vikuröðin í bidurThin notar SAMA fall — ekki afrit af reglunni', () => {
+  const rad = [
+    { kt: '1111111111', vara: 'kvoti', until: NU_E + 2 * 86400 },
+    { kt: '2222222222', vara: 'kvoti', until: NU_E + 20 * 86400 },
+    { kt: '3333333333', vara: 'kvoti', until: NU_E - 86400 },
+  ];
+  const r = bidurThin({ now: NU_E, fjarmal: { fjarmal: { ok: true, rennurUt: rad } } });
+  assert.equal(r.filter((x) => x.tegund === 'rennur_ut').length, rad.filter((x) => rennurUtInnan(x, NU_E, VIKA_SEK)).length);
 });

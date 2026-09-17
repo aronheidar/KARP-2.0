@@ -6,6 +6,20 @@
 
 export const ADKALLANDI_SEK = 48 * 3600;   // beiðni sem hefur beðið svo lengi fær áherslu, ekki eigin línu
 const CTO_FAST_SEK = 3600;                 // CTO-keyrsla og samþykkt→merge taka bæði mínútur; klukkustund þýðir að eitthvað féll
+export const VIKA_SEK = 7 * 86400;         // „bíður þín": það sem þolir ekki að bíða fram í næstu viku
+export const MANUDUR_SEK = 30 * 86400;     // spjaldið: „hvað endurnýjast í þessum mánuði"
+
+/** Áskrift sem rennur út innan `gluggi` sekúndna. BÆÐI mörk, og `until` verður að vera endanleg tala.
+ *  ⚠ Efra markið eitt og sér hleypti í gegn hverju sem EKKI er langt í framtíðinni úr stöðnaðri mynd —
+ *    þar á meðal áskrift útrunninni fyrir tíu dögum, og `until: undefined` slapp sömu leið (`NaN > x`
+ *    er líka ósatt).
+ *  ⚠⚠ EIN uppspretta: „endurnýjast"-flísin í ./elin.mjs telur með SAMA falli. Afriti hún regluna reka
+ *     talan á flísinni og fjöldi „bíður þín"-raðanna í sundur við fyrstu breytingu — og þá segir
+ *     spjaldið „3 innan viku" meðan hólfið fyrir ofan sýnir tvær raðir, á sama skjá. */
+export const rennurUtInnan = (r, nu, gluggi) => {
+  const until = Number(r && r.until);
+  return Number.isFinite(until) && until > nu && until <= nu + gluggi;
+};
 
 function rod(starfsmadur, tegund, titill, vidbot, sidan, slod) {
   return { starfsmadur, tegund, titill, vidbot: vidbot || '', sidan: Number(sidan) || 0, slod };
@@ -57,7 +71,7 @@ export function bidurThin({ tickets = {}, bilanir = [], now = 0, markads = null,
       if (t && t.malefni) ut.push(rod('bjarki', 'tillaga', 'Tillaga: ' + t.malefni, t.rok || '', nu, '#bjarki'));
     }
   }
-  // 💰 Fjármál: misræmi milli Áskels og réttinda, og áskriftir sem renna út innan viku. Þetta á heima
+  // 💰 Fjármál: misræmi milli Áskels og réttinda, tvírukkun, og áskriftir sem renna út innan viku. Þetta á heima
   //    HÉR en ekki inni í spjaldinu — annars sæi forstofan þær ekki og talan á andlitinu yrði núll.
   // ⚠ Full kennitala fer ALDREI í titil — fyrri hlutinn dugar til að þekkja manneskjuna.
   const fj = (fjarmal && typeof fjarmal === 'object' && fjarmal.fjarmal && typeof fjarmal.fjarmal === 'object') ? fjarmal.fjarmal : null;
@@ -90,13 +104,27 @@ export function bidurThin({ tickets = {}, bilanir = [], now = 0, markads = null,
       //   klst. Misræmi kostar peninga, ekki tíma — sbr. „sidan: nu" í lib/fjarmal.mjs.
       ut.push(rod('elin', m.tegund, t[0] + ': ' + grima(m.kt) + ' · ' + (m.vara || ''), t[1] + ' · ' + krT(m.verd) + ' kr/mán', nu, '#elin'));
     }
+    // 💸 Tvírukkun: sami viðskiptavinur borgar TVISVAR fyrir sömu vöru. Þetta er annars eðlis en
+    //    misræmi — misræmi er „við og Áskell erum ósammála", tvírukkun er „VIÐ ERUM AÐ RUKKA OF MIKIÐ",
+    //    peningar sem viðskiptavinurinn á inni hjá okkur. Orðalagið verður að segja það, annars leitar
+    //    lesandinn að röngum galla.
+    // ⚠⚠ Heildaryfirferð: reiturinn var reiknaður í ../fjarmal.mjs, geymdur og borinn út alla leið —
+    //    og LESINN HVERGI. Mælt gaf tvírukkaður viðskiptavinur „Áskell og réttindin stemma", núll
+    //    misræmi og núll raðir, með uppblásna MRR-tölu sem rétta.
+    // ⚠ Sían `samanburdurHeill` á EKKI við hér: tvírukkun er talin innan Áskels-listans EINS (tveir
+    //   samningar á sama kt+vöru, sjá `greidandi` í ../fjarmal.mjs) og snertir heimildalistann hvergi.
+    //   Bæði `d1_hluti` og `oaudkennt` gefa því FÆRRI tvírukkanir, aldrei uppspunnar — sömu rök og
+    //   halda `rennur_ut` inni hér að neðan.
+    for (const x of (Array.isArray(fj.tvirukkun) ? fj.tvirukkun : [])) {
+      if (!x) continue;
+      const fjoldi = Math.max(2, Number(x.fjoldi) || 2);
+      ut.push(rod('elin', 'tvirukkun', 'Tvírukkun: ' + grima(x.kt) + ' · ' + (x.vara || ''),
+        'við rukkum ' + fjoldi + ' sinnum fyrir sömu vöru · ' + krT(x.verd) + ' kr/mán alls', nu, '#elin'));
+    }
     for (const r of (Array.isArray(fj.rennurUt) ? fj.rennurUt : [])) {
-      if (!r) continue;
-      const until = Number(r.until);
-      // ⚠ Verk 4-yfirferð: BÆÐI mörk, og `until` verður að vera endanleg tala. Efra markið eitt og sér
-      //   hleypti í gegn hverju sem EKKI er langt í framtíðinni úr stöðnaðri mynd — þar á meðal áskrift
-      //   útrunnin fyrir tíu dögum, og `until: undefined` slapp sömu leið (`NaN > x` er líka ósatt).
-      if (!Number.isFinite(until) || until <= nu || until > nu + 7 * 86400) continue;   // mánuðurinn sést á spjaldinu, vikan bíður þín
+      // ⚠ Verk 4-yfirferð: BÆÐI mörk og endanleg tala — reglan sjálf býr í `rennurUtInnan` hér að ofan
+      //   svo spjaldið geti talið eftir NÁKVÆMLEGA sömu reglu. Mánuðurinn sést á spjaldinu, vikan bíður þín.
+      if (!rennurUtInnan(r, nu, VIKA_SEK)) continue;
       ut.push(rod('elin', 'rennur_ut', 'Rennur út: ' + grima(r.kt) + ' · ' + (r.vara || ''), 'innan viku', nu, '#elin'));
     }
   }

@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { elinGogn } from './elin.mjs';
+import { bidurThin } from './bidur_thin.mjs';
 
 const NU = Date.UTC(2026, 8, 16) / 1000;
 // ⚠ HREIÐRAÐ eins og raunsvarið. bjarkiGogn las `svar.error` þegar raunsvarið bar `svar.postiz.error`
@@ -92,34 +93,59 @@ test('rofinn skilar sér', () => {
 //   worker-inn segja það beint með sjálfstæðum reit, `f.verdrekMaelt` (Verk 2/3-lag, sett af
 //   `saekjaFjarmal`). Prófin hér mæla ÞANN reit — ekki `villa` — og sanna sérstaklega að hann ræður
 //   ÓHÁÐ því hvaða villukóði (ef nokkur) fylgir með.
-test('verdrekMaelt: false → verðrek-flísin sýnir óvíst, ÓHÁÐ villukóðanum — d1_hluti getur falið bilaða verðskrá', () => {
-  // ⚠ Þetta er nákvæmlega atriðið sem gamla ágiskunin missti af: villa er 'd1_hluti' (EKKI
-  //   'verdskra_hluti'), svo gamla skilyrðið (`f.villa === 'verdskra_hluti'`) hefði sýnt '0' hér þótt
-  //   verðskráin hafi líka brugðist samtímis D1.
-  const g = elinGogn(svar(heilt({ villa: 'd1_hluti', verdrekMaelt: false, verdrek: [] })), [], NU);
-  const flis = g.tolur.find((t) => t.l === 'verðrek');
-  assert.equal(flis.n, 'óvíst');
+// ── Heildaryfirferð, atriði 3: verðrekið flutti úr eigin flís yfir í `stada` ─────────────────────
+// ⚠⚠ Samþykkta hönnunin á fjórum flísum: MRR · misræmi · í fríprófun · ENDURNÝJAST. Áætlunin setti
+//    „verðrek" í fjórða sætið og endurnýjunar-flísin hvarf — áskrift sem rennur út eftir 20 daga sást
+//    þá HVERGI (forstofan þrengir í sjö daga). Verðrekið lifir áfram, en í `stada`-línunni.
+//    ⚠ `verdrekMaelt`-vörnin VERÐUR að lifa flutninginn af: hún er SJÁLFSTÆÐUR reitur frá worker-num
+//      og má ALDREI giskast af `villa` (endapunkturinn skilar aðeins EINUM kóða og `d1_hluti` þaggar
+//      `verdskra_hluti` þegar bæði brotna). Prófin hér mæla þann reit, ekki villukóðann.
+test('verðrek er EKKI lengur eigin flís — fjórða sætið tilheyrir endurnýjunum', () => {
+  const g = elinGogn(svar(heilt()), [], NU);
+  assert.deepEqual(g.tolur.map((t) => t.l), ['kr/mán rukkað', 'misræmi', 'í fríprófun', 'endurnýjast']);
 });
 
-test('verdrekMaelt: true → verðrek sýnir raunverulega tölu, LÍKA þegar d1_hluti er til staðar', () => {
+test('verdrekMaelt: false → staðan segir að verðrek sé ómælt, ÓHÁÐ villukóðanum — d1_hluti getur falið bilaða verðskrá', () => {
+  // ⚠ Þetta er nákvæmlega atriðið sem gamla ágiskunin missti af: villa er 'd1_hluti' (EKKI
+  //   'verdskra_hluti'), svo skilyrði á villukóðanum hefði sagt „0 verðrek" hér þótt verðskráin hafi
+  //   líka brugðist samtímis D1. Textinn fyrir `d1_hluti` nefnir verðskrána HVERGI, svo hefði vörnin
+  //   fallið í flutningnum hyrfi upplýsingin alveg.
+  const g = elinGogn(svar(heilt({ villa: 'd1_hluti', verdrekMaelt: false, verdrek: [] })), [], NU);
+  assert.match(g.stada, /verðrek ómælt/i);
+});
+
+test('verdrekMaelt: true → staðan telur verðrekið, LÍKA þegar d1_hluti er til staðar', () => {
   // ⚠ Hin hliðin: d1_hluti þýðir ekki alltaf að verðskráin hafi brugðist — stundum brotnar AÐEINS D1
   //   og verðskráin náðist fullkomlega. Talan á að sjást þá, ekki fela sig á bak við villukóða sem
   //   tilheyrir allt öðru gati.
   const g = elinGogn(svar(heilt({ villa: 'd1_hluti', verdrekMaelt: true, verdrek: [{ vara: 'kvoti', askell: 1000, fast: 9900 }] })), [], NU);
-  const flis = g.tolur.find((t) => t.l === 'verðrek');
-  assert.equal(flis.n, '1');
+  assert.match(g.stada, /1 verðrek/);
+  assert.doesNotMatch(g.stada, /ómælt/i);
 });
 
-test('verdrekMaelt vantar (t.d. eldra svarsnið) → verðrek-flísin sýnir óvíst, ekki 0 — sjálfgefið er varkárt', () => {
+test('verdrekMaelt vantar (t.d. eldra svarsnið) → staðan segir ómælt, ekki „ekkert verðrek" — sjálfgefið er varkárt', () => {
   const g = elinGogn(svar(heilt({ verdrekMaelt: undefined, verdrek: [] })), [], NU);
-  const flis = g.tolur.find((t) => t.l === 'verðrek');
-  assert.equal(flis.n, 'óvíst');
+  assert.match(g.stada, /verðrek ómælt/i);
 });
 
-test('verðrek sýnir raunverulega tölu þegar verðskráin náðist og engin villa er til staðar', () => {
+test('verðrek sést í stöðunni þegar verðskráin náðist og engin villa er til staðar', () => {
   const g = elinGogn(svar(heilt({ verdrek: [{ vara: 'kvoti', askell: 1000, fast: 9900 }] })), [], NU);
-  const flis = g.tolur.find((t) => t.l === 'verðrek');
-  assert.equal(flis.n, '1');
+  assert.match(g.stada, /1 verðrek/);
+});
+
+test('mælt verðrek sem er ENGIN — staðan þegir um það, hún fyllist ekki af núllum', () => {
+  // ⚠ Hin áttin: útfærsla sem hnýtti alltaf „0 verðrek" aftan við væri græn fyrir prófin hér að ofan.
+  const g = elinGogn(svar(heilt({ verdrekMaelt: true, verdrek: [] })), [], NU);
+  assert.doesNotMatch(g.stada, /verðrek/i);
+});
+
+test('óstilltur Áskell nefnir ekki verðrek — ekkert kall var gert, staðan segir það í heilu lagi', () => {
+  // ⚠ `unconfigured` og „`fjarmal` vantar alveg" eru sami flokkur: ENGIN mæling fór fram og staðan
+  //   segir það berum orðum. Að hnýta „verðrek ómælt" þar aftan við er hávaði, ekki upplýsing —
+  //   ólíkt `d1_hluti`, þar sem köll VORU gerð og verðskráin ein kann að hafa brugðist.
+  const g = elinGogn(svar({ ok: false, error: 'unconfigured' }), [], NU);
+  assert.doesNotMatch(g.stada, /verðrek/i);
+  assert.doesNotMatch(elinGogn({ ok: false, error: 'admin' }, [], NU).stada, /verðrek/i);
 });
 
 // ⚠⚠ Punktur 2 — KRÍTÍSKT: falli toppstigs-girðingin í worker/fjarmal.mjs (`admin`, `method`, `origin`,
@@ -290,10 +316,16 @@ const medGognum = (yfir = {}) => heilt(Object.assign({
     { tegund: 'gefins', kt: '2222222222', vara: 'kvoti', verd: 9900, sidan: NU },
   ],
   fripofanir: [{ kt: '3333333333', vara: 'fyrirtaeki', verd: 6900 }],
+  // ⚠ TVÖ stök og annað INNAN VIKU: undirlínan („z innan viku") er sjálfstæð fullyrðing frá tölunni
+  //   á flísinni og gæti annars haldið áfram að telja á villuleiðum meðan talan sjálf segir óvíst.
+  rennurUt: [{ kt: '4444444444', vara: 'fyrirtaeki', until: NU + 20 * 86400 }, { kt: '6666666666', vara: 'kvoti', until: NU + 3 * 86400 }],
+  // ⚠ Tvírukkun BER líka gögn: hún ratar í vinnslulistann eins og misræmin, svo „listinn er tómur"-
+  //   prófin hér að neðan yrðu tómleg fullyrðing um hana ef fylkið væri autt.
+  tvirukkun: [{ kt: '5555555555', vara: 'fyrirtaeki', fjoldi: 2, verd: 13800 }],
 }, yfir));
 
 const VILLULEIDIR = [
-  ['óstillt Áskell', { ok: false, error: 'unconfigured', misraemi: medGognum().misraemi, fripofanir: medGognum().fripofanir }],
+  ['óstillt Áskell', { ok: false, error: 'unconfigured', misraemi: medGognum().misraemi, fripofanir: medGognum().fripofanir, rennurUt: medGognum().rennurUt, tvirukkun: medGognum().tvirukkun }],
   ['villa: askell', medGognum({ villa: 'askell' })],
   ['villa: rofi', medGognum({ villa: 'rofi' })],
   ['villa: d1_hluti', medGognum({ villa: 'd1_hluti' })],
@@ -303,19 +335,33 @@ const VILLULEIDIR = [
 ];
 
 for (const [nafn, f] of VILLULEIDIR) {
-  test('villuleið „' + nafn + '": ALLAR þrjár talna-flísarnar segja óvíst, engin þeirra mælda tölu', () => {
+  test('villuleið „' + nafn + '": ALLAR FJÓRAR talna-flísarnar segja óvíst, engin þeirra mælda tölu', () => {
     const g = elinGogn(svar(f), [], NU);
-    for (const merki of ['kr/mán rukkað', 'misræmi', 'í fríprófun']) {
+    // ⚠ „endurnýjast" gengur í hópinn: hún hlítir sömu einu reglunni (`naest`) og hinar þrjár. Eina
+    //   undantekningin í spjaldinu er verðrekið, og hún á sér stoð í sjálfstæðum reit frá worker-num
+    //   (`verdrekMaelt`) — flís sem giskar á eigin áreiðanleika væri önnur gerð af sömu gildru.
+    for (const merki of ['kr/mán rukkað', 'misræmi', 'í fríprófun', 'endurnýjast']) {
       const flis = g.tolur.find((t) => t.l === merki);
       assert.equal(flis.n, 'óvíst', merki + ': tala sem var aldrei mæld má aldrei líta út eins og mæld tala');
     }
+    // ⚠ Undirlínurnar eru SJÁLFSTÆÐAR fullyrðingar frá tölunni fyrir ofan þær — flís sem segir „óvíst"
+    //   með „1 innan viku" undir sér er enn að fullyrða um mælingu sem fór aldrei fram.
+    for (const merki of ['misræmi', 'í fríprófun', 'endurnýjast']) {
+      assert.equal(g.tolur.find((t) => t.l === merki).s, '', merki + ': undirlínan má ekki telja það sem talan segir óvíst um');
+    }
   });
 
-  test('villuleið „' + nafn + '": vinnslulistinn er tómur — nafngreind misræmi eru fullyrðing', () => {
+  test('villuleið „' + nafn + '": vinnslulistinn er tómur — nafngreind misræmi OG tvírukkanir eru fullyrðing', () => {
     // ⚠ Flísin segir „óvíst" en vinnslulistinn nefndi samt fólk með upphæð. Það er verri fullyrðing
-    //   en talan: hún bendir á tiltekna manneskju og segir hvað hún skuldi.
+    //   en talan: hún bendir á tiltekna manneskju og segir hvað hún skuldi — eða hvað VIÐ skuldum henni.
     const g = elinGogn(svar(f), [], NU);
     assert.deepEqual(g.vinnsla, []);
+  });
+
+  test('villuleið „' + nafn + '": staðan fullyrðir hvorki um misræmi né tvírukkun', () => {
+    const g = elinGogn(svar(f), [], NU);
+    assert.doesNotMatch(g.stada, /tvírukk/i, 'talning úr mynd sem mældist ekki er ekki mæling');
+    assert.doesNotMatch(g.stada, /stemma/i);
   });
 }
 
@@ -324,7 +370,10 @@ test('mælt svar heldur ÁFRAM að sýna tölur og vinnslulista — óvissan má
   const g = elinGogn(svar(medGognum()), [], NU);
   assert.equal(g.tolur.find((t) => t.l === 'misræmi').n, '2');
   assert.equal(g.tolur.find((t) => t.l === 'í fríprófun').n, '1');
-  assert.equal(g.vinnsla.length, 2);
+  assert.equal(g.tolur.find((t) => t.l === 'endurnýjast').n, '2');
+  assert.equal(g.tolur.find((t) => t.l === 'endurnýjast').s, '1 innan viku');
+  assert.equal(g.vinnsla.length, 3, 'tvö misræmi + ein tvírukkun');
+  assert.match(g.stada, /1 tvírukkun/);
 });
 
 test('staðan segir ALDREI „stemma" þegar virkt stak mældist ekki', () => {
@@ -333,6 +382,124 @@ test('staðan segir ALDREI „stemma" þegar virkt stak mældist ekki', () => {
   //   grænt ljós á mælingu sem fór aldrei fram.
   const g = elinGogn(svar(heilt({ mrrAskellOvisst: true })), [], NU);
   assert.doesNotMatch(g.stada, /stemma/i);
+});
+
+// ── Heildaryfirferð, atriði 1: tvírukkun sást hvergi á spjaldinu ────────────────────────────────
+// ⚠⚠ Mælt: viðskiptavinur sem er rukkaður TVISVAR fyrir sömu vöru gaf `stada` „Áskell og réttindin
+//    stemma" og núll misræmi. Tvírukkun er ekki „við og Áskell erum ósammála" heldur „VIÐ ERUM AÐ
+//    RUKKA OF MIKIГ — peningar sem viðskiptavinurinn á inni hjá okkur. Grænt ljós yfir því er verra
+//    en engin fyrirsögn.
+const tvirStak = (kt, fjoldi = 2, verd = 13800) => ({ kt, vara: 'fyrirtaeki', fjoldi, verd });
+
+test('staðan segir ALDREI „stemma" þegar við erum að tvírukka', () => {
+  const g = elinGogn(svar(heilt({ tvirukkun: [tvirStak('1111111111')] })), [], NU);
+  assert.doesNotMatch(g.stada, /stemma/i, '„stemma" yfir tvírukkun er grænt ljós á peningum sem við skuldum');
+});
+
+test('staðan telur tvírukkanirnar og segir hver rukkar of mikið', () => {
+  const g = elinGogn(svar(heilt({ tvirukkun: [tvirStak('1111111111'), tvirStak('2222222222')] })), [], NU);
+  assert.match(g.stada, /2 tvírukkanir/);
+  assert.match(g.stada, /of mikið/i, 'orðalagið verður að segja að VIÐ rukkum of mikið, ekki að listarnir séu ósammála');
+});
+
+test('ein tvírukkun beygist rétt — „1 tvírukkun", ekki „1 tvírukkanir"', () => {
+  const g = elinGogn(svar(heilt({ tvirukkun: [tvirStak('1111111111')] })), [], NU);
+  assert.match(g.stada, /1 tvírukkun(?!ir)/);
+});
+
+test('misræmi OG tvírukkun sjást bæði í stöðunni — hvorugt étur hitt', () => {
+  const g = elinGogn(svar(heilt({
+    misraemi: [{ tegund: 'gefins', kt: '1111111111', vara: 'kvoti', verd: 9900, sidan: NU }],
+    tvirukkun: [tvirStak('2222222222')],
+  })), [], NU);
+  assert.match(g.stada, /1 misræmi/);
+  assert.match(g.stada, /1 tvírukkun/);
+});
+
+test('engin tvírukkun → staðan nefnir hana ekki (hin áttin)', () => {
+  const g = elinGogn(svar(heilt({ tvirukkun: [] })), [], NU);
+  assert.doesNotMatch(g.stada, /tvírukk/i);
+  assert.match(g.stada, /stemma/i);
+  // ⚠ Stökkbreytingapróf: „stemma"-leggurinn EINN dugar ekki. Sé tvírukkunartextinn smíðaður líka
+  //   þegar fjöldinn er núll („0 tvírukkanir") er hann ósýnilegur á þeim legg — en hnýtist beint inn
+  //   um leið og eitt einasta misræmi finnst. Leggurinn MEÐ misræmi verður því að mælast líka.
+  const medMisraemi = elinGogn(svar(heilt({ misraemi: [{ tegund: 'gefins', kt: '1111111111', vara: 'kvoti', verd: 100, sidan: NU }], tvirukkun: [] })), [], NU);
+  assert.match(medMisraemi.stada, /1 misræmi/);
+  assert.doesNotMatch(medMisraemi.stada, /tvírukk/i, '„0 tvírukkanir" er ekki upplýsing — staðan fyllist ekki af núllum');
+});
+
+test('tvírukkunin fær nafngreinda línu í vinnslulistanum, ekki bara tölu í stöðunni', () => {
+  // ⚠ Talan segir hve margar; línan segir HVER og HVE MIKIÐ — það er munurinn á mælingu og
+  //   einhverju sem hægt er að vinna með.
+  const g = elinGogn(svar(heilt({ tvirukkun: [tvirStak('1234567890', 2, 13800)] })), [], NU);
+  assert.equal(g.vinnsla.length, 1);
+  assert.match(g.vinnsla[0].texti, /123456-••••/);
+  assert.match(g.vinnsla[0].texti, /rukkað 2 sinnum/);
+  assert.match(g.vinnsla[0].texti, /13\.800/);
+  assert.ok(!g.vinnsla[0].texti.includes('1234567890'), 'full kennitala fer ALDREI í viðmótið');
+});
+
+test('tvírukkun og misræmi raðast saman eftir PENINGUM í vinnslulistanum', () => {
+  const g = elinGogn(svar(heilt({
+    misraemi: [{ tegund: 'gefins', kt: '1111111111', vara: 'kvoti', verd: 1000, sidan: NU }],
+    tvirukkun: [tvirStak('2222222222', 2, 99000)],
+  })), [], NU);
+  assert.equal(g.vinnsla.length, 2);
+  assert.match(g.vinnsla[0].texti, /99\.000/, 'dýrasta stakið er efst, hvorrar tegundar sem það er');
+});
+
+test('tvírukkun er ALDREI talin þegar ekkert var mælt — óvissan gildir hana eins og hinar tölurnar', () => {
+  const g = elinGogn(svar(heilt({ villa: 'askell', tvirukkun: [tvirStak('1111111111')] })), [], NU);
+  assert.doesNotMatch(g.stada, /tvírukk/i, 'stöðnuð mynd má ekki fullyrða um tvírukkun sem enginn mældi núna');
+});
+
+// ── Heildaryfirferð, atriði 3: „endurnýjast"-flísin úr samþykktu hönnuninni ──────────────────────
+// ⚠⚠ Mælt gat: áskrift sem rennur út eftir 20 daga sást HVERGI — hvorki á spjaldi né forstofu, því
+//    `bidur_thin` þrengir vísvitandi í sjö daga. Spjaldið svaraði aldrei spurningunni „hvað
+//    endurnýjast í þessum mánuði", sem var ein af fjórum ástæðum þess að það var byggt.
+const rUt = (kt, dagar) => ({ kt, vara: 'fyrirtaeki', until: NU + dagar * 86400 });
+
+test('áskrift sem rennur út eftir 20 daga SÉST á spjaldinu — hún sést hvergi annars staðar', () => {
+  const g = elinGogn(svar(heilt({ rennurUt: [rUt('1111111111', 20)] })), [], NU);
+  const flis = g.tolur.find((t) => t.l === 'endurnýjast');
+  assert.equal(flis.n, '1');
+});
+
+test('endurnýjast-flísin telur allt innan 30 daga, undirlínan aðeins vikuna', () => {
+  const g = elinGogn(svar(heilt({ rennurUt: [rUt('1111111111', 2), rUt('2222222222', 5), rUt('3333333333', 20)] })), [], NU);
+  const flis = g.tolur.find((t) => t.l === 'endurnýjast');
+  assert.equal(flis.n, '3');
+  assert.match(flis.s, /2 innan viku/);
+});
+
+test('enginn innan viku → undirlínan þegir, hún segir ekki „0 innan viku"', () => {
+  const g = elinGogn(svar(heilt({ rennurUt: [rUt('1111111111', 20)] })), [], NU);
+  assert.equal(g.tolur.find((t) => t.l === 'endurnýjast').s, '');
+});
+
+test('áskrift sem er ÞEGAR útrunnin telst ekki „endurnýjast" — stöðnuð mynd ber gamlar dagsetningar', () => {
+  // ⚠ Sama gildra og `bidur_thin` lokaði fyrir vikugluggann: geymda myndin er allt að 15 mín gömul
+  //   (_FJ_FYRNING) og getur í stöðnuðu tilviki verið mun eldri, svo `until` úr henni má vera liðið.
+  const g = elinGogn(svar(heilt({ rennurUt: [rUt('1111111111', -3), rUt('2222222222', 10)] })), [], NU);
+  assert.equal(g.tolur.find((t) => t.l === 'endurnýjast').n, '1');
+});
+
+test('rennurUt-stak án dagsetningar telst hvorki með í flísinni né í vikunni', () => {
+  const g = elinGogn(svar(heilt({ rennurUt: [{ kt: '1111111111', vara: 'kvoti', until: undefined }] })), [], NU);
+  const flis = g.tolur.find((t) => t.l === 'endurnýjast');
+  assert.equal(flis.n, '0');
+  assert.equal(flis.s, '');
+});
+
+test('endurnýjast-talan og „bíður þín"-raðirnar eru EIN uppspretta — þær reka ekki í sundur', () => {
+  // ⚠ Segði flísin „3 innan viku" meðan Bíður-þín-hólfið sýnir tvær raðir væri spjaldið ósamkvæmt
+  //   sjálfu sér á sama skjá. Báðar hliðar nota `rennurUtInnan` úr bidur_thin.mjs.
+  const rad = [rUt('1111111111', 2), rUt('2222222222', 5), rUt('3333333333', 20), rUt('4444444444', -1)];
+  const fj = { fjarmal: heilt({ rennurUt: rad }) };
+  const bidur = bidurThin({ now: NU, fjarmal: fj });
+  const g = elinGogn(svar(heilt({ rennurUt: rad })), bidur, NU);
+  const flis = g.tolur.find((t) => t.l === 'endurnýjast');
+  assert.match(flis.s, new RegExp(bidur.filter((x) => x.tegund === 'rennur_ut').length + ' innan viku'));
 });
 
 test('misræmis-sundurliðunin víxlast ekki þegar fjöldi tegundanna er ÓLÍKUR', () => {

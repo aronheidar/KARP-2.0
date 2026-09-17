@@ -413,6 +413,7 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       // ekki hverfa þegjandi undir höndum notandans, svo innihaldið er geymt yfir endurteikninguna.
       const gamaltVerk = id === 'hrafn' && $('stj-verk') ? $('stj-verk').value : '';
       const gamaltBjarkaVerk = id === 'bjarki' && $('stj-bjarki-verk') ? $('stj-bjarki-verk').value : '';
+      const gamaltElinVerk = id === 'elin' && $('stj-elin-verk') ? $('stj-elin-verk').value : '';
       $('stj-spjald').innerHTML = '<a class="stj-tilbaka" href="#">← Forstofa</a>'
         + spjald(Object.assign({ id, nafn: p.nafn, hlutverk: p.hlutverk, avatar: avatarSvg(id, { size: 64 }) }, gogn))
         + (id === 'sigrun' ? '<div id="stj-spjald-tix"></div>' : '');
@@ -467,6 +468,55 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
           $('stj-bjarki-send').disabled = false;
           $('stj-bjarki-svar').textContent = r && r.ok ? 'Framleiðsla ræst — birtist í safninu þegar hún skilar.'
             : r && r.dispatch && r.dispatch.error === 'rofi' ? 'Slökkt er á Bjarka.' : 'Villa — reyndu aftur.';
+        };
+      }
+      // 💰 Elín: aðgerðirnar tvær sem endapunkturinn (worker/fjarmal.mjs) hvítalistar — `saekja` og
+      //    `hrafn`. Báðar voru útfærðar og prófaðar en HVORUG tengd, meðan spjaldið lofaði í
+      //    `heimildir` að hún „sækir ferskt þegar þú biður um það" og „réttir Hrafni misræmi".
+      // ⚠⚠ ELÍN HREYFIR ALDREI PENINGA. Hvorugur hnappurinn hreyfir krónu: annar les, hinn réttir
+      //    Hrafni verkefni sem bíður samþykkis Arons. Bættu ALDREI við þriðja hnappi sem gerir annað.
+      if (id === 'elin') {
+        const elinHtml = '<section class="stj-hola"><h3>Samanburður við Áskel</h3>'
+          + '<p class="stj-note" style="margin:0 0 8px">Sækir samninga og verðskrá beint úr Áskeli og ber saman við réttindin í D1. Les aðeins — engin greiðsla, engin uppsögn.</p>'
+          + '<button type="button" class="stj-btn" id="stj-elin-saekja">🔄 Sækja ferskt úr Áskeli</button>'
+          + '<span class="stj-note" id="stj-elin-saekja-svar"></span></section>'
+          + '<section class="stj-hola"><h3>Rétta Hrafni misræmi</h3>'
+          + '<p class="stj-note" style="margin:0 0 8px">Elín lagar ekkert sjálf. Textinn fer óbreyttur til Hrafns sem CTO-verkefni; hann skrifar lagfæringuna og skilar PR sem bíður samþykkis þíns áður en nokkuð fer í loftið.</p>'
+          + '<textarea id="stj-elin-verk" rows="2" placeholder="T.d. kt 123456 borgar fyrir kvota í Áskeli en sub_service-röðin vantar — finndu hvar hún týndist og lagaðu"></textarea>'
+          + '<button type="button" class="stj-btn" id="stj-elin-send">🛠️ Senda verkefnið á Hrafn</button>'
+          + '<span class="stj-note" id="stj-elin-svar"></span></section>';
+        $('stj-spjald').insertAdjacentHTML('beforeend', elinHtml);
+        $('stj-elin-saekja').onclick = async () => {
+          $('stj-elin-saekja').disabled = true;
+          $('stj-elin-saekja-svar').textContent = 'Sæki…';
+          const r = await fetch('/api/admin/fjarmal', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'saekja' }) }).then((x) => x.json()).catch(() => null);
+          // ⚠⚠ Villan er HREIÐRUÐ: endapunkturinn skilar `{ ok:true, fjarmal, rofi }` og setur
+          //    `error`/`villa` INNI Í `fjarmal`. Að lesa `r.ok` eitt og sér segði „Sótt." yfir svari
+          //    sem náði engu — sama gildra og felldi `bjarkiGogn` og `elinGogn` einu lagi ofar.
+          const fj = (r && r.ok && r.fjarmal && typeof r.fjarmal === 'object') ? r.fjarmal : null;
+          const skilabod = !r || !r.ok ? (r && r.error === 'rofi' ? 'Slökkt er á Elínu.' : 'Villa — reyndu aftur.')
+            : !fj ? 'Villa — reyndu aftur.'
+              : fj.error === 'unconfigured' ? 'Áskell er óstilltur — engan lykil að finna.'
+                : fj.villa ? 'Sótt, en ekki allt náðist — sjá stöðuna efst á spjaldinu.'
+                  : 'Sótt.';
+          // ⚠ `boot()` endurteiknar spjaldið (og forstofuna) og þurrkar þar með út þennan reit —
+          //   skilaboðin verða því að fara inn Á EFTIR, í reitinn sem endurteikningin bjó til.
+          if (r && r.ok) await boot();
+          const reitur = $('stj-elin-saekja-svar'); if (reitur) reitur.textContent = skilabod;
+          const hnappur = $('stj-elin-saekja'); if (hnappur) hnappur.disabled = false;
+        };
+        if (gamaltElinVerk) $('stj-elin-verk').value = gamaltElinVerk;
+        $('stj-elin-send').onclick = async () => {
+          const verk = $('stj-elin-verk').value.trim();
+          if (verk.length < 10) { $('stj-elin-svar').textContent = 'Lýstu verkefninu aðeins nánar.'; return; }
+          $('stj-elin-send').disabled = true;
+          const r = await fetch('/api/admin/fjarmal', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'hrafn', verk }) }).then((x) => x.json()).catch(() => null);
+          $('stj-elin-send').disabled = false;
+          $('stj-elin-svar').textContent = r && r.ok ? 'Komið til Hrafns — PR birtist á spjaldi hans og bíður samþykkis þíns.'
+            : r && r.error === 'rofi' ? 'Slökkt er á Elínu.'
+              : r && r.error === 'lota' ? 'Lotan er útrunnin — skráðu þig inn aftur.'
+                : r && r.error === 'verk' ? 'Lýstu verkefninu aðeins nánar.'
+                  : r && r.error === 'dispatch' ? 'Náði ekki að ræsa keyrsluna — reyndu aftur.' : 'Villa — reyndu aftur.';
         };
       }
     }
