@@ -6,6 +6,7 @@ import { pendingBarHtml, pollUntilChanged } from './report-nav.js';
 import { escF, ktFmt } from './snid.mjs';
 import { felagHref } from './fyrirtaeki-slod.mjs';
 import { takn } from './takn.mjs';   // hústákn (SVG, currentColor) í stað emojí á aðgerðahnöppum — afvélvæðing 13.9.2026
+import { sameinaStjornendur, ASTAEDA_TEXTI } from './stjornendur.mjs';   // byggð stjórn = grunnur, lifandi tengslanet auðgar (17.9.2026)
 
 const eigPctFmt = (n) => (n == null ? '—' : Number(n).toFixed(2).replace('.', ',') + '%');
 const eigNorm = (s) => String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zðþæ\s]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -157,27 +158,46 @@ function eigReport(rep, kt, ctx) {
     + eigSources(rep)
     + '</div>';
 }
-// 🪑 Stjórnendatengsl (F10) — lifandi úr /api/tengslanet (RSK opinbert API): stjórn/framkvæmdastjórn/
-// prókúra rótarinnar + í hvaða ÖÐRUM félögum innan eignarhaldsnetsins sama fólk gegnir hlutverkum.
-// Null-þolið: hólfið er einfaldlega tómt ef endapunkturinn svarar ekki / er unconfigured.
+// 🪑 Stjórnendatengsl (F10) — TVÆR uppsprettur, byggð skrá sem grunnur og lifandi kall sem auðgun.
+//
+// ⚠⚠ 17.9.2026. Hér stóð áður EINGÖNGU `/api/tengslanet`, sem fer á gjaldskylda RSK-vefþjónustu.
+// Þegar áskriftarlykillinn fór að skila 403 féll kallið og fallið skilaði sér þegjandi út á fyrstu
+// línu — engin fyrirsögn, engin skilaboð. Skýrslan leit út eins og félagið ætti enga stjórn, og
+// það stóð þannig dögum saman án þess að nokkuð léti vita. Á meðan lá stjórnin fullbyggð í
+// gogn/stjorn/<kt>.json, byggð samdægurs af ókeypis skrapinu sem snertir lykilinn ekki.
+//
+// Reglan núna: byggða skráin ber hólfið uppi, lifandi kallið bætir aðeins við hlutverkum í ÖÐRUM
+// félögum. Og fjarvera er sögð berum orðum í stað þess að hverfa — sjá `krossVantar`. Rökvísin
+// sjálf er í ./stjornendur.mjs og er einingaprófuð.
 async function eigStjornir(rootKt) {
   const holf = document.getElementById('eig-stjornir');
   if (!holf || !rootKt) return;
+  const sott = (u) => fetch(u, { cache: 'no-store', credentials: 'include' }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
   try {
-    const d = await fetch('/api/tengslanet?kt=' + encodeURIComponent(rootKt), { cache: 'no-store', credentials: 'include' }).then((r) => (r.ok ? r.json() : null));
-    if (!d || !d.holdur || !(d.stjornendur || []).length) return;
-    const rows = d.stjornendur.map((p) => {
-      const onnur = (p.onnur || []).map((o) =>
+    const [byggd, lifandi] = await Promise.all([
+      sott('/gogn/stjorn/' + encodeURIComponent(rootKt) + '.json'),
+      sott('/api/tengslanet?kt=' + encodeURIComponent(rootKt)),
+    ]);
+    const m = sameinaStjornendur(byggd && byggd.engin ? null : byggd, lifandi);
+    if (!m.rows.length) return;   // hvorug uppspretta skilaði fólki → ekkert að sýna
+    const rows = m.rows.map((p) => {
+      const onnur = p.onnur.map((o) =>
         '<a href="' + escF(felagHref(o.kt)) + '">' + escF(o.nafn) + ' <em>' + escF(o.hlutverk || '') + '</em></a>').join('');
-      return '<div class="eig-stj-r"><span class="eig-stj-p">' + escF(p.nafn) + '<br><span class="eig-stj-h">' + escF((p.hlutverk_rot || []).join(' · ')) + '</span></span>'
-        + '<span class="eig-stj-c">' + (onnur || '<span class="eig-stj-h">engin önnur hlutverk fundin innan netsins</span>') + '</span></div>';
+      // ⚠ „engin önnur hlutverk" má AÐEINS standa þegar við leituðum í raun. Vanti auðgunin er
+      //   svarið „vitum ekki", ekki núll. Þar lá upphaflega villan.
+      const hægri = onnur || '<span class="eig-stj-h">' + (m.krossVantar ? 'liggur ekki fyrir' : 'engin önnur hlutverk fundin innan netsins') + '</span>';
+      return '<div class="eig-stj-r"><span class="eig-stj-p">' + escF(p.nafn) + '<br><span class="eig-stj-h">' + escF(p.hlutverk.join(' · ')) + '</span></span>'
+        + '<span class="eig-stj-c">' + hægri + '</span></div>';
     }).join('');
-    const krossar = (d.krossar || []).length
-      ? '<p class="eig-cap" style="margin-top:10px"><b>Krosstengsl:</b> ' + d.krossar.map((p) => escF(p.nafn) + ' (' + (p.felog || []).map((f) => escF(f.nafn)).join(', ') + ')').join('; ') + '</p>'
+    const krossar = m.krossar.length
+      ? '<p class="eig-cap" style="margin-top:10px"><b>Krosstengsl:</b> ' + m.krossar.map((p) => escF(p.nafn) + ' (' + (p.felog || []).map((f) => escF(f.nafn)).join(', ') + ')').join('; ') + '</p>'
       : '';
+    const cap = m.krossVantar
+      ? '<p class="eig-cap"><b>Fyrirsvarsmenn félagsins</b> samkvæmt gjaldfrjálsu yfirliti fyrirtækjaskrár Skattsins. ' + escF(ASTAEDA_TEXTI[m.astaeda] || '') + '</p>'
+      : '<p class="eig-cap">Fyrirsvarsmenn félagsins og hlutverk sama fólks í öðrum félögum <b>innan greinds eignarhaldsnets</b> (' + (m.n_felog || 1) + ' félög skoðuð) — beint úr opinberu API fyrirtækjaskrár Skattsins. Samsvörun er nákvæm (kennitölu-byggð hjá Skattinum) en birt án kennitalna einstaklinga.</p>';
+    const fr = m.firmaritun ? '<p class="eig-cap" style="margin-top:6px"><b>Firmað rita:</b> ' + escF(m.firmaritun) + '</p>' : '';
     holf.innerHTML = '<h4 class="eig-sec">Stjórnendatengsl — stjórn, framkvæmdastjórn og prókúra</h4>'
-      + '<p class="eig-cap">Fyrirsvarsmenn félagsins og hlutverk sama fólks í öðrum félögum <b>innan greinds eignarhaldsnets</b> (' + (d.n_felog || 1) + ' félög skoðuð) — beint úr opinberu API fyrirtækjaskrár Skattsins. Samsvörun er nákvæm (kennitölu-byggð hjá Skattinum) en birt án kennitalna einstaklinga.</p>'
-      + '<div class="eig-stj">' + rows + '</div>' + krossar;
+      + cap + '<div class="eig-stj">' + rows + '</div>' + fr + krossar;
   } catch (e) {}
 }
 // 🕸️ Tengslakortið — eina myndræna netið (engir flipar). Einingin sjálf er áfram lazy-import

@@ -13,7 +13,8 @@ import { accountId, tierFields } from './src/lib/account.mjs';   // firma-accoun
 import { EMAIL_TYPES, resolveEmail, renderEmail, validateEmail } from './src/lib/emails.mjs';   // póst-sniðmát: skrá + yfirskriftir stjórnanda
 import { matchItem, matchKeyword, matchNews, feedFor, newSince, ALL_SECTORS, matchRaeda } from './src/lib/lobbyvakt.mjs';   // Lobbývakt — hrein rökvél (síun/röðun/nýtt-síðan/taxonomy) + matchNews (efnisvakt-fréttir)
 import { byggMatch, rankMovement, ratingMovement, criticalDrop, criticalNotice, noticeRef } from './src/lib/vaktir-signals.mjs';   // Byggingar-vöktun + greina-vöktun + einkunn-átt + strax-viðvaranir (eftirlit/gjaldþrot)
-import { sectorsFromMap, herfindahl, toppNShare, sectorForIsat } from './src/lib/atvinnugrein.mjs';   // Atvinnugreinar v1 — hrein rökvél (hópun map→greinar, HHI, topp-N) + sectorForIsat (grein-rank)
+import { sectorsFromMap, herfindahl, toppNShare, sectorForIsat } from './src/lib/atvinnugrein.mjs';
+import { GOGN_GATT_MYNSTUR, gognGattLyklar } from './src/lib/gogn-gatt.mjs';   // greiðsluveggur + PII-vörn á /gogn/{eigendur,arsreikningar,stjorn}/<kt>.json   // Atvinnugreinar v1 — hrein rökvél (hópun map→greinar, HHI, topp-N) + sectorForIsat (grein-rank)
 import { leikurHandler, leikurAsyncCron } from '../src/lib/leikur/server.mjs';   // RÁS-Leikurinn (kennsluleikur) — /api/leikur/* + async-cron
 import { postVerkOll } from '../src/lib/leikur/postur.mjs';                      // cron-skil → póst-verk (hrein modúla, hvítlistuð)
 import { _ajson, _b64u, _cdata, _dget, _emailOvSet, _emailTpl, _esc, _fjson, _fromB64, _hmac, _te, _tokenHex, ddmmyyyy, erLogadili, htmlEsc, isoDate, ktSep, repAll, sendGmail, sjson } from './src/worker/felag.mjs';
@@ -1980,10 +1981,18 @@ async function fyrirtaekiHandler(request, env, ctx) {
   if (!out) return sjson({ error: 'upstream' });
   // ── Auðgun úr OPINBERA RSK-API-inu (Fasi 2a) — API aðal, skrap heldur sínu ef API tómt/óvirkt.
   // felag.rsk = fullur hreinsaður hlutur (afskraning/gjaldþrot, hlutafé, tengsl…). Overlay á lykilreiti.
+  // ⚠⚠ AUÐGUNIN GETUR FALLIÐ ÁN ÞESS AÐ NOKKUR TAKI EFTIR. 17.9.2026 fór RSK-áskriftin að skila 403 á
+  // öll köll. Þá heldur skrapið sínu, sem er rétt, EN skýrslan missir Í ÞÖGN reitinn `afskraning`
+  // (gjaldþrot og afskráning með dagsetningu), opinbera stöðu, félagsform, hlutafé og undirskriftarreglu.
+  // Gjaldþrotareiturinn fer inn í áreiðanleikamatið sem er selt aðilum með skyldur skv. lögum 140/2018,
+  // og lesandi les fjarveru sem staðfestingu á því að ekkert sé skráð. Skýrsla sem sleppir gjaldþroti
+  // þegjandi er því verri en engin skýrsla. Fjarveran er nú MERKT svo hún verði sögð berum orðum.
+  let rskVantar = null;
   if (out.felag && /^\d{10}$/.test(out.felag.kt || kt)) {
     try {
       const rr = await rskHandler(new Request('https://k.internal/api/rsk?kt=' + (out.felag.kt || kt)), env, ctx);
       const rd = await rr.json().catch(() => null);
+      if (!rd || !rd.holdur) rskVantar = { astaeda: (rd && rd.unconfigured) ? 'ostillt' : 'svarar_ekki', status: (rd && rd.status) || null };
       if (rd && rd.holdur) {
         const f = out.felag;
         f.rsk = rd;
@@ -1996,11 +2005,15 @@ async function fyrirtaekiHandler(request, env, ctx) {
         if (rd.atkvaedi) f.atkvaedi = rd.atkvaedi;
         if (Array.isArray(rd.tengsl) && rd.tengsl.length) f.fyrirsvar = rd.tengsl;   // structured fyrirsvar (aðal)
       }
-    } catch (e) {}
+    } catch (e) { rskVantar = { astaeda: 'svarar_ekki', status: null }; }
   }
+  if (rskVantar && out.felag) out.felag.rskVantar = rskVantar;
+  // ⚠ Óauðgað svar má EKKI liggja í 24 klst. Annars lifir gatið heilan sólarhring eftir að RSK kemur
+  //   aftur og enginn áttar sig á að lagfæringin skilaði sér ekki. Stutt TTL læknar sig sjálft.
+  const audgTtl = rskVantar ? 600 : 86400;
   res = new Response(JSON.stringify(out), {
     status: 200,
-    headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=86400' },
+    headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=' + audgTtl },
   });
   ctx.waitUntil(cache.put(cacheKey, res.clone()));
   return res;
@@ -3128,17 +3141,24 @@ export default {
     // Aðeins admin eða notandi með reports_granted fyrir viðkomandi skýrslu (nákvæm spegilmynd client-paywall/hasReport).
     // Sýnishorn (_synishorn.json + ?syni hardkóðað) og SSR-forskoðun (karp.internal-undirbeiðnir) fara EKKI hér um.
     {
-      const gm = url.pathname.match(/^\/gogn\/(eigendur|arsreikningar|stjorn)\/(\d{6,10})\.json$/);
+      const gm = url.pathname.match(GOGN_GATT_MYNSTUR);
       if (gm) {
-        const gkey = gm[1] === 'eigendur' ? 'eigendur:' + gm[2] : 'fyrirtaeki:' + gm[2];
-        const guid = await readSession(env, request);
+        // ⚠ null = óþekkt tegund → HAFNA. Tómur listi mætti aldrei koma hingað (sjá gogn-gatt.mjs).
+        const gkeys = gognGattLyklar(gm[1], gm[2]);
+        const guid = gkeys ? await readSession(env, request) : null;
         let gok = false;
         if (guid && env.TENGSL) {
           const gu = await env.TENGSL.prepare('SELECT id, is_admin, parent_account_id, free_access FROM users WHERE id=?').bind(guid).first().catch(() => null);
           if (_freeAll(gu)) gok = true;
-          else if (await env.TENGSL.prepare('SELECT 1 FROM reports_granted WHERE user_id=? AND report_key=?').bind(accountId(gu) || guid, gkey).first().catch(() => null)) gok = true;   // account-heimild (accountId eiganda)
+          else {
+            // OR-samband: ein heimild nægir. `stjorn` tekur bæði fyrirtækja- og eigendaskýrsluna.
+            const gacct = accountId(gu) || guid;
+            for (const gk of gkeys) {
+              if (await env.TENGSL.prepare('SELECT 1 FROM reports_granted WHERE user_id=? AND report_key=?').bind(gacct, gk).first().catch(() => null)) { gok = true; break; }
+            }
+          }
         }
-        if (!gok) return new Response(JSON.stringify({ error: 'locked', key: gkey }), { status: 403, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'private, no-store' } });
+        if (!gok) return new Response(JSON.stringify({ error: 'locked', key: (gkeys && gkeys[0]) || null }), { status: 403, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'private, no-store' } });
         const gres = await env.ASSETS.fetch(request);
         const gh = new Headers(gres.headers); gh.set('cache-control', 'private, no-store');
         return new Response(gres.body, { status: gres.status, headers: gh });
