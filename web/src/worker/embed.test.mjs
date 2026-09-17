@@ -60,3 +60,27 @@ test('D1 niðri fellir ekki gluggann — talning er aukaatriði, matið er aðal
 test('uppsprettulistinn er lokaður listi', () => {
   assert.deepEqual(EMBED_LEN, ['allt']);
 });
+
+// ── Rammalásinn ─────────────────────────────────────────────────────────────
+import { embedSidaHandler } from './embed.mjs';
+
+const mkAssets = () => ({ fetch: async () => new Response('<html>gluggi</html>', { headers: { 'content-type': 'text/html', 'x-frame-options': 'SAMEORIGIN' } }) });
+
+test('⚠⚠ X-Frame-Options er FJARLÆGT — annars opnast glugginn aldrei hjá Allt', async () => {
+  const r = await embedSidaHandler(new Request('https://karp.is/embed/verdmat/'), { ASSETS: mkAssets() });
+  assert.equal(r.headers.get('x-frame-options'), null);
+});
+
+test('frame-ancestors hleypir Allt inn og engum öðrum', async () => {
+  const r = await embedSidaHandler(new Request('https://karp.is/embed/verdmat/'), { ASSETS: mkAssets() });
+  const csp = r.headers.get('content-security-policy');
+  assert.match(csp, /frame-ancestors/);
+  assert.match(csp, /https:\/\/allt\.is/);
+  assert.match(csp, /https:\/\/www\.allt\.is/);
+  assert.equal(/frame-ancestors[^;]*\*/.test(csp), false, 'aldrei stjörnumerki í frame-ancestors');
+});
+
+test('aðrar leiðir fara ÓSNERTAR áfram — undantekningin nær aðeins til /embed/', async () => {
+  const r = await embedSidaHandler(new Request('https://karp.is/fasteignavakt/'), { ASSETS: mkAssets() });
+  assert.equal(r, null);
+});
