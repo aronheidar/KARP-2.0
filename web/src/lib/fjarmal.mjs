@@ -78,41 +78,114 @@ export function samstemma({ samningar = [], heimildir = [], verdskra = {}, now =
   const sList = (Array.isArray(samningar) ? samningar : []).filter((c) => c && VIRK(c.state));
   const hList = (Array.isArray(heimildir) ? heimildir : []).filter((h) => h && Number(h.until) > nu);
 
-  // ⚠⚠ Lykill = kt + vara, en hann SAFNAR — hann yfirskrifar ekki. `Map.set` lét þann samning sem kom
-  //    síðast vinna, svo sömu gögn í öfugri röð gáfu ólíka `mrrAskell`: helmingur upphæðar hvarf þegar
-  //    samningur bar tvö stök á sömu vöru, tvírukkun varð ósýnileg, og hvort verk taldist fríprófun eða
-  //    tekjur réðst af innlestrarröðinni.
+  // ⚠⚠ PÖRUNIN ER Í ÞREMUR ÞREPUM og forgangurinn er hluti af skilgreiningunni:
+  //    (1) SAMNINGSAUÐKENNI — `samningur.id` á móti `heimild.askell_id`. Ótvírætt þegar það hittir.
+  //    (2) kennitala + vara — grípur þau tilvik þar sem auðkennið hefur rekið sig eða vantar.
+  //    (3) hitti hvorugt er stakið ÓAUÐKENNT og talan segir frá því (`verdUppsprettur.oaudkennt`).
+  //
+  //    ⚠ Hér stóð áður að parað væri EINGÖNGU á kt+vöru og að `askell_id` mætti aldrei nota eitt.
+  //      Sú regla var of hörð og hún var MÆLD ÚR GILDI: fyrsta raunkeyrslan gaf `oaudkennt: 3` og
+  //      `mrrAskellOvisst: true` — enginn samningur var auðkennanlegur, svo einingin mældi ekkert.
+  //      Ástæðan er að Áskell skilar okkur hvorugum reitnum sem parað var á:
+  //      · `../worker/greidslur.mjs:334` setur `customer_reference` AÐEINS þegar kt er nákvæmlega
+  //        10 stafir → borgandi viðskiptavinur án hennar mældist ALLS EKKI.
+  //      · `:579` stofnar samninga með `items: [{ price }]` og ENGU `product_reference` → liðurinn
+  //        datt út og D1-heimildin stóð ein eftir sem „fær gefins".
+  //      `askell_id` er hins vegar ekki afleiddur reitur heldur SAMNINGSAUÐKENNIÐ SJÁLFT: `:212`
+  //      sækir hann til að segja upp áskrift um `subscription-contracts/<id>/cancel/`, og
+  //      samningalistinn ber sama gildi í `c.id`. Þegar hvorki kennitala né vara berst er hann EINA
+  //      pörunin sem til er — og bannið valdi þá blindu fram yfir mælingu.
+  //      Reglan sem eftir stendur, og sem prófin verja, er sú sem hún átti alltaf að vera:
+  //      auðkennið má ekki YFIRTAKA kennitölu-pörun sem virkar (liður 2 stendur óhaggaður), og
+  //      samningur má ALDREI fara báðar leiðirnar — þá teldist hann tvisvar.
+  //    ⚠ Áfram er EKKI giskað á vöru eða kennitölu út frá samhengi. Liður 1 er ekki ágiskun: hann er
+  //      auðkennið sem við sjálf skrifuðum í D1 þegar áskriftin var stofnuð.
+  const samningsAudkenni = new Set();
+  for (const c of sList) {
+    const id = String(c.id == null ? '' : c.id);
+    if (id) samningsAudkenni.add(id);
+  }
+
+  const misraemi = [], fripofanir = [], tvirukkun = [];
+  let mrrAskell = 0, mrrD1 = 0;
+
+  // ⚠⚠ mrrD1 telur PER RÖÐ, nákvæmlega eins og ../worker/stjornbord.mjs:59-60. `users.kt` hefur
+  //    ÓEINKVÆMAN index og `parent_account_id` gerir marga notendur á einni kt að hannaðri stöðu —
+  //    sé afritatvítekið per kt+vöru telja tvær heimildir sama firma sem ein og talan hættir að vera
+  //    samanburðarhæf við stjórnborðið.
+  // ⚠⚠ Heimildirnar eru lesnar Á UNDAN samningunum af því að ÞÆR ráða hvaða auðkenni teljast pöruð.
+  //    Aðeins röð sem kemst alla leið í `hMap` má setja auðkenni í `parudAudkenni`: heimild sem
+  //    fellur út hér (`!kt`) en stæði samt í listanum myndi draga samninginn í auðkennis-lykil sem
+  //    enginn heimildarlykill svarar — og hann yrði „borgar_fyrir_ekkert" með TÓMA kennitölu.
+  const hMap = new Map();
+  const parudAudkenni = new Set();
+  for (const h of hList) {
+    const kt = ktHreint(h.kt);
+    if (!kt || !h.vara) continue;
+    const vara = String(h.vara);
+    mrrD1 += fastVerd(h);
+    const aid = String(h.askell_id == null ? '' : h.askell_id);
+    const parad = !!aid && samningsAudkenni.has(aid);
+    const lykill = parad ? ('aid:' + aid) : (kt + '|' + vara);
+    if (parad) parudAudkenni.add(aid);
+    let b = hMap.get(lykill);
+    if (!b) {
+      b = { kt, vara, verd: 0, ekkiGjof: 0 };
+      hMap.set(lykill, b);
+    } else if (parad && (kt + '|' + vara) < (b.kt + '|' + b.vara)) {
+      // ⚠ Í auðkennis-lykli eru kt og vara EKKI leidd af lyklinum sjálfum (ólíkt kt+vöru-leiðinni),
+      //   svo þau mega ekki ráðast af því hvaða röð kom fyrst. Lægsti `kt|vara` vinnur — sama gildi
+      //   hvernig sem raðað er inn. Þetta eru BIRTINGARreitir; upphæðirnar leggjast saman hér fyrir
+      //   neðan óháð þessu.
+      b.kt = kt; b.vara = vara;
+    }
+    if (!erGjof(h)) { b.ekkiGjof += 1; b.verd += fastVerd(h); }
+  }
+
+  // ⚠⚠ Lykillinn SAFNAR — hann yfirskrifar ekki. `Map.set` lét þann samning sem kom síðast vinna,
+  //    svo sömu gögn í öfugri röð gáfu ólíka `mrrAskell`: helmingur upphæðar hvarf þegar samningur
+  //    bar tvö stök á sömu vöru, tvírukkun varð ósýnileg, og hvort verk taldist fríprófun eða tekjur
+  //    réðst af innlestrarröðinni.
   // ⚠⚠ `oaudkennt` telur virk stök sem falla ÚT úr samanburðinum áður en verð er svo mikið sem leitað.
   //    Án hans hurfu þau í hljóði: teljarinn hækkaði hvergi, `mrrAskellOvisst` stóð í `false` og
   //    spjaldið sýndi örugga tölu yfir mælingu sem náði ekki utan um alla borgandi viðskiptavini.
-  //    Bæði formin eru RAUNSNIÐ úr ../worker/greidslur.mjs, ekki tilgáta:
-  //    · `:334` setur `customer_reference` AÐEINS þegar kt er nákvæmlega 10 stafir → borgandi
-  //      viðskiptavinur án hennar mælist ALLS EKKI.
-  //    · `:579` stofnar samninga með `items: [{ price }]` og ENGU `product_reference` → liðurinn
-  //      dettur út og D1-heimildin stendur ein eftir sem „fær gefins".
-  //    ⚠ Hér er EKKI giskað á vöru eða kennitölu út frá samhengi. Óþekkt er óþekkt — og það er
-  //      einmitt það sem á að sjást.
   const verdUppsprettur = { lidur: 0, verdskra: 0, ekkert: 0, oaudkennt: 0 };
   const sMap = new Map();
   let ix = 0;
   for (const c of sList) {
+    const id = String(c.id == null ? '' : c.id);
+    // ⚠ EITT val fyrir allan samninginn, ekki per liði: annars gætu liðir sama samnings dreifst á
+    //   báðar leiðirnar og hann teldist bæði um auðkenni og um kennitölu.
+    const umAudkenni = !!id && parudAudkenni.has(id);
     const kt = ktHreint(c.customer_reference);
     const fri = erFriprofun(c.state);
     // Auðkenni samnings telur tvírukkun. Vanti það er hver samningur samt sitt stak (röð breytir
     // ekki FJÖLDANUM, bara nafninu á honum).
-    const cid = (c.id != null && c.id !== '') ? ('id:' + c.id) : ('ix:' + ix);
+    const cid = id ? ('id:' + id) : ('ix:' + ix);
     ix += 1;
     for (const it of (Array.isArray(c.items) ? c.items : [])) {
       const vara = String((it && it.product_reference) || '');
-      // ⚠ Talið PER STAKI, ekki per samningi: samningur án kt fellir ALLA liði sína, og teldist hann
-      //   sem eitt yrði hlutfallið sem segir hversu mikið vantar ómarktækt.
-      if (!kt || !vara) { verdUppsprettur.oaudkennt += 1; continue; }
+      let lykill, bKt, bVara;
+      if (umAudkenni) {
+        // Heimildin sem ber auðkennið er ÖRUGGLEGA komin í `hMap` — `parudAudkenni` er fyllt þar og
+        // hvergi annars staðar. Hún ber því kennitöluna og vöruna sem samninginn vantar.
+        lykill = 'aid:' + id;
+        const hb = hMap.get(lykill);
+        bKt = hb.kt; bVara = hb.vara;
+      } else {
+        // ⚠ Talið PER STAKI, ekki per samningi: samningur án kt fellir ALLA liði sína, og teldist
+        //   hann sem eitt yrði hlutfallið sem segir hversu mikið vantar ómarktækt.
+        if (!kt || !vara) { verdUppsprettur.oaudkennt += 1; continue; }
+        lykill = kt + '|' + vara; bKt = kt; bVara = vara;
+      }
+      // ⚠ Verðið er áfram flett upp á VÖRU LIÐARINS, ekki vöru heimildarinnar. Auðkennið segir okkur
+      //   hver þetta er, ekki hvað hann borgar — beri liðurinn enga vöru fellur hann í `ekkert` og
+      //   `mrrAskellOvisst` verður satt. Það er rétt svar: pörunin stendur, upphæðin er ófundin.
       const { verd, uppspretta } = lidVerd(it, verdskra, vara);
       verdUppsprettur[uppspretta] += 1;
       const upphaed = verd * lidMagn(it);
-      const lykill = kt + '|' + vara;
       let b = sMap.get(lykill);
-      if (!b) { b = { kt, vara, verdVirkt: 0, verdFri: 0, fri: true, greidandi: new Set() }; sMap.set(lykill, b); }
+      if (!b) { b = { kt: bKt, vara: bVara, verdVirkt: 0, verdFri: 0, fri: true, greidandi: new Set() }; sMap.set(lykill, b); }
       if (fri) {
         b.verdFri += upphaed;
       } else {
@@ -122,25 +195,6 @@ export function samstemma({ samningar = [], heimildir = [], verdskra = {}, now =
         b.greidandi.add(cid);
       }
     }
-  }
-
-  const misraemi = [], fripofanir = [], tvirukkun = [];
-  let mrrAskell = 0, mrrD1 = 0;
-
-  // ⚠⚠ mrrD1 telur PER RÖÐ, nákvæmlega eins og ../worker/stjornbord.mjs:59-60. `users.kt` hefur
-  //    ÓEINKVÆMAN index og `parent_account_id` gerir marga notendur á einni kt að hannaðri stöðu —
-  //    sé afritatvítekið per kt+vöru telja tvær heimildir sama firma sem ein og talan hættir að vera
-  //    samanburðarhæf við stjórnborðið. Pörun við samninga er áfram á kt+vöru.
-  const hMap = new Map();
-  for (const h of hList) {
-    const kt = ktHreint(h.kt);
-    if (!kt || !h.vara) continue;
-    const vara = String(h.vara);
-    mrrD1 += fastVerd(h);
-    const lykill = kt + '|' + vara;
-    let b = hMap.get(lykill);
-    if (!b) { b = { kt, vara, verd: 0, ekkiGjof: 0 }; hMap.set(lykill, b); }
-    if (!erGjof(h)) { b.ekkiGjof += 1; b.verd += fastVerd(h); }
   }
 
   for (const [lykill, b] of sMap) {

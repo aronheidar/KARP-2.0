@@ -74,6 +74,9 @@ test('útrunnin heimild telst ekki með — hún er ekki virk', () => {
 });
 
 test('parað er á kennitölu, ekki á askell_id — id-ið rekur sig', () => {
+  // ⚠ Titillinn lýsir ÞESSU tilviki, ekki blanket-reglu: `askell_id` sem hittir ENGAN samning má ekki
+  //   fella pörunina, svo hún fellur á kennitöluna. Það er LIÐUR 2 af þremur — liður 1 (pörun á
+  //   samningsauðkenni) er prófaður í kaflanum neðst og stangast ekki á við þetta.
   const r = samstemma({
     samningar: [samn('1234567890', 'fyrirtaeki')],
     heimildir: [heim('123456-7890', 'fyrirtaeki', { askell_id: 'DAUTT_ID' })],
@@ -439,4 +442,193 @@ test('fríprófun sem dettur út telst líka óauðkennd — VIRK() telur hana v
   });
   assert.equal(r.verdUppsprettur.oaudkennt, 1);
   assert.equal(r.mrrAskellOvisst, true);
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Pörun á SAMNINGSAUÐKENNI (liður 1) — brúin sem var til en var ekki notuð.
+//
+// ⚠⚠ Fyrsta raunmælingin sagði `oaudkennt: 3` og `mrrAskellOvisst: true` — ENGINN samningur var
+//    auðkennanlegur, svo einingin mældi ekkert. Áskell skilar okkur hvorugum reitnum sem parað var á:
+//    `../worker/greidslur.mjs:334` setur `customer_reference` AÐEINS ef kt er nákvæmlega 10 stafir,
+//    og `:579` stofnar `items: [{ price }]` ÁN `product_reference`.
+//    En D1 geymir SAMNINGSAUÐKENNIÐ sjálft í `sub_service.askell_id` og `users.tier_askell`, og öll
+//    fjögur virku réttindin bera það. Það er ekki afleiddur reitur: `greidslur.mjs:212` sækir hann
+//    til að segja upp áskrift um `subscription-contracts/<id>/cancel/`.
+//
+// Forgangurinn er: (1) samningsauðkenni, (2) kennitala + vara, (3) annars óauðkennt.
+// ──────────────────────────────────────────────────────────────────────────────
+
+test('samningur ÁN kt og ÁN vöru parast um samningsauðkennið — RAUNMYNSTRIÐ okkar', () => {
+  const r = samstemma({
+    samningar: [{ id: 'c_RAUN', state: 'active', items: [{ amount: 9900 }] }],
+    heimildir: [heim('1234567890', 'kvoti', { tegund: 'svc', askell_id: 'c_RAUN' })],
+    verdskra: VERD, now: NU,
+  });
+  assert.equal(r.misraemi.length, 0, 'auðkennið parar — hvorki gefins né borgar_fyrir_ekkert');
+  assert.equal(r.verdUppsprettur.oaudkennt, 0, 'stakið féll EKKI út: auðkennið ER auðkenning');
+  assert.equal(r.mrrAskell, 9900);
+  assert.equal(r.mrrD1, 9900);
+  assert.equal(r.mrrAskellOvisst, false, 'ekkert vantaði — talan er tæmandi');
+});
+
+test('auðkennis-pörunin heldur þótt VERÐIÐ finnist ekki — tvær ÓLÍKAR óvissur', () => {
+  // ⚠ Liðurinn ber verð-AUÐKENNI og enga vöru, svo verðskráin hefur engan lykil að fletta upp.
+  //   Pörunin er samt ótvíræð. `oaudkennt` og `ekkert` mega ALDREI renna saman í eitt: annað segir
+  //   „við vitum ekki hver þetta er", hitt „við vitum hver þetta er en ekki hvað hann borgar".
+  const r = samstemma({
+    samningar: [{ id: 'c_RAUN', state: 'active', items: [{ price: 'price_9aBcDeF' }] }],
+    heimildir: [heim('1234567890', 'kvoti', { tegund: 'svc', askell_id: 'c_RAUN' })],
+    verdskra: VERD, now: NU,
+  });
+  assert.equal(r.misraemi.length, 0, 'pörunin stendur');
+  assert.equal(r.verdUppsprettur.oaudkennt, 0, 'við vitum HVER og HVAÐA áskrift');
+  assert.equal(r.verdUppsprettur.ekkert, 1, 'en ekki UPPHÆÐINA');
+  assert.equal(r.mrrAskellOvisst, true);
+});
+
+test('auðkennis-pörun er ÓHÁÐ röð inntaksins', () => {
+  const c1 = { id: 'c_EITT', state: 'active', items: [{ amount: 9900 }] };
+  const c2 = { id: 'c_TVO', state: 'active', items: [{ amount: 6900 }] };
+  const h1 = heim('1111111111', 'kvoti', { tegund: 'svc', askell_id: 'c_EITT' });
+  const h2 = heim('2222222222', 'fyrirtaeki', { askell_id: 'c_TVO' });
+  const keyra = (ss, hh) => samstemma({ samningar: ss, heimildir: hh, verdskra: VERD, now: NU });
+  const fram = keyra([c1, c2], [h1, h2]);
+  const aftur = keyra([c2, c1], [h2, h1]);
+  assert.deepEqual(aftur, fram, 'sömu gögn í öfugri röð');
+  assert.equal(fram.mrrAskell, 16800);
+  assert.equal(fram.mrrD1, 16800);
+  assert.equal(fram.misraemi.length, 0);
+});
+
+test('samningur sem parast um auðkenni parast EKKI líka um kennitölu — engin tvítalning', () => {
+  // ⚠⚠ Beri samningurinn BÆÐI auðkenni sem hittir OG kt+vöru sem hittir má hann fara í AÐRA leiðina,
+  //    ekki báðar. Færi hann í báðar tvöfaldaðist upphæðin og liðurinn teldist tvisvar í
+  //    `verdUppsprettur` — mæling sem lítur nákvæmlega eins út og tvírukkun sem er ekki til.
+  const r = samstemma({
+    samningar: [{
+      id: 'c_BAEDI', customer_reference: '1234567890', state: 'active',
+      items: [{ product_reference: 'fyrirtaeki', price: 6900 }],
+    }],
+    heimildir: [heim('1234567890', 'fyrirtaeki', { askell_id: 'c_BAEDI' })],
+    verdskra: VERD, now: NU,
+  });
+  assert.equal(r.mrrAskell, 6900, 'EINU sinni, ekki 13800');
+  assert.equal(r.verdUppsprettur.lidur, 1, 'liðurinn var talinn einu sinni');
+  assert.equal(r.misraemi.length, 0);
+  assert.equal(r.tvirukkun.length, 0, 'einn samningur getur ekki tvírukkað sjálfan sig');
+});
+
+test('ein heimild parast við EINN samning — hinn stendur eftir sem misræmi, ekki þöggun', () => {
+  const r = samstemma({
+    samningar: [
+      { id: 'c_AUDKENNI', state: 'active', items: [{ amount: 6900 }] },
+      samnL('1234567890', [{ product_reference: 'fyrirtaeki', price: 6900 }], 'active', 'c_ANNAR'),
+    ],
+    heimildir: [heim('1234567890', 'fyrirtaeki', { askell_id: 'c_AUDKENNI' })],
+    verdskra: VERD, now: NU,
+  });
+  assert.equal(r.mrrD1, 6900, 'ein heimild, eitt fast verð');
+  assert.equal(r.misraemi.length, 1, 'heimildin er UPPTEKIN — seinni samningurinn á sér enga');
+  assert.equal(r.misraemi[0].tegund, 'borgar_fyrir_ekkert');
+  assert.equal(r.misraemi[0].kt, '1234567890');
+  assert.equal(r.mrrAskell, 13800, 'báðir samningar rukka, hvað sem pörun líður');
+});
+
+test('samningsauðkenni sem hittir ENGA heimild fellur í kennitölu-leiðina (liður 2)', () => {
+  const r = samstemma({
+    samningar: [samnL('1234567890', [{ product_reference: 'fyrirtaeki', price: 6900 }], 'active', 'c_LIFANDI')],
+    heimildir: [heim('1234567890', 'fyrirtaeki', { askell_id: 'c_ANNAD_OG_DAUTT' })],
+    verdskra: VERD, now: NU,
+  });
+  assert.equal(r.misraemi.length, 0, 'kennitalan og varan para þótt auðkennin stemmi ekki');
+  assert.equal(r.mrrAskell, 6900);
+  assert.equal(r.verdUppsprettur.oaudkennt, 0);
+});
+
+test('hvorki auðkenni né kennitala hittir → oaudkennt hækkar og talan segir ÓVÍST (liður 3)', () => {
+  const r = samstemma({
+    samningar: [{ id: 'c_MUNADARLAUS', state: 'active', items: [{ amount: 9900 }] }],
+    heimildir: [heim('1234567890', 'kvoti', { tegund: 'svc', askell_id: 'c_ANNAD' })],
+    verdskra: VERD, now: NU,
+  });
+  assert.equal(r.verdUppsprettur.oaudkennt, 1, 'auðkennið hitti ekki og kt vantar — stakið fellur út');
+  assert.equal(r.mrrAskellOvisst, true);
+  assert.equal(r.misraemi.length, 1);
+  assert.equal(r.misraemi[0].tegund, 'gefins', 'draugurinn er áfram sýnilegur, ekki þaggaður');
+});
+
+test('fríprófun sem parast um auðkenni er HVORKI misræmi NÉ tekjur — kt og vara koma úr heimildinni', () => {
+  const r = samstemma({
+    samningar: [{ id: 'c_PROFUN', state: 'trial', items: [{ amount: 6900 }] }],
+    heimildir: [heim('1234567890', 'fyrirtaeki', { askell_id: 'c_PROFUN' })],
+    verdskra: VERD, now: NU,
+  });
+  assert.equal(r.misraemi.length, 0);
+  assert.equal(r.fripofanir.length, 1);
+  assert.equal(r.fripofanir[0].kt, '1234567890', 'samningurinn ber enga kt — heimildin gerir það');
+  assert.equal(r.fripofanir[0].vara, 'fyrirtaeki');
+  assert.equal(r.mrrAskell, 0);
+});
+
+test('ekki-fríprófun VINNUR líka í auðkennis-leiðinni, óháð röð', () => {
+  const fri = { id: 'c_SAMA', state: 'trial', items: [{ amount: 6900 }] };
+  const virkur = { id: 'c_SAMA', state: 'active', items: [{ amount: 6900 }] };
+  const h = heim('1234567890', 'fyrirtaeki', { askell_id: 'c_SAMA' });
+  for (const [nafn, rod] of [['fríprófun fyrst', [fri, virkur]], ['virkur fyrst', [virkur, fri]]]) {
+    const r = samstemma({ samningar: rod, heimildir: [h], verdskra: VERD, now: NU });
+    assert.equal(r.fripofanir.length, 0, nafn + ': sá sem borgar ER að borga');
+    assert.equal(r.mrrAskell, 6900, nafn + ': fríprófunin rukkar 0');
+    assert.equal(r.misraemi.length, 0, nafn);
+  }
+});
+
+test('tvær heimildir undir SAMA samningsauðkenni: birt kt+vara ræðst ekki af röð', () => {
+  // ⚠ Lykillinn er auðkennið eitt, svo kt og vara eru ekki lengur leidd af lyklinum. Væru þau tekin
+  //   af þeirri röð sem kom FYRST réði innlestrarröðin því hvað spjaldið segir.
+  const ha = heim('1111111111', 'kvoti', { tegund: 'svc', askell_id: 'c_SAMEIGINLEGT', uid: 1 });
+  const hb = heim('2222222222', 'fyrirtaeki', { askell_id: 'c_SAMEIGINLEGT', uid: 2 });
+  const s = { id: 'c_SAMEIGINLEGT', state: 'trial', items: [{ amount: 1000 }] };
+  const fram = samstemma({ samningar: [s], heimildir: [ha, hb], verdskra: VERD, now: NU });
+  const aftur = samstemma({ samningar: [s], heimildir: [hb, ha], verdskra: VERD, now: NU });
+  assert.deepEqual(aftur, fram, 'sömu gögn í öfugri röð');
+  assert.equal(fram.fripofanir.length, 1, 'eitt auðkenni, einn lykill');
+  assert.equal(fram.fripofanir[0].kt, '1111111111', 'lægsti lykillinn, ekki sá sem kom fyrst');
+});
+
+test('gjafaaðgangur með samningsauðkenni sem hittir ekkert er ÁFRAM ekkert misræmi', () => {
+  for (const gjof of [{ free_access: 1 }, { is_admin: 1 }, { nemandi: 1 }]) {
+    const r = samstemma({
+      samningar: [],
+      heimildir: [heim('1234567890', 'fyrirtaeki', Object.assign({ askell_id: 'c_GAMALT' }, gjof))],
+      verdskra: VERD, now: NU,
+    });
+    assert.equal(r.misraemi.length, 0, JSON.stringify(gjof));
+  }
+});
+
+test('heimild ÁN kt getur ekki gert samning að auðkennis-pöruðum draugi', () => {
+  // ⚠⚠ Heimild sem fellur út úr hMap (`!kt`) má ALDREI standa í auðkennis-listanum: gerði hún það
+  //    lenti samningurinn í auðkennis-lykli sem enginn heimildar-lykill svaraði, og hann yrði
+  //    „borgar_fyrir_ekkert" með TÓMA kennitölu — misræmi sem enginn getur flett upp.
+  const r = samstemma({
+    samningar: [{ id: 'c_MED_ID', customer_reference: '1234567890', state: 'active', items: [{ product_reference: 'fyrirtaeki', price: 6900 }] }],
+    heimildir: [heim('', 'fyrirtaeki', { askell_id: 'c_MED_ID' }), heim('1234567890', 'fyrirtaeki')],
+    verdskra: VERD, now: NU,
+  });
+  assert.equal(r.misraemi.length, 0, 'samningurinn fellur í kennitölu-leiðina og hittir þar');
+  assert.equal(r.mrrAskell, 6900);
+});
+
+test('TALA úr Áskeli og STRENGUR úr D1 eru sama auðkennið — snið má ekki fella pörunina', () => {
+  // ⚠ `../worker/greidslur.mjs:554` skrifar `String(cid)` í `sub_service.askell_id`, svo D1 geymir
+  //   auðkennið ALLTAF sem streng. Skili samningalistinn því sem tölu er `4711 !== '4711'` og pörunin
+  //   félli þögult — nákvæmlega sú tegund villu sem `oaudkennt: 3` faldi áður.
+  const r = samstemma({
+    samningar: [{ id: 4711, state: 'active', items: [{ amount: 9900 }] }],
+    heimildir: [heim('1234567890', 'kvoti', { tegund: 'svc', askell_id: '4711' })],
+    verdskra: VERD, now: NU,
+  });
+  assert.equal(r.misraemi.length, 0, 'bæði hliðin eru strengjavædd áður en borið er saman');
+  assert.equal(r.mrrAskell, 9900);
+  assert.equal(r.verdUppsprettur.oaudkennt, 0);
 });
