@@ -215,3 +215,9 @@ test('Bjarki er markaðsfulltrúi og fær rofa — CMO lýsir stefnumótun sem A
   assert.ok(!JSON.stringify(PERSONUR).includes('CMO'), 'ekkert „CMO" eftir í persónuskránni');
   for (const id of Object.keys(ROFAR)) assert.ok(PERSONA_IDS.includes(id), id + ' er til');
 });
+
+test('Elín hefur rofa og heitir fjármálastjóri á íslensku', () => {
+  // ⚠ Hrafn fór úr „CTO" í „forritari" að beiðni Arons — sama íslenskun gildir hér.
+  assert.equal(rofiLykill('elin'), 'rofi_elin');
+  assert.equal(persona('elin').hlutverk, 'fjármálastjóri');
+});

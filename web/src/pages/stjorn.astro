@@ -376,12 +376,13 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     import { sigrunGogn } from '../lib/stjorn/sigrun.mjs';
     import { hrafnGogn } from '../lib/stjorn/hrafn.mjs';
     import { bjarkiGogn } from '../lib/stjorn/bjarki.mjs';
+    import { elinGogn } from '../lib/stjorn/elin.mjs';
     const $ = (id) => document.getElementById(id);
     const dIS = (ts) => { try { const d = new Date(ts * 1000); return d.getUTCDate() + '.' + (d.getUTCMonth() + 1) + '. ' + String(d.getUTCFullYear()).slice(2); } catch (e) { return ''; } };
     // Starfsmenn með spjald. ⚠ Bættu EKKI við andliti fyrr en vélin á bak við það er komin —
     // tóm skúffa þjálfar mann í að hætta að opna skúffur (hönnunarákvörðun 14.9).
-    const STARFSMENN = ['sigrun', 'hrafn', 'bjarki'];
-    let sidastaSvar = null, sidustuBilanir = { ok: false, bilanir: [] }, sidastaMarkads = { ok: false };
+    const STARFSMENN = ['sigrun', 'hrafn', 'bjarki', 'elin'];
+    let sidastaSvar = null, sidustuBilanir = { ok: false, bilanir: [] }, sidastaMarkads = { ok: false }, sidastaFjarmal = { ok: false };
 
     function syna(hash) {
       const id = String(hash || '').replace(/^#/, '');
@@ -402,11 +403,12 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
 
     function teiknaSpjald(id) {
       const d = sidastaSvar || {}, nu = d.now || Math.floor(Date.now() / 1000);
-      const bidur = bidurThin({ tickets: d.tickets || {}, bilanir: sidustuBilanir.bilanir || [], markads: sidastaMarkads, now: nu });
+      const bidur = bidurThin({ tickets: d.tickets || {}, bilanir: sidustuBilanir.bilanir || [], markads: sidastaMarkads, fjarmal: sidastaFjarmal, now: nu });
       const p = persona(id);
       const gogn = id === 'sigrun' ? sigrunGogn(d, bidur, nu)
         : id === 'hrafn' ? hrafnGogn(d, sidustuBilanir, bidur, nu)
-        : bjarkiGogn(sidastaMarkads, bidur, nu);
+        : id === 'bjarki' ? bjarkiGogn(sidastaMarkads, bidur, nu)
+          : elinGogn(sidastaFjarmal, bidur, nu);
       // ⚠ boot() endurteiknar spjaldið OFT (eftir hverja ticket-/rofa-aðgerð) — hálfskrifað verk má
       // ekki hverfa þegjandi undir höndum notandans, svo innihaldið er geymt yfir endurteikninguna.
       const gamaltVerk = id === 'hrafn' && $('stj-verk') ? $('stj-verk').value : '';
@@ -776,7 +778,8 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       sidastaSvar = ov;   // svarið úr /api/admin/overview, sótt í Promise.all ofar í boot()
       sidustuBilanir = await fetch('/api/admin/bilanir', { credentials: 'include' }).then((r) => r.json()).catch(() => ({ ok: false, bilanir: [] }));
       sidastaMarkads = await fetch('/api/admin/markadsefni', { credentials: 'include' }).then((r) => r.json()).catch(() => ({ ok: false }));
-      const bidur = bidurThin({ tickets: ov.tickets || {}, bilanir: sidustuBilanir.bilanir || [], markads: sidastaMarkads, now: ov.now || Math.floor(Date.now() / 1000) });
+      sidastaFjarmal = await fetch('/api/admin/fjarmal', { credentials: 'include' }).then((r) => r.json()).catch(() => ({ ok: false }));
+      const bidur = bidurThin({ tickets: ov.tickets || {}, bilanir: sidustuBilanir.bilanir || [], markads: sidastaMarkads, fjarmal: sidastaFjarmal, now: ov.now || Math.floor(Date.now() / 1000) });
 
       // EIN uppspretta með spjöldunum (bidurRod, spjald.mjs) — hér fylgir andlit eigandans með.
       $('stj-bidur').innerHTML = bidur.map((r) => {

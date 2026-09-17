@@ -27,10 +27,10 @@ export const PERSONUR = [
     svipur: { hud: 1, har: 0, harStill: 'stutt', augu: 'kringlott', gler: false, skegg: 'rot' },
   },
   {
-    id: 'elin', nafn: 'Elín', hlutverk: 'CFO', emoji: '💰', kyn: 'kvk', litur: '#f6b13b',
+    id: 'elin', nafn: 'Elín', hlutverk: 'fjármálastjóri', emoji: '💰', kyn: 'kvk', litur: '#f6b13b',
     sjonarhorn: 'Kostnaður, tekjur, endurgreiðslur og MRR-áhrif. Talar í krónum og hlutföllum en giskar ekki á tölur sem ekki standa í gögnunum.',
     spyr: 'Hvað kostar þetta — og hvað kostar að gera ekkert?',
-    undirskrift: 'Elín — CFO Karp',
+    undirskrift: 'Elín — fjármálastjóri Karp',
     svipur: { hud: 0, har: 1, harStill: 'hnutur', augu: 'mondlu', gler: true, eyrnalokkar: true },
   },
   {
@@ -82,7 +82,7 @@ export function persona(id) {
 /** Starfsmenn sem hafa VÉL sem má slökkva á → lykill í stjorn_sync. Persóna án vélar (Moot-sæti eitt og sér)
  *  fær engan rofa. ⚠ Sigrún heldur upprunalega lyklinum 'hjalp_agent_off': flæðið sem er í loftinu les hann
  *  (processNewTicket) og endurnefning myndi þagga sjálfvirknina án þess að nokkuð sýndist að. */
-export const ROFAR = { sigrun: 'hjalp_agent_off', hrafn: 'rofi_hrafn', bjarki: 'rofi_bjarki' };
+export const ROFAR = { sigrun: 'hjalp_agent_off', hrafn: 'rofi_hrafn', bjarki: 'rofi_bjarki', elin: 'rofi_elin' };
 export function rofiLykill(id) {
   return (typeof id === 'string' && Object.prototype.hasOwnProperty.call(ROFAR, id)) ? ROFAR[id] : null;
 }
