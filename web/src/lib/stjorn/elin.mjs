@@ -46,7 +46,17 @@ export function elinGogn(svar, bidurListi, now) {
     verdskra_hluti: 'náði í samningana en ekki verðskrána — verðrek var aldrei mælt',
     rofi: 'slökkt á Elínu — þetta er síðasta myndin, ekki ný',
   };
-  const stada = ostillt ? 'Áskell er óstilltur — engan lykil að finna'
+  // ⚠⚠ `fjarmalVantar` verður að vera FYRSTA greinin hér, á undan `ostillt`/`villa`/misræmis-talningunni:
+  //   falli toppstigs-girðingin (`admin`/`method`/`origin`/`adgerd`/`lota`/`rofi`/`verk`/`dispatch` í
+  //   worker/fjarmal.mjs) er `f` `{}` og allar hinar greinarnar verða þá hverfandi ósannar — án þessarar
+  //   greinar félli `stada` beint niður í „Áskell og réttindin stemma", ekkert barst en fyrirsögnin segði
+  //   allt í lagi. Sami lærdómur og `svarOgilt` í hrafn.mjs dró af (comment þar: grænt-þegar-ekkert-barst
+  //   lét tvær fallnar keyrslur liggja óséðar) og sem `ekkertSvar` í bjarki.mjs ver nú þegar — `elin.mjs`
+  //   var eina spjaldið án þessarar greinar. MRR-flísin (`naest`) var löguð á undan, en `stada` sjálf
+  //   gleymdist, og skildi spjaldið eftir VERRA en áður: lesandi les „stemma" og afgreiðir stakt `óvíst`
+  //   sem smáatriði.
+  const stada = fjarmalVantar ? 'fjármálin náðust ekki (' + (s.error || 'villa') + ')'
+    : ostillt ? 'Áskell er óstilltur — engan lykil að finna'
     : f.villa ? (VILLUTEXTI[f.villa] || ('óþekkt villa: ' + f.villa))
       : misraemi.length ? misraemi.length + ' misræmi milli Áskels og réttinda'
         : 'Áskell og réttindin stemma';
@@ -65,8 +75,13 @@ export function elinGogn(svar, bidurListi, now) {
     vinnsla,
     tolur: [
       { n: naest ? kr(f.mrrAskell) : 'óvíst', l: 'kr/mán rukkað', s: (naest && mismunur) ? kr(Math.abs(mismunur)) + ' kr munur á réttindum' : '' },
-      { n: String(misraemi.length), l: 'misræmi', s: misraemi.length ? borga + ' borgar fyrir ekkert · ' + gefins + ' fær gefins' : '' },
-      { n: String(frip.length), l: 'í fríprófun', s: frip.length ? 'verða ' + kr(fripVirdi) + ' kr/mán haldi þeir áfram' : '' },
+      // ⚠ Sama gildra og MRR-flísin fyrir ofan: `misraemi.length`/`frip.length` eru `0` bæði þegar
+      //   EKKERT misræmi/engin fríprófun fannst OG þegar `fjarmal`-reiturinn vantar alveg (þá er `f`
+      //   `{}` og bæði fylkin sjálfgefið tóm að ofan) — tvö ólík ástönd sem litu nákvæmlega eins út án
+      //   `fjarmalVantar`-gátarinnar hér. Mælt núll (fjarmal til staðar, ekkert talið) á ÁFRAM að sýna
+      //   '0' — sjá prófið „engin misræmi og engin í fríprófun ÞEGAR MÆLT" því til staðfestingar.
+      { n: fjarmalVantar ? 'óvíst' : String(misraemi.length), l: 'misræmi', s: misraemi.length ? borga + ' borgar fyrir ekkert · ' + gefins + ' fær gefins' : '' },
+      { n: fjarmalVantar ? 'óvíst' : String(frip.length), l: 'í fríprófun', s: frip.length ? 'verða ' + kr(fripVirdi) + ' kr/mán haldi þeir áfram' : '' },
       // ⚠ `verdrek: []` er ÞÖGULT: sama fylki fer út hvort ekkert verðrek fannst EÐA verðskráin
       //   náðist aldrei. `villa` DUGAR EKKI til að greina þar á milli: endapunkturinn skilar AÐEINS
       //   EINUM villukóða og `d1_hluti` þaggar `verdskra_hluti` þegar bæði brotna samtímis (sjá

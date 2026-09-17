@@ -136,8 +136,34 @@ test('fjarmal-reitur vantar alveg (toppstigs-girðing féll) — spjaldið fellu
   assert.doesNotThrow(() => elinGogn({ ok: false, error: 'admin' }, [], NU));
   const g = elinGogn({ ok: false, error: 'admin' }, [], NU);
   assert.ok(Array.isArray(g.tolur) && g.tolur.length === 4);
-  assert.equal(typeof g.stada, 'string');
+  // ⚠⚠ ENDURSKOÐAÐ AFTUR (yfirferð samþykkti kröfurnar en felldi gæðin): `typeof g.stada === 'string'`
+  //   er tómleg fullyrðing — hún er græn fyrir SÉRHVERJA mögulega útfærslu, líka ranga, því hún mælir
+  //   tegundina en aldrei innihaldið. Hún sat nákvæmlega við hliðina á gallanum: án greinar fyrir
+  //   „ekkert svar" segir `stada` hér „Áskell og réttindin stemma" — ekkert barst, en fyrirsögnin segir
+  //   allt í lagi. Sami lærdómur og `svarOgilt` í hrafn.mjs og `ekkertSvar` í bjarki.mjs; `elin.mjs` var
+  //   eina spjaldið án greinarinnar. Mælir nú STRENGINN SJÁLFAN, ekki tegund hans.
+  assert.doesNotMatch(g.stada, /stemma/i, '"stemma" segir að allt sé í lagi — ekkert svar barst, svo þetta má ALDREI birtast');
+  assert.match(g.stada, /náðust ekki/i, 'stada verður að segja berum orðum að ekkert svar barst');
   assert.equal(g.tolur[0].n, 'óvíst', 'ekkert svar barst yfirhöfuð — talan má ekki líta út eins og mæld núll');
+  // ⚠ Sama gildra endurtekin á tveimur flísum til viðbótar: `misraemi.length` og `frip.length` eru `0`
+  //   af því `f` er tómur hlutur (sjálfgefið hér að ofan), EKKI af því neitt var í raun talið. Núll-af-
+  //   því-ekkert-var-mælt lítur nákvæmlega eins út og núll-af-því-ekkert-fannst án þessarar greinar.
+  const misraemiFlis = g.tolur.find((t) => t.l === 'misræmi');
+  const fripFlis = g.tolur.find((t) => t.l === 'í fríprófun');
+  assert.equal(misraemiFlis.n, 'óvíst', 'ekkert var í raun talið — 0 væri mæld tala sem aldrei var mæld');
+  assert.equal(fripFlis.n, 'óvíst', 'sama gildra og misræmis-flísin hér að ofan');
+});
+
+// ⚠ Hin áttin, sem verður að standast SAMHLIÐA prófinu að ofan: `fjarmal` til staðar og MÆLT (`ok:true`,
+//   tóm fylki) á ÁFRAM að sýna '0' á báðum flísum — núllið ER mælingin þar, ekki fjarvera hennar. Hvorug
+//   leiðin má vinna yfir hina — sama krafa og er þegar gerð til MRR-flísarinnar annars staðar í þessari
+//   skrá (prófið um `mrrAskell raunverulega núll`), endurtekin hér fyrir misræmi og fríprófun.
+test('engin misræmi og engin í fríprófun ÞEGAR MÆLT (fjarmal til staðar, ok:true) sýnir 0, ekki óvíst', () => {
+  const g = elinGogn(svar(heilt()), [], NU);
+  const misraemiFlis = g.tolur.find((t) => t.l === 'misræmi');
+  const fripFlis = g.tolur.find((t) => t.l === 'í fríprófun');
+  assert.equal(misraemiFlis.n, '0');
+  assert.equal(fripFlis.n, '0');
 });
 
 // ⚠ Hin áttin, sem verður að standast SAMHLIÐA prófinu að ofan: `f.ok === true` með raunverulega
