@@ -177,6 +177,29 @@ Aron benti á bráðabirgðagreiðslumat Íslandsbanka sem fyrirmynd. Fimm skref
 útlánareglum og sínum vöxtum. Karp er ekki lánveitandi og verður því að velja hvað reiknað er
 eftir, og segja það upphátt í niðurstöðunni.
 
+**Kostnaðarhliðin hjá Íslandsbanka** (raundæmi sem Aron sótti, tekjur 2.400.000):
+
+| liður | kr/mán |
+|---|---|
+| framfærslukostnaður | 309.503 |
+| rekstrarkostnaður bifreiðar | 90.551 |
+| rekstrarkostnaður fasteignar | 62.500 |
+| greiðslubyrði lána | 0 (innsláttur) |
+| **samtals útgjöld** | **462.554** |
+
+Afgangur 1.937.446, og það er greiðslugetan áður en kemur að lánsþoli.
+
+Þrír fyrstu liðirnir eru forsendur, ekki innsláttur, og þar liggur vinnan.
+
+- **Framfærsla og bifreið** eiga sér opinbera fyrirmynd. Neysluviðmið félags- og
+  húsnæðismálaráðuneytisins (uppfærð feb. 2025) reikna dæmigert viðmið eftir heimilisstærð og
+  telja rekstur bifreiða sérstaklega, nákvæmlega þessi sömu tvö. ⚠ Ég náði EKKI að staðfesta að
+  309.503 sé þaðan; það þarf að bera saman áður en við fullyrðum það.
+- ⚠⚠ **Opinbera reiknivélin er Blazor-app.** Engar tölur í kyrrstæðu síðunni, enginn gagnastraumur,
+  ekkert JSON. Viðmiðin eru opinber en ekki sækjanleg með einu kalli. Sjálf sóknin er verkefni.
+- **Rekstrarkostnaður fasteignar** (62.500) á sér enga opinbera fyrirmynd í neysluviðmiðunum. Það
+  er forsenda sem við þyrftum að velja sjálf og segja frá.
+
 ## Orðalag sem má ekki víkja
 
 - **„Bráðabirgðagreiðslumat"** er RÉTTA heitið á plugin 2. Ég lagði upphaflega til
