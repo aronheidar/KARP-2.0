@@ -1,0 +1,139 @@
+{
+ "kt": "7012770239",
+ "nafn": "Brimborg ehf.",
+ "sott": "2026-09-17",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.2102,
+    "ebit_hlutfall": 0.0416,
+    "hagnadarhlutfall": 0.0014,
+    "ROE": 0.008,
+    "ROA": 0.0021,
+    "eiginfjarhlutfall": 0.2567,
+    "veltufjarhlutfall": 0.4222,
+    "skuldahlutfall_DE": 2.8953,
+    "eignavelta": 1.5133
+   },
+   "rekstur": {
+    "sala": 32863400,
+    "adrar_tekjur": 256561,
+    "kostnadarverd": -25954229,
+    "laun": -3929356,
+    "annar_rekstur": -241728,
+    "ebitda": 2334376,
+    "afskriftir": -966258,
+    "ebit": 1368118,
+    "fjarmunatekjur": 72773,
+    "fjarmagnsgjold": -1385037,
+    "hagn_f_skatt": 55853,
+    "tekjuskattur": -11175,
+    "hagnadur": 44679
+   },
+   "efnahagur": {
+    "birgdir": 5734745,
+    "vidskiptakrofur": 842673,
+    "handbaert": 237622,
+    "eignir": 21715990,
+    "hlutafe": 212365,
+    "eigid_fe": 5574987,
+    "skuldir": 16141004,
+    "efe_skuldir": 21715990,
+    "skammtimaskuldir": 16141004
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.2304,
+    "ebit_hlutfall": -0.0178,
+    "hagnadarhlutfall": -0.0572,
+    "ROE": -0.2838,
+    "ROA": -0.0614,
+    "eiginfjarhlutfall": 0.2165,
+    "veltufjarhlutfall": 0.4161,
+    "skuldahlutfall_DE": 3.6198,
+    "eignavelta": 1.0736
+   },
+   "rekstur": {
+    "sala": 25511447,
+    "adrar_tekjur": 255327,
+    "kostnadarverd": -19633380,
+    "laun": -4216221,
+    "annar_rekstur": -261430,
+    "ebitda": 923175,
+    "afskriftir": -1377856,
+    "ebit": -454681,
+    "fjarmunatekjur": 89166,
+    "fjarmagnsgjold": -1524050,
+    "hagn_f_skatt": -1889566,
+    "tekjuskattur": 429636,
+    "hagnadur": -1459929
+   },
+   "efnahagur": {
+    "birgdir": 6455809,
+    "vidskiptakrofur": 1128150,
+    "handbaert": 163527,
+    "eignir": 23762202,
+    "hlutafe": 212365,
+    "eigid_fe": 5143553,
+    "skuldir": 18618650,
+    "efe_skuldir": 23762202,
+    "skammtimaskuldir": 18618650
+   },
+   "starfsmenn": 276
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.2285,
+    "ebit_hlutfall": 0.0216,
+    "hagnadarhlutfall": -0.0275,
+    "ROE": -0.173,
+    "ROA": -0.0368,
+    "eiginfjarhlutfall": 0.2129,
+    "veltufjarhlutfall": 0.3826,
+    "skuldahlutfall_DE": 3.6967,
+    "eignavelta": 1.3389
+   },
+   "rekstur": {
+    "sala": 28582755,
+    "adrar_tekjur": 316180,
+    "kostnadarverd": -22050840,
+    "laun": -3966999,
+    "annar_rekstur": -273127,
+    "ebitda": 1838740,
+    "afskriftir": -1221183,
+    "ebit": 617557,
+    "fjarmunatekjur": 37984,
+    "fjarmagnsgjold": -1653042,
+    "hagn_f_skatt": -997501,
+    "tekjuskattur": 210923,
+    "hagnadur": -786578
+   },
+   "efnahagur": {
+    "birgdir": 4357054,
+    "vidskiptakrofur": 1393696,
+    "handbaert": 678655,
+    "eignir": 21348472,
+    "hlutafe": 212365,
+    "eigid_fe": 4545455,
+    "skuldir": 16803017,
+    "efe_skuldir": 21348472,
+    "skammtimaskuldir": 16803017
+   },
+   "starfsmenn": 250
+  }
+ },
+ "pdf": "pdf/7012770239.pdf",
+ "pdfAr": "2025"
+}
