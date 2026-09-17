@@ -12,7 +12,7 @@ function rod(starfsmadur, tegund, titill, vidbot, sidan, slod) {
 }
 
 /** @returns {Array} raðað elst fyrst — það sem hefur beðið lengst er efst. */
-export function bidurThin({ tickets = {}, bilanir = [], now = 0, markads = null } = {}) {
+export function bidurThin({ tickets = {}, bilanir = [], now = 0, markads = null, fjarmal = null } = {}) {
   const ut = [];
   const nu = Number(now) || 0;   // ⚠ reiknuð HÉR (ekki neðst) svo markaðsefna-blokkin fyrir neðan geti notað hana
   const listi = Array.isArray(tickets && tickets.list) ? tickets.list : [];
@@ -55,6 +55,27 @@ export function bidurThin({ tickets = {}, bilanir = [], now = 0, markads = null 
     if (oflokkud) ut.push(rod('bjarki', 'oflokkad', oflokkud + ' verk eru óflokkuð', 'án efnistaka veit hann ekki hvað við höfum sagt áður', nu, '#bjarki'));
     for (const t of (Array.isArray(mk.tillogur) ? mk.tillogur : [])) {
       if (t && t.malefni) ut.push(rod('bjarki', 'tillaga', 'Tillaga: ' + t.malefni, t.rok || '', nu, '#bjarki'));
+    }
+  }
+  // 💰 Fjármál: misræmi milli Áskels og réttinda, og áskriftir sem renna út innan viku. Þetta á heima
+  //    HÉR en ekki inni í spjaldinu — annars sæi forstofan þær ekki og talan á andlitinu yrði núll.
+  // ⚠ Full kennitala fer ALDREI í titil — fyrri hlutinn dugar til að þekkja manneskjuna.
+  const fj = (fjarmal && typeof fjarmal === 'object' && fjarmal.fjarmal && typeof fjarmal.fjarmal === 'object') ? fjarmal.fjarmal : null;
+  if (fj) {
+    const grima = (kt) => String(kt || '').slice(0, 6) + '-••••';
+    const krT = (n) => Math.round(Number(n) || 0).toLocaleString('is-IS').replace(/,/g, '.');
+    const TXT = {
+      borgar_fyrir_ekkert: ['Borgar fyrir ekkert', 'rukkað í Áskeli en engin réttindi'],
+      gefins: ['Fær gefins', 'réttindi án virks samnings'],
+    };
+    for (const m of (Array.isArray(fj.misraemi) ? fj.misraemi : [])) {
+      const t = m && TXT[m.tegund];
+      if (!t) continue;
+      ut.push(rod('elin', m.tegund, t[0] + ': ' + grima(m.kt) + ' · ' + (m.vara || ''), t[1] + ' · ' + krT(m.verd) + ' kr/mán', m.sidan || nu, '#elin'));
+    }
+    for (const r of (Array.isArray(fj.rennurUt) ? fj.rennurUt : [])) {
+      if (!r || Number(r.until) > nu + 7 * 86400) continue;   // mánuðurinn sést á spjaldinu, vikan bíður þín
+      ut.push(rod('elin', 'rennur_ut', 'Rennur út: ' + grima(r.kt) + ' · ' + (r.vara || ''), 'innan viku', nu, '#elin'));
     }
   }
   return ut

@@ -96,3 +96,42 @@ test('markaðsefni skilar sér í sameiginlega listann — annars sæi forstofan
   assert.ok(r.every((x) => x.starfsmadur === 'bjarki'));
   assert.deepEqual(bidurThin({ now: NU, markads: { dagatal: { dagarFram: 20 }, safn: [], tillogur: [] } }), [], 'rúmt dagatal og ekkert óflokkað = ekkert bíður');
 });
+
+// ── Elín: fjórða uppsprettan ────────────────────────────────────────────────────────────────────
+// ⚠ Raðirnar VERÐA að smíðast HÉR en ekki í elin.mjs — annars sér forstofan þær ekki og talan á
+//   andlitinu verður núll þótt eitthvað bíði. Bjarki féll nákvæmlega á þessu.
+const NU_E = Date.UTC(2026, 8, 16) / 1000;
+
+test('misræmi Elínar rata á forstofuna', () => {
+  const r = bidurThin({ now: NU_E, fjarmal: { fjarmal: { ok: true, misraemi: [
+    { tegund: 'borgar_fyrir_ekkert', kt: '1234567890', vara: 'fyrirtaeki', verd: 6900, sidan: NU_E - 100 },
+    { tegund: 'gefins', kt: '9876543210', vara: 'kvoti', verd: 9900, sidan: NU_E - 200 },
+  ] } } });
+  const elin = r.filter((x) => x.starfsmadur === 'elin');
+  assert.equal(elin.length, 2);
+  assert.ok(elin.every((x) => x.slod === '#elin'));
+  assert.ok(elin.some((x) => x.tegund === 'borgar_fyrir_ekkert'));
+  assert.ok(elin.some((x) => x.tegund === 'gefins'));
+});
+
+test('full kennitala fer ALDREI í rað-titilinn', () => {
+  const r = bidurThin({ now: NU_E, fjarmal: { fjarmal: { ok: true, misraemi: [
+    { tegund: 'gefins', kt: '1234567890', vara: 'kvoti', verd: 9900, sidan: NU_E },
+  ] } } });
+  assert.ok(!r.some((x) => String(x.titill + x.vidbot).includes('1234567890')));
+});
+
+test('áskrift sem rennur út innan viku bíður þín, sú sem rennur út eftir mánuð ekki', () => {
+  const r = bidurThin({ now: NU_E, fjarmal: { fjarmal: { ok: true, rennurUt: [
+    { kt: '1234567890', vara: 'fyrirtaeki', until: NU_E + 3 * 86400 },
+    { kt: '9876543210', vara: 'kvoti', until: NU_E + 25 * 86400 },
+  ] } } });
+  const ut = r.filter((x) => x.tegund === 'rennur_ut');
+  assert.equal(ut.length, 1);
+});
+
+test('ekkert fjarmal-svar fellir ekki listann', () => {
+  assert.doesNotThrow(() => bidurThin({ now: NU_E }));
+  assert.doesNotThrow(() => bidurThin({ now: NU_E, fjarmal: null }));
+  assert.doesNotThrow(() => bidurThin({ now: NU_E, fjarmal: { fjarmal: { ok: false, error: 'unconfigured' } } }));
+});

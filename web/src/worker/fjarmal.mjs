@@ -29,7 +29,7 @@ const _FJ_ADGERDIR = ['saekja', 'hrafn'];
  *    varabrautin honum í hljóði. */
 const _fjTomt = () => ({
   misraemi: [], fripofanir: [], tvirukkun: [], mrrAskell: 0, mrrD1: 0, verdrek: [],
-  verdUppsprettur: { lidur: 0, verdskra: 0, ekkert: 0 }, mrrAskellOvisst: true, verdrekMaelt: false,
+  verdUppsprettur: { lidur: 0, verdskra: 0, ekkert: 0 }, mrrAskellOvisst: true, verdrekMaelt: false, rennurUt: [],
 });
 
 /** Geymda myndin er GÖGN, aldrei merking: `villa` er reiknuð per svar og geymd hvergi. Væri
@@ -128,6 +128,15 @@ export async function saekjaFjarmal(env, { thvinga = false } = {}) {
       ...((usrR.status === 'fulfilled' && usrR.value.results) || []).map((x) => Object.assign({}, x, { tegund: 'tier' })),
     ].filter((h) => !prufur.has(Number(h.uid)));
     const gogn = samstemma({ samningar: samningarR.value, heimildir, verdskra, now: nu });
+    // ⚠ Reiknað HÉR en ekki í samstemma(): þetta er ekki misræmi heldur dagatal, og samstemma á að
+    //   halda sig við eitt hlutverk — að bera saman tvo lista.
+    // ⚠ Allt innan 30 daga fer með; vikumörkin eru sía í bidur_thin. Væru þau sett hér sæi spjaldið
+    //   aldrei mánuðinn og „endurnýjast"-flísin yrði alltaf sama talan og „bíður þín".
+    gogn.rennurUt = heimildir
+      .filter((h) => Number(h.until) > nu && Number(h.until) <= nu + 30 * 86400)
+      .map((h) => ({ kt: String(h.kt || ''), vara: String(h.vara || ''), until: Number(h.until) }))
+      .sort((a, b) => a.until - b.until)
+      .slice(0, 40);
     // ⚠ Reiknað HÉR, ekki í samstemma(): samstemma fær `verdskra` sem einfaldan hlut og getur ekki
     //   greint bilaða/tóma verðskrá frá raunverulega tómri — sá greinarmunur býr AÐEINS í verdR.status.
     //   ⚠⚠ VERÐUR að fara í `gogn` (og þar með í það sem er GEYMT) ÁÐUR en INSERT-ið keyrir, ekki bætast

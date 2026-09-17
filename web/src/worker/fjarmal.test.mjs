@@ -251,7 +251,45 @@ test('varabraut án geymdrar myndar hendir ENGU úr Verki 1', async (t) => {
   assert.equal(r.verdrekMaelt, false, 'engin verðskrá var sótt á þessari braut — sömu rök og mrrAskellOvisst');
   assert.deepEqual(r.verdUppsprettur, { lidur: 0, verdskra: 0, ekkert: 0 });
   assert.deepEqual(r.tvirukkun, []);
-  assert.deepEqual(Object.keys(r).sort(), ['fripofanir', 'misraemi', 'mrrAskell', 'mrrAskellOvisst', 'mrrD1', 'ok', 'sott', 'tvirukkun', 'verdUppsprettur', 'verdrek', 'verdrekMaelt', 'villa']);
+  // ⚠ Verk 4: `rennurUt` er dagatal, ekki misræmi — en sama girðing gildir. Gleymist hann í _fjTomt()
+  //   hverfur hann ÞEGJANDI hér, nákvæmlega eins og verdrekMaelt hefði gert án sinnar línu.
+  assert.deepEqual(r.rennurUt, [], 'engin heimild var sótt á þessari braut — tómt fylki, ekki undefined');
+  assert.deepEqual(Object.keys(r).sort(), ['fripofanir', 'misraemi', 'mrrAskell', 'mrrAskellOvisst', 'mrrD1', 'ok', 'rennurUt', 'sott', 'tvirukkun', 'verdUppsprettur', 'verdrek', 'verdrekMaelt', 'villa']);
+});
+
+// ⚠ Sama girðing og athugasemdin yfir `_fjTomt` varar við, mæld beint fyrir `rennurUt`: röð sem var
+//   skrifuð ÁÐUR EN Verk 4 var til ber ekki reitinn. `_fjMynd` verður að fylla hann inn sem tómt
+//   fylki, ekki skilja hann eftir sem `undefined` — sama mynstur og prófið fyrir `verdrekMaelt` hér
+//   fyrir neðan mælir.
+test('gömul geymd röð ÁN rennurUt (skrifuð fyrir Verk 4) fær tómt fylki í varabrautinni, ekki undefined', async (t) => {
+  const gomul = { misraemi: [], fripofanir: [], tvirukkun: [], mrrAskell: 9900, mrrD1: 0, verdrek: [], verdUppsprettur: { lidur: 1, verdskra: 0, ekkert: 0 }, mrrAskellOvisst: false, verdrekMaelt: true };
+  const state = mkState();
+  state.sync.fjarmal = { v: JSON.stringify(gomul), updated: Math.floor(Date.now() / 1000) };
+  const env = mkEnv(state);
+  stubFetch(t, new Error('net'));   // varabraut — engin ný mæling þessa umferð
+  const r = await saekjaFjarmal(env, { thvinga: true });
+  assert.equal(r.villa, 'askell');
+  assert.equal(r.mrrAskell, 9900, 'gögnin sjálf standa');
+  assert.deepEqual(r.rennurUt, [], 'eldri röð ber ekki reitinn — _fjTomt-sjálfgildið á að ráða, ekki undefined');
+});
+
+// ── Verk 4: rennurUt (áskriftir sem renna út) ───────────────────────────────────────────────────
+// ⚠ Þrjátíu daga gluggi er reiknaður HÉR í worker-num — vikumörkin fyrir „bíður þín" eru sía í
+//   bidur_thin, ekki hér. Bæði mörk mæld beint svo hvor girðingin sem er geti brostið ein og sér.
+test('rennurUt: aðeins heimildir sem renna út innan 30 daga skila sér, raðaðar eftir `until`', async (t) => {
+  const nu = Math.floor(Date.now() / 1000);
+  const state = mkState();
+  state.usr = [
+    { uid: 1, kt: '1111111111', vara: 'fyrirtaeki', until: nu + 29 * 86400, askell_id: null, free_access: 0, is_admin: 0, nemandi: 0 },
+    { uid: 2, kt: '2222222222', vara: 'kvoti', until: nu + 3 * 86400, askell_id: null, free_access: 0, is_admin: 0, nemandi: 0 },
+    { uid: 3, kt: '3333333333', vara: 'grunnur', until: nu + 40 * 86400, askell_id: null, free_access: 0, is_admin: 0, nemandi: 0 },
+    { uid: 4, kt: '4444444444', vara: 'kvoti', until: nu - 100, askell_id: null, free_access: 0, is_admin: 0, nemandi: 0 },
+  ];
+  const env = mkEnv(state);
+  stubFetch(t, leidir({ status: 200, d: { results: [] } }));
+  const r = await saekjaFjarmal(env, { thvinga: true });
+  assert.deepEqual(r.rennurUt.map((x) => x.kt), ['2222222222', '1111111111'], '40 dagar og útrunnið falla út; röðuð eftir `until`, styst fyrst');
+  assert.deepEqual(r.rennurUt[0], { kt: '2222222222', vara: 'kvoti', until: nu + 3 * 86400 });
 });
 
 // ⚠ Sama girðing og athugasemdin yfir `_fjTomt` varar við, mæld beint: röð sem var skrifuð ÁÐUR EN
