@@ -1,0 +1,124 @@
+{
+ "kt": "4812080920",
+ "nafn": "Expectus ehf.",
+ "sott": "2026-09-17",
+ "heimildir": [
+  "Hlutafélagaskrá (RSK)",
+  "Ársreikningaskrá (RSK)",
+  "Raunverulegir eigendur (Skatturinn)"
+ ],
+ "dypt": 0,
+ "hnutar_alls": 4,
+ "afmarkad": false,
+ "net": {
+  "nodes": [
+   {
+    "id": "kt4812080920",
+    "kt": "4812080920",
+    "nafn": "Expectus ehf.",
+    "tegund": "felag",
+    "er_rot": true
+   },
+   {
+    "id": "n1",
+    "kt": null,
+    "nafn": "Sindri Sigurjónsson",
+    "tegund": "einst",
+    "faeding": "1979-MAÍ"
+   },
+   {
+    "id": "n2",
+    "kt": null,
+    "nafn": "Ragnar Þórir Guðgeirsson",
+    "tegund": "einst",
+    "faeding": "1965-JÚLÍ"
+   },
+   {
+    "id": "n3",
+    "kt": null,
+    "nafn": "Kristinn Már Magnússon",
+    "tegund": "einst",
+    "faeding": "1982-APRÍL"
+   }
+  ],
+  "edges": [
+   {
+    "fra": "n1",
+    "til": "kt4812080920",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n2",
+    "til": "kt4812080920",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n3",
+    "til": "kt4812080920",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   }
+  ]
+ },
+ "endanlegir": [
+  {
+   "nafn": "Sindri Sigurjónsson",
+   "kt": null,
+   "faeding": "1979-MAÍ",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  },
+  {
+   "nafn": "Ragnar Þórir Guðgeirsson",
+   "kt": null,
+   "faeding": "1965-JÚLÍ",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  },
+  {
+   "nafn": "Kristinn Már Magnússon",
+   "kt": null,
+   "faeding": "1982-APRÍL",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  }
+ ],
+ "othekkt": 100,
+ "raunverulegir": [
+  {
+   "nafn": "Sindri Sigurjónsson",
+   "faeding": "1979-MAÍ",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  },
+  {
+   "nafn": "Ragnar Þórir Guðgeirsson",
+   "faeding": "1965-JÚLÍ",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  },
+  {
+   "nafn": "Kristinn Már Magnússon",
+   "faeding": "1982-APRÍL",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  }
+ ],
+ "raunverulegirTomt": false,
+ "hluthafar": [],
+ "hluthafarUppspretta": "Ársreikningur 2025"
+}
