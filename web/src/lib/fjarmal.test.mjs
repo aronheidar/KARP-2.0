@@ -157,7 +157,7 @@ test('it.price sem STRENGUR er verð-AUÐKENNI, aldrei upphæð — fellur á ve
     heimildir: [heim('1234567890', 'fyrirtaeki')], verdskra: VERD, now: NU,
   });
   assert.equal(r.mrrAskell, 6900, 'listaverðið, ekki rusl úr auðkenninu');
-  assert.deepEqual(r.verdUppsprettur, { lidur: 0, verdskra: 1, ekkert: 0 });
+  assert.deepEqual(r.verdUppsprettur, { lidur: 0, verdskra: 1, ekkert: 0, oaudkennt: 0 });
   assert.equal(r.mrrAskellOvisst, false, 'verðið fannst — bara ekki á liðnum sjálfum');
 });
 
@@ -169,7 +169,7 @@ test('TÖLUSTRENGUR í it.price er líka auðkenni, ekki upphæð — typeof ræ
     heimildir: [heim('1234567890', 'fyrirtaeki')], verdskra: VERD, now: NU,
   });
   assert.equal(r.mrrAskell, 6900, 'verðskráin, ekki strengurinn');
-  assert.deepEqual(r.verdUppsprettur, { lidur: 0, verdskra: 1, ekkert: 0 });
+  assert.deepEqual(r.verdUppsprettur, { lidur: 0, verdskra: 1, ekkert: 0, oaudkennt: 0 });
 });
 
 test('upphæð 0 er GILD upphæð — fullur afsláttur má ALDREI falla á listaverðið', () => {
@@ -178,13 +178,13 @@ test('upphæð 0 er GILD upphæð — fullur afsláttur má ALDREI falla á list
     heimildir: [heim('1234567890', 'fyrirtaeki')], verdskra: VERD, now: NU,
   });
   assert.equal(medAmount.mrrAskell, 0, '0 er talan sem Áskell rukkar, ekki „vantar"');
-  assert.deepEqual(medAmount.verdUppsprettur, { lidur: 1, verdskra: 0, ekkert: 0 });
+  assert.deepEqual(medAmount.verdUppsprettur, { lidur: 1, verdskra: 0, ekkert: 0, oaudkennt: 0 });
   const medPrice = samstemma({
     samningar: [samnL('1234567890', [{ product_reference: 'fyrirtaeki', price: 0 }])],
     heimildir: [heim('1234567890', 'fyrirtaeki')], verdskra: VERD, now: NU,
   });
   assert.equal(medPrice.mrrAskell, 0);
-  assert.deepEqual(medPrice.verdUppsprettur, { lidur: 1, verdskra: 0, ekkert: 0 });
+  assert.deepEqual(medPrice.verdUppsprettur, { lidur: 1, verdskra: 0, ekkert: 0, oaudkennt: 0 });
 });
 
 test('verdskra á verðinu 0 er GILT verð — 0 er ekki „ekkert"', () => {
@@ -195,7 +195,7 @@ test('verdskra á verðinu 0 er GILT verð — 0 er ekki „ekkert"', () => {
     samningar: [samnL('1234567890', [{ product_reference: 'fyrirtaeki' }])],
     heimildir: [], verdskra: { fyrirtaeki: 0 }, now: NU,
   });
-  assert.deepEqual(r.verdUppsprettur, { lidur: 0, verdskra: 1, ekkert: 0 }, 'uppsprettan er verdskra, ekki ekkert');
+  assert.deepEqual(r.verdUppsprettur, { lidur: 0, verdskra: 1, ekkert: 0, oaudkennt: 0 }, 'uppsprettan er verdskra, ekki ekkert');
   assert.equal(r.mrrAskellOvisst, false, '0 er þekkt verð — engin óvissa');
 });
 
@@ -205,7 +205,7 @@ test('amount hefur FORGANG yfir price', () => {
     heimildir: [heim('1234567890', 'fyrirtaeki')], verdskra: VERD, now: NU,
   });
   assert.equal(r.mrrAskell, 4900);
-  assert.deepEqual(r.verdUppsprettur, { lidur: 1, verdskra: 0, ekkert: 0 });
+  assert.deepEqual(r.verdUppsprettur, { lidur: 1, verdskra: 0, ekkert: 0, oaudkennt: 0 });
 });
 
 test('it.price sem HLUTUR → price.amount er lesið', () => {
@@ -214,7 +214,7 @@ test('it.price sem HLUTUR → price.amount er lesið', () => {
     heimildir: [heim('1234567890', 'fyrirtaeki')], verdskra: VERD, now: NU,
   });
   assert.equal(r.mrrAskell, 4500);
-  assert.deepEqual(r.verdUppsprettur, { lidur: 1, verdskra: 0, ekkert: 0 });
+  assert.deepEqual(r.verdUppsprettur, { lidur: 1, verdskra: 0, ekkert: 0, oaudkennt: 0 });
 });
 
 test('ekkert verð neins staðar → mrrAskellOvisst, talan er EKKI tæmandi', () => {
@@ -223,7 +223,7 @@ test('ekkert verð neins staðar → mrrAskellOvisst, talan er EKKI tæmandi', (
     heimildir: [], verdskra: {}, now: NU,
   });
   assert.equal(r.mrrAskellOvisst, true, 'efra lagið á að segja „óvíst", ekki tölu');
-  assert.deepEqual(r.verdUppsprettur, { lidur: 0, verdskra: 0, ekkert: 1 });
+  assert.deepEqual(r.verdUppsprettur, { lidur: 0, verdskra: 0, ekkert: 1, oaudkennt: 0 });
   assert.equal(r.mrrAskell, 0);
 });
 
@@ -361,4 +361,82 @@ test('sidan er ALLTAF „núna", aldrei D1-heimildarinnar `until` — hvort sem 
   for (const m of r.misraemi) {
     assert.equal(m.sidan, NU, m.tegund + ': „þetta sáum við núna" er það eina sem er satt');
   }
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Heildaryfirferð, atriði 1: stak sem DETTUR ÚT verður að vera TALIÐ.
+//
+// ⚠⚠ `if (!kt || !vara) continue` hentir stakinu ÁÐUR en `lidVerd` keyrir — það jók því hvorki
+//    `verdUppsprettur.ekkert` né neitt annað, `mrrAskellOvisst` stóð í `false`, og spjaldið sýndi
+//    tölu sem leit út eins og mæld. Bæði formin eru RAUNSNIÐ, ekki tilgáta:
+//    · `../worker/greidslur.mjs:334` setur `customer_reference` AÐEINS ef kt er nákvæmlega 10 stafir
+//      → borgandi viðskiptavinur án hennar mælist alls ekki.
+//    · `../worker/greidslur.mjs:579` stofnar samninga með `items: [{ price }]` og ENGU
+//      `product_reference` → liðurinn dettur út og D1-heimildin verður ein eftir sem „fær gefins".
+// ──────────────────────────────────────────────────────────────────────────────
+
+test('samningur ÁN customer_reference: stakið er talið óauðkennt og talan segir ÓVÍST', () => {
+  const r = samstemma({
+    samningar: [samnL('', [{ product_reference: 'kvoti', amount: 9900 }])],
+    heimildir: [], verdskra: VERD, now: NU,
+  });
+  assert.equal(r.verdUppsprettur.oaudkennt, 1, 'stakið féll út — það verður að SJÁST í talningunni');
+  assert.equal(r.mrrAskellOvisst, true, 'mrrAskell er ekki tæmandi þegar virkt stak var ekki mælt');
+  assert.equal(r.misraemi.length, 0, 'ALDREI giskað á kennitölu út frá samhengi — óþekkt er óþekkt');
+});
+
+test('liður ÁN product_reference: stakið er talið óauðkennt og talan segir ÓVÍST', () => {
+  const r = samstemma({
+    samningar: [samnL('1234567890', [{ price: 9900 }])],
+    heimildir: [], verdskra: VERD, now: NU,
+  });
+  assert.equal(r.verdUppsprettur.oaudkennt, 1);
+  assert.equal(r.mrrAskellOvisst, true);
+});
+
+test('⚠⚠ borgandi viðskiptavinur án customer_reference verður „fær gefins" — óvissan er EINA vörnin', () => {
+  // Mælt: D1-heimildin stendur ein eftir og spjaldið sakar borgandi viðskiptavin um að fá vöruna
+  // gefins, með MRR 0 sem leit út eins og mæld tala. Misræmið sjálft er óhjákvæmilegt (við VITUM
+  // ekki að þetta sé sami aðilinn) — en það má ALDREI standa undir öruggri tölu.
+  const r = samstemma({
+    samningar: [samnL('', [{ product_reference: 'kvoti', amount: 9900 }])],
+    heimildir: [heim('1234567890', 'kvoti', { tegund: 'svc' })],
+    verdskra: VERD, now: NU,
+  });
+  assert.equal(r.misraemi.length, 1);
+  assert.equal(r.misraemi[0].tegund, 'gefins', 'þetta ER draugurinn');
+  assert.equal(r.mrrAskell, 0, 'ekkert mældist');
+  assert.equal(r.mrrAskellOvisst, true, 'og núllið má ekki líta út eins og mæld núll');
+});
+
+test('HVERT stak sem fellur út er talið — ekki einn teljari á samning', () => {
+  // ⚠ Samningur án kt fellir ALLA liði sína. Teldist hann sem eitt stak gæti talan sagt „eitt óvíst"
+  //   þar sem þrjú voru — og hlutfallið sem segir hversu mikið vantar yrði ómarktækt.
+  const r = samstemma({
+    samningar: [samnL('', [
+      { product_reference: 'kvoti', amount: 9900 },
+      { product_reference: 'utbod', amount: 1900 },
+      { product_reference: 'frettir', amount: 3900 },
+    ])],
+    heimildir: [], verdskra: VERD, now: NU,
+  });
+  assert.equal(r.verdUppsprettur.oaudkennt, 3, 'þrír liðir féllu út, ekki einn samningur');
+});
+
+test('detti EKKERT út er oaudkennt núll og talan er ÖRUGG — reiturinn má ekki vera fastsettur', () => {
+  const r = samstemma({
+    samningar: [samn('1234567890', 'fyrirtaeki')],
+    heimildir: [heim('1234567890', 'fyrirtaeki')], verdskra: VERD, now: NU,
+  });
+  assert.equal(r.verdUppsprettur.oaudkennt, 0);
+  assert.equal(r.mrrAskellOvisst, false, 'allt mældist — óvissa hér væri jafn slæm og fölsk vissa');
+});
+
+test('fríprófun sem dettur út telst líka óauðkennd — VIRK() telur hana virka', () => {
+  const r = samstemma({
+    samningar: [samnL('', [{ product_reference: 'kvoti', amount: 9900 }], 'trial')],
+    heimildir: [], verdskra: VERD, now: NU,
+  });
+  assert.equal(r.verdUppsprettur.oaudkennt, 1);
+  assert.equal(r.mrrAskellOvisst, true);
 });

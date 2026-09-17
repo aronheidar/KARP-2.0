@@ -58,12 +58,20 @@ export function elinGogn(svar, bidurListi, now) {
   const stada = fjarmalVantar ? 'fjármálin náðust ekki (' + (s.error || 'villa') + ')'
     : ostillt ? 'Áskell er óstilltur — engan lykil að finna'
     : f.villa ? (VILLUTEXTI[f.villa] || ('óþekkt villa: ' + f.villa))
-      : misraemi.length ? misraemi.length + ' misræmi milli Áskels og réttinda'
-        : 'Áskell og réttindin stemma';
+      // ⚠⚠ Sama gildra og `fjarmalVantar` lokaði einu lagi ofar, nú fyrir stök sem mældust ekki: fyndust
+      //   engin misræmi AF ÞVÍ að virkur samningur komst aldrei í samanburðinn (óauðkennt stak, eða
+      //   ekkert verð) sagði fyrirsögnin „Áskell og réttindin stemma". Grænt ljós á mælingu sem fór
+      //   aldrei fram er verra en engin fyrirsögn — lesandinn afgreiðir þá stakt `óvíst` sem smáatriði.
+      : !naest ? 'samanburðurinn náði ekki utan um allt — tölurnar eru óvissar'
+        : misraemi.length ? misraemi.length + ' misræmi milli Áskels og réttinda'
+          : 'Áskell og réttindin stemma';
 
   // ⚠ Raðað eftir PENINGUM, ekki tíma. `sidan` er fasti (`nu`) á hverju staki eftir Verk 1, svo röðun
   //   eftir honum væri núll-aðgerð og „fimm efstu" yrðu fimm handahófskennd í stað fimm dýrustu.
-  const vinnsla = misraemi.slice().sort((a, b) => (Number(b.verd) || 0) - (Number(a.verd) || 0)).slice(0, 5).map((m) => ({
+  // ⚠⚠ Heildaryfirferð: listinn er TÓMUR þegar ekkert var mælt (`naest`). Nafngreint misræmi með
+  //   upphæð er sterkari fullyrðing en talan sjálf — það bendir á tiltekna manneskju og segir hvað hún
+  //   skuldi. Hafi flísin fallið í `óvíst` má listinn undir henni ekki standa eftir og segja hið gagnstæða.
+  const vinnsla = (naest ? misraemi : []).slice().sort((a, b) => (Number(b.verd) || 0) - (Number(a.verd) || 0)).slice(0, 5).map((m) => ({
     texti: ktGrima(m.kt) + ' · ' + (m.vara || '') + ' · ' + (TEXTI[m.tegund] || m.tegund) + ' · ' + kr(m.verd) + ' kr/mán',
     hvenaer: dagsTexti(m.sidan),
   }));
@@ -76,12 +84,18 @@ export function elinGogn(svar, bidurListi, now) {
     tolur: [
       { n: naest ? kr(f.mrrAskell) : 'óvíst', l: 'kr/mán rukkað', s: (naest && mismunur) ? kr(Math.abs(mismunur)) + ' kr munur á réttindum' : '' },
       // ⚠ Sama gildra og MRR-flísin fyrir ofan: `misraemi.length`/`frip.length` eru `0` bæði þegar
-      //   EKKERT misræmi/engin fríprófun fannst OG þegar `fjarmal`-reiturinn vantar alveg (þá er `f`
-      //   `{}` og bæði fylkin sjálfgefið tóm að ofan) — tvö ólík ástönd sem litu nákvæmlega eins út án
-      //   `fjarmalVantar`-gátarinnar hér. Mælt núll (fjarmal til staðar, ekkert talið) á ÁFRAM að sýna
-      //   '0' — sjá prófið „engin misræmi og engin í fríprófun ÞEGAR MÆLT" því til staðfestingar.
-      { n: fjarmalVantar ? 'óvíst' : String(misraemi.length), l: 'misræmi', s: misraemi.length ? borga + ' borgar fyrir ekkert · ' + gefins + ' fær gefins' : '' },
-      { n: fjarmalVantar ? 'óvíst' : String(frip.length), l: 'í fríprófun', s: frip.length ? 'verða ' + kr(fripVirdi) + ' kr/mán haldi þeir áfram' : '' },
+      //   EKKERT misræmi/engin fríprófun fannst OG þegar ekkert var mælt — tvö ólík ástönd sem litu
+      //   nákvæmlega eins út. Mælt núll (fjarmal til staðar, ekkert talið) á ÁFRAM að sýna '0' — sjá
+      //   prófið „engin misræmi og engin í fríprófun ÞEGAR MÆLT" því til staðfestingar.
+      // ⚠⚠ Heildaryfirferð: `fjarmalVantar` EINN dugði ekki. Hann nær aðeins yfir það þegar
+      //   `fjarmal`-reiturinn vantar ALVEG; óstillt Áskell, `villa:'askell'`, `villa:'rofi'`,
+      //   `villa:'d1_hluti'`, `villa:'verdskra_hluti'` og óauðkennd virk stök sluppu allar í gegn.
+      //   Mælt: óstilltur Áskell gaf `óvíst kr/mán | 0 misræmi | 0 í fríprófun | óvíst verðrek` — tvær
+      //   flísar af fjórum sögðu örugga tölu yfir ástandi þar sem ENGIN mæling hafði farið fram.
+      //   Flísarnar þrjár hlíta nú EINNI reglu (`naest`); verðrek hefur sína eigin (`verdrekMaelt`),
+      //   sem er sjálfstæð af ástæðu — sjá athugasemdina við hana að neðan.
+      { n: naest ? String(misraemi.length) : 'óvíst', l: 'misræmi', s: (naest && misraemi.length) ? borga + ' borgar fyrir ekkert · ' + gefins + ' fær gefins' : '' },
+      { n: naest ? String(frip.length) : 'óvíst', l: 'í fríprófun', s: (naest && frip.length) ? 'verða ' + kr(fripVirdi) + ' kr/mán haldi þeir áfram' : '' },
       // ⚠ `verdrek: []` er ÞÖGULT: sama fylki fer út hvort ekkert verðrek fannst EÐA verðskráin
       //   náðist aldrei. `villa` DUGAR EKKI til að greina þar á milli: endapunkturinn skilar AÐEINS
       //   EINUM villukóða og `d1_hluti` þaggar `verdskra_hluti` þegar bæði brotna samtímis (sjá

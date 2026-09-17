@@ -188,3 +188,62 @@ test('ekkert fjarmal-svar fellir ekki listann', () => {
   assert.doesNotThrow(() => bidurThin({ now: NU_E, fjarmal: null }));
   assert.doesNotThrow(() => bidurThin({ now: NU_E, fjarmal: { fjarmal: { ok: false, error: 'unconfigured' } } }));
 });
+
+// ── Heildaryfirferð, atriði 2: hálfur samanburður smíðar EKKI misræmis-raðir ─────────────────────
+// ⚠⚠ Bregðist D1-lesturinn meðan Áskell svarar verður `heimildir` tómt og HVER EINASTI virki
+//    samningur að `borgar_fyrir_ekkert`. `elin.mjs` fellur rétt og segir „náði í Áskel en ekki alla
+//    heimildalista" — en `bidurThin` las `fj.villa` HVERGI og ýtti einni röð á hvern borgandi
+//    viðskiptavin inn á forstofuna. D1-lestrarbilanir eru þekkt, endurtekið ástand í þessu kerfi
+//    (free-tier lestrarþak), svo þetta er ekki jaðartilvik heldur venjuleg þriðjudagsstaða.
+
+const misr = (kt, tegund = 'borgar_fyrir_ekkert') => ({ tegund, kt, vara: 'fyrirtaeki', verd: 6900, sidan: NU_E });
+
+test('villa d1_hluti: ENGIN misræmis-röð smíðuð — hálfur samanburður er enginn samanburður', () => {
+  const r = bidurThin({ now: NU_E, fjarmal: { fjarmal: {
+    ok: true, villa: 'd1_hluti', misraemi: [misr('1111111111'), misr('2222222222'), misr('3333333333')],
+  } } });
+  assert.equal(r.filter((x) => x.starfsmadur === 'elin').length, 0,
+    'þrír borgandi viðskiptavinir hefðu ratað á forstofuna sem „borgar fyrir ekkert" — þeir gera það ekki');
+});
+
+test('óauðkennd virk stök fella líka misræmis-raðirnar — draugurinn „fær gefins" fer ekki á forstofuna', () => {
+  // Hin hliðin á sama peningi: þegar Áskels-megin var ekki hægt að auðkenna stak stendur D1-heimildin
+  // ein eftir og verður að `gefins`. Samanburðurinn var jafn ófullkominn og í d1_hluti, bara á hinum
+  // endanum, og röðin jafn tilhæfulaus.
+  const r = bidurThin({ now: NU_E, fjarmal: { fjarmal: {
+    ok: true, misraemi: [misr('1111111111', 'gefins')],
+    verdUppsprettur: { lidur: 0, verdskra: 0, ekkert: 0, oaudkennt: 1 }, mrrAskellOvisst: true,
+  } } });
+  assert.equal(r.filter((x) => x.starfsmadur === 'elin').length, 0);
+});
+
+test('heill samanburður smíðar raðirnar ÁFRAM — sían má ekki éta réttmæt misræmi', () => {
+  // ⚠ Hin áttin, sem verður að standast samhliða: þögn er ekki markmiðið, RÉTTMÆTI er það.
+  const r = bidurThin({ now: NU_E, fjarmal: { fjarmal: {
+    ok: true, misraemi: [misr('1111111111'), misr('2222222222', 'gefins')],
+    verdUppsprettur: { lidur: 2, verdskra: 0, ekkert: 0, oaudkennt: 0 }, mrrAskellOvisst: false,
+  } } });
+  assert.equal(r.filter((x) => x.starfsmadur === 'elin').length, 2);
+});
+
+test('villa verdskra_hluti fellir EKKI misræmin — verðskráin snertir verdrek, ekki pörunina', () => {
+  // ⚠ Nákvæmni skiptir máli: að slökkva á öllum villukóðum í einu væri jafn ómarkviss og að slökkva
+  //   á engum. Báðir listarnir náðust hér, svo samanburðurinn sjálfur ER heill.
+  const r = bidurThin({ now: NU_E, fjarmal: { fjarmal: {
+    ok: true, villa: 'verdskra_hluti', misraemi: [misr('1111111111')],
+  } } });
+  assert.equal(r.filter((x) => x.starfsmadur === 'elin').length, 1);
+});
+
+test('rennur_ut stendur áfram þótt misræmin falli — ófullkominn listi er ekki UPPLOGINN listi', () => {
+  // Hálfur heimildalisti gefur FÆRRI „rennur út"-raðir, ekki raðir sem eiga sér enga stoð. Þær eru
+  // því áfram réttar svo langt sem þær ná; misræmin voru það aldrei.
+  const r = bidurThin({ now: NU_E, fjarmal: { fjarmal: {
+    ok: true, villa: 'd1_hluti',
+    misraemi: [misr('1111111111')],
+    rennurUt: [{ kt: '9876543210', vara: 'fyrirtaeki', until: NU_E + 3 * 86400 }],
+  } } });
+  const elin = r.filter((x) => x.starfsmadur === 'elin');
+  assert.equal(elin.length, 1);
+  assert.equal(elin[0].tegund, 'rennur_ut');
+});

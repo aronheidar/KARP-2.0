@@ -5,6 +5,11 @@ import { _monthStr, _sendVerifyEmail, readSession } from './auth.mjs';
 import { _ajson, _emailOvSet, _emailTpl, _tokenHex, sendGmail } from './felag.mjs';
 import { EMAIL_TYPES, renderEmail, resolveEmail, validateEmail } from '../lib/emails.mjs';
 import { ticketsOverview } from './hjalp_agent.mjs';   // 🎫 hjálparbeiðnir (þjónustufulltrúa-flæðið)
+// ⚠⚠ EIN UPPSPRETTA verðanna. Töflurnar voru áður líka fall-staðbundnar hér að neðan, og þótt gildin
+//    stemmdu var ekkert sem HÉLT þeim saman: prófið sem á að verja þær neglir Elínar-hliðina við
+//    bókstaflegar tölur, svo verðbreyting hér hefði staðið græn meðan Elín mældi gamla verðið — og
+//    misræmið sem hún á að finna hefði orðið að henni sjálfri. ⚠ Breyta verðum AÐEINS í ../lib/fjarmal.mjs.
+import { PRICE_SVC, PRICE_TIER } from '../lib/fjarmal.mjs';
 
 export async function _isAdmin(env, request) {
   const uid = await readSession(env, request);
@@ -53,8 +58,8 @@ export async function adminOverviewHandler(request, env) {
   const byReport = {}; for (const r of sReps) { const t = String(r.report_key).split(':')[0]; byReport[t] = (byReport[t] || 0) + 1; }
   const day = 86400, recent = (n) => sUsers.filter((u) => u.created > now - n * day).length;
   // Tekjur (áætlaðar): virkar þjónustu-áskriftir + þrep (mán) + keyptar skýrslur (einskiptis 990).
-  const PRICE_SVC = { kvoti: 9900, utbod: 1900, frettir: 3900, fasteign: 3900, thingskyrslur: 3900 };
-  const PRICE_TIER = { grunnur: 2900, fyrirtaeki: 6900, fyrirtaeki_plus: 12900 };
+  // ⚠ PRICE_SVC/PRICE_TIER eru FLUTT INN úr ../lib/fjarmal.mjs (sjá efst) — ein uppspretta, því Elín
+  //   mælir Áskel við nákvæmlega þessi verð.
   let mrr = 0;
   for (const s of sSubs) mrr += PRICE_SVC[s.service] || 0;
   for (const u of sUList) if (u.tier) mrr += PRICE_TIER[u.tier] || 0;

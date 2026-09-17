@@ -275,6 +275,66 @@ test('vinnslulistinn er takmarkaður við fimm efstu færslurnar, dýrasta fyrst
 //   `borga`- og `gefins`-talningin víxlaðist (læsi hin á ranga `tegund`-strengsstöðu) sýndi útkoman
 //   samt „1 borgar fyrir ekkert · 1 fær gefins" af tilviljun, af því 1 = 1. Ósamhverfar tölur þarf til
 //   að ljóstra upp víxlun.
+// ── Heildaryfirferð, atriði 3: flísar 2 og 3 sögðu ÖRUGGA `0` á ÖLLUM villuleiðum ───────────────
+// ⚠⚠ `fjarmalVantar` náði AÐEINS yfir það þegar `fjarmal`-reiturinn vantaði alveg. Óstillt Áskell,
+//    `villa:'askell'`, `villa:'rofi'`, `villa:'d1_hluti'`, `villa:'verdskra_hluti'` og óauðkennd
+//    virk stök (`mrrAskellOvisst`) sluppu allar í gegn: mælt gaf óstilltur Áskell
+//    `óvíst kr/mán | 0 misræmi | 0 í fríprófun | óvíst verðrek`. Flísar 1 og 4 gerðu þetta rétt,
+//    2 og 3 ekki — nú hlíta þær sömu reglu og flís 1 (`naest`).
+//
+// ⚠ Fixtures BERA gögn (tvö misræmi, ein fríprófun) svo prófin geti fallið: væru fylkin tóm sýndi
+//   biluð útfærsla „0" og rétt útfærsla „óvíst", en með gögnum sýnir hún „2"/"1" — munur sem sést.
+const medGognum = (yfir = {}) => heilt(Object.assign({
+  misraemi: [
+    { tegund: 'borgar_fyrir_ekkert', kt: '1111111111', vara: 'fyrirtaeki', verd: 6900, sidan: NU },
+    { tegund: 'gefins', kt: '2222222222', vara: 'kvoti', verd: 9900, sidan: NU },
+  ],
+  fripofanir: [{ kt: '3333333333', vara: 'fyrirtaeki', verd: 6900 }],
+}, yfir));
+
+const VILLULEIDIR = [
+  ['óstillt Áskell', { ok: false, error: 'unconfigured', misraemi: medGognum().misraemi, fripofanir: medGognum().fripofanir }],
+  ['villa: askell', medGognum({ villa: 'askell' })],
+  ['villa: rofi', medGognum({ villa: 'rofi' })],
+  ['villa: d1_hluti', medGognum({ villa: 'd1_hluti' })],
+  ['villa: verdskra_hluti', medGognum({ villa: 'verdskra_hluti' })],
+  ['óauðkennd virk stök', medGognum({ mrrAskellOvisst: true })],
+  ['óþekktur villukóði', medGognum({ villa: 'eitthvad-alveg-nytt' })],
+];
+
+for (const [nafn, f] of VILLULEIDIR) {
+  test('villuleið „' + nafn + '": ALLAR þrjár talna-flísarnar segja óvíst, engin þeirra mælda tölu', () => {
+    const g = elinGogn(svar(f), [], NU);
+    for (const merki of ['kr/mán rukkað', 'misræmi', 'í fríprófun']) {
+      const flis = g.tolur.find((t) => t.l === merki);
+      assert.equal(flis.n, 'óvíst', merki + ': tala sem var aldrei mæld má aldrei líta út eins og mæld tala');
+    }
+  });
+
+  test('villuleið „' + nafn + '": vinnslulistinn er tómur — nafngreind misræmi eru fullyrðing', () => {
+    // ⚠ Flísin segir „óvíst" en vinnslulistinn nefndi samt fólk með upphæð. Það er verri fullyrðing
+    //   en talan: hún bendir á tiltekna manneskju og segir hvað hún skuldi.
+    const g = elinGogn(svar(f), [], NU);
+    assert.deepEqual(g.vinnsla, []);
+  });
+}
+
+test('mælt svar heldur ÁFRAM að sýna tölur og vinnslulista — óvissan má ekki éta mælinguna', () => {
+  // ⚠ Hin áttin. Öll prófin hér að ofan yrðu græn fyrir útfærslu sem segði alltaf „óvíst".
+  const g = elinGogn(svar(medGognum()), [], NU);
+  assert.equal(g.tolur.find((t) => t.l === 'misræmi').n, '2');
+  assert.equal(g.tolur.find((t) => t.l === 'í fríprófun').n, '1');
+  assert.equal(g.vinnsla.length, 2);
+});
+
+test('staðan segir ALDREI „stemma" þegar virkt stak mældist ekki', () => {
+  // ⚠ Sama gildra og `fjarmalVantar` lokaði einu lagi ofar, nú fyrir óauðkennd stök: engin misræmi
+  //   fundust AF ÞVÍ að samningurinn var aldrei borinn saman. „Áskell og réttindin stemma" er þá
+  //   grænt ljós á mælingu sem fór aldrei fram.
+  const g = elinGogn(svar(heilt({ mrrAskellOvisst: true })), [], NU);
+  assert.doesNotMatch(g.stada, /stemma/i);
+});
+
 test('misræmis-sundurliðunin víxlast ekki þegar fjöldi tegundanna er ÓLÍKUR', () => {
   const g = elinGogn(svar(heilt({ misraemi: [
     { tegund: 'borgar_fyrir_ekkert', kt: '1111111111', vara: 'fyrirtaeki', verd: 6900, sidan: NU },

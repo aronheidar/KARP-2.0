@@ -68,7 +68,21 @@ export function bidurThin({ tickets = {}, bilanir = [], now = 0, markads = null,
       borgar_fyrir_ekkert: ['Borgar fyrir ekkert', 'rukkað í Áskeli en engin réttindi'],
       gefins: ['Fær gefins', 'réttindi án virks samnings'],
     };
-    for (const m of (Array.isArray(fj.misraemi) ? fj.misraemi : [])) {
+    // ⚠⚠ Heildaryfirferð: MISRÆMI ERU EKKI SMÍÐUÐ ÞEGAR SAMANBURÐURINN VAR EKKI HEILL.
+    //    Tvær leiðir gera hann hálfan, sitt á hvorum endanum, og báðar framleiða raðir sem eiga sér
+    //    enga stoð — raðir sem BENDA Á NAFNGREINDAN VIÐSKIPTAVIN og segja hvað hann skuldi:
+    //    · `villa === 'd1_hluti'`: D1-lesturinn brást meðan Áskell svaraði → `heimildir` tómt →
+    //      HVER EINASTI virki samningur verður „borgar fyrir ekkert". Ein röð á hvern borgandi
+    //      viðskiptavin, beint inn á forstofuna. `elin.mjs` féll rétt á þessu; hér var villan ólesin.
+    //    · `verdUppsprettur.oaudkennt > 0`: virkt Áskels-stak var ekki auðkennanlegt (samningur án
+    //      `customer_reference`, liður án `product_reference` — sjá ../fjarmal.mjs) → D1-heimildin
+    //      stendur ein eftir og verður að „fær gefins" um mann sem er að borga.
+    //    ⚠ `verdskra_hluti` fellir EKKERT: báðir listarnir náðust, svo pörunin sjálf er heil — aðeins
+    //      verðin vantar. Að slökkva á öllum villukóðum í einu væri jafn ómarkvisst og engum.
+    //    ⚠ `rennurUt` stendur áfram: hálfur heimildalisti gefur FÆRRI raðir, ekki uppspunnar.
+    const uppsp = (fj.verdUppsprettur && typeof fj.verdUppsprettur === 'object') ? fj.verdUppsprettur : {};
+    const samanburdurHeill = fj.villa !== 'd1_hluti' && !(Number(uppsp.oaudkennt) > 0);
+    for (const m of (samanburdurHeill && Array.isArray(fj.misraemi) ? fj.misraemi : [])) {
       const t = m && TXT[m.tegund];
       if (!t) continue;
       // ⚠ Verk 4-yfirferð: `nu`, ALDREI `m.sidan` — sidan er sóknartími workersins. Í stöðnaðri mynd

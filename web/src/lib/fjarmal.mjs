@@ -82,7 +82,17 @@ export function samstemma({ samningar = [], heimildir = [], verdskra = {}, now =
   //    síðast vinna, svo sömu gögn í öfugri röð gáfu ólíka `mrrAskell`: helmingur upphæðar hvarf þegar
   //    samningur bar tvö stök á sömu vöru, tvírukkun varð ósýnileg, og hvort verk taldist fríprófun eða
   //    tekjur réðst af innlestrarröðinni.
-  const verdUppsprettur = { lidur: 0, verdskra: 0, ekkert: 0 };
+  // ⚠⚠ `oaudkennt` telur virk stök sem falla ÚT úr samanburðinum áður en verð er svo mikið sem leitað.
+  //    Án hans hurfu þau í hljóði: teljarinn hækkaði hvergi, `mrrAskellOvisst` stóð í `false` og
+  //    spjaldið sýndi örugga tölu yfir mælingu sem náði ekki utan um alla borgandi viðskiptavini.
+  //    Bæði formin eru RAUNSNIÐ úr ../worker/greidslur.mjs, ekki tilgáta:
+  //    · `:334` setur `customer_reference` AÐEINS þegar kt er nákvæmlega 10 stafir → borgandi
+  //      viðskiptavinur án hennar mælist ALLS EKKI.
+  //    · `:579` stofnar samninga með `items: [{ price }]` og ENGU `product_reference` → liðurinn
+  //      dettur út og D1-heimildin stendur ein eftir sem „fær gefins".
+  //    ⚠ Hér er EKKI giskað á vöru eða kennitölu út frá samhengi. Óþekkt er óþekkt — og það er
+  //      einmitt það sem á að sjást.
+  const verdUppsprettur = { lidur: 0, verdskra: 0, ekkert: 0, oaudkennt: 0 };
   const sMap = new Map();
   let ix = 0;
   for (const c of sList) {
@@ -94,7 +104,9 @@ export function samstemma({ samningar = [], heimildir = [], verdskra = {}, now =
     ix += 1;
     for (const it of (Array.isArray(c.items) ? c.items : [])) {
       const vara = String((it && it.product_reference) || '');
-      if (!kt || !vara) continue;
+      // ⚠ Talið PER STAKI, ekki per samningi: samningur án kt fellir ALLA liði sína, og teldist hann
+      //   sem eitt yrði hlutfallið sem segir hversu mikið vantar ómarktækt.
+      if (!kt || !vara) { verdUppsprettur.oaudkennt += 1; continue; }
       const { verd, uppspretta } = lidVerd(it, verdskra, vara);
       verdUppsprettur[uppspretta] += 1;
       const upphaed = verd * lidMagn(it);
@@ -160,5 +172,8 @@ export function samstemma({ samningar = [], heimildir = [], verdskra = {}, now =
   // ⚠ Lendi EITTHVERT virkt samningsstak í `'ekkert'` er `mrrAskell` ekki tæmandi og efra lagið á að
   //   segja `óvíst` fremur en tölu. Fríprófanir teljast með: VIRK() telur þær virkar, og finnist ekkert
   //   verð á þeim er `fripofanir[].verd` líka óþekkt.
-  return { misraemi, fripofanir, tvirukkun, mrrAskell, mrrD1, verdrek, verdUppsprettur, mrrAskellOvisst: verdUppsprettur.ekkert > 0 };
+  // ⚠⚠ `oaudkennt` fellir töluna EINS OG `ekkert` — og vegur raunar þyngra: stak sem fannst ekkert verð
+  //    á var þó BORIÐ SAMAN, en stak sem var ekki auðkennanlegt komst aldrei í samanburðinn. Það gerir
+  //    ekki bara `mrrAskell` ó-tæmandi heldur getur skilið D1-heimild eftir eina sem falskt „gefins".
+  return { misraemi, fripofanir, tvirukkun, mrrAskell, mrrD1, verdrek, verdUppsprettur, mrrAskellOvisst: verdUppsprettur.ekkert > 0 || verdUppsprettur.oaudkennt > 0 };
 }

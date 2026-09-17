@@ -29,7 +29,7 @@ const _FJ_ADGERDIR = ['saekja', 'hrafn'];
  *    varabrautin honum í hljóði. */
 const _fjTomt = () => ({
   misraemi: [], fripofanir: [], tvirukkun: [], mrrAskell: 0, mrrD1: 0, verdrek: [],
-  verdUppsprettur: { lidur: 0, verdskra: 0, ekkert: 0 }, mrrAskellOvisst: true, verdrekMaelt: false, rennurUt: [],
+  verdUppsprettur: { lidur: 0, verdskra: 0, ekkert: 0, oaudkennt: 0 }, mrrAskellOvisst: true, verdrekMaelt: false, rennurUt: [],
 });
 
 /** Geymda myndin er GÖGN, aldrei merking: `villa` er reiknuð per svar og geymd hvergi. Væri
@@ -93,6 +93,49 @@ async function _fjSaekjaAllt(env, slod) {
   return ut;
 }
 
+/** Vöru-tilvísun verðs — ORÐRÉTT sami forgangur og `askellPriceId()` í ./greidslur.mjs:255-300 notar.
+ *  ⚠⚠ Sú skrá segir berum orðum að staðfesta V2-sniðið (11.7) sé `product_reference` og að tilvísun
+ *     VERÐSINS SJÁLFS (`reference`/`ref`/`sku`) sé NEÐSTA varaleiðin. Hér stóð öfug röð, svo verð með
+ *     eigin tilvísun stal lyklinum af vörunni sem það tilheyrir: verðskráin varð lyklað á eitthvað
+ *     sem `samstemma` flettir aldrei upp, `lidVerd` féll á `ekkert` og verðrekið hvarf.
+ *  ⚠ `product` getur verið hlutur, auðkenni („12"), DRF-hlekkur („.../products/12/") EÐA tilvísunin
+ *    sjálf. Aðeins síðasta formið er nothæfur lykill — hin tvö eru auðkenni og yrðu rusl-lyklar. */
+const _fjVerdRef = (p) => {
+  const o = (p && typeof p === 'object') ? p : {};
+  const vara = (o.product && typeof o.product === 'object') ? o.product : null;
+  const beint = String(o.product_reference || '');
+  if (beint) return beint;
+  if (vara) { const r = String(vara.reference || vara.ref || vara.sku || ''); if (r) return r; }
+  if (typeof o.product === 'string' && o.product && !/^\d+$/.test(o.product) && !o.product.includes('/')) return o.product;
+  return String(o.reference || o.ref || o.sku || '');
+};
+
+/** Áskels-verðlisti → `{ vara: upphæð }` fyrir `samstemma`. Þrennt sem systurkóðinn gerir og vantaði:
+ *  ⚠ `active === false` er SÍAÐ ÚT. Slóðin biður um `?active=all`, svo aflögð verð berast með — og
+ *    aflagt verð er fortíð, hvorki verðrek né gilt varaverð.
+ *  ⚠ `billing_type`: mánaðarverð VINNUR yfir einskiptisverð. Stök skýrsla á sömu vöru gat annars
+ *    yfirskrifað mánaðarverðið og framleitt draugaverðrek sem enginn gat rakið.
+ *  ⚠⚠ Þögul yfirskrift er felld: tvö ÓLÍK verð í sama forgangi eru ÓVISSA, ekki kapphlaup um hver
+ *     kom síðastur. Lykillinn er þá felldur svo `lidVerd` lendi á `ekkert` og spjaldið segi `óvíst` —
+ *     útkoman má ALDREI ráðast af innlestrarröð Áskels. Sama upphæð tvisvar er engin óvissa. */
+function _fjVerdskra(listi) {
+  const rod = (p) => (String(p && p.billing_type || '') === 'recurring' ? 1 : 0);
+  const bestu = new Map();
+  for (const p of (Array.isArray(listi) ? listi : [])) {
+    if (!p || typeof p !== 'object' || p.active === false) continue;
+    const ref = _fjVerdRef(p);
+    const v = Number(p.amount != null ? p.amount : p.price);
+    if (!ref || !Number.isFinite(v)) continue;
+    const r = rod(p);
+    const fyrir = bestu.get(ref);
+    if (!fyrir || r > fyrir.rod) bestu.set(ref, { verd: v, rod: r, tvirar: false });
+    else if (r === fyrir.rod && v !== fyrir.verd) fyrir.tvirar = true;
+  }
+  const ut = {};
+  for (const [ref, b] of bestu) if (!b.tvirar) ut[ref] = b.verd;
+  return ut;
+}
+
 export async function saekjaFjarmal(env, { thvinga = false } = {}) {
   if (!env.ASKELL_PRIVATE_KEY) return { ok: false, error: 'unconfigured' };
   const geymt = await _fjGeymt(env);
@@ -115,14 +158,7 @@ export async function saekjaFjarmal(env, { thvinga = false } = {}) {
       env.TENGSL.prepare('SELECT id AS uid, kt, tier AS vara, tier_until AS until, tier_askell AS askell_id, free_access, is_admin, nemandi FROM users WHERE tier IS NOT NULL AND tier_until > ?').bind(nu).all(),
     ]);
     if (samningarR.status !== 'fulfilled') throw samningarR.reason || new Error('askell');
-    const verdskra = {};
-    if (verdR.status === 'fulfilled') {
-      for (const p of verdR.value) {
-        const ref = String((p && (p.reference || p.product_reference)) || '');
-        const v = Number(p && (p.amount != null ? p.amount : p.price));
-        if (ref && Number.isFinite(v)) verdskra[ref] = v;
-      }
-    }
+    const verdskra = verdR.status === 'fulfilled' ? _fjVerdskra(verdR.value) : {};
     const heimildir = [
       ...((subsR.status === 'fulfilled' && subsR.value.results) || []).map((x) => Object.assign({}, x, { tegund: 'svc' })),
       ...((usrR.status === 'fulfilled' && usrR.value.results) || []).map((x) => Object.assign({}, x, { tegund: 'tier' })),
@@ -148,17 +184,29 @@ export async function saekjaFjarmal(env, { thvinga = false } = {}) {
     //     að verðskráin náðist fullkomlega þegar gagnanna var upphaflega aflað. Sama girðing og
     //     athugasemdin yfir `_fjTomt` varar við (og sama mynstur og Verk 4 mun nota fyrir `rennurUt`).
     gogn.verdrekMaelt = verdR.status === 'fulfilled';
-    // ⚠ AÐEINS gögnin eru geymd — sjá _fjMynd.
-    await env.TENGSL.prepare("INSERT INTO stjorn_sync (k, v, updated) VALUES ('fjarmal', ?, ?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated")
-      .bind(JSON.stringify(gogn), nu).run().catch(() => {});
     // ⚠ Biluð verðskrá var ÞÖGUL: `verdrek: []` og engin villa sagði „ekkert verðrek" þegar verðrek
     //   var aldrei mælt. Forgangur: D1-gatið er nefnt fyrst þegar bæði brugðust — það snertir bæði
     //   `mrrD1` og `misraemi`, verðskráin aðeins `verdrek`. EINN kóði fer út; Verk 3 las einn streng.
     // ⚠ `gogn.verdrekMaelt` (að ofan) er einmitt til þess að spjaldið þurfi EKKI að giska á þetta af
     //   `villa`: hann er sjálfstæður og ÓHÁÐUR forgangsröðuninni hér — segir nákvæmlega hvort
     //   VERÐSKRÁIN sjálf náðist, líka þegar `d1_hluti` (ekki `verdskra_hluti`) er kóðinn sem fer út.
+    // ⚠⚠ REIKNAÐ Á UNDAN GEYMSLUNNI (heildaryfirferð): áður keyrði INSERT-ið fyrst og `villa` á eftir,
+    //    svo mynd sem byggði á HÁLFUM samanburði fór möglunarlaust í stjorn_sync.
     const villa = (subsR.status !== 'fulfilled' || usrR.status !== 'fulfilled') ? 'd1_hluti'
       : (verdR.status !== 'fulfilled' ? 'verdskra_hluti' : null);
+    // ⚠⚠ Hálfur samanburður er GEYMDUR HVERGI. Bregðist D1-lesturinn meðan Áskell svarar verður
+    //    `heimildir` tómt og HVER EINASTI virki samningur að „borgar fyrir ekkert". Væri sú mynd geymd
+    //    yrði hún borin fram í allt að 15 mín (_FJ_FYRNING) — og SÍÐAR bæri varabrautin hana fram undir
+    //    `villa: 'askell'`, því `_fjMynd` strippar `villa`. Það les eins og „gömul en var einu sinni
+    //    rétt". Hún var aldrei rétt. D1-lestrarbilanir eru þekkt, endurtekið ástand í þessu kerfi.
+    //    ⚠ `verdskra_hluti` er ANNAÐ mál og geymist áfram: báðir heimildalistarnir náðust, svo
+    //      samanburðurinn sjálfur ER heill — aðeins verðin vantar, og `verdrekMaelt: false` segir það.
+    //    Eldri heil mynd stendur þá óhreyfð og `sott` segir satt um aldur hennar.
+    if (villa !== 'd1_hluti') {
+      // ⚠ AÐEINS gögnin eru geymd — sjá _fjMynd.
+      await env.TENGSL.prepare("INSERT INTO stjorn_sync (k, v, updated) VALUES ('fjarmal', ?, ?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated")
+        .bind(JSON.stringify(gogn), nu).run().catch(() => {});
+    }
     const svar = Object.assign({ ok: true, sott: nu }, gogn);
     if (villa) svar.villa = villa;
     return svar;

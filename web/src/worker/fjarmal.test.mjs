@@ -188,6 +188,84 @@ test('verðskrá sem er ekki fylki telst líka biluð', async (t) => {
   assert.equal(r.verdrekMaelt, false);
 });
 
+// ── Heildaryfirferð, atriði 4: verðskráin er lykluð EINS OG systurkóðinn gerir ───────────────────
+// ⚠⚠ `askellPriceId()` í ./greidslur.mjs:255-300 segir berum orðum að staðfesta V2-sniðið (11.7) sé
+//    `product_reference` og að tilvísun VERÐSINS SJÁLFS sé neðsta varaleiðin. Hér stóð öfug röð
+//    (`p.reference || p.product_reference`), engin sía á `active === false` þótt beðið sé um
+//    `?active=all`, engin `billing_type`-forgangsröðun og þögul yfirskrift á sama lykli.
+// ⚠ Verðskráin er tvínota: hún er varaleið `lidVerd` FYRIR upphæð OG viðmið verðreks. Rangt verð
+//   á lykli framleiðir því bæði draugaverðrek og ranga MRR-tölu.
+
+/** Samningur sem BER EKKI upphæð — hann les því verðið úr verðskránni og afhjúpar hvað hún geymir. */
+const anUpphaedar = (vara = 'kvoti') => ({ status: 200, d: { results: [{ id: 'c1', customer_reference: '1234567890', state: 'active', items: [{ product_reference: vara }] }] } });
+
+test('lyklað á product_reference — eigin `reference` verðsins er NEÐSTA varaleiðin, ekki sú fyrsta', async (t) => {
+  const env = mkEnv(mkState());
+  stubFetch(t, leidir(anUpphaedar(), { status: 200, d: { results: [
+    { product_reference: 'kvoti', reference: 'verd_manadarlegt_2026', amount: 8900, billing_type: 'recurring' },
+  ] } }));
+  const r = await saekjaFjarmal(env, { thvinga: true });
+  assert.deepEqual(r.verdrek, [{ vara: 'kvoti', askell: 8900, fast: 9900 }], 'verðið tilheyrir `kvoti`, ekki eigin tilvísun sinni');
+  assert.equal(r.mrrAskell, 8900, 'og sama lyklun ber upphæðina inn í MRR');
+  assert.deepEqual(r.verdUppsprettur, { lidur: 0, verdskra: 1, ekkert: 0, oaudkennt: 0 });
+});
+
+test('verð með eigin `reference` EINNI saman er samt lesið — neðsta varaleiðin er varaleið, ekki bann', async (t) => {
+  const env = mkEnv(mkState());
+  stubFetch(t, leidir(anUpphaedar(), { status: 200, d: { results: [{ reference: 'kvoti', amount: 8900 }] } }));
+  assert.deepEqual((await saekjaFjarmal(env, { thvinga: true })).verdrek, [{ vara: 'kvoti', askell: 8900, fast: 9900 }]);
+});
+
+test('óvirkt verð er hunsað — `?active=all` skilar því sem á EKKI að gilda', async (t) => {
+  const env = mkEnv(mkState());
+  stubFetch(t, leidir(anUpphaedar(), { status: 200, d: { results: [
+    { product_reference: 'kvoti', amount: 1000, active: false, billing_type: 'recurring' },
+  ] } }));
+  const r = await saekjaFjarmal(env, { thvinga: true });
+  assert.deepEqual(r.verdrek, [], 'aflagt verð er ekki verðrek — það er fortíð');
+  assert.equal(r.mrrAskellOvisst, true, 'ekkert gilt verð fannst → óvíst, ekki 1000');
+});
+
+test('mánaðarverð vinnur yfir einskiptisverð — óháð röðinni sem Áskell skilar þeim í', async (t) => {
+  // ⚠⚠ Þetta er draugaverðrekið: einskiptisverð (t.d. stök skýrsla) á sömu vöru yfirskrifaði
+  //    mánaðarverðið og spjaldið tilkynnti verðrek sem er ekki til.
+  const verd = (rod) => ({ status: 200, d: { results: rod } });
+  const manadar = { product_reference: 'kvoti', amount: 9900, billing_type: 'recurring' };
+  const stakt = { product_reference: 'kvoti', amount: 19900, billing_type: 'one_time' };
+  for (const rod of [[stakt, manadar], [manadar, stakt]]) {
+    const env = mkEnv(mkState());
+    stubFetch(t, leidir(anUpphaedar(), verd(rod)));
+    const r = await saekjaFjarmal(env, { thvinga: true });
+    assert.deepEqual(r.verdrek, [], 'mánaðarverðið stemmir við PRICE_SVC — röð ' + rod.map((x) => x.billing_type).join('→'));
+    assert.equal(r.mrrAskell, 9900, 'og MRR les mánaðarverðið, ekki einskiptisverðið');
+  }
+});
+
+test('tvö ÓLÍK mánaðarverð á sömu vöru: hvorugt er fullyrt — síðasta færsla vinnur ALDREI í hljóði', async (t) => {
+  // ⚠ Þögul yfirskrift gerði útkomuna háða innlestrarröð Áskels. Tvö ólík gild verð á sama lykli er
+  //   ÓVISSA, og óvissa á að sjást — ekki að leysast með því hvort svarið kom á undan.
+  const env = mkEnv(mkState());
+  stubFetch(t, leidir(anUpphaedar(), { status: 200, d: { results: [
+    { product_reference: 'kvoti', amount: 8900, billing_type: 'recurring' },
+    { product_reference: 'kvoti', amount: 7900, billing_type: 'recurring' },
+  ] } }));
+  const r = await saekjaFjarmal(env, { thvinga: true });
+  assert.deepEqual(r.verdrek, [], 'ekkert verðrek fullyrt á tvíræðu verði');
+  assert.deepEqual(r.verdUppsprettur, { lidur: 0, verdskra: 0, ekkert: 1, oaudkennt: 0 }, 'lykillinn er FELLDUR, ekki fylltur af tilviljun');
+  assert.equal(r.mrrAskellOvisst, true);
+});
+
+test('tvær færslur með SÖMU upphæð eru ekki tvíræðar — verðið stendur', async (t) => {
+  const env = mkEnv(mkState());
+  stubFetch(t, leidir(anUpphaedar(), { status: 200, d: { results: [
+    { product_reference: 'kvoti', amount: 8900, billing_type: 'recurring' },
+    { product_reference: 'kvoti', amount: 8900, billing_type: 'recurring' },
+  ] } }));
+  const r = await saekjaFjarmal(env, { thvinga: true });
+  assert.deepEqual(r.verdrek, [{ vara: 'kvoti', askell: 8900, fast: 9900 }]);
+  assert.equal(r.mrrAskell, 8900);
+});
+
 test('hlutabilun í D1 er merkt d1_hluti — en verðskráin er ÓHÁÐ því og mældist samt', async (t) => {
   const state = mkState(); state.bila.subs = true; const env = mkEnv(state);
   stubFetch(t, leidir({ status: 200, d: { results: [samningur(1)] } }));
@@ -219,12 +297,57 @@ test('geymd mynd YFIRSKRIFAR ekki `villa` — Áskell ónáanlegur segir askell,
 });
 
 test('geymda myndin ber ENGA villu — hlutabilun litar ekki svarið í 15 mín eftir á', async (t) => {
+  // ⚠ ENDURSKOÐAÐ í heildaryfirferð (atriði 2): prófið geymdi áður mynd sem var byggð á HÁLFUM
+  //   samanburði (`state.bila.subs`) og staðfesti aðeins að `villa` fylgdi henni ekki. Það var rétt
+  //   svo langt sem það náði en horfði framhjá stærra gatinu: myndin sjálf átti aldrei að vera geymd.
+  //   Hlutabilunin er hér því færð yfir á VERÐSKRÁNA, sem er raunveruleg hlutabilun sem BREYTIR ENGU
+  //   um pörunina — hún má og á að geymast, bara ómerkt. Girðingin sem prófið mældi stendur óbreytt.
+  const state = mkState(); const env = mkEnv(state);
+  stubFetch(t, leidir({ status: 200, d: { results: [samningur(1)] } }, { status: 500, d: {} }));
+  assert.equal((await saekjaFjarmal(env, { thvinga: true })).villa, 'verdskra_hluti');
+  assert.equal(JSON.parse(state.sync.fjarmal.v).villa, undefined, 'aðeins GÖGN eru geymd, ekki merking');
+  stubFetch(t, leidir({ status: 200, d: { results: [samningur(1)] } }));
+  assert.equal((await saekjaFjarmal(env, {})).villa, undefined, 'fersk geymsla → engin villa');
+});
+
+// ── Heildaryfirferð, atriði 2: mynd sem byggir á hálfum samanburði er ALDREI GEYMD ───────────────
+// ⚠⚠ `INSERT`-ið keyrði ÁÐUR en `villa` var reiknuð, svo eitraða myndin (tómur heimildalisti → hver
+//    einasti virki samningur „borgar fyrir ekkert") fór í `stjorn_sync` og var borin fram í allt að
+//    15 mín — og SÍÐAR bar varabrautin hana fram undir `villa: 'askell'` (því `_fjMynd` strippar
+//    `villa`), sem les eins og „gömul en var einu sinni rétt". Hún var aldrei rétt.
+
+test('d1_hluti er EKKI geymt — eitruð mynd má ekki lifa af í stjorn_sync', async (t) => {
   const state = mkState(); state.bila.subs = true; const env = mkEnv(state);
   stubFetch(t, leidir({ status: 200, d: { results: [samningur(1)] } }));
+  const r = await saekjaFjarmal(env, { thvinga: true });
+  assert.equal(r.villa, 'd1_hluti', 'viðmið: samanburðurinn var sannanlega hálfur');
+  assert.equal(r.misraemi.length, 1, 'og myndin sem var reiknuð BER draugamisræmið');
+  assert.equal(state.sync.fjarmal, undefined, 'en hún var aldrei geymd');
+});
+
+test('d1_hluti spillir ekki ELDRI heilli mynd — geymslan heldur því sem satt var', async (t) => {
+  const nu = Math.floor(Date.now() / 1000);
+  const state = mkState();
+  // ⚠ Heimildin PARAST við samninginn (sama kt+vara) svo heila myndin sé sannanlega ÖNNUR en sú
+  //   eitraða — annars eru bæði svörin eins og prófið sannar ekkert.
+  state.subs = [{ uid: 1, kt: String(1000000001), vara: 'kvoti', until: nu + 9999, askell_id: null, free_access: 0, is_admin: 0, nemandi: 0 }];
+  const env = mkEnv(state);
+  stubFetch(t, leidir({ status: 200, d: { results: [samningur(1, 'kvoti', 9900)] } }));
   await saekjaFjarmal(env, { thvinga: true });
-  assert.equal(JSON.parse(state.sync.fjarmal.v).villa, undefined, 'aðeins GÖGN eru geymd, ekki merking');
-  state.bila.subs = false;
-  assert.equal((await saekjaFjarmal(env, {})).villa, undefined, 'fersk geymsla, D1 komið aftur → engin villa');
+  const heil = state.sync.fjarmal.v;
+  assert.deepEqual(JSON.parse(heil).misraemi, [], 'viðmið: heila myndin ber ENGIN misræmi');
+  state.bila.subs = true;
+  const eitrud = await saekjaFjarmal(env, { thvinga: true });
+  assert.equal(eitrud.misraemi.length, 1, 'viðmið: hálfi samanburðurinn framleiðir draugamisræmi');
+  assert.equal(state.sync.fjarmal.v, heil, 'hálfur samanburður má hvorki geymast né yfirskrifa heilan');
+});
+
+test('heill samanburður ER geymdur — girðingin má ekki slökkva á geymslunni almennt', async (t) => {
+  const state = mkState(); const env = mkEnv(state);
+  stubFetch(t, leidir({ status: 200, d: { results: [samningur(1, 'kvoti', 9900)] } }));
+  await saekjaFjarmal(env, { thvinga: true });
+  assert.ok(state.sync.fjarmal, 'ekkert geymt = spjaldið sækir Áskel upp á nýtt í hverri heimsókn');
+  assert.equal(JSON.parse(state.sync.fjarmal.v).mrrAskell, 9900);
 });
 
 test('gömul geymd röð sem BER villu smitar hvorki nýtt svar né cache-svar', async (t) => {
@@ -249,7 +372,7 @@ test('varabraut án geymdrar myndar hendir ENGU úr Verki 1', async (t) => {
   assert.equal(r.villa, 'askell');
   assert.equal(r.mrrAskellOvisst, true, 'án mælingar vitum við sannanlega ekki neitt');
   assert.equal(r.verdrekMaelt, false, 'engin verðskrá var sótt á þessari braut — sömu rök og mrrAskellOvisst');
-  assert.deepEqual(r.verdUppsprettur, { lidur: 0, verdskra: 0, ekkert: 0 });
+  assert.deepEqual(r.verdUppsprettur, { lidur: 0, verdskra: 0, ekkert: 0, oaudkennt: 0 });
   assert.deepEqual(r.tvirukkun, []);
   // ⚠ Verk 4: `rennurUt` er dagatal, ekki misræmi — en sama girðing gildir. Gleymist hann í _fjTomt()
   //   hverfur hann ÞEGJANDI hér, nákvæmlega eins og verdrekMaelt hefði gert án sinnar línu.
@@ -362,14 +485,14 @@ test('verdUppsprettur og mrrAskellOvisst eru MÆLD, ekki fastsett', async (t) =>
   // (a) liður án upphæðar og ekkert í verðskrá → uppspretta `ekkert` → óvíst
   stubFetch(t, leidir({ status: 200, d: { results: [{ id: 'c1', customer_reference: '1234567890', state: 'active', items: [{ product_reference: 'kvoti' }] }] } }));
   const a = await saekjaFjarmal(env, { thvinga: true });
-  assert.deepEqual(a.verdUppsprettur, { lidur: 0, verdskra: 0, ekkert: 1 });
+  assert.deepEqual(a.verdUppsprettur, { lidur: 0, verdskra: 0, ekkert: 1, oaudkennt: 0 });
   assert.equal(a.mrrAskellOvisst, true);
   // (b) sami liður, en verðskráin svarar → uppspretta `verdskra` → ekki lengur óvíst
   stubFetch(t, leidir(
     { status: 200, d: { results: [{ id: 'c1', customer_reference: '1234567890', state: 'active', items: [{ product_reference: 'kvoti' }] }] } },
     { status: 200, d: { results: [{ reference: 'kvoti', amount: 9900 }] } }));
   const b = await saekjaFjarmal(mkEnv(mkState()), { thvinga: true });
-  assert.deepEqual(b.verdUppsprettur, { lidur: 0, verdskra: 1, ekkert: 0 });
+  assert.deepEqual(b.verdUppsprettur, { lidur: 0, verdskra: 1, ekkert: 0, oaudkennt: 0 });
   assert.equal(b.mrrAskellOvisst, false, 'reiturinn má ekki vera fastsettur `true`');
   assert.equal(b.mrrAskell, 9900);
 });
@@ -571,7 +694,7 @@ test('rofi án geymdrar myndar skilar merktri tómri mynd, ekki hálfri', async 
   assert.equal(j.fjarmal.villa, 'rofi');
   assert.equal(j.fjarmal.mrrAskellOvisst, true);
   assert.equal(j.fjarmal.verdrekMaelt, false, 'engin geymd mynd og engin ný sókn — ekkert var mælt');
-  assert.deepEqual(j.fjarmal.verdUppsprettur, { lidur: 0, verdskra: 0, ekkert: 0 });
+  assert.deepEqual(j.fjarmal.verdUppsprettur, { lidur: 0, verdskra: 0, ekkert: 0, oaudkennt: 0 });
   assert.deepEqual(j.fjarmal.tvirukkun, []);
 });
 
