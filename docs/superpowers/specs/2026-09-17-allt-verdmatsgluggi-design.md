@@ -11,7 +11,7 @@ mánaðargjald** frá Allt til Karps.
 Pluginin þrjú eru sjálfstæð verkefni sem deila engu nema uppruna. Þau fá sína eigin spekk hvert.
 
 1. **Verðmatsgluggi** — heimilisfang inn, verðbil út. ⬅ ÞESSI SPEKK
-2. Kaupgetureikni (sjá „Orðalag" að neðan, heitir EKKI greiðslumat)
+2. Bráðabirgðagreiðslumat (fyrirmynd Íslandsbanki, sjá að neðan)
 3. Fasteignafréttir af Reykjanesi
 
 Plugin 1 er fyrst því vélin á bak við það er þegar til og mæld, og það sannar í leiðinni
@@ -160,10 +160,29 @@ ekki til fyrir 47% — sama upplifun fyrir alla var forsenda).
    Svarið er sennilega að okkar skýrsla er gagnaskýrsla en ekki söluverðmat og hún endar á
    hvatningu um að tala við fasteignasala. Það þarf að vera ákveðið áður en hann spyr.
 
+## Undirbúningur fyrir plugin 2 (ekki umfang þessarar spekkar)
+
+Aron benti á bráðabirgðagreiðslumat Íslandsbanka sem fyrirmynd. Fimm skref.
+
+1. Tegund láns, fyrstu kaup eða fasteignalán
+2. Tekjur og útgjöld á mánuði, fjöldi kaupenda, tekjur, eigið fé, fjöldi barna undir 18 ára
+3. Rekstur heimilisins, mánaðarleg útgjöld og fjöldi bifreiða
+4. Önnur lán, afborganir
+5. Niðurstaða, greiðslugeta og hversu dýra eign má kaupa
+
+⚠ Fimm skref er langt fyrir ramma inni á vef þriðja aðila. Hvort við speglum flæðið eða þjöppum
+því er hönnunarspurning fyrir þá spekk.
+
+⚠⚠ Erfiði hlutinn er ekki viðmótið heldur forsendurnar. Íslandsbanki reiknar eftir SÍNUM
+útlánareglum og sínum vöxtum. Karp er ekki lánveitandi og verður því að velja hvað reiknað er
+eftir, og segja það upphátt í niðurstöðunni.
+
 ## Orðalag sem má ekki víkja
 
-- **„Kaupgetureikni"**, aldrei „greiðslumat", í plugin 2. Greiðslumat er skilgreint hugtak sem
-  lánveitendur framkvæma samkvæmt lögum um fasteignalán til neytenda. „Bráðabirgða" mildar en ver
-  ekki.
+- **„Bráðabirgðagreiðslumat"** er RÉTTA heitið á plugin 2. Ég lagði upphaflega til
+  „kaupgetureikni" af ótta við að hugtakið væri frátekið fyrir lánveitendur. Það var of varkárt.
+  Íslandsbanki kallar sína eigin opnu sjálfsafgreiðslu nákvæmlega þessu nafni, svo hugtakið er í
+  almennri notkun um einmitt þetta. Það sem stendur eftir er ekki nafnið heldur að segja hverra
+  reglum er reiknað eftir og að niðurstaðan bindi engan.
 - **„Rétt í fjórum af hverjum fimm tilvikum"** um bilið í plugin 1.
 - Aldrei „verðmat" eitt og sér um niðurstöðu gluggans, alltaf „áætlað verðbil".
