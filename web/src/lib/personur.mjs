@@ -180,6 +180,13 @@ export const AVATAR_PALETTE = [
   '#2b2118', '#5a3825', '#8b5a2b', '#c98a4b', '#d9c27a', '#7d7d7d',   // hár 0..5 (svart, dökkbrúnt, brúnt, ljósbrúnt, ljóst, grátt)
   '#1b2230', '#5a2a2a', '#0b0f1a', '#f6b13b', '#6f7789', '#ffffff',   // lína, munnur, bak, gull, faint, hvítt
   ...PERSONUR.map((p) => p.litur),
+  // ── Portrett-tónar, AFTAST og aldrei fremst: HUD- og HAR-sneiðarnar hér fyrir neðan
+  //    lesa slice(0,4) og slice(4,10), svo röðin fremst má ALDREI hnikast.
+  '#fbe9db', '#e0b79a', '#c6926f', '#f0a89a', '#e7c9b4',   // húð 0: ljós, skuggi, kjarnaskuggi, kinnroði, endurkast
+  '#b07c48', '#cf9a5e',                                     // hár 2: ljós, glans
+  '#f4efe8', '#2f4b63', '#5b84a3', '#8fb3c9',               // auga: hvíta, lithimnubrún, lithimna, ljós
+  '#b95f5c', '#dc8a84', '#f0b8b0',                          // varir: efri, neðri, ljós
+  '#2f3848', '#4b5670',                                     // heyrnartól: mið, ljós
 ];
 const HUD = AVATAR_PALETTE.slice(0, 4);
 const HAR = AVATAR_PALETTE.slice(4, 10);
@@ -288,6 +295,203 @@ function _teiknaOthekkt(S) {
     '</svg>';
 }
 
+
+// ═══════════════════════════════════════════════════════════════════════════════════════
+//  MÁLAÐ PORTRETT — aðeins persónur í MALADAR fá það. Hinar halda _teiknaPersonu óbreyttu.
+//  Rýni 17.9 sýndi að innsetning á öllum átta í einu gerir sjö sköllóttar (hvorugt hárlagið
+//  er teiknað fyrir aðrar hárgreiðslur en 'sitt') og fellir ~230 fullyrðingar í P5. Þess vegna
+//  er þetta rofi per persónu og ekki innsetning á öllu settinu.
+//  ⚠ _path, _size og _svgOpen eru sameiginleg að ofan — ekki afrita þau hingað.
+// ═══════════════════════════════════════════════════════════════════════════════════════
+/** Tónastigi húðar per HUD-index: [ljós, grunnur, skuggi, kjarnaskuggi, kinnroði, endurkast]. Aðeins 0 (Sigrún) er málað enn;
+ *  index án raðar fær alla tóna = grunnlit (flöt teikning — ekkert brotnar hjá hinum sjö). */
+const HUD_TONAR = { 0: ['#fbe9db', '#f3d7c3', '#e0b79a', '#c6926f', '#f0a89a', '#e7c9b4'] };
+/** Tónastigi hárs per HAR-index: [djúpt, skuggi, grunnur, ljós, glans]. Aðeins 2 (Sigrún) er málað enn. */
+const HAR_TONAR = { 2: ['#2b2118', '#5a3825', '#8b5a2b', '#b07c48', '#cf9a5e'] };
+const AUGA = { hvita: '#f4efe8', brun: '#2f4b63', lit: '#5b84a3', ljos: '#8fb3c9' };
+const VOR = { efri: '#b95f5c', nedri: '#dc8a84', ljos: '#f0b8b0' };
+const HT = { dokkt: LINA, mid: '#2f3848', ljos: '#4b5670' };
+
+function _tonar(tafla, i, grunnur, n) {
+  if (Object.prototype.hasOwnProperty.call(tafla, i)) return tafla[i];
+  const a = []; for (let k = 0; k < n; k++) a.push(grunnur); return a;
+}
+const R = (v) => String(Math.round(v * 100) / 100); // hnit með ≤2 aukastöfum, engin flotvillu-hali
+function _el(cx, cy, rx, ry, fill, extra) { return '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + rx + '" ry="' + ry + '" fill="' + fill + '"' + (extra || '') + '/>'; }
+function _ci(cx, cy, r, fill, extra) { return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="' + fill + '"' + (extra || '') + '/>'; }
+function _lina(d, stroke, w, extra) { return '<path d="' + d + '" stroke="' + stroke + '" stroke-width="' + w + '" fill="none" stroke-linecap="round"' + (extra || '') + '/>'; }
+/** Andlitsformið (kvk): breitt enni og kinnbein, mjórri haka. */
+const ANDLIT_KVK = 'M32 15.6Q21.6 15.6 20.9 27Q20.5 35 25.6 40.6Q29 43.5 32 43.5Q35 43.5 38.4 40.6Q43.5 35 43.1 27Q42.4 15.6 32 15.6Z';
+
+/** Eitt auga: hvíta, lithimna í þremur tónum, sjáaldur, ljósglampi (efst til vinstri — sama ljós og annars staðar),
+ *  blikk-lok (falið sjálfgefið um transform-eigind; CSS-klasinn .av-lok yfirtekur og hreyfir), loklína, augnhár. */
+function _auga(cx, tn, lag, stor, ytri) {
+  const cy = 29.6, x0 = R(cx - 2.9), x1 = R(cx + 2.9), c = R(cx), ci = R(cx + 0.1);
+  const efri = 'M' + x0 + ' ' + cy + 'Q' + c + ' 26.9 ' + x1 + ' ' + cy;
+  const nedri = 'M' + x0 + ' ' + cy + 'Q' + c + ' 31.9 ' + x1 + ' ' + cy;
+  const mondlu = efri + 'Q' + c + ' 31.9 ' + x0 + ' ' + cy + 'Z';
+  const L = [];
+  L.push(_el(c, 29.4, 3.5, 2.3, tn[2], ' fill-opacity=".36"'));                // augntóft (létt — annars „þreytt“)
+  L.push(_path(mondlu, AUGA.hvita));                                             // hvíta
+  if (lag) {
+    // Í 32px er augað 2,9 punktar á breidd. Ljósblá lithimna ofan á hvítu leysist þá upp í
+    // fölan blett (mælt í stiganum) — augun urðu starandi og lituð. Þar er einn dökkur
+    // kjarni rétta svarið, ekki minnkuð útgáfa af því stóra.
+    L.push('<g class="av-lithimna">' + _el(ci, 29.6, 2, 1.5, AUGA.brun) + '</g>');
+  } else {
+    // lithimna + sjáaldur + glampi í EINUM hóp: augnastefna færir þau saman, hvítan kyrr
+    L.push('<g class="av-lithimna">');
+    L.push(_el(ci, 29.55, 1.5, 1.25, AUGA.brun));                                // lithimnu-brún (dökk)
+    L.push(_el(ci, 29.55, 1.1, 0.9, AUGA.lit));                                  // lithimna
+    L.push(_el(ci, 30.05, 0.7, 0.38, AUGA.ljos));                                // ljós neðst í lithimnu
+    L.push(_ci(ci, 29.55, 0.6, BAK));                                            // sjáaldur
+    L.push(_ci(R(cx - 0.35), 29.05, 0.42, HVITT));                               // ljósglampi efst til vinstri
+    L.push('</g>');
+  }
+  if (stor) L.push(_ci(R(cx + 0.75), 30.25, 0.2, HVITT, ' fill-opacity=".7"'));  // annar, minni glampi
+  L.push('<g class="av-lok" transform="scale(1 0)">' + _path(mondlu, tn[2]) + _lina(nedri, LINA, lag ? '1.1' : '.8') + '</g>');
+  L.push(_lina(efri, LINA, lag ? '1.1' : '.85'));                                // efri loklína
+  if (!lag) L.push(_lina('M' + R(cx - 2.6) + ' 29.85Q' + c + ' 31.75 ' + R(cx + 2.6) + ' 29.85', LINA, '.4', ' stroke-opacity=".35"'));
+  if (!lag) L.push(_lina('M' + R(cx + ytri * 2.6) + ' 29.3Q' + R(cx + ytri * 3.4) + ' 28.6 ' + R(cx + ytri * 3.7) + ' 27.9', LINA, '.8', ' class="augnhar"'));
+  return L.join('');
+}
+/** Málað portrett: lag í fastri röð, aftast → fremst. Aðeins fastar tölur og palettu-litir fara inn. */
+function _teiknaSigrun(p, S, talar) {
+  const lag = S < 48, stor = S > 100;
+  const sw = (n) => (lag ? String(Math.round(n * 14) / 10) : String(n)); // strokes ×1.4 í smæstu stærð
+  const sv = p.svipur || {};
+  const hi = HUD[sv.hud] ? sv.hud : 0, ri = HAR[sv.har] ? sv.har : 0;
+  const tn = _tonar(HUD_TONAR, hi, HUD[hi], 6);   // [ljós, grunnur, skuggi, kjarnaskuggi, kinnroði, endurkast]
+  const hr = _tonar(HAR_TONAR, ri, HAR[ri], 5);   // [djúpt, skuggi, grunnur, ljós, glans]
+  const kvk = p.kyn === 'kvk';
+  const sitt = sv.harStill === 'sitt';
+  const L = [];
+  L.push(_svgOpen(S, talar, 'role="img" aria-label="' + p.nafn + ', ' + p.hlutverk + '"'));
+  L.push(kvk ? '<!--kvk-->' : '<!--kk-->');
+  // (1) bakhringur í lit persónunnar (+ tal-ljómi, + innri rammi í stóru stærðinni)
+  L.push(_ci(32, 32, 31, p.litur, ' fill-opacity=".16" stroke="' + p.litur + '" stroke-width="2"'));
+  if (talar) L.push('<circle class="av-ljomi" cx="32" cy="32" r="28.5" fill="none" stroke="' + GULL + '" stroke-width="1.5" stroke-opacity=".85"/>');
+  if (stor) L.push(_ci(32, 32, 29.5, 'none', ' stroke="' + p.litur + '" stroke-width="1" stroke-opacity=".35"'));
+  L.push('<g class="av-likami">');
+  // (2) hár-bak — SAMI av-haus-klasi og andlitið, í sérhóp: z-röðin krefst þess að það
+  //     liggi á undan öxlunum, en það verður samt að fylgja höfðinu þegar það hreyfist.
+  L.push('<g class="av-haus">');
+  if (sitt) {
+    L.push(_path('M17.6 52.4Q15.2 36 18.2 24.6Q21.6 13.2 32 12.8Q42.4 13.2 45.8 24.6Q48.8 36 46.4 52.4Q40 55.4 32 55Q24 55.4 17.6 52.4Z', hr[1]));
+    L.push(_path('M22.4 38Q21 46 23.2 52.2Q27.4 53.8 32 53.6Q36.6 53.8 40.8 52.2Q43 46 41.6 38Q37.6 45.6 32 46.2Q26.4 45.6 22.4 38Z', hr[0]));
+  }
+  L.push('</g>');   // av-haus (bak)
+  // (3) axlir — hlutverkslitur; skuggi hægra megin, ljós á vinstri öxl, hálsmál
+  L.push(_path('M15.4 57Q17 48 25 46L28.6 45.2Q32 48.6 35.4 45.2L39 46Q47 48 48.6 57A30 30 0 0 1 15.4 57Z', p.litur));
+  L.push(_path('M36.2 45.5L39 46Q47 48 48.6 57A30 30 0 0 1 37 62.4Q45 55 41.6 49Q39.6 46.6 36.2 45.5Z', BAK, ' fill-opacity=".26"'));
+  L.push(_path('M15.4 57Q17 48 25 46L27.6 46.5Q20.6 49.2 18.4 57Z', HVITT, ' fill-opacity=".13"'));
+  L.push(_lina('M28.6 45.2Q32 48.6 35.4 45.2', BAK, '.6', ' stroke-opacity=".35"'));
+  // (4) háls — í skugga undir höku, kjarnaskuggi efst, þunn ljósrönd vinstra megin
+  L.push(_path('M28.2 37.6L28.6 46.8Q32 48.3 35.4 46.8L35.8 37.6Z', tn[2]));
+  L.push(_path('M28.2 37.6L35.8 37.6L35.4 43.4Q32 45.2 28.6 43.4Z', tn[3]));
+  L.push(_path('M28.6 43.6Q29.6 45.4 30.4 46.9L28.6 46.8Z', tn[1]));
+  // ── HAUS: eigin hópur svo halla/kinka/snúa hreyfi höfuðið eitt, ekki bolinn.
+  L.push('<g class="av-haus">');
+  // (5) eyru — á undan andlitinu svo aðeins ytri hlutinn sjáist
+  L.push(_el(20.7, 30.8, 1.8, 2.5, tn[1])); L.push(_el(21, 31, 0.9, 1.4, tn[2]));
+  L.push(_el(43.3, 30.8, 1.8, 2.5, tn[2])); L.push(_el(43, 31, 0.9, 1.4, tn[3]));
+  // (6) andlit — grunnur
+  L.push(_path(ANDLIT_KVK, tn[1]));
+  // (7) form-mótun húðar — EIN ljósstefna, efst til vinstri
+  L.push(_path('M35.8 16.2Q43 19.2 43.1 27Q43.5 35 38.4 40.6Q35 43.5 32 43.5Q37.2 41.4 40.2 35.4Q42.4 29 40.2 22.6Q38.8 18.8 35.8 16.2Z', tn[2])); // hægri hlið í skugga
+  L.push(_path('M23.6 38Q27.8 42.8 32 43.5Q36.2 42.8 40.4 38Q36.6 41.2 32 41.4Q27.4 41.2 23.6 38Z', tn[2]));     // kjálki
+  L.push(_path('M39.4 38.6Q36.8 42 32 43.5Q37.4 42.4 40.6 38Z', tn[3]));                                        // kjarnaskuggi undir kjálka
+  L.push(_path('M26.8 41.8Q29.6 43.5 32 43.5Q34.4 43.5 37.2 41.8Q34.6 42.7 32 42.7Q29.4 42.7 26.8 41.8Z', tn[5])); // endurkast neðst á kjálka
+  // ennis-glampi felldur: ennið er nú ~11 einingar breitt og hver bjartur blettur á því
+  // les sem blettur, ekki ljós. Ljósa hliðin kemur frá grunntóninum sjálfum.
+  L.push(_el(25.6, 33, 2.3, 1.4, tn[0]));       // ljós á vinstra kinnbeini
+  L.push(_el(31.6, 41.6, 1.3, 0.5, tn[0], ' fill-opacity=".55"'));     // ljós á höku
+  L.push(_el(25.9, 34.8, 2.9, 1.7, tn[4], ' fill-opacity=".5"')); L.push(_el(38.5, 34.8, 2.9, 1.7, tn[4], ' fill-opacity=".38"')); // kinnroði
+  // (8) augu
+  L.push(_auga(26.8, tn, lag, stor, -1)); L.push(_auga(37.2, tn, lag, stor, 1));
+  // (9) brúnir — fylltar, í hár-skugga; sleppt í 'lag'
+  if (!lag) L.push('<g class="av-brun-v"><path class="brun" d="M24.6 26.9Q27 24.7 30.4 25.3Q30.7 26.3 29.7 26.5Q27.1 26.1 24.6 26.9Z" fill="' + hr[1] + '"/></g>'
+    + '<g class="av-brun-h"><path class="brun" d="M39.4 26.9Q37 24.7 33.6 25.3Q33.3 26.3 34.3 26.5Q36.9 26.1 39.4 26.9Z" fill="' + hr[1] + '"/></g>');
+  // (10) nef — skuggi hægra megin við nefbeinið, undirskuggi, ljós á nefbeini og nefbroddi, nasir í stóru stærðinni
+  L.push(_path('M32.5 27Q34.4 31 34.9 34.3Q34.1 35.4 32.6 35.1Q33.4 31.4 32.5 27Z', tn[2]));
+  L.push(_el(32.3, 35.55, 2.3, 0.75, tn[2]));
+  L.push(_el(31.4, 31, 0.55, 1.8, tn[0], ' fill-opacity=".6"'));
+  L.push(_el(31.5, 33.7, 0.95, 0.55, tn[0]));
+  if (stor) { L.push(_el(30.75, 35.45, 0.55, 0.3, tn[3])); L.push(_el(33.75, 35.45, 0.55, 0.3, tn[3])); }
+  // (11) munnur — efri vör dekkri, neðri ljósari með ljósi; opinn (ellipse í munnlit) þegar talað er
+  L.push(_el(32.3, 40.35, 2.3, 0.55, tn[2]));   // skuggi undir neðri vör
+  if (talar) {
+    L.push('<g class="av-munnur">' + _path('M29 40.4Q32 42.7 35 40.4Q32 41.2 29 40.4Z', VOR.nedri) +
+      '<ellipse cx="32" cy="39.3" rx="2.9" ry="1.75" fill="' + MUNNUR + '"/>' +
+      (lag ? '</g>' : '<rect x="29.9" y="38.5" width="4.2" height=".95" rx=".3" fill="' + HVITT + '" fill-opacity=".85"/></g>'));
+    L.push(_path('M28.6 38.3Q30.4 37.1 32 37.7Q33.6 37.1 35.4 38.3Q32 38.8 28.6 38.3Z', VOR.efri));
+  } else {
+    if (lag) {
+      // Mælt á móti núverandi personur.mjs í 20 og 32 punktum: fylltu varirnar renna saman
+      // í bleika móðu og 0,8-strikið hverfur undir henni. Þar er eitt dökkt strik rétta
+      // svarið — varir sem lesast ekki eru verri en enginn munnur.
+      // Núverandi personur.mjs notar breidd 2,2 á 10 eininga boga í 32px. Mælt: 1,3 á 6,2
+      // einingum hverfur. Hér er 2,0 á 7,6 — sama lestrarþyngd, mjórra andlit.
+      L.push(_lina('M28.2 38.5Q32 40.6 35.8 38.5', MUNNUR, '2', ' class="av-munnur"'));
+    } else {
+      L.push(_path('M28.6 38.5Q30.4 37.2 32 37.8Q33.6 37.2 35.4 38.5Q32 39.2 28.6 38.5Z', VOR.efri));
+      L.push(_path('M28.8 38.7Q32 41.3 35.2 38.7Q32 39.4 28.8 38.7Z', VOR.nedri));
+      L.push(_el(31.3, 39.7, 1.2, 0.38, VOR.ljos));
+      L.push('<g class="av-munnur">' + _lina('M28.7 38.4Q32 39.9 35.3 38.4', MUNNUR, sw(0.6), ' stroke-opacity=".8"') + '</g>');
+    }
+  }
+  // (12) hár-framan — kúpa með skugga við hárlínu hægra megin og ljósi efst til vinstri; lokkar fram yfir axlir
+  if (sitt) {
+    L.push(_path('M19.3 31Q18.7 14.2 32 13.9Q45.3 14.2 44.7 31Q41.6 27.4 38.9 24.6Q38.4 22.4 36.6 21.2Q34.6 20.2 32 20.2Q29.4 20.2 27.4 21.2Q25.6 22.4 25.1 24.6Q22.4 27.4 19.3 31Z', hr[2]));
+    L.push(_path('M34.6 20.6Q40 22.6 44.7 31Q43 25.6 38.4 22.6Q36.4 21.4 34.6 20.6Z', hr[1]));
+    L.push(_path('M20.6 26.6Q24.2 17.4 32.2 15.4Q27.2 17.8 24 21.8Q22 24.4 20.6 26.6Z', hr[3], ' fill-opacity=".6"'));
+    if (!lag) L.push(_lina('M23 24.4Q26 18.6 30.6 16.4', hr[4], sw(0.55)));
+    // sveipur frá skiptingunni vinstra megin yfir ennið til hægri — kastar þunnum skugga á ennið undir sér
+    L.push(_path('M19.9 22.4Q17.2 33 18.2 46.4Q19.4 50.6 23.2 49.6Q23.2 35 25.4 23.2Z', hr[2]));       // vinstri lokkur (í ljósi)
+    L.push(_path('M21 26Q19.4 34 20.4 45.4L22 45.4Q21.2 34 22.8 26Z', hr[3]));
+    L.push(_path('M44.1 22.4Q46.8 33 45.8 46.4Q44.6 50.6 40.8 49.6Q40.8 35 38.6 23.2Z', hr[1]));       // hægri lokkur (í skugga)
+    L.push(_path('M43 26Q44.6 34 44.2 44.6L42.6 44.6Q43.2 34 41.2 26Z', hr[2]));
+    if (stor) L.push(_lina('M21.9 29Q21 34 21.3 40', hr[4], '.45', ' stroke-opacity=".8"') + _lina('M42.2 29Q43.2 34 42.9 40', hr[3], '.45', ' stroke-opacity=".7"'));
+  }
+  // (13) heyrnartól — spöng yfir hárið með ljósbrún, hljóðdós á hægra eyra í þremur tónum, hljóðnemaarmur að munnvikinu
+  if (sv.heyrnartol) {
+    L.push(_lina('M20.5 30Q19.5 13 32 12.4Q44.5 13 43.5 30', HT.dokkt, sw(2.2)));
+    if (!lag) L.push(_lina('M22.6 21.4Q25.8 14.2 32 13.5', HT.ljos, '.7'));
+    L.push(_ci(20.6, 30.6, 3.1, HT.dokkt)); L.push(_ci(20.6, 30.6, 2.1, HT.mid));
+    L.push(_ci(43.6, 30.6, 3.3, HT.dokkt)); L.push(_ci(43.6, 30.6, 2.3, HT.mid)); L.push(_el(42.8, 29.7, 0.95, 0.65, HT.ljos));
+    L.push(_lina('M41.9 33.5Q41 40.4 36.6 40.7', HT.dokkt, sw(1.1)));
+    L.push(_ci(36.4, 40.8, 1.05, HT.mid)); if (!lag) L.push(_ci(36.1, 40.5, 0.35, HT.ljos));
+  }
+  // (14) eyrnalokkar — gullhringir; sleppt í 'lag'
+  if (sv.eyrnalokkar && !lag) L.push('<circle cx="20.9" cy="35.4" r="1.05" fill="none" stroke="' + GULL + '" stroke-width=".65"/><circle cx="43.1" cy="35.4" r="1.05" fill="none" stroke="' + GULL + '" stroke-width=".65"/>');
+  L.push('</g>');   // av-haus
+  L.push('</g>');   // av-likami
+  // (15) hlutverks-merki FELLT: það var emoji í <text>. Emojí er einmitt það sem
+  //      afvélvæðingin fjarlægði af síðunni, og utan vafra birtist það sem tofu-kassi
+  //      (mælt: „01F 6DF"). Hlutverkið stendur í texta á spjaldinu, ekki í teikningunni.
+  // ── (16) HÖND. Liggur 26 einingum NEÐAN við myndflötinn í hvíld og klippist burt af
+  //      viewBox-inu, svo kyrra teikningin, PNG-in og <img>-data-URI eru nákvæmlega óbreytt.
+  //      CSS-klasi yfirtekur transform-eigindina og lyftir henni upp. Engin auðkenni, engin
+  //      clipPath — klippingin er sjálf viewBox-brúnin.
+  L.push('<g class="av-hond" transform="translate(0 26)">');
+  L.push(_lina('M43.4 58.6Q46.6 53.4 48.2 47.8', tn[1], '3.6'));              // framhandleggur
+  L.push(_lina('M44.6 58.2Q47.6 53.2 49.1 48', tn[2], '1.2', ' stroke-opacity=".55"'));
+  L.push(_el(49.4, 44.8, 3, 3.2, tn[1]));                                      // lófi
+  if (!lag) {
+    L.push(_lina('M47.7 42.6Q47.4 41 47.3 39.6', tn[1], '1.5'));               // fingur
+    L.push(_lina('M49.5 42.2Q49.5 40.6 49.5 39.1', tn[1], '1.5'));
+    L.push(_lina('M51.3 42.6Q51.7 41.1 51.9 39.7', tn[1], '1.5'));
+    L.push(_lina('M46.9 45.2Q45.9 44 45.4 42.8', tn[1], '1.6'));               // þumall
+    L.push(_el(50.6, 46.2, 1.6, 1.4, tn[2], ' fill-opacity=".45"'));           // skuggi í lófa
+  }
+  L.push('</g>');
+  L.push('</svg>');
+  return L.join('');
+}
+
+/** Hverjar persónur eru málaðar. Ein færsla per portrett sem klárast. */
+const MALADAR = new Set(['sigrun']);
+
 const _avCache = new Map(); // lykill = tegund|stærð|talar — takmarkað mengi (10 tegundir), vex ekki með rusl-inntaki
 
 /** Inline SVG-strengur fyrir persónu (eða 'aron'). opts: {size=64 (≥16), talar=false}. Deterministískt. */
@@ -300,7 +504,8 @@ export function avatarSvg(id, opts) {
   const key = kind + '|' + S + '|' + (talar ? 1 : 0);
   let s = _avCache.get(key);
   if (s === undefined) {
-    s = p ? _teiknaPersonu(p, S, talar) : kind === 'aron' ? _teiknaAron(S) : _teiknaOthekkt(S);
+    s = p ? (MALADAR.has(p.id) ? _teiknaSigrun(p, S, talar) : _teiknaPersonu(p, S, talar))
+      : kind === 'aron' ? _teiknaAron(S) : _teiknaOthekkt(S);
     _avCache.set(key, s);
   }
   return s;

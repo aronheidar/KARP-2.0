@@ -274,7 +274,10 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     /* 🏛️ Moot — ráðsalur. Fastir hex-litir aðeins úr PERSONUR-palettu + #46e08a grænt, #ff6b6b rautt, #5b8dd6 blátt. */
     .stj-moot-salur { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 8px 4px; justify-items: center; padding: 10px 0 6px; }
     .stj-moot-seat { display: grid; justify-items: center; gap: 2px; padding: 6px 4px; border-radius: 12px; cursor: pointer; position: relative; transition: opacity .3s, filter .3s, transform .25s; text-align: center; }
-    .stj-moot-seat:hover, .stj-moot-seat:focus-visible { background: var(--panel); outline: none; }
+    .stj-moot-seat:hover { background: var(--panel); }
+    /* ⚠ Fókus MÁ EKKI vera eins og hover: fyrir 17.9 var outline slökkt og bæði eins, svo
+       tab-lyklaborðið sá ekki hvaða sæti var valið. Gullið er tekið fyrir ræðumanninn. */
+    .stj-moot-seat:focus-visible { background: var(--panel); outline: 2px solid #46e08a; outline-offset: 2px; }
     .stj-moot-seat svg { display: block; }
     .stj-moot-nafn { font-size: 12.5px; font-weight: 650; color: var(--ink); }
     .stj-moot-hlutverk { font-size: 10.5px; color: var(--faint); white-space: nowrap; }
@@ -335,7 +338,45 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     @keyframes stj-moot-pulse { 0%, 100% { outline-color: rgba(246,177,59,.35); } 50% { outline-color: #f6b13b; } }
     @keyframes stj-moot-glow { 0%, 100% { stroke-opacity: .3; } 50% { stroke-opacity: 1; } }
     @media (max-width: 640px) { .stj-moot-salur { grid-template-columns: repeat(3, 1fr); } .stj-moot-kort { grid-template-columns: 1fr; } }
-    @media (prefers-reduced-motion: reduce) { .stj-moot-seat--komin, .stj-moot-innlegg, .stj-moot-nidurstada, .stj-moot-gavel, .stj-moot-seat--talar svg, .stj-moot-seat--bidur .stj-moot-aron-stoll { animation: none; } }
+    /* 🙋 Svipbrigði og látbragð — knúið af klösum sem personur.mjs gefur út (av-haus ×2, av-lithimna,
+       av-munnur, av-brun-v/h, av-hond, av-lok, av-likami). Engin auðkenni og ekkert url(#): SVG-ið er
+       sett inn með innerHTML og margfaldast á einni síðu. Aðeins MÁLAÐAR persónur bera þessa klasa,
+       svo reglurnar eru óvirkar á hinum sjö og kosta þær ekkert.
+       ⚠ transform-box: view-box, EKKI fill-box — av-haus er TVEIR hópar (hár-bakið verður að liggja á
+       undan öxlunum í z-röð en fylgja samt höfðinu) og með fill-box fengju þeir sinn hvorn
+       snúningspunkt og hárið rynni af höfðinu. */
+    .av-haus, .av-hond, .av-lithimna, .av-munnur, .av-brun-v, .av-brun-h, .av-likami { transform-box: view-box; }
+    .av-haus { transform-origin: 32px 45px; }        /* hálsinn */
+    .av-hond { transform-origin: 45px 58px; }        /* olnboginn */
+    .av-munnur { transform-origin: 32px 38.6px; }
+    .av-brun-v { transform-origin: 27px 26.5px; }
+    .av-brun-h { transform-origin: 37px 26.5px; }
+    .av-lok { transform-box: fill-box; transform-origin: 50% 0; }
+    /* bakgrunnslíf: hvorugt er ferskleikamerki og hvorugt kallar á athygli */
+    .stj-moot-av .av-likami { animation: stj-av-andi 5.4s ease-in-out infinite; transform-origin: 32px 58px; }
+    @keyframes stj-av-andi { 0%, 100% { transform: translateY(0) scaleY(1); } 50% { transform: translateY(-.25px) scaleY(1.004); } }
+    .stj-moot-av .av-lok { animation: stj-av-blikk 7.2s infinite; }
+    @keyframes stj-av-blikk { 0%, 95.5%, 100% { transform: scaleY(0); } 97.2% { transform: scaleY(1.06); } }
+    /* smellur á andlitið á spjaldinu → veifa. Hylkið er sett af teiknaSpjald AÐEINS þegar
+       teikningin ber .av-hond, svo stýringin er til nákvæmlega þegar eitthvað getur hreyfst. */
+    .stj-av-smellur { display: inline-block; line-height: 0; border-radius: 50%; cursor: pointer; }
+    .stj-av-smellur:focus-visible { outline: 2px solid #46e08a; outline-offset: 3px; }
+    .stj-av-smellur.v-veifa .av-hond { animation: stj-av-veifa 1.55s cubic-bezier(.22,1,.36,1); }
+    @keyframes stj-av-veifa {
+      0%   { transform: translateY(26px) rotate(0); }
+      16%  { transform: translateY(0) rotate(-15deg); }
+      32%, 56%, 80% { transform: translateY(0) rotate(13deg); }
+      44%, 68% { transform: translateY(0) rotate(-15deg); }
+      88%  { transform: translateY(0) rotate(0); }
+      100% { transform: translateY(26px) rotate(0); }
+    }
+    .stj-av-smellur.v-veifa .av-haus { animation: stj-av-halli 1.55s ease-in-out; }
+    @keyframes stj-av-halli { 0%, 100% { transform: rotate(0); } 30%, 70% { transform: rotate(-3.5deg); } }
+    .stj-av-smellur.v-veifa .av-munnur { animation: stj-av-bros 1.55s ease-in-out; }
+    @keyframes stj-av-bros { 0%, 100% { transform: scaleY(1); } 45% { transform: scaleY(1.85) translateY(-.15px); } }
+    @media (prefers-reduced-motion: reduce) { .stj-moot-seat--komin, .stj-moot-innlegg, .stj-moot-nidurstada, .stj-moot-gavel, .stj-moot-seat--talar svg, .stj-moot-seat--bidur .stj-moot-aron-stoll,
+      .av-haus, .av-hond, .av-munnur, .av-brun-v, .av-brun-h, .av-lithimna, .av-lok, .av-likami
+        { animation: none !important; transition: none !important; } }
     /* 🚪 Forstofa + andlitarönd (Task 8) — hluti af sömu global-blokk: bæði eru sett með innerHTML á keyrslutíma. */
     .stj-rond { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0 22px; }
     .stj-andlit { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; text-decoration: none; color: inherit; background: var(--card); transition: border-color .15s, transform .15s; }
@@ -418,6 +459,23 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         + spjald(Object.assign({ id, nafn: p.nafn, hlutverk: p.hlutverk, avatar: avatarSvg(id, { size: 64 }) }, gogn))
         + (id === 'sigrun' ? '<div id="stj-spjald-tix"></div>' : '');
       if (id === 'sigrun') $('stj-spjald-tix').appendChild($('stj-tix-wrap'));   // beiðnalistinn FLYST, ekki afritast
+      // 🙋 Smellur á andlitið → veifa. Hylkið er sett AÐEINS þegar teikningin ber .av-hond, svo
+      // stýringin er til nákvæmlega þegar eitthvað getur hreyfst — engin dauð stýring á ómálaðri
+      // persónu. Lyklaborðið fær sömu leið og sýnilegan fókus.
+      (function veifuhylki() {
+        const av = $('stj-spjald').querySelector('.stj-spjald-haus > svg.stj-moot-av');
+        if (!av || !av.querySelector('.av-hond')) return;
+        const h = document.createElement('span');
+        h.className = 'stj-av-smellur';
+        h.tabIndex = 0;
+        h.setAttribute('role', 'button');
+        h.setAttribute('aria-label', p.nafn + ' veifar');
+        av.replaceWith(h);
+        h.appendChild(av);
+        const veifa = () => { h.classList.remove('v-veifa'); void h.offsetWidth; h.classList.add('v-veifa'); };
+        h.addEventListener('click', veifa);
+        h.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); veifa(); } });
+      })();
       $('stj-spjald').querySelectorAll('.stj-rofi').forEach((b) => b.addEventListener('click', async () => {
         b.disabled = true;
         await tixPost({ action: 'rofi', starfsmadur: id, off: b.dataset.off !== '1' });
