@@ -173,12 +173,24 @@ async function eigStjornir(rootKt) {
   const holf = document.getElementById('eig-stjornir');
   if (!holf || !rootKt) return;
   const sott = (u) => fetch(u, { cache: 'no-store', credentials: 'include' }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  const stjornSlod = '/gogn/stjorn/' + encodeURIComponent(rootKt) + '.json';
   try {
-    const [byggd, lifandi] = await Promise.all([
-      sott('/gogn/stjorn/' + encodeURIComponent(rootKt) + '.json'),
-      sott('/api/tengslanet?kt=' + encodeURIComponent(rootKt)),
-    ]);
-    const m = sameinaStjornendur(byggd && byggd.engin ? null : byggd, lifandi);
+    const [byggd0, lifandi] = await Promise.all([sott(stjornSlod), sott('/api/tengslanet?kt=' + encodeURIComponent(rootKt))]);
+    let m = sameinaStjornendur(byggd0 && byggd0.engin ? null : byggd0, lifandi);
+    // Byggða skráin er aðeins til fyrir félög sem einhver hefur þegar skoðað. Sé hún ekki til OG
+    // lifandi kallið skilar engu (t.d. RSK niðri) stæði hólfið tómt — sama þögnin og við vorum að
+    // uppræta. Þá biðjum við um bygginguna og bíðum, eins og /fyrirtaeki/ gerir.
+    // ⚠ AÐEINS þegar ekkert er til að sýna: hver beiðni ræsir GitHub Action, svo þetta má ekki
+    //   keyra á hverri skoðun á skýrslu sem teiknast nú þegar.
+    if (!m.rows.length && !byggd0) {
+      fetch('/api/stjorn/request?kt=' + encodeURIComponent(rootKt), { method: 'POST', credentials: 'include' }).catch(() => {});
+      for (let i = 0; i < 15 && !m.rows.length; i++) {
+        await new Promise((r) => setTimeout(r, 4000));
+        const b = await sott(stjornSlod);
+        if (b && b.engin) break;                       // RSK á enga skráða stjórn — gild niðurstaða, hætta að bíða
+        if (b) m = sameinaStjornendur(b, lifandi);
+      }
+    }
     if (!m.rows.length) return;   // hvorug uppspretta skilaði fólki → ekkert að sýna
     const rows = m.rows.map((p) => {
       const onnur = p.onnur.map((o) =>
