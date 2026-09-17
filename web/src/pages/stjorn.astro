@@ -352,28 +352,31 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     .av-brun-v { transform-origin: 27px 26.5px; }
     .av-brun-h { transform-origin: 37px 26.5px; }
     .av-lok { transform-box: fill-box; transform-origin: 50% 0; }
-    /* bakgrunnslíf: hvorugt er ferskleikamerki og hvorugt kallar á athygli */
-    .stj-moot-av .av-likami { animation: stj-av-andi 5.4s ease-in-out infinite; transform-origin: 32px 58px; }
-    @keyframes stj-av-andi { 0%, 100% { transform: translateY(0) scaleY(1); } 50% { transform: translateY(-.25px) scaleY(1.004); } }
-    .stj-moot-av .av-lok { animation: stj-av-blikk 7.2s infinite; }
-    @keyframes stj-av-blikk { 0%, 95.5%, 100% { transform: scaleY(0); } 97.2% { transform: scaleY(1.06); } }
+    /* ⚠⚠ ENGIN VIÐVARANDI HREYFING. Fyrsta útgáfan hafði andardrátt og blikk á
+       `.stj-moot-av`, sem er klasi SVG-RÓTARINNAR sjálfrar — svo þau hittu HVERT Sigrúnar-merki á
+       síðunni: andlitaröndina og hvert 20px merki í skilaboðalistanum, eitt per agent-svar. Þrír
+       rýnar mældu það sjálfstætt: tugir óendanlegra samstilltra blikka á síðu sem hefur staðandi
+       reglu gegn blikkandi stöðumerkjum. Andardrátturinn var auk þess 0,25 einingar, sem er
+       ómælanlegt í 64px. Hvíldarstaðan er nú alveg kyrr og blikkið lifir aðeins inni í veifunni. */
     /* smellur á andlitið á spjaldinu → veifa. Hylkið er sett af teiknaSpjald AÐEINS þegar
        teikningin ber .av-hond, svo stýringin er til nákvæmlega þegar eitthvað getur hreyfst. */
     .stj-av-smellur { display: inline-block; line-height: 0; border-radius: 50%; cursor: pointer; }
     .stj-av-smellur:focus-visible { outline: 2px solid #46e08a; outline-offset: 3px; }
     .stj-av-smellur.v-veifa .av-hond { animation: stj-av-veifa 1.55s cubic-bezier(.22,1,.36,1); }
     @keyframes stj-av-veifa {
-      0%   { transform: translateY(26px) rotate(0); }
+      0%   { transform: translateY(28px) rotate(0); }
       16%  { transform: translateY(0) rotate(-15deg); }
       32%, 56%, 80% { transform: translateY(0) rotate(13deg); }
       44%, 68% { transform: translateY(0) rotate(-15deg); }
       88%  { transform: translateY(0) rotate(0); }
-      100% { transform: translateY(26px) rotate(0); }
+      100% { transform: translateY(28px) rotate(0); }
     }
     .stj-av-smellur.v-veifa .av-haus { animation: stj-av-halli 1.55s ease-in-out; }
     @keyframes stj-av-halli { 0%, 100% { transform: rotate(0); } 30%, 70% { transform: rotate(-3.5deg); } }
     .stj-av-smellur.v-veifa .av-munnur { animation: stj-av-bros 1.55s ease-in-out; }
     @keyframes stj-av-bros { 0%, 100% { transform: scaleY(1); } 45% { transform: scaleY(1.85) translateY(-.15px); } }
+    .stj-av-smellur.v-veifa .av-lok { animation: stj-av-blikk .5s ease-in-out .12s; }
+    @keyframes stj-av-blikk { 0%, 100% { transform: scaleY(0); } 45% { transform: scaleY(1.06); } }
     @media (prefers-reduced-motion: reduce) { .stj-moot-seat--komin, .stj-moot-innlegg, .stj-moot-nidurstada, .stj-moot-gavel, .stj-moot-seat--talar svg, .stj-moot-seat--bidur .stj-moot-aron-stoll,
       .av-haus, .av-hond, .av-munnur, .av-brun-v, .av-brun-h, .av-lithimna, .av-lok, .av-likami
         { animation: none !important; transition: none !important; } }
@@ -463,6 +466,9 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       // stýringin er til nákvæmlega þegar eitthvað getur hreyfst — engin dauð stýring á ómálaðri
       // persónu. Lyklaborðið fær sömu leið og sýnilegan fókus.
       (function veifuhylki() {
+        // ⚠ Undir prefers-reduced-motion er hver hreyfing slegin af, svo hylkið yrði hnappur með
+        //   aria-label sem skjálesari kynnir en sem gerir ekkert. Þá er réttast að hann verði ekki til.
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
         const av = $('stj-spjald').querySelector('.stj-spjald-haus > svg.stj-moot-av');
         if (!av || !av.querySelector('.av-hond')) return;
         const h = document.createElement('span');

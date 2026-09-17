@@ -181,6 +181,43 @@ test('P5 avatarSvg: gilt, öruggt, deterministískt SVG fyrir allar persónur + 
   assert.ok(avatarSvg('kari', { size: 4 }).includes('width="16"'));
 });
 
+test('P5b hár VERÐUR teiknað fyrir hverja persónu — netið sem MALADAR vantaði', () => {
+  // Mælt 17.9: eina vörnin gegn sköllóttri persónu var MALADAR-mengið sjálft. Ef kvk-persóna er
+  // bætt við það án hártónastiga fyrir hennar harStill verður hún alveg sköllótt OG prófasettið
+  // helst grænt — hvergi var fullyrðing um að hár væri til. (Þá féll aðeins augnhára-reglan, og
+  // aðeins fyrir karla.) Þessi fullyrðing er það sem gerir MALADAR fjarlægjanlegt.
+  const HAR_LITIR = AVATAR_PALETTE.slice(4, 10);
+  PERSONUR.forEach((p) => {
+    for (const size of [32, 64, 120]) {
+      // brúnir og augnhár eru líka í hárlit — þau telja EKKI sem hár
+      const s = avatarSvg(p.id, { size }).replace(/<[^>]*class="(?:brun|augnhar)"[^>]*>/g, '');
+      assert.ok(HAR_LITIR.some((c) => s.includes(c)), p.id + '/' + size + ': ekkert hár teiknað');
+    }
+  });
+});
+
+test('P5c höndin liggur UTAN myndflatarins í hvíld — klippingin er viewBox-brúnin, ekki clipPath', () => {
+  // clipPath er bannað (HAETTULEGT), svo eina vörnin gegn því að höndin sjáist í kyrru myndinni,
+  // í PNG-leiðinni og í avatarDataUri er að hópurinn sé færður niður út fyrir viewBox.
+  // Fyrir 17.9 var færslan 26 einingar og efsti punktur handarinnar í y≈38,35 → 0,34 í borð.
+  for (const size of [20, 32, 64, 120]) {
+    const s = avatarSvg('sigrun', { size });
+    const i = s.indexOf('<g class="av-hond"');
+    assert.ok(i > -1, size + ': hönd vantar');
+    assert.ok(s.slice(i).startsWith('<g class="av-hond" transform="translate(0 28)">'), size + ': hönd ekki færð niður');
+    const hopur = s.slice(i, s.indexOf('</g>', i));
+    let efst = Infinity;
+    for (const m of hopur.matchAll(/<path d="([^"]*)"[^>]*stroke-width="([\d.]+)"/g)) {
+      const tolur = (m[1].match(/[\d.]+/g) || []).map(Number);
+      for (let k = 1; k < tolur.length; k += 2) efst = Math.min(efst, tolur[k] - Number(m[2]) / 2);
+    }
+    for (const m of hopur.matchAll(/<ellipse cy="([\d.]+)" rx="[\d.]+" ry="([\d.]+)"/g))
+      efst = Math.min(efst, Number(m[1]) - Number(m[2]));
+    assert.ok(Number.isFinite(efst), size + ': engin hnit lesin úr hendinni');
+    assert.ok(efst + 28 >= 64, size + ': hönd sést í hvíld — efsti punktur ' + efst.toFixed(2) + ' + 28 = ' + (efst + 28).toFixed(2));
+  }
+});
+
 test('P6 avatarDataUri: encodeURIComponent af avatarSvg, samhverft', () => {
   const u = avatarDataUri('kari', { size: 32 });
   assert.ok(u.startsWith('data:image/svg+xml;utf8,%3Csvg'), u.slice(0, 40));

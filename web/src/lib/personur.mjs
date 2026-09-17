@@ -325,7 +325,7 @@ const ANDLIT_KVK = 'M32 15.6Q21.6 15.6 20.9 27Q20.5 35 25.6 40.6Q29 43.5 32 43.5
 
 /** Eitt auga: hvíta, lithimna í þremur tónum, sjáaldur, ljósglampi (efst til vinstri — sama ljós og annars staðar),
  *  blikk-lok (falið sjálfgefið um transform-eigind; CSS-klasinn .av-lok yfirtekur og hreyfir), loklína, augnhár. */
-function _auga(cx, tn, lag, stor, ytri) {
+function _auga(cx, tn, lag, stor, ytri, kvk) {
   const cy = 29.6, x0 = R(cx - 2.9), x1 = R(cx + 2.9), c = R(cx), ci = R(cx + 0.1);
   const efri = 'M' + x0 + ' ' + cy + 'Q' + c + ' 26.9 ' + x1 + ' ' + cy;
   const nedri = 'M' + x0 + ' ' + cy + 'Q' + c + ' 31.9 ' + x1 + ' ' + cy;
@@ -352,7 +352,9 @@ function _auga(cx, tn, lag, stor, ytri) {
   L.push('<g class="av-lok" transform="scale(1 0)">' + _path(mondlu, tn[2]) + _lina(nedri, LINA, lag ? '1.1' : '.8') + '</g>');
   L.push(_lina(efri, LINA, lag ? '1.1' : '.85'));                                // efri loklína
   if (!lag) L.push(_lina('M' + R(cx - 2.6) + ' 29.85Q' + c + ' 31.75 ' + R(cx + 2.6) + ' 29.85', LINA, '.4', ' stroke-opacity=".35"'));
-  if (!lag) L.push(_lina('M' + R(cx + ytri * 2.6) + ' 29.3Q' + R(cx + ytri * 3.4) + ' 28.6 ' + R(cx + ytri * 3.7) + ' 27.9', LINA, '.8', ' class="augnhar"'));
+  // ⚠ HÁÐ KYNI eins og í _teiknaPersonu (lína 262). Áður fékk hver máluð persóna augnhár, svo
+  //   reglan „kk fá engin augnhár" hélt aðeins af því að karlarnir voru ekki málaðir — mælt 17.9.
+  if (!lag && kvk) L.push(_lina('M' + R(cx + ytri * 2.6) + ' 29.3Q' + R(cx + ytri * 3.4) + ' 28.6 ' + R(cx + ytri * 3.7) + ' 27.9', LINA, '.8', ' class="augnhar"'));
   return L.join('');
 }
 /** Málað portrett: lag í fastri röð, aftast → fremst. Aðeins fastar tölur og palettu-litir fara inn. */
@@ -408,7 +410,7 @@ function _teiknaSigrun(p, S, talar) {
   L.push(_el(31.6, 41.6, 1.3, 0.5, tn[0], ' fill-opacity=".55"'));     // ljós á höku
   L.push(_el(25.9, 34.8, 2.9, 1.7, tn[4], ' fill-opacity=".5"')); L.push(_el(38.5, 34.8, 2.9, 1.7, tn[4], ' fill-opacity=".38"')); // kinnroði
   // (8) augu
-  L.push(_auga(26.8, tn, lag, stor, -1)); L.push(_auga(37.2, tn, lag, stor, 1));
+  L.push(_auga(26.8, tn, lag, stor, -1, kvk)); L.push(_auga(37.2, tn, lag, stor, 1, kvk));
   // (9) brúnir — fylltar, í hár-skugga; sleppt í 'lag'
   if (!lag) L.push('<g class="av-brun-v"><path class="brun" d="M24.6 26.9Q27 24.7 30.4 25.3Q30.7 26.3 29.7 26.5Q27.1 26.1 24.6 26.9Z" fill="' + hr[1] + '"/></g>'
     + '<g class="av-brun-h"><path class="brun" d="M39.4 26.9Q37 24.7 33.6 25.3Q33.3 26.3 34.3 26.5Q36.9 26.1 39.4 26.9Z" fill="' + hr[1] + '"/></g>');
@@ -479,9 +481,11 @@ function _teiknaSigrun(p, S, talar) {
   }
   // ── (16) HÖND. Liggur 26 einingum NEÐAN við myndflötinn í hvíld og klippist burt af
   //      viewBox-inu, svo kyrra teikningin, PNG-in og <img>-data-URI eru nákvæmlega óbreytt.
-  //      CSS-klasi yfirtekur transform-eigindina og lyftir henni upp. Engin auðkenni, engin
+  //      28 einingar, ekki 26: efsti punktur handarinnar er fingurgómur í y≈38,35 og +26 gaf aðeins
+//      0,34 einingar í borð undir myndflatarbrúnina. Nú eru þau 2,35.
+//      CSS-klasi yfirtekur transform-eigindina og lyftir henni upp. Engin auðkenni, engin
   //      clipPath — klippingin er sjálf viewBox-brúnin.
-  L.push('<g class="av-hond" transform="translate(0 26)">');
+  L.push('<g class="av-hond" transform="translate(0 28)">');
   L.push(_lina('M43.4 58.6Q46.6 53.4 48.2 47.8', tn[1], '3.6'));              // framhandleggur
   L.push(_lina('M44.6 58.2Q47.6 53.2 49.1 48', tn[2], '1.2', ' stroke-opacity=".55"'));
   L.push(_el(49.4, 44.8, 3, 3.2, tn[1]));                                      // lófi
