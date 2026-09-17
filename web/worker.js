@@ -15,6 +15,7 @@ import { matchItem, matchKeyword, matchNews, feedFor, newSince, ALL_SECTORS, mat
 import { byggMatch, rankMovement, ratingMovement, criticalDrop, criticalNotice, noticeRef } from './src/lib/vaktir-signals.mjs';   // Byggingar-vöktun + greina-vöktun + einkunn-átt + strax-viðvaranir (eftirlit/gjaldþrot)
 import { sectorsFromMap, herfindahl, toppNShare, sectorForIsat } from './src/lib/atvinnugrein.mjs';
 import { GOGN_GATT_MYNSTUR, gognGattLyklar } from './src/lib/gogn-gatt.mjs';   // greiðsluveggur + PII-vörn á /gogn/{eigendur,arsreikningar,stjorn}/<kt>.json   // Atvinnugreinar v1 — hrein rökvél (hópun map→greinar, HHI, topp-N) + sectorForIsat (grein-rank)
+import { EMBED_RAMMAR, embedSidaHandler, embedTalningHandler } from './src/worker/embed.mjs';   // innfelldir gluggar samstarfsadila (allt.is)
 import { leikurHandler, leikurAsyncCron } from '../src/lib/leikur/server.mjs';   // RÁS-Leikurinn (kennsluleikur) — /api/leikur/* + async-cron
 import { postVerkOll } from '../src/lib/leikur/postur.mjs';                      // cron-skil → póst-verk (hrein modúla, hvítlistuð)
 import { _ajson, _b64u, _cdata, _dget, _emailOvSet, _emailTpl, _esc, _fjson, _fromB64, _hmac, _te, _tokenHex, ddmmyyyy, erLogadili, htmlEsc, isoDate, ktSep, repAll, sendGmail, sjson } from './src/worker/felag.mjs';
@@ -3078,6 +3079,7 @@ export default {
     if (url.pathname === '/api/lei') return leiHandler(request, ctx);
     if (url.pathname === '/api/rsk') return rskHandler(request, env, ctx);
     if (url.pathname === '/api/tengslanet') return tengslanetHandler(request, env, ctx);
+    if (url.pathname === '/api/embed/talning') return embedTalningHandler(request, env);
     if (url.pathname === '/api/topplistar') return topplistarHandler(request, env, ctx);
     if (url.pathname === '/api/atvinnugrein') return atvinnugreinHandler(request, env, ctx);   // Atvinnugreinar v1: gátuð djúp-skýrsla per deild (Fyrirtæki+)
     if (url.pathname === '/api/grein-rank') return greinRankHandler(request, env, ctx);   // grein-rank: röðun félags í grein (opið)
@@ -3164,6 +3166,8 @@ export default {
         return new Response(gres.body, { status: gres.status, headers: gh });
       }
     }
+    // Innfelldir gluggar: worker ber tha fram svo hann nai ad fjarlaegja X-Frame-Options (sja embed.mjs).
+    { const r = await embedSidaHandler(request, env); if (r) return r; }
     return env.ASSETS.fetch(request);
   },
 };
