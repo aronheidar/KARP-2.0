@@ -292,6 +292,26 @@ test('rennurUt: aðeins heimildir sem renna út innan 30 daga skila sér, raða�
   assert.deepEqual(r.rennurUt[0], { kt: '2222222222', vara: 'kvoti', until: nu + 3 * 86400 });
 });
 
+// ⚠ Verk 4-yfirferð: `heimildir` er AÐEINS síað á prufunotendur (`prufur`) hér að ofan — gjafaaðgangur
+//   (free_access/is_admin/nemandi) flaut því óbreyttur inn í `gogn.rennurUt`, þótt `samstemma()`
+//   (../lib/fjarmal.mjs, `erGjof`) úthýsi honum þegar úr `misraemi` með orðunum „ALDREI misræmi —
+//   rati hann í listann verður hann hávaði sem enginn les". Sama regla verður að gilda hér — annars
+//   er `rennurUt` eini staðurinn sem sniðgengur hana.
+test('rennurUt: gjafaaðgangur (free_access/is_admin/nemandi) fer ALDREI í listann', async (t) => {
+  const nu = Math.floor(Date.now() / 1000);
+  const state = mkState();
+  state.usr = [
+    { uid: 1, kt: '1111111111', vara: 'fyrirtaeki', until: nu + 3 * 86400, askell_id: null, free_access: 1, is_admin: 0, nemandi: 0 },
+    { uid: 2, kt: '2222222222', vara: 'fyrirtaeki', until: nu + 3 * 86400, askell_id: null, free_access: 0, is_admin: 1, nemandi: 0 },
+    { uid: 3, kt: '3333333333', vara: 'fyrirtaeki', until: nu + 3 * 86400, askell_id: null, free_access: 0, is_admin: 0, nemandi: 1 },
+    { uid: 4, kt: '4444444444', vara: 'fyrirtaeki', until: nu + 3 * 86400, askell_id: null, free_access: 0, is_admin: 0, nemandi: 0 },
+  ];
+  const env = mkEnv(state);
+  stubFetch(t, leidir({ status: 200, d: { results: [] } }));
+  const r = await saekjaFjarmal(env, { thvinga: true });
+  assert.deepEqual(r.rennurUt.map((x) => x.kt), ['4444444444'], 'aðeins raunveruleg áskrift án gjafaaðgangs á heima í "rennur út innan viku"');
+});
+
 // ⚠ Sama girðing og athugasemdin yfir `_fjTomt` varar við, mæld beint: röð sem var skrifuð ÁÐUR EN
 //   `verdrekMaelt` var til (raunstaða við deploy — sjá "gömul geymd röð sem BER villu" hér fyrir ofan
 //   fyrir sama mynstur með `villa`) ber EKKI reitinn. `_fjMynd` verður að fylla hann inn sem `false`,

@@ -71,10 +71,18 @@ export function bidurThin({ tickets = {}, bilanir = [], now = 0, markads = null,
     for (const m of (Array.isArray(fj.misraemi) ? fj.misraemi : [])) {
       const t = m && TXT[m.tegund];
       if (!t) continue;
-      ut.push(rod('elin', m.tegund, t[0] + ': ' + grima(m.kt) + ' · ' + (m.vara || ''), t[1] + ' · ' + krT(m.verd) + ' kr/mán', m.sidan || nu, '#elin'));
+      // ⚠ Verk 4-yfirferð: `nu`, ALDREI `m.sidan` — sidan er sóknartími workersins. Í stöðnaðri mynd
+      //   (varabraut eða rofi_elin=1) væri það gamalt og gerði misræmi ranglega „aðkallandi" eftir 48
+      //   klst. Misræmi kostar peninga, ekki tíma — sbr. „sidan: nu" í lib/fjarmal.mjs.
+      ut.push(rod('elin', m.tegund, t[0] + ': ' + grima(m.kt) + ' · ' + (m.vara || ''), t[1] + ' · ' + krT(m.verd) + ' kr/mán', nu, '#elin'));
     }
     for (const r of (Array.isArray(fj.rennurUt) ? fj.rennurUt : [])) {
-      if (!r || Number(r.until) > nu + 7 * 86400) continue;   // mánuðurinn sést á spjaldinu, vikan bíður þín
+      if (!r) continue;
+      const until = Number(r.until);
+      // ⚠ Verk 4-yfirferð: BÆÐI mörk, og `until` verður að vera endanleg tala. Efra markið eitt og sér
+      //   hleypti í gegn hverju sem EKKI er langt í framtíðinni úr stöðnaðri mynd — þar á meðal áskrift
+      //   útrunnin fyrir tíu dögum, og `until: undefined` slapp sömu leið (`NaN > x` er líka ósatt).
+      if (!Number.isFinite(until) || until <= nu || until > nu + 7 * 86400) continue;   // mánuðurinn sést á spjaldinu, vikan bíður þín
       ut.push(rod('elin', 'rennur_ut', 'Rennur út: ' + grima(r.kt) + ' · ' + (r.vara || ''), 'innan viku', nu, '#elin'));
     }
   }

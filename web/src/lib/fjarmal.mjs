@@ -22,8 +22,10 @@ export const PRICE_SVC = { kvoti: 9900, utbod: 1900, frettir: 3900, fasteign: 39
 
 const fastVerd = (h) => (h && h.tegund === 'svc' ? (PRICE_SVC[h.vara] || 0) : (PRICE_TIER[h.vara] || 0));
 
-/** Vísvitandi gjafaaðgangur — ALDREI misræmi. Rati hann í listann verður hann hávaði sem enginn les. */
-const erGjof = (h) => !!(h && (h.free_access || h.is_admin || h.nemandi));
+/** Vísvitandi gjafaaðgangur — ALDREI misræmi. Rati hann í listann verður hann hávaði sem enginn les.
+ *  ⚠ Verk 4-yfirferð: flutt út (export) svo worker/fjarmal.mjs geti flutt hana INN í `rennurUt` í stað
+ *    þess að afrita skilgreininguna — tvær útgáfur af sama hugtaki reka alltaf í sundur. */
+export const erGjof = (h) => !!(h && (h.free_access || h.is_admin || h.nemandi));
 
 const erTala = (v) => typeof v === 'number' && Number.isFinite(v);
 

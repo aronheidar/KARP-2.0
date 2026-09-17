@@ -8,7 +8,7 @@
 import { _ajson } from './felag.mjs';
 import { adminCsrfVilla, _ghDispatch } from './hjalp_agent.mjs';
 import { readSession } from './auth.mjs';
-import { samstemma } from '../lib/fjarmal.mjs';
+import { samstemma, erGjof } from '../lib/fjarmal.mjs';
 
 const _fjNow = () => Math.floor(Date.now() / 1000);
 const _FJ_FYRNING = 900;   // 15 mín — áskriftir hreyfast í dögum, ekki sekúndum
@@ -132,8 +132,11 @@ export async function saekjaFjarmal(env, { thvinga = false } = {}) {
     //   halda sig við eitt hlutverk — að bera saman tvo lista.
     // ⚠ Allt innan 30 daga fer með; vikumörkin eru sía í bidur_thin. Væru þau sett hér sæi spjaldið
     //   aldrei mánuðinn og „endurnýjast"-flísin yrði alltaf sama talan og „bíður þín".
+    // ⚠ Verk 4-yfirferð: gjafaaðgangur (free_access/is_admin/nemandi) er ALDREI misræmi — sama regla
+    //   verður að gilda hér. `erGjof` er flutt inn frá ../lib/fjarmal.mjs (ekki afrituð) svo þessi
+    //   skilgreining og samstemma() reki aldrei í sundur — sjá athugasemdina við hana þar.
     gogn.rennurUt = heimildir
-      .filter((h) => Number(h.until) > nu && Number(h.until) <= nu + 30 * 86400)
+      .filter((h) => !erGjof(h) && Number(h.until) > nu && Number(h.until) <= nu + 30 * 86400)
       .map((h) => ({ kt: String(h.kt || ''), vara: String(h.vara || ''), until: Number(h.until) }))
       .sort((a, b) => a.until - b.until)
       .slice(0, 40);

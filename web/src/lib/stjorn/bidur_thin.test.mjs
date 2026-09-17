@@ -114,11 +114,14 @@ test('misræmi Elínar rata á forstofuna', () => {
   assert.ok(elin.some((x) => x.tegund === 'gefins'));
 });
 
-test('full kennitala fer ALDREI í rað-titilinn', () => {
-  const r = bidurThin({ now: NU_E, fjarmal: { fjarmal: { ok: true, misraemi: [
-    { tegund: 'gefins', kt: '1234567890', vara: 'kvoti', verd: 9900, sidan: NU_E },
-  ] } } });
-  assert.ok(!r.some((x) => String(x.titill + x.vidbot).includes('1234567890')));
+test('full kennitala fer ALDREI í rað-titilinn — hvorki á misræmi né á rennur_ut', () => {
+  const r = bidurThin({ now: NU_E, fjarmal: { fjarmal: { ok: true,
+    misraemi: [{ tegund: 'gefins', kt: '1234567890', vara: 'kvoti', verd: 9900, sidan: NU_E }],
+    rennurUt: [{ kt: '5556667770', vara: 'fyrirtaeki', until: NU_E + 3 * 86400 }],
+  } } });
+  assert.equal(r.length, 2, 'báðar raðtegundir Elínar skiluðu sér — annars sannar prófið ekkert');
+  assert.ok(!r.some((x) => String(x.titill + x.vidbot).includes('1234567890')), 'misræmi: full kt fer ekki í titil/vidbot');
+  assert.ok(!r.some((x) => String(x.titill + x.vidbot).includes('5556667770')), 'rennur_ut: full kt fer ekki í titil/vidbot heldur — ein raðtegund ein og sér nægir ekki');
 });
 
 test('áskrift sem rennur út innan viku bíður þín, sú sem rennur út eftir mánuð ekki', () => {
@@ -128,6 +131,56 @@ test('áskrift sem rennur út innan viku bíður þín, sú sem rennur út eftir
   ] } } });
   const ut = r.filter((x) => x.tegund === 'rennur_ut');
   assert.equal(ut.length, 1);
+});
+
+// ── Yfirferð Verks 4: fjögur atriði sem yrðu sýnileg um leið og Verk 5 tengir þetta við forstofuna ──
+// Öll fjögur snúast um STÖÐNAÐA mynd: það sem `bidurThin` fær frá /api/admin/fjarmal er ekki alltaf
+// ferskt (varabraut, rofi_elin=1, eða einfaldlega innan _FJ_FYRNING). Misræmi og rennur_ut verða að
+// haga sér rétt líka þá — sjá viðbótina í .superpowers/sdd/elin/verk-4-report.md.
+
+test('misræmi Elínar er ALDREI aðkallandi — sidan er alltaf NÚNA, ekki sóknartími workersins', () => {
+  const r = bidurThin({ now: NU_E, fjarmal: { fjarmal: { ok: true, misraemi: [
+    { tegund: 'gefins', kt: '1234567890', vara: 'kvoti', verd: 9900, sidan: NU_E - 3 * 86400 },
+  ] } } });
+  const elin = r.filter((x) => x.starfsmadur === 'elin');
+  assert.equal(elin.length, 1);
+  assert.equal(elin[0].sidan, NU_E, 'sidan er núið sem bidurThin fékk, ekki gamla m.sidan úr geymdu myndinni');
+  assert.equal(elin[0].bid, 0);
+  assert.equal(elin[0].adkallandi, false, 'misræmi er ekki "beðið lengi" — það er "kostar peninga", og verður aldrei aðkallandi af aldri einum saman');
+});
+
+test('misræmi og rennur_ut Elínar bera sömu sidan innan sama svars — raðtegundirnar reka ekki í sundur', () => {
+  const r = bidurThin({ now: NU_E, fjarmal: { fjarmal: { ok: true,
+    misraemi: [{ tegund: 'gefins', kt: '1234567890', vara: 'kvoti', verd: 9900, sidan: NU_E - 5 * 86400 }],
+    rennurUt: [{ kt: '9876543210', vara: 'fyrirtaeki', until: NU_E + 3 * 86400 }],
+  } } });
+  const elin = r.filter((x) => x.starfsmadur === 'elin');
+  assert.equal(elin.length, 2);
+  assert.ok(elin.every((x) => x.sidan === NU_E), 'báðar raðtegundir eiga að nota sama núið — tvær ólíkar klukkur í sama svari er sjálft gallinn');
+});
+
+test('áskrift sem er ÞEGAR útrunnin sleppur ekki inn sem „innan viku" úr stöðnaðri mynd', () => {
+  const r = bidurThin({ now: NU_E, fjarmal: { fjarmal: { ok: true, rennurUt: [
+    { kt: '1234567890', vara: 'fyrirtaeki', until: NU_E - 10 * 86400 },
+  ] } } });
+  assert.equal(r.filter((x) => x.tegund === 'rennur_ut').length, 0, 'útrunnið fyrir tíu dögum er farið, ekki „innan viku"');
+});
+
+test('rennurUt-stak án dagsetningar (until: undefined) sleppur ekki inn sem „innan viku"', () => {
+  const r = bidurThin({ now: NU_E, fjarmal: { fjarmal: { ok: true, rennurUt: [
+    { kt: '1234567890', vara: 'fyrirtaeki', until: undefined },
+  ] } } });
+  assert.equal(r.filter((x) => x.tegund === 'rennur_ut').length, 0, '`NaN > x` er ósatt — stak án dagsetningar má ekki lauma sér framhjá efra markinu');
+});
+
+test('starfsmadur og slod eru "elin"/"#elin" fyrir BÁÐAR raðtegundir Elínar, ekki bara misræmi', () => {
+  const r = bidurThin({ now: NU_E, fjarmal: { fjarmal: { ok: true,
+    misraemi: [{ tegund: 'gefins', kt: '1234567890', vara: 'kvoti', verd: 9900, sidan: NU_E }],
+    rennurUt: [{ kt: '9876543210', vara: 'fyrirtaeki', until: NU_E + 3 * 86400 }],
+  } } });
+  assert.equal(r.length, 2);
+  assert.ok(r.every((x) => x.starfsmadur === 'elin'), 'annars hverfur röðin af spjaldi Elínar og úr andlitstölunni hennar þótt forstofan sýni hana');
+  assert.ok(r.every((x) => x.slod === '#elin'));
 });
 
 test('ekkert fjarmal-svar fellir ekki listann', () => {
