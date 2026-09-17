@@ -12,6 +12,7 @@ import { extractKts, nextPrefixes } from './lib/sweep.mjs';
 import { makeD1 } from './lib/d1_rest.mjs';
 import { buildScrapeFetcher } from './lib/rsk_fetch.mjs';
 import { metaNott } from './lib/nott_heilsa.mjs';   // þögul nótt (allt féll) á móti rólegri nótt (ekkert á dagskrá)
+import { buildApiFetcher } from './lib/rsk_api.mjs';
 
 const DRY = process.argv.includes('--dry-run');
 const bi = process.argv.indexOf('--budget');
@@ -34,7 +35,6 @@ const t0 = Date.now();
 const outOfTime = () => (Date.now() - t0) > DEADLINE_MS;
 const RSK_KEY = process.env.RSK_KEY;
 const today = new Date().toISOString().slice(0, 10);
-const API = 'https://api.skattur.cloud/legalentities/v2.1/';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 if (!RSK_KEY) { console.error('RSK_KEY vantar — hætti (crawl sefur þar til secret kemur).'); process.exit(0); }
@@ -65,24 +65,18 @@ async function sweepBatch(n) {
   return (await d1.query("SELECT prefix FROM sweep_state WHERE done=0 ORDER BY length(prefix), prefix LIMIT " + n)).map((r) => r.prefix);
 }
 
-// fetchApi: sjálf-grípur net-villur → { retry } (EKKI banvænt). AÐEINS 401/403 kasta (banvænt).
+// fetchApi: sjálf-grípur net-villur → { retry } (EKKI banvænt). 401 OG kvóta-403 kasta (banvænt).
 // Gegnum PROXY_BASE (worker) ef sett — Azure fór að 403-a GH-runner-IP eftir 429-þungu næturnar;
 // worker-egress er hreint. Lykill fer þá EKKI beint í Azure héðan (worker bætir honum server-hlið).
-async function fetchApi(kt) {
-  let r;
-  const url = PROXY_BASE ? (PROXY_BASE + '/api/rskproxy?api=' + kt) : (API + kt + '?language=is');
-  const headers = PROXY_BASE ? { 'X-Karp-Proxy': RSK_KEY, 'Accept': 'application/json' } : { 'Ocp-Apim-Subscription-Key': RSK_KEY, 'Accept': 'application/json' };
-  try { r = await fetch(url, { headers, signal: AbortSignal.timeout(FETCH_TIMEOUT) }); }
-  catch (e) { return { retry: 'network' }; }   // DNS/tenging/tímarof → reyna aftur síðar
-  // ⚠ AÐEINS 401 er banvænt (ógildur lykill). Azure skilar 403 PER-FÉLAG fyrir lokuð lögform
-  // (t.d. Z3 „not accessible via the Public Api") — það á að SLEPPA því félagi eins og 404, EKKI stöðva nótt.
-  if (r.status === 401) { const b = await r.text().catch(() => ''); throw new Error('AUTH 401 (ógildur lykill?) :: ' + b.replace(/\s+/g, ' ').slice(0, 140)); }
-  if (r.status === 404 || r.status === 403) return { notfound: true };            // ekki til EÐA lokað lögform → sleppa
-  if (r.status === 429 || r.status >= 500) return { retry: r.status };            // tímabundið → reyna aftur
-  if (!r.ok) return { error: r.status };                                          // annað 4xx → gefast upp
-  const json = await r.json().catch(() => null);
-  return json ? { json } : { retry: 'badjson' };
-}
+// ⚠⚠ 17.9.2026: sóknin flutt í lib/rsk_api.mjs (prófuð). Áður stóð hér
+//       if (r.status === 404 || r.status === 403) return { notfound: true };
+//    sem felldi saman „lokað lögform" (eðlilegt, sleppa félaginu) og „mánaðarkvóti uppurinn"
+//    (403 á ÖLL köll). Í seinna tilvikinu merkti skriðan hvert RAUNVERULEGT félag sem ekki-til
+//    og taldi það afgreitt — biðröðin tekur aldrei upp 'notfound', svo þau hefðu aldrei verið
+//    heimsótt aftur. Nóttin hefði verið græn og grunnurinn úreltur. Nú les hún SVARBOLINN
+//    (web/src/lib/rsk-kvoti.mjs, sama regla og workerinn) og HÆTTIR eins og við 401.
+const apiSaekja = buildApiFetcher({ proxyBase: PROXY_BASE, rskKey: RSK_KEY, timeout: FETCH_TIMEOUT });
+const fetchApi = (kt) => apiSaekja.fetchApi(kt);
 // path = /fyrirtaekjaskra/... Beint á www.skatturinn.is EÐA gegnum RSK-proxy (PROXY_BASE) ef sett.
 // ⚠ TIMEOUT SKYLDA: www.skatturinn.is throttlar m.a. með því að STÖÐVA tengingar — án tímamarka
 // hangir crawlið (mælt 15.7: 14s/félag) og 60-mín workflow-þakið drepur keyrsluna ÁÐUR en night.sql er skrifað.
@@ -133,7 +127,7 @@ for (const kt of batch) {
   await sleep(API_DELAY);
   let api;
   try { api = await fetchApi(kt); }
-  catch (e) { console.error('STÖÐVA nótt (AUTH):', e.message); break; }   // AUTH → hætta strax (biðröð ósnert)
+  catch (e) { console.error('STÖÐVA nótt:', e.message); break; }   // AUTH eða uppurinn kvóti → hætta strax (biðröð ÓSNERT, engin 'notfound'-mengun)
   if (api.retry) { acc.queueRetry.push(kt); errs++; errBy['retry:' + api.retry] = (errBy['retry:' + api.retry] || 0) + 1; continue; }   // tímabundið → attempts++ (helst pending)
   if (api.notfound) { acc.queueMark.push({ kt, status: 'notfound' }); notfound++; continue; }
   if (api.error) { acc.queueMark.push({ kt, status: 'error' }); errs++; errBy['error:' + api.error] = (errBy['error:' + api.error] || 0) + 1; continue; }

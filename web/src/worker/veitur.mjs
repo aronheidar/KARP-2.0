@@ -10,6 +10,7 @@ import { GREINAR, greinaSql } from '../lib/greinar.mjs';
 import { canon as kycCanon, deriveRisk as kycDeriveRisk, hash as kycHash, signalEvents as kycSignalEvents } from '../lib/kyc.mjs';
 import { vikuForgangur as kycVikuForgangur } from '../lib/kyc-digest.mjs';
 import { feedFor, matchNews, matchRaeda } from '../lib/lobbyvakt.mjs';
+import { erKvotaSvar } from '../lib/rsk-kvoti.mjs';   // 403 „kvóti uppurinn" vs 403 „lokað lögform" — sama regla og skriðan notar
 import { traceUbo as kycTraceUbo } from '../lib/ubo-core.mjs';
 import { byggjaVisitolu, flokkaNofn, sancNorm, skimunarNidurstada } from '../lib/refsilistar.mjs';
 import { augGet } from './felag.mjs';
@@ -554,6 +555,55 @@ function rskClean(kt, d, keepPersonKt) {
   };
 }
 
+// ── RSK-kvótinn (17.9.2026) ───────────────────────────────────────────────────────────────
+// ⚠⚠ Jákvæð svör lifðu í 24 KLST. Þann 14.9 fór felagaskra.json úr 6.527 félögum í 44.918 og
+//    sitemap-ið fylgdi — og /fyrirtaeki/<kt>/ er worker-SSR, svo HVER leitarvélarheimsókn á
+//    hverja þeirra 44.917 slóða kallaði á mælda APIð. Mánaðarkvótinn brann upp á rúmum tveimur
+//    vikum og Azure svarar nú 403 „Out of call volume quota" við hverju kalli.
+//    Fyrirtækjaskrá breytist í MÁNUÐUM, ekki dögum: 7 dagar deila sama kvóta á ~7× fleiri
+//    síðuflettingar án þess að gögnin verði merkjanlega eldri.
+const _RSK_CACHE_JAKVAETT = 7 * 24 * 3600;   // 604800 s
+// Hve lengi worker MAN að lykill sé uppurinn. KLUKKUSTUNDIR, ekki dagar: kvótinn núllstillist
+// 1. hvers mánaðar og þá á kerfið að jafna sig sjálft án handtaks.
+const _RSK_KVOTI_TTL = 6 * 3600;
+
+const _rskKvotiKey = (nafn) => new Request('https://cache.karp.internal/rsk-kvoti/' + nafn);
+
+async function rskKvotiUppurinn(nafn) {
+  try { return !!(await caches.default.match(_rskKvotiKey(nafn))); } catch (e) { return false; }
+}
+async function rskMerkjaKvota(nafn) {
+  // Beðið EFTIR skrifinu (ekki waitUntil): án þess enduruppgötvar hvert samhliða kall uppurinn
+  // kvóta með því að brenna enn einu kalli — sem er nákvæmlega það sem verið er að spara.
+  try { await caches.default.put(_rskKvotiKey(nafn), new Response('1', { headers: { 'cache-control': 'public, max-age=' + _RSK_KVOTI_TTL } })); } catch (e) {}
+}
+
+// Eitt RSK-kall með VARALEIÐ á RSK_KEY2 (annar RSK-aðgangur, eigin mánaðarkvóti).
+// ⚠⚠ VARALEIÐ, EKKI HRINGEKJA: RSK_KEY er ALLTAF reynt fyrst og RSK_KEY2 grípur AÐEINS eftir
+//    sannaðan kvóta-403. Til-skiptis-notkun myndi brenna báða kvótana á sama hraða, tvöfalda
+//    ekki neitt, og fela hvor lykillinn tæmdist — varaleið tvöfaldar þakið og heldur mælingunni.
+// ⚠ RSK_KEY2 getur vantað; þá er hegðunin nákvæmlega óbreytt frá því sem áður var.
+// Skilar { status, body, kvoti }. `kvoti: true` þýðir að ENGINN lykill gat mælt — það er allt
+// annað en „mældi og fann ekkert", og kallandinn VERÐUR að bera þann mun áfram.
+async function rskSaekjaKt(kt, env) {
+  const lyklar = [['RSK_KEY', env.RSK_KEY], ['RSK_KEY2', env.RSK_KEY2]].filter((l) => l[1]);
+  let sidast = null;
+  for (const [nafn, lykill] of lyklar) {
+    if (await rskKvotiUppurinn(nafn)) { sidast = { status: 403, body: '', kvoti: true }; continue; }
+    const r = await fetch('https://api.skattur.cloud/legalentities/v2.1/' + kt + '?language=is', {
+      headers: { 'Ocp-Apim-Subscription-Key': lykill, 'Accept': 'application/json' },
+    });
+    const body = await r.text();
+    if (erKvotaSvar(r.status, body)) {
+      await rskMerkjaKvota(nafn);
+      sidast = { status: r.status, body, kvoti: true };
+      continue;   // næsti lykill — aðeins hér, aðeins eftir sannaðan kvóta
+    }
+    return { status: r.status, body, kvoti: false };
+  }
+  return sidast || { status: 0, body: '', kvoti: false };
+}
+
 export async function rskHandler(request, env, ctx) {
   const u = new URL(request.url);
   const kt = (u.searchParams.get('kt') || '').replace(/\D/g, '');
@@ -565,19 +615,25 @@ export async function rskHandler(request, env, ctx) {
   const hit = await cache.match(cacheKey); if (hit) return hit;
   let out = { kt, holdur: false };
   try {
-    const r = await fetch('https://api.skattur.cloud/legalentities/v2.1/' + kt + '?language=is', {
-      headers: { 'Ocp-Apim-Subscription-Key': env.RSK_KEY, 'Accept': 'application/json' },
-    });
-    const body = await r.text();
-    if (r.ok) {
-      let d = null; try { d = JSON.parse(body); } catch (e) {}
+    const r = await rskSaekjaKt(kt, env);
+    if (r.status >= 200 && r.status < 300) {
+      let d = null; try { d = JSON.parse(r.body); } catch (e) {}
       if (d && typeof d === 'object') out = rskClean(kt, d);
     } else {
       out = { kt, holdur: false, status: r.status };
+      // ⚠⚠ MERKING, EKKI ÞÖGN: án `kvoti` les neytandinn `holdur:false` sem „engin gögn" og
+      //    `afskraning` (gjaldþrot/gjaldþol) hverfur ÚR 990-áreiðanleikamatinu án þess að
+      //    nokkuð segi frá — skýrslan lítur út eins og hrein þegar hún er í raun ómæld.
+      //    Neytendur sem eiga eftir að lesa þetta: worker.js:1987 (`if (rd && rd.holdur)`,
+      //    overlay á felag.afskraning fyrir KYC) og fyrirtaeki.astro. Þeim er VÍSVITANDI
+      //    ekki breytt hér — þetta verk merkir svarið, næsta verk les merkið.
+      if (r.kvoti) out.kvoti = true;
     }
   } catch (e) {}
-  // ⚠ Neikvæð svör ALDREI cache-uð (annars festist tímabundin 404/villa á jaðri í 24h).
-  const res = new Response(JSON.stringify(out), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': out.holdur ? 'public, max-age=86400' : 'no-store' } });
+  // ⚠ Neikvæð svör ALDREI cache-uð (annars festist tímabundin 404/villa á jaðri — nú í 7 daga,
+  //   sem er enn verra en 24h var). Kvóta-svar allra síst: það myndi festa „engin gögn" á félag
+  //   sem er í fullu fjöri, og einmitt sá lestur er villandi.
+  const res = new Response(JSON.stringify(out), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': out.holdur ? 'public, max-age=' + _RSK_CACHE_JAKVAETT : 'no-store' } });
   if (out.holdur) ctx.waitUntil(cache.put(cacheKey, res.clone()));
   return res;
 }
@@ -588,12 +644,17 @@ async function rskFetchRaw(kt, env, ctx) {
   const hit = await cache.match(cacheKey);
   if (hit) { try { const j = await hit.json(); return j.holdur ? j : null; } catch (e) {} }
   try {
-    const r = await fetch('https://api.skattur.cloud/legalentities/v2.1/' + kt + '?language=is', {
-      headers: { 'Ocp-Apim-Subscription-Key': env.RSK_KEY, 'Accept': 'application/json' },
-    });
-    const out = r.ok ? rskClean(kt, await r.json(), true) : { kt, holdur: false };
-    // jákvæð svör 24h; NEIKVÆÐ stutt (10 mín) svo endurtekin köll á sama kt hamri ekki mælda APIð
-    const res = new Response(JSON.stringify(out), { headers: { 'content-type': 'application/json', 'cache-control': 'public, max-age=' + (out.holdur ? 86400 : 600) } });
+    // Þjónar tengslanetHandler með þaki upp á 12 félög í kalli — það er EKKI lekinn, en sömu
+    // rök gilda um ferskleika fyrirtækjaskrár, svo jákvæði tíminn fylgir sama fasta.
+    const r = await rskSaekjaKt(kt, env);
+    let out = { kt, holdur: false };
+    if (r.status >= 200 && r.status < 300) {
+      let d = null; try { d = JSON.parse(r.body); } catch (e) {}
+      if (d && typeof d === 'object') out = rskClean(kt, d, true);
+    }
+    // jákvæð svör 7 daga; NEIKVÆÐ áfram stutt (10 mín) svo endurtekin köll á sama kt hamri ekki
+    // mælda APIð. ⚠ Sú 10-mínútna regla er ÓBREYTT og má ekki lengjast með jákvæða tímanum.
+    const res = new Response(JSON.stringify(out), { headers: { 'content-type': 'application/json', 'cache-control': 'public, max-age=' + (out.holdur ? _RSK_CACHE_JAKVAETT : 600) } });
     ctx.waitUntil(cache.put(cacheKey, res));
     return out.holdur ? out : null;
   } catch (e) { return null; }
