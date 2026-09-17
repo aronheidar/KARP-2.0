@@ -466,9 +466,17 @@ function _teiknaSigrun(p, S, talar) {
   if (sv.eyrnalokkar && !lag) L.push('<circle cx="20.9" cy="35.4" r="1.05" fill="none" stroke="' + GULL + '" stroke-width=".65"/><circle cx="43.1" cy="35.4" r="1.05" fill="none" stroke="' + GULL + '" stroke-width=".65"/>');
   L.push('</g>');   // av-haus
   L.push('</g>');   // av-likami
-  // (15) hlutverks-merki FELLT: það var emoji í <text>. Emojí er einmitt það sem
-  //      afvélvæðingin fjarlægði af síðunni, og utan vafra birtist það sem tofu-kassi
-  //      (mælt: „01F 6DF"). Hlutverkið stendur í texta á spjaldinu, ekki í teikningunni.
+  // (15) hlutverks-merki — sami rammi og hinar sjö bera (hringur á 50,50 r=7.5), en glyfan er
+  //      TEIKNUÐ, ekki emoji í <text>. Hinar sjö nota <text> með emoji úr PERSONUR, og mælt í
+  //      1400px myndun birtast þær sem svartar skuggamyndir á nær-svörtum fleti; 🛟 Sigrúnar
+  //      (U+1F6DF) vantar að auki í letrið og kom út sem tofu-kassi. Hringurinn hér er hvítur
+  //      með fjórum skorum í persónulit — björgunarhringur, læsilegur hvar sem er.
+  if (!lag) {
+    L.push(_ci(50, 50, 7.5, BAK, ' stroke="' + p.litur + '" stroke-width="1.5"'));
+    L.push(_ci(50, 50, 4.4, 'none', ' stroke="' + HVITT + '" stroke-width="2.3"'));
+    L.push(_lina('M51.84 48.16L54.38 45.62M48.16 48.16L45.62 45.62'
+      + 'M51.84 51.84L54.38 54.38M48.16 51.84L45.62 54.38', p.litur, '1.9'));
+  }
   // ── (16) HÖND. Liggur 26 einingum NEÐAN við myndflötinn í hvíld og klippist burt af
   //      viewBox-inu, svo kyrra teikningin, PNG-in og <img>-data-URI eru nákvæmlega óbreytt.
   //      CSS-klasi yfirtekur transform-eigindina og lyftir henni upp. Engin auðkenni, engin
