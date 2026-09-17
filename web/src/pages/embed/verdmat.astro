@@ -1,0 +1,132 @@
+---
+// Verðmatsgluggi fyrir allt.is. Sjálfstæð síða ÁN Layout — hún lifir inni í ramma á öðrum vef og
+// má hvorki bera haus, valmynd né hitt útlit karp.is. Þema Allt, mælt af allt.is 17.9.2026.
+//
+// ⚠⚠ Bilið kemur EINGÖNGU úr lib/verdbil.mjs. Aldrei lo/hi úr vélinni (35,4% hittni).
+// ⚠ Ekkert punktmat birtist. Orðalagið fylgir bilinu alltaf.
+// ⚠ ENGIN rökvísi hér — hún er í lib/verdmat-gluggi.mjs þar sem prófin ná til hennar.
+---
+<html lang="is">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Verðmat eignar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&display=swap" />
+<style is:global>
+  :root { --bg:#f8fbfc; --dokkt:#0b1f28; --ahersla:#226079; --texti:#67777e; }
+  * { box-sizing:border-box }
+  body { margin:0; font:400 16px/1.55 Raleway,system-ui,sans-serif; color:var(--texti); background:var(--bg) }
+  .v { max-width:520px; margin:0 auto; padding:20px }
+  h2 { margin:0 0 4px; font-size:20px; font-weight:700; color:var(--dokkt) }
+  .undir { margin:0 0 16px; font-size:14px }
+  label { display:block; margin:10px 0 4px; font-size:13px; font-weight:600; color:var(--dokkt) }
+  input, select { width:100%; padding:11px 12px; border:1px solid #d7e2e6; border-radius:6px; font:inherit; background:#fff; color:var(--dokkt) }
+  input:focus, select:focus { outline:2px solid var(--ahersla); outline-offset:1px }
+  button { width:100%; margin-top:14px; padding:12px; border:0; border-radius:6px; background:var(--ahersla); color:#fff; font:600 16px Raleway,sans-serif; cursor:pointer }
+  button:disabled { opacity:.5; cursor:default }
+  .bil { margin:18px 0 0; padding:18px; background:#fff; border:1px solid #d7e2e6; border-radius:8px; text-align:center }
+  .bil b { display:block; font-size:26px; font-weight:700; color:var(--dokkt); line-height:1.25 }
+  .bil .vissa { display:block; margin-top:8px; font-size:13px }
+  .grunnur { margin:10px 0 0; font-size:12.5px; line-height:1.5 }
+  .cta { display:block; margin-top:14px; padding:11px; text-align:center; border:1px solid var(--ahersla); border-radius:6px; color:var(--ahersla); text-decoration:none; font-weight:600 }
+  .merki { margin:16px 0 0; text-align:center; font-size:12px }
+  .merki a { color:var(--texti) }
+  .fela { display:none }
+</style>
+</head>
+<body>
+<div class="v">
+  <h2>Hvað er eignin þín virði?</h2>
+  <p class="undir">Áætlað verðbil úr þinglýstum kaupsamningum.</p>
+
+  <label for="fang">Heimilisfang</label>
+  <input id="fang" list="fong" autocomplete="off" placeholder="Heiðarbraut 12, 230" />
+  <datalist id="fong"></datalist>
+
+  <div id="innslattur" class="fela">
+    <p class="grunnur">Þessi eign hefur ekki selst síðan 2006, svo stærð hennar er ekki í skránni okkar. Sláðu inn þrjú atriði og við metum hana samt.</p>
+    <label for="teg">Tegund</label>
+    <select id="teg"><option>Fjölbýli</option><option>Sérbýli</option><option>Raðhús</option><option>Parhús</option><option>Einbýli</option></select>
+    <label for="fm">Stærð í fermetrum</label>
+    <input id="fm" type="number" min="15" max="2000" inputmode="numeric" />
+    <label for="ar">Byggingarár</label>
+    <input id="ar" type="number" min="1850" max="2030" inputmode="numeric" />
+  </div>
+
+  <button id="reikna">Reikna verðbil</button>
+  <div id="ut"></div>
+  <p class="merki">Powered by <a href="https://karp.is/" target="_blank" rel="noopener">Karp.is</a></p>
+</div>
+
+<script>
+  import { metaUrSolusogu } from '../../lib/fasteignamat.mjs';
+  import { verdbil } from '../../lib/verdbil.mjs';
+  import { grunnurTexti, hnitAfFangi, thattaFang, veljaForsendur } from '../../lib/verdmat-gluggi.mjs';
+
+  const UPPSPRETTA = 'allt';
+  const $ = (id) => document.getElementById(id);
+  const kr = (n) => Math.round(n / 1e6).toLocaleString('is-IS') + ' m.kr.';
+  const segja = (t) => { $('ut').innerHTML = '<p class="grunnur">' + t + '</p>'; };
+
+  let GOTUR = null; const HNIT = {}; const SOL = {}; const SKRA = {};
+  const saekja = (u) => fetch(u).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  const gotur = async () => (GOTUR || (GOTUR = await saekja('/gogn/hnit/gotur.json')));
+  const hnitPn = async (pn) => (HNIT[pn] || (HNIT[pn] = await saekja('/gogn/hnit/' + pn + '.json')));
+  const solPn = async (pn) => (SOL[pn] || (SOL[pn] = await saekja('/gogn/solusaga/' + pn + '.json')));
+  const skraPn = async (pn) => (SKRA[pn] || (SKRA[pn] = await saekja('/gogn/fasteignaskra/' + pn + '.json')));
+
+  $('fang').addEventListener('input', async () => {
+    const { fang } = thattaFang($('fang').value);
+    if (fang.length < 3) return;
+    const g = await gotur(); if (!g) return;
+    const dl = $('fong'); dl.innerHTML = '';
+    for (const n of Object.keys(g).filter((x) => x.startsWith(fang)).slice(0, 8)) {
+      const o = document.createElement('option'); o.value = n + ', ' + g[n][0]; dl.appendChild(o);
+    }
+  });
+
+  $('reikna').addEventListener('click', async () => {
+    const b = $('reikna'); b.disabled = true; $('ut').innerHTML = '';
+    try {
+      let { fang, pn } = thattaFang($('fang').value);
+      if (!pn) {
+        const g = (await gotur()) || {};
+        const lykill = Object.keys(g).find((n) => fang.startsWith(n));
+        if (lykill) pn = g[lykill][0];
+      }
+      if (!pn) return segja('Fann ekki heimilisfangið. Sláðu inn götu, númer og póstnúmer.');
+
+      const [hnit, sales, skra] = await Promise.all([hnitPn(pn), solPn(pn), skraPn(pn)]);
+      if (!sales || !sales.length) return segja('Of fáar þinglýstar sölur í þessu póstnúmeri til að meta eign.');
+
+      const eign = (Array.isArray(skra) ? skra : []).find((r) => String(r.a || '').trim().toLowerCase() === fang) || null;
+      const synir = !$('innslattur').classList.contains('fela');
+      const innslattur = synir ? { teg: $('teg').value, fm: $('fm').value, ar: $('ar').value } : null;
+      const f = veljaForsendur(eign, innslattur);
+
+      if (!f) {
+        // 47% tilvika. Fyrst sýnum við reitina, svo reiknum við þegar notandinn hefur fyllt út.
+        if (!synir) { $('innslattur').classList.remove('fela'); return; }
+        return segja('Sláðu inn stærð eignarinnar í fermetrum.');
+      }
+
+      // ⚠ hnit VERÐA að fylgja, annars er radíus-sían óvirk í þögn.
+      const r = metaUrSolusogu(sales, { teg: f.teg, fm: f.fm, ar: f.ar, a: fang, hnit: hnitAfFangi(hnit, fang) }, { now: Date.now(), hnit });
+      const bil = r ? verdbil(r.m, f.fm) : null;
+      if (!bil) return segja('Of fáar sambærilegar eignir til að meta þessa með vissu.');
+
+      $('ut').innerHTML = '<div class="bil"><b>' + kr(bil.lagt) + ' – ' + kr(bil.hatt) + '</b>'
+        + '<span class="vissa">' + bil.ordalag + '</span></div>'
+        + '<p class="grunnur">' + grunnurTexti(r, pn, f.fraNotanda) + '.</p>'
+        + '<a class="cta" href="https://karp.is/fasteignavakt/?fang=' + encodeURIComponent($('fang').value)
+        + '&uppspretta=' + UPPSPRETTA + '" target="_blank" rel="noopener">Sjá fulla skýrslu á Karp.is</a>';
+
+      // Ein notkun telst þegar bilið er BIRT. ⚠ Engin fyrirspurn fylgir, aðeins uppsprettan.
+      fetch('/api/embed/talning?u=' + UPPSPRETTA, { method: 'POST' }).catch(() => {});
+    } finally { b.disabled = false; }
+  });
+</script>
+</body>
+</html>
