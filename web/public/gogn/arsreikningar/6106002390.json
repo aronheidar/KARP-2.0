@@ -1,0 +1,85 @@
+{
+ "kt": "6106002390",
+ "nafn": "SiminnPay ehf.",
+ "sott": "2026-09-17",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2015": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": 0.6624,
+    "veltufjarhlutfall": 0.0025,
+    "skuldahlutfall_DE": 0.5097
+   },
+   "rekstur": {
+    "ebitda": -677673,
+    "fjarmagnsgjold": -306618
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3275609,
+    "vidskiptakrofur": 2814,
+    "veltufjarmunir": 82682,
+    "eignir": 3358291,
+    "eigid_fe": 2224507,
+    "skammtimaskuldir": 1133784,
+    "efe_skuldir": 3358291,
+    "skuldir": 1133784
+   },
+   "starfsmenn": null
+  },
+  "2016": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": 0.8779,
+    "veltufjarhlutfall": 0.7453,
+    "skuldahlutfall_DE": 0.1391
+   },
+   "rekstur": {
+    "ebitda": -40254829,
+    "fjarmagnsgjold": 2214473
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "vidskiptakrofur": 10019444,
+    "veltufjarmunir": 110112914,
+    "eignir": 110112914,
+    "eigid_fe": 96668922,
+    "skammtimaskuldir": 13443992,
+    "efe_skuldir": 110112914,
+    "skuldir": 13443992
+   },
+   "starfsmenn": 4
+  },
+  "2017": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "eiginfjarhlutfall": 0.4972,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 1.0113
+   },
+   "rekstur": {
+    "annar_rekstur": -30246,
+    "ebitda": -36859,
+    "fjarmunatekjur": 2129
+   },
+   "efnahagur": {
+    "veltufjarmunir": 54928,
+    "eignir": 54928,
+    "eigid_fe": 27310,
+    "skammtimaskuldir": 27618,
+    "efe_skuldir": 54928,
+    "skuldir": 27618
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6106002390.pdf",
+ "pdfAr": "2017",
+ "ocr": true
+}
