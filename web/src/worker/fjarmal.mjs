@@ -19,14 +19,17 @@ const _FJ_SIDUTHAK = 20;
 const _FJ_ADGERDIR = ['saekja', 'hrafn'];
 
 /** Tóm mynd = ÖLL skil `samstemma` (Verk 1), ekki hluti þeirra. Vanti `mrrAskellOvisst`,
- *  `verdUppsprettur` eða `tvirukkun` hér verður varabrautin að þögulli afturför í Verk 1: talan
- *  berst áfram án þess sem gerir hana rekjanlega.
+ *  `verdUppsprettur`, `tvirukkun` eða `verdrekMaelt` hér verður varabrautin að þögulli afturför:
+ *  talan berst áfram án þess sem gerir hana rekjanlega.
  *  ⚠ `mrrAskellOvisst: true` — án mælingar vitum við sannanlega ekki neitt.
+ *  ⚠ `verdrekMaelt: false` — reiknaður HÉR í worker-num (ekki í samstemma, sjá athugasemdina við
+ *    `gogn.verdrekMaelt =` að neðan), en sama regla gildir: sjálfgildið á þessari (fram)braut er að
+ *    EKKERT mældist, sama hvað gömul geymd mynd kann annars að segja um sjálfa sig.
  *  ⚠ Verk 4 bætir `rennurUt` við svarið — sá reitur VERÐUR að fara hér inn líka, annars hendir
  *    varabrautin honum í hljóði. */
 const _fjTomt = () => ({
   misraemi: [], fripofanir: [], tvirukkun: [], mrrAskell: 0, mrrD1: 0, verdrek: [],
-  verdUppsprettur: { lidur: 0, verdskra: 0, ekkert: 0 }, mrrAskellOvisst: true,
+  verdUppsprettur: { lidur: 0, verdskra: 0, ekkert: 0 }, mrrAskellOvisst: true, verdrekMaelt: false,
 });
 
 /** Geymda myndin er GÖGN, aldrei merking: `villa` er reiknuð per svar og geymd hvergi. Væri
@@ -125,12 +128,23 @@ export async function saekjaFjarmal(env, { thvinga = false } = {}) {
       ...((usrR.status === 'fulfilled' && usrR.value.results) || []).map((x) => Object.assign({}, x, { tegund: 'tier' })),
     ].filter((h) => !prufur.has(Number(h.uid)));
     const gogn = samstemma({ samningar: samningarR.value, heimildir, verdskra, now: nu });
+    // ⚠ Reiknað HÉR, ekki í samstemma(): samstemma fær `verdskra` sem einfaldan hlut og getur ekki
+    //   greint bilaða/tóma verðskrá frá raunverulega tómri — sá greinarmunur býr AÐEINS í verdR.status.
+    //   ⚠⚠ VERÐUR að fara í `gogn` (og þar með í það sem er GEYMT) ÁÐUR en INSERT-ið keyrir, ekki bætast
+    //     við `svar` seinna: annars sýnir cache-slóðin (algengasta leiðin, sjá _FJ_FYRNING — engin ný
+    //     Áskels-köll í allt að 15 mín) ranga `false` úr _fjTomt()-sjálfgildinu í hvert sinn, óháð því
+    //     að verðskráin náðist fullkomlega þegar gagnanna var upphaflega aflað. Sama girðing og
+    //     athugasemdin yfir `_fjTomt` varar við (og sama mynstur og Verk 4 mun nota fyrir `rennurUt`).
+    gogn.verdrekMaelt = verdR.status === 'fulfilled';
     // ⚠ AÐEINS gögnin eru geymd — sjá _fjMynd.
     await env.TENGSL.prepare("INSERT INTO stjorn_sync (k, v, updated) VALUES ('fjarmal', ?, ?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated")
       .bind(JSON.stringify(gogn), nu).run().catch(() => {});
     // ⚠ Biluð verðskrá var ÞÖGUL: `verdrek: []` og engin villa sagði „ekkert verðrek" þegar verðrek
     //   var aldrei mælt. Forgangur: D1-gatið er nefnt fyrst þegar bæði brugðust — það snertir bæði
-    //   `mrrD1` og `misraemi`, verðskráin aðeins `verdrek`. EINN kóði fer út; Verk 3 les einn streng.
+    //   `mrrD1` og `misraemi`, verðskráin aðeins `verdrek`. EINN kóði fer út; Verk 3 las einn streng.
+    // ⚠ `gogn.verdrekMaelt` (að ofan) er einmitt til þess að spjaldið þurfi EKKI að giska á þetta af
+    //   `villa`: hann er sjálfstæður og ÓHÁÐUR forgangsröðuninni hér — segir nákvæmlega hvort
+    //   VERÐSKRÁIN sjálf náðist, líka þegar `d1_hluti` (ekki `verdskra_hluti`) er kóðinn sem fer út.
     const villa = (subsR.status !== 'fulfilled' || usrR.status !== 'fulfilled') ? 'd1_hluti'
       : (verdR.status !== 'fulfilled' ? 'verdskra_hluti' : null);
     const svar = Object.assign({ ok: true, sott: nu }, gogn);

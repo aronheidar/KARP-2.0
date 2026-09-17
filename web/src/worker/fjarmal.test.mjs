@@ -167,6 +167,7 @@ test('verðskráin berst inn í verðrek', async (t) => {
   const r = await saekjaFjarmal(env, { thvinga: true });
   assert.equal(r.villa, undefined);
   assert.deepEqual(r.verdrek, [{ vara: 'kvoti', askell: 8900, fast: 9900 }]);
+  assert.equal(r.verdrekMaelt, true, 'verðskráin náðist — spjaldið má sýna töluna, ekki giska á villu');
 });
 
 test('biluð verðskrá er MERKT — „ekkert verðrek" má ekki þýða „aldrei mælt"', async (t) => {
@@ -176,25 +177,35 @@ test('biluð verðskrá er MERKT — „ekkert verðrek" má ekki þýða „ald
   assert.equal(r.ok, true, 'samningarnir náðust — svarið fellur ekki með verðskránni');
   assert.equal(r.villa, 'verdskra_hluti');
   assert.deepEqual(r.verdrek, []);
+  assert.equal(r.verdrekMaelt, false, 'verðskráin brást — verdrekMaelt verður að segja það beint, óháð villukóðanum');
 });
 
 test('verðskrá sem er ekki fylki telst líka biluð', async (t) => {
   const state = mkState(); const env = mkEnv(state);
   stubFetch(t, leidir({ status: 200, d: { results: [samningur(1)] } }, { status: 200, d: { villa: 'eitthvað' } }));
-  assert.equal((await saekjaFjarmal(env, { thvinga: true })).villa, 'verdskra_hluti');
+  const r = await saekjaFjarmal(env, { thvinga: true });
+  assert.equal(r.villa, 'verdskra_hluti');
+  assert.equal(r.verdrekMaelt, false);
 });
 
-test('hlutabilun í D1 er merkt d1_hluti', async (t) => {
+test('hlutabilun í D1 er merkt d1_hluti — en verðskráin er ÓHÁÐ því og mældist samt', async (t) => {
   const state = mkState(); state.bila.subs = true; const env = mkEnv(state);
   stubFetch(t, leidir({ status: 200, d: { results: [samningur(1)] } }));
-  assert.equal((await saekjaFjarmal(env, { thvinga: true })).villa, 'd1_hluti');
+  const r = await saekjaFjarmal(env, { thvinga: true });
+  assert.equal(r.villa, 'd1_hluti');
+  assert.equal(r.verdrekMaelt, true, 'D1 brotnaði, ekki verðskráin — d1_hluti má ekki sjálfkrafa þýða verdrekMaelt:false');
 });
 
-test('brotni bæði D1 og verðskrá er D1 nefnt — EINN kóði fer út', async (t) => {
+// ⚠⚠ ÞETTA er kjarnaprófið fyrir sjálfstæða reitinn: `villa` er AÐEINS EINN kóði og `d1_hluti` vinnur
+//   forgangsröðunina (sjá athugasemdina við `villa =` í fjarmal.mjs) — svo villukóðinn EINN OG SÉR
+//   getur ALDREI sagt spjaldinu hvort verðskráin líka brást. Áður en `verdrekMaelt` var til hefði
+//   spjaldið (sem las `villa === 'verdskra_hluti'`) sýnt RANGA tölu (0, ekki óvíst) nákvæmlega hér.
+test('brotni bæði D1 og verðskrá er D1 nefnt — EINN kóði fer út, en verdrekMaelt segir samt satt um verðskrána', async (t) => {
   const state = mkState(); state.bila.subs = true; const env = mkEnv(state);
   stubFetch(t, leidir({ status: 200, d: { results: [samningur(1)] } }, { status: 500, d: {} }));
   const r = await saekjaFjarmal(env, { thvinga: true });
   assert.equal(r.villa, 'd1_hluti', 'D1-gatið snertir bæði mrrD1 og misraemi; verðskráin aðeins verdrek');
+  assert.equal(r.verdrekMaelt, false, 'verðskráin brást LÍKA — villukóðinn (d1_hluti) þaggar það, en verdrekMaelt má ekki þegja um það');
 });
 
 test('geymd mynd YFIRSKRIFAR ekki `villa` — Áskell ónáanlegur segir askell, ekki d1_hluti', async (t) => {
@@ -237,9 +248,42 @@ test('varabraut án geymdrar myndar hendir ENGU úr Verki 1', async (t) => {
   const r = await saekjaFjarmal(env, { thvinga: true });
   assert.equal(r.villa, 'askell');
   assert.equal(r.mrrAskellOvisst, true, 'án mælingar vitum við sannanlega ekki neitt');
+  assert.equal(r.verdrekMaelt, false, 'engin verðskrá var sótt á þessari braut — sömu rök og mrrAskellOvisst');
   assert.deepEqual(r.verdUppsprettur, { lidur: 0, verdskra: 0, ekkert: 0 });
   assert.deepEqual(r.tvirukkun, []);
-  assert.deepEqual(Object.keys(r).sort(), ['fripofanir', 'misraemi', 'mrrAskell', 'mrrAskellOvisst', 'mrrD1', 'ok', 'sott', 'tvirukkun', 'verdUppsprettur', 'verdrek', 'villa']);
+  assert.deepEqual(Object.keys(r).sort(), ['fripofanir', 'misraemi', 'mrrAskell', 'mrrAskellOvisst', 'mrrD1', 'ok', 'sott', 'tvirukkun', 'verdUppsprettur', 'verdrek', 'verdrekMaelt', 'villa']);
+});
+
+// ⚠ Sama girðing og athugasemdin yfir `_fjTomt` varar við, mæld beint: röð sem var skrifuð ÁÐUR EN
+//   `verdrekMaelt` var til (raunstaða við deploy — sjá "gömul geymd röð sem BER villu" hér fyrir ofan
+//   fyrir sama mynstur með `villa`) ber EKKI reitinn. `_fjMynd` verður að fylla hann inn sem `false`,
+//   ekki skilja hann eftir sem `undefined` — annars segir spjaldið hvorki tölu né óvíst, bara ekkert.
+test('gömul geymd röð ÁN verdrekMaelt (skrifuð fyrir þennan reit) fær false í varabrautinni, ekki undefined', async (t) => {
+  const gomul = { misraemi: [], fripofanir: [], tvirukkun: [], mrrAskell: 9900, mrrD1: 0, verdrek: [{ vara: 'kvoti', askell: 1000, fast: 9900 }], verdUppsprettur: { lidur: 1, verdskra: 0, ekkert: 0 }, mrrAskellOvisst: false };
+  const state = mkState();
+  state.sync.fjarmal = { v: JSON.stringify(gomul), updated: Math.floor(Date.now() / 1000) };
+  const env = mkEnv(state);
+  stubFetch(t, new Error('net'));   // varabraut — engin ný mæling þessa umferð
+  const r = await saekjaFjarmal(env, { thvinga: true });
+  assert.equal(r.villa, 'askell');
+  assert.equal(r.mrrAskell, 9900, 'gögnin sjálf standa');
+  assert.equal(r.verdrekMaelt, false, 'eldri röð ber ekki reitinn — _fjTomt-sjálfgildið á að ráða, ekki undefined');
+});
+
+// ⚠⚠ `verdrekMaelt` verður að vera GÖGN (hluti af því sem er geymt í `gogn`, sjá `_fjMynd`), ekki
+//   merking eins og `villa` — annars myndi HVER EINASTA cache-slóð (algengasta leiðin í venjulegri
+//   notkun, sjá `_FJ_FYRNING`) sýna `false` úr `_fjTomt()`-sjálfgildinu í staðinn fyrir raunverulegu
+//   mælinguna, óháð því að verðskráin náðist fullkomlega þegar gagnanna var upphaflega aflað.
+test('verdrekMaelt fylgir GEYMDU myndinni áfram á ferskri cache-slóð — ekki sjálfgefið á false', async (t) => {
+  const state = mkState(); const env = mkEnv(state);
+  const njosn = stubFetch(t, leidir({ status: 200, d: { results: [samningur(1, 'kvoti', 9900)] } }, { status: 200, d: { results: [{ reference: 'kvoti', amount: 9900 }] } }));
+  const fyrri = await saekjaFjarmal(env, { thvinga: true });
+  assert.equal(fyrri.verdrekMaelt, true, 'viðmið: lifandi sókn mældi verðskrána');
+  const fyrirKollur = njosn.kollur.length;
+  const cache = await saekjaFjarmal(env, {});   // engin þvingun — fersk geymsla, á að lesa hana án nýrra kalla
+  assert.equal(njosn.kollur.length, fyrirKollur, 'engin ný Áskels-köll — þetta ER cache-slóðin, ekki ný sókn');
+  assert.equal(cache.villa, undefined, 'fersk geymsla — engin ný köll þýðir enga villu að segja frá');
+  assert.equal(cache.verdrekMaelt, true, 'geymda myndin ber mælinguna áfram, ekki _fjTomt-sjálfgildið');
 });
 
 // ── Niðurstöður Verks 1 berast óbreyttar ─────────────────────────────────────────────────────────
@@ -468,6 +512,7 @@ test('rofi án geymdrar myndar skilar merktri tómri mynd, ekki hálfri', async 
   assert.equal(njosn.kollur.length, 0);
   assert.equal(j.fjarmal.villa, 'rofi');
   assert.equal(j.fjarmal.mrrAskellOvisst, true);
+  assert.equal(j.fjarmal.verdrekMaelt, false, 'engin geymd mynd og engin ný sókn — ekkert var mælt');
   assert.deepEqual(j.fjarmal.verdUppsprettur, { lidur: 0, verdskra: 0, ekkert: 0 });
   assert.deepEqual(j.fjarmal.tvirukkun, []);
 });

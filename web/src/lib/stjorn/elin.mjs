@@ -17,11 +17,19 @@ const TEXTI = { borgar_fyrir_ekkert: 'borgar fyrir ekkert', gefins: 'fær gefins
 
 export function elinGogn(svar, bidurListi, now) {
   const s = (svar && typeof svar === 'object') ? svar : {};
-  const f = (s.fjarmal && typeof s.fjarmal === 'object') ? s.fjarmal : {};
+  // ⚠⚠ `fjarmalVantar` er sjálfstæð athugun á `s.fjarmal` SJÁLFU, reiknuð Á UNDAN `f`-sjálfgildinu —
+  //   ekki af neinu innan `f`. Falli toppstigs-girðingin í worker/fjarmal.mjs (admin/method/origin/
+  //   adgerd/lota/rofi/verk/dispatch) vantar `fjarmal`-reitinn ALVEG og `f` verður `{}` hér að neðan;
+  //   þá er `f.ok !== false` hverfandi SATT (því `f.ok` er `undefined`), svo án þessarar sjálfstæðu
+  //   athugunar sýndist "ekkert svar barst" nákvæmlega eins og "mælt núll" — sama gildran og allt
+  //   þetta verk snýst um, bara einu lagi ofar. Mælt núll (`f.ok === true`, `mrrAskell` raunverulega
+  //   0, t.d. enginn borgandi viðskiptavinur) á ÁFRAM að sýna '0' — það próf stendur við hlið þessa.
+  const fjarmalVantar = !(s.fjarmal && typeof s.fjarmal === 'object');
+  const f = fjarmalVantar ? {} : s.fjarmal;
   const ostillt = f.error === 'unconfigured';
   // ⚠ `mrrAskellOvisst` fellir töluna líka: fannst engin upphæð á einhverju virku staki er hún ekki
   //   tæmandi, og hálf tala lítur eins út og heil. Betra er óvíst en tala sem enginn getur rakið.
-  const naest = !ostillt && !f.villa && f.ok !== false && !f.mrrAskellOvisst;
+  const naest = !fjarmalVantar && !ostillt && !f.villa && f.ok !== false && !f.mrrAskellOvisst;
   const misraemi = Array.isArray(f.misraemi) ? f.misraemi : [];
   const frip = Array.isArray(f.fripofanir) ? f.fripofanir : [];
 
@@ -60,10 +68,12 @@ export function elinGogn(svar, bidurListi, now) {
       { n: String(misraemi.length), l: 'misræmi', s: misraemi.length ? borga + ' borgar fyrir ekkert · ' + gefins + ' fær gefins' : '' },
       { n: String(frip.length), l: 'í fríprófun', s: frip.length ? 'verða ' + kr(fripVirdi) + ' kr/mán haldi þeir áfram' : '' },
       // ⚠ `verdrek: []` er ÞÖGULT: sama fylki fer út hvort ekkert verðrek fannst EÐA verðskráin
-      //   náðist aldrei (villa: 'verdskra_hluti') — sjá athugasemdina við `villa =` í
-      //   worker/fjarmal.mjs. Tómt-en-ómælt lítur út eins og tómt-af-því-ekkert-rak. `d1_hluti`
-      //   snertir heimildalistana, ekki verðskrána, svo hann breytir þessari flís ekki.
-      { n: f.villa === 'verdskra_hluti' ? 'óvíst' : String((Array.isArray(f.verdrek) ? f.verdrek : []).length), l: 'verðrek', s: '' },
+      //   náðist aldrei. `villa` DUGAR EKKI til að greina þar á milli: endapunkturinn skilar AÐEINS
+      //   EINUM villukóða og `d1_hluti` þaggar `verdskra_hluti` þegar bæði brotna samtímis (sjá
+      //   athugasemdina við `villa =` í worker/fjarmal.mjs) — svo að lesa `villa` hér væri ágiskun,
+      //   ekki mæling. Worker-inn veit þetta ÓHÁÐ villukóðanum og segir það beint í `verdrekMaelt`;
+      //   vanti reiturinn (eldra svarsnið) er sjálfgefið varkárt — 'óvíst', ekki tala.
+      { n: f.verdrekMaelt ? String((Array.isArray(f.verdrek) ? f.verdrek : []).length) : 'óvíst', l: 'verðrek', s: '' },
     ],
     heimildir: [
       'les Áskel og réttindin í D1 og ber saman',

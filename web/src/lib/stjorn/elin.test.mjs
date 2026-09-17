@@ -6,7 +6,11 @@ const NU = Date.UTC(2026, 8, 16) / 1000;
 // ⚠ HREIÐRAÐ eins og raunsvarið. bjarkiGogn las `svar.error` þegar raunsvarið bar `svar.postiz.error`
 //   — „óstillt" hefði ALDREI birst, með sjö græn próf, af því fixtures voru flöt.
 const svar = (fjarmal, rofi = false) => ({ ok: true, fjarmal, rofi });
-const heilt = (yfir = {}) => Object.assign({ ok: true, sott: NU, misraemi: [], fripofanir: [], mrrAskell: 120000, mrrD1: 120000, verdrek: [] }, yfir);
+// ⚠ `verdrekMaelt: true` er hluti af „heilt": raunverulegt svar frá worker/fjarmal.mjs setur reitinn
+//   á ÖLLUM leiðum (sjá _fjTomt þar), svo sjálfgefið hér á að vera true — annars þyrfti nánast hvert
+//   próf í skránni sem alls ekki fjallar um verðrek að nefna hann sérstaklega til að halda áfram að
+//   sýna rétta tölu á þeirri flís.
+const heilt = (yfir = {}) => Object.assign({ ok: true, sott: NU, misraemi: [], fripofanir: [], mrrAskell: 120000, mrrD1: 120000, verdrek: [], verdrekMaelt: true }, yfir);
 
 test('MRR úr Áskeli er efsta talan þegar allt stemmir', () => {
   const g = elinGogn(svar(heilt()), [], NU);
@@ -79,31 +83,43 @@ test('rofinn skilar sér', () => {
   assert.deepEqual(g.rofi, { lykill: 'rofi_elin', off: true });
 });
 
-// ⚠⚠ Punktur 4 — ambiguity sem verk-3-brief.md nefnir EKKI: `verdrek: []` fer út óbreytt hvort sem
-//   ekkert verðrek fannst EÐA verðskráin náðist aldrei (villa: 'verdskra_hluti'). Sama gildran og
-//   allt verkefnið snýst um — tóma fylkið lítur eins út hvort sem mælingin er hrein núll eða vantar.
-//   Úrlausnin sem valin var: AÐEINS `verdskra_hluti` (ekki `d1_hluti`) fær 'óvíst' á þessari flís,
-//   af því `d1_hluti` segir ekkert um hvort verðskráin sjálf náðist (sjá athugasemdina við `villa =`
-//   í worker/fjarmal.mjs: „EINN kóði fer út; Verk 3 les einn streng" — d1_hluti hylur mögulega
-//   samhliða verðskrárbilun þegar bæði bregðast, svo ekkert ÖRUGGT má álykta af honum um verðrek).
-test('verðskráin náðist ekki → verðrek-flísin sýnir óvíst, ekki 0 — annars lítur ómælt út eins og hreint', () => {
-  const g = elinGogn(svar(heilt({ villa: 'verdskra_hluti', verdrek: [] })), [], NU);
+// ⚠⚠ Punktur 4 (ENDURSKOÐAÐ — sjá verk-3-report.md „Áhyggjur"): upprunalega útfærslan giskaði á
+//   `f.villa === 'verdskra_hluti'` til að greina hvort verðrek væri mælt, og þrengdi vísvitandi svo
+//   `d1_hluti` breytti engu. Sú ágiskun stóðst EKKI: endapunkturinn skilar AÐEINS EINUM villukóða og
+//   `d1_hluti` ÞAGGAR `verdskra_hluti` þegar bæði D1 og verðskráin bregðast samtímis (sjá
+//   athugasemdina við `villa =` í worker/fjarmal.mjs) — svo „`villa` er ekki verdskra_hluti" sannar
+//   EKKI að verðskráin hafi náðst. Verkefnisstjórinn svaraði því: hætta að giska í spjaldinu og láta
+//   worker-inn segja það beint með sjálfstæðum reit, `f.verdrekMaelt` (Verk 2/3-lag, sett af
+//   `saekjaFjarmal`). Prófin hér mæla ÞANN reit — ekki `villa` — og sanna sérstaklega að hann ræður
+//   ÓHÁÐ því hvaða villukóði (ef nokkur) fylgir með.
+test('verdrekMaelt: false → verðrek-flísin sýnir óvíst, ÓHÁÐ villukóðanum — d1_hluti getur falið bilaða verðskrá', () => {
+  // ⚠ Þetta er nákvæmlega atriðið sem gamla ágiskunin missti af: villa er 'd1_hluti' (EKKI
+  //   'verdskra_hluti'), svo gamla skilyrðið (`f.villa === 'verdskra_hluti'`) hefði sýnt '0' hér þótt
+  //   verðskráin hafi líka brugðist samtímis D1.
+  const g = elinGogn(svar(heilt({ villa: 'd1_hluti', verdrekMaelt: false, verdrek: [] })), [], NU);
   const flis = g.tolur.find((t) => t.l === 'verðrek');
   assert.equal(flis.n, 'óvíst');
 });
 
-test('verðrek sýnir raunverulega tölu þegar engin villa hindraði mælinguna', () => {
-  const g = elinGogn(svar(heilt({ verdrek: [{ vara: 'kvoti', askell: 1000, fast: 9900 }] })), [], NU);
+test('verdrekMaelt: true → verðrek sýnir raunverulega tölu, LÍKA þegar d1_hluti er til staðar', () => {
+  // ⚠ Hin hliðin: d1_hluti þýðir ekki alltaf að verðskráin hafi brugðist — stundum brotnar AÐEINS D1
+  //   og verðskráin náðist fullkomlega. Talan á að sjást þá, ekki fela sig á bak við villukóða sem
+  //   tilheyrir allt öðru gati.
+  const g = elinGogn(svar(heilt({ villa: 'd1_hluti', verdrekMaelt: true, verdrek: [{ vara: 'kvoti', askell: 1000, fast: 9900 }] })), [], NU);
   const flis = g.tolur.find((t) => t.l === 'verðrek');
   assert.equal(flis.n, '1');
 });
 
-test('d1_hluti breytir EKKI verðrek-flísinni — aðeins verdskra_hluti gerir það', () => {
-  // ⚠ d1_hluti þýðir að D1-heimildalistarnir brugðust, ótengt verðskránni. Að láta hann líka fella
-  //   verðrek í óvíst væri ágiskun sem briefið og verk-3 umboðið tóku EKKI afstöðu til — halda þröngt.
-  const g = elinGogn(svar(heilt({ villa: 'd1_hluti', verdrek: [] })), [], NU);
+test('verdrekMaelt vantar (t.d. eldra svarsnið) → verðrek-flísin sýnir óvíst, ekki 0 — sjálfgefið er varkárt', () => {
+  const g = elinGogn(svar(heilt({ verdrekMaelt: undefined, verdrek: [] })), [], NU);
   const flis = g.tolur.find((t) => t.l === 'verðrek');
-  assert.equal(flis.n, '0');
+  assert.equal(flis.n, 'óvíst');
+});
+
+test('verðrek sýnir raunverulega tölu þegar verðskráin náðist og engin villa er til staðar', () => {
+  const g = elinGogn(svar(heilt({ verdrek: [{ vara: 'kvoti', askell: 1000, fast: 9900 }] })), [], NU);
+  const flis = g.tolur.find((t) => t.l === 'verðrek');
+  assert.equal(flis.n, '1');
 });
 
 // ⚠⚠ Punktur 2 — KRÍTÍSKT: falli toppstigs-girðingin í worker/fjarmal.mjs (`admin`, `method`, `origin`,
@@ -112,17 +128,33 @@ test('d1_hluti breytir EKKI verðrek-flísinni — aðeins verdskra_hluti gerir 
 //   það ef hreiðrunar-gátunin (`(s.fjarmal && typeof s.fjarmal==='object') ? s.fjarmal : {}`) er fjarlægð
 //   — af því sérhver önnur fixture ber alltaf skilgreindan `fjarmal`-hlut. Þetta próf lokar þeirri glufu.
 test('fjarmal-reitur vantar alveg (toppstigs-girðing féll) — spjaldið fellur ekki', () => {
-  // ⚠ Punktur 2 krefst þess að `f.error`/`f.villa` séu ALDREI lesin af `undefined` — það er kjarni
-  //   þessa prófs, ekki hvaða tala nákvæmlega birtist. Til upplýsingar: af því `f` verður `{}` reiknast
-  //   `naest` SATT hér (`f.ok !== false` er hverfandi satt þegar `f.ok` er `undefined`), svo talan sem
-  //   birtist er '0', ekki 'óvíst' — crash-vörnin virkar, en hún gerir enga afstöðu til hvort 0 sé rétt
-  //   framsetning á „við vitum ekkert því allt svarið vantaði". Það er UTAN þeirra fjögurra atriða sem
-  //   þetta verk var sett fyrir (punktur 4 nefnir aðeins verðrek/verdskra_hluti) og er ekki lagfært hér
-  //   — flaggað í sjálfsrýni verk-3-report.md fremur en giskað á.
+  // ⚠ LAGFÆRT (var flaggað í sjálfsrýni verk-3-report.md fremur en giskað á þá): áður sýndi MRR-flísin
+  //   '0' hér af því `f` verður `{}` og `f.ok !== false` er þá hverfandi SATT (`f.ok` er `undefined`) —
+  //   núll þar sem ekkert var mælt leit út eins og staðfest núll, nákvæmlega sama gildran og punktur 1
+  //   í þessu verki fjallar um, bara á öðrum stað. `fjarmalVantar` er nú sjálfstæð athugun á `s.fjarmal`
+  //   SJÁLFU, reiknuð Á UNDAN `f`-sjálfgildinu — hvorki `f.ok` né neitt annað innan `f` getur falsað hana.
   assert.doesNotThrow(() => elinGogn({ ok: false, error: 'admin' }, [], NU));
   const g = elinGogn({ ok: false, error: 'admin' }, [], NU);
   assert.ok(Array.isArray(g.tolur) && g.tolur.length === 4);
   assert.equal(typeof g.stada, 'string');
+  assert.equal(g.tolur[0].n, 'óvíst', 'ekkert svar barst yfirhöfuð — talan má ekki líta út eins og mæld núll');
+});
+
+// ⚠ Hin áttin, sem verður að standast SAMHLIÐA prófinu að ofan: `f.ok === true` með raunverulega
+//   mældri núll-tölu (t.d. enginn borgandi viðskiptavinur) á ÁFRAM að sýna '0'. Þetta er EKKI sama
+//   tilvik og "ekkert svar barst" — bæði mega ekki renna saman í eitt, hvorug leiðin má vinna yfir hina.
+test('mrrAskell raunverulega núll (mælt, ok:true) sýnir 0 — núllið ER mælingin, ekki fjarvera hennar', () => {
+  const g = elinGogn(svar(heilt({ mrrAskell: 0, mrrD1: 0 })), [], NU);
+  assert.equal(g.tolur[0].n, '0');
+});
+
+// ⚠ `fjarmalVantar` gátar bæði FJARVERU og RANGT SNIÐ (`typeof !== 'object'`) — sami varnagli og
+//   upprunalega hreiðrunar-athugunin (`s.fjarmal && typeof s.fjarmal === 'object'`) bar áður en hún
+//   var dregin út í eigið nafn. Handahófskenndur strengur í stað hlutar er ólíklegt en EKKI ómögulegt
+//   (t.d. skemmd JSON-tenging) og á að meðhöndlast nákvæmlega eins og fjarveru, ekki kastað.
+test('fjarmal er til staðar en EKKI hlutur (t.d. strengur) → meðhöndlað eins og fjarmal vanti', () => {
+  const g = elinGogn({ ok: false, fjarmal: 'eitthvad-undarlegt' }, [], NU);
+  assert.equal(g.tolur[0].n, 'óvíst');
 });
 
 test('svar er tómt, null eða undefined — spjaldið fellur ekki', () => {
