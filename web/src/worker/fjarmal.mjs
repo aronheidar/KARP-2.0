@@ -21,7 +21,9 @@ const _FJ_ADGERDIR = ['saekja', 'hrafn'];
 /** Tóm mynd = ÖLL skil `samstemma` (Verk 1), ekki hluti þeirra. Vanti `mrrAskellOvisst`,
  *  `verdUppsprettur` eða `tvirukkun` hér verður varabrautin að þögulli afturför í Verk 1: talan
  *  berst áfram án þess sem gerir hana rekjanlega.
- *  ⚠ `mrrAskellOvisst: true` — án mælingar vitum við sannanlega ekki neitt. */
+ *  ⚠ `mrrAskellOvisst: true` — án mælingar vitum við sannanlega ekki neitt.
+ *  ⚠ Verk 4 bætir `rennurUt` við svarið — sá reitur VERÐUR að fara hér inn líka, annars hendir
+ *    varabrautin honum í hljóði. */
 const _fjTomt = () => ({
   misraemi: [], fripofanir: [], tvirukkun: [], mrrAskell: 0, mrrD1: 0, verdrek: [],
   verdUppsprettur: { lidur: 0, verdskra: 0, ekkert: 0 }, mrrAskellOvisst: true,
@@ -158,7 +160,16 @@ export async function adminFjarmalHandler(request, env, ctx) {
   const uid = byKey ? 0 : await _fjAdminUid(env, request);
   if (!byKey && !uid) return _ajson({ ok: false, error: 'admin' });
 
-  if (request.method === 'GET') return _fjUmgjord(env, new URL(request.url).searchParams.get('thvinga') === '1');
+  if (request.method === 'GET') {
+    // ⚠⚠ `thvinga` má AÐEINS koma frá LOTU. Með lykli einum var `?thvinga=1` áður hunsandi geymsluna
+    //    og gerði fulla lifandi Áskels-köll — mælt og endurtekið: sami kyrrstæði lykill sem opnar
+    //    lesturinn gat þá þvingað eins mörg Áskels-köll og hann vildi, hvenær sem er, ótengt lotu.
+    //    Það er ótakmarkaður kostnaðar-stjaki á bak við fastan lykil. Með lykli EINUM les
+    //    endapunkturinn geymdu myndina eftir vanalegum fyrningarreglum — hún ER sótt ef hún er
+    //    fyrnd, bara ALDREI þvinguð fersk að vild.
+    const villThvinga = new URL(request.url).searchParams.get('thvinga') === '1';
+    return _fjUmgjord(env, villThvinga && !byKey);
+  }
   if (request.method !== 'POST') return _ajson({ ok: false, error: 'method' });
   if (!byKey) { const csrf = adminCsrfVilla(request); if (csrf) return _ajson({ ok: false, error: csrf }); }
   const b = (await request.json().catch(() => null)) || {};

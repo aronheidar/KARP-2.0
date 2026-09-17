@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { adminFjarmalHandler, saekjaFjarmal } from './fjarmal.mjs';
 import { _hmac } from './felag.mjs';
+import { PRICE_TIER } from '../lib/fjarmal.mjs';
 
 const mkState = () => ({ sync: {}, users: { 8: { is_admin: 1 } }, subs: [], usr: [], bila: {} });
 function fakeDb(state) {
@@ -109,6 +110,31 @@ test('`next` út fyrir askell.is er ALDREI elt — API-lykillinn fer hvergi anna
   assert.equal(njosn.utan().length, 0, 'ENGIN beiðni út fyrir askell.is: ' + njosn.utan().join(' '));
   assert.equal(r.villa, 'askell', 'ókunnur hýsill er villa, ekki hálfur listi sem lítur heill út');
   assert.equal(r.mrrAskell, 0);
+});
+
+// ⚠⚠ Upprunafestingin ER girðingin sem ver ASKELL_PRIVATE_KEY. Prófið hér að ofan notar aðeins
+//   `https://arasarmadur.example/steal`, sem fellur jafnt á réttri gátun og á tveimur veikari
+//   afbrigðum hennar — það mælir því ekki MÖRKIN. Þessi tvö próf gera það: hvort um sig fellur
+//   AÐEINS ef girðingin er ná­kvæmlega rétt (heilt forskeyti MEÐ aftasta skástriki, `startsWith`).
+test('`next` á UNDIRLÉNI sem byrjar á "askell.is" er ALDREI elt — engin skástriks-gildra á `_FJ_UPPRUNI`', async (t) => {
+  // Væri `_FJ_UPPRUNI` án aftasta skástriksins (`'https://askell.is'`) slyppi þessi slóð framhjá
+  // `startsWith`: hún byrjar ORÐRÉTT á strengnum „https://askell.is" þótt hýsillinn sé í reynd
+  // arasarmadur.example — lykillinn færi þá á árásaraðilann.
+  const state = mkState(); const env = mkEnv(state);
+  const njosn = stubFetch(t, leidir({ status: 200, d: { results: [samningur(1)], next: 'https://askell.is.arasarmadur.example/steal' } }));
+  const r = await saekjaFjarmal(env, { thvinga: true });
+  assert.equal(njosn.utan().length, 0, 'ENGIN beiðni á gervi-undirlén: ' + njosn.utan().join(' '));
+  assert.equal(r.villa, 'askell', 'ókunnur hýsill er villa, ekki hálfur listi sem lítur heill út');
+});
+
+test('`next` sem FELUR "askell.is/" í fyrirspurnarstreng er ALDREI elt — `startsWith`, ekki `includes`', async (t) => {
+  // Væri `startsWith` orðið `includes` slyppi þessi slóð í gegn: hún INNIHELDUR strenginn
+  // „https://askell.is/" í fyrirspurnarhlutanum þótt hýsillinn sjálfur sé arasarmadur.example.
+  const state = mkState(); const env = mkEnv(state);
+  const njosn = stubFetch(t, leidir({ status: 200, d: { results: [samningur(1)], next: 'https://arasarmadur.example/?x=https://askell.is/' } }));
+  const r = await saekjaFjarmal(env, { thvinga: true });
+  assert.equal(njosn.utan().length, 0, 'ENGIN beiðni með askell.is falið í fyrirspurn: ' + njosn.utan().join(' '));
+  assert.equal(r.villa, 'askell');
 });
 
 test('`next` sem vísar á sjálfa sig leggur EKKI sömu síðu saman', async (t) => {
@@ -260,6 +286,21 @@ test('prufunotendur falla út — annars mælir misræmið okkur sjálf', async 
   assert.equal(r2.mrrD1, 0);
 });
 
+test('state.usr (þrepaáskrift) rennur inn í samstemminguna, ekki bara sub_service', async (t) => {
+  // ⚠⚠ `state.usr` er ANNARS ALDREI fyllt í þessari skrá — væri `heimildir` byggð AÐEINS á `subsR`
+  //   (sub_service) stæðu öll hin prófin óbreytt því þrepa-listinn var hvort eð er alltaf tómur.
+  //   Þetta próf fyllir hann og mælir að `users.tier`-röðin sjáist bæði í mrrD1 og í misræminu.
+  const nu = Math.floor(Date.now() / 1000);
+  const tierRod = { uid: 21, kt: '2100000000', vara: 'fyrirtaeki', until: nu + 9999, askell_id: null, free_access: 0, is_admin: 0, nemandi: 0 };
+  const state = mkState(); state.usr = [tierRod]; const env = mkEnv(state);
+  stubFetch(t, leidir({ status: 200, d: { results: [] } }));
+  const r = await saekjaFjarmal(env, { thvinga: true });
+  assert.equal(r.mrrD1, PRICE_TIER.fyrirtaeki, 'þrepaverðið úr PRICE_TIER verður að teljast í mrrD1');
+  assert.equal(r.misraemi.length, 1, 'enginn Áskels-samningur á móti þrepa-röðinni → misræmi');
+  assert.equal(r.misraemi[0].tegund, 'gefins');
+  assert.equal(r.misraemi[0].kt, '2100000000');
+});
+
 // ── Umgjörð svarsins ─────────────────────────────────────────────────────────────────────────────
 
 test('GET ber `fjarmal` og `rofi` — villan er HREIÐRUÐ, aldrei á toppstigi', async (t) => {
@@ -300,6 +341,35 @@ test('X-Admin-Key MÁ EKKI sækja né rétta Hrafni — það krefst lotu', asyn
     const r = await adminFjarmalHandler(bein({ action }, { 'X-Admin-Key': 'adm-key' }), env, {});
     assert.equal((await r.json()).error, 'lota', action);
   }
+});
+
+// ── `thvinga` má aðeins koma frá lotu ───────────────────────────────────────────────────────────
+// ⚠⚠ Mælt og endurtekið á fyrri útgáfu: `GET ?thvinga=1` með X-Admin-Key gerði fulla lifandi
+//   Áskels-köll og hunsaði geymsluna — sömu áhrif og lykil-leiðin í POST `saekja` (sem krefst lotu),
+//   bara einni línu ofar og ÁN hennar. Fastur lykill varð þannig ótakmarkaður kostnaðar-stjaki á
+//   Áskels-köll. Lykill EINN má lesa geymdu myndina — og sækja hana ferska EF hún er fyrnd, það er í
+//   lagi — en má ALDREI ÞVINGA ferskan lestur að vild.
+
+test('X-Admin-Key + ?thvinga=1 gerir EKKI fleiri Áskels-köll en án — lykillinn má ekki þvinga', async (t) => {
+  const state = mkState(); const env = mkEnv(state);
+  const njosn = stubFetch(t, leidir({ status: 200, d: { results: [samningur(1, 'kvoti', 9900)] } }));
+  await saekjaFjarmal(env, {});   // fyllir geymsluna, fersk (ekki þvinguð)
+  const fyrir = njosn.kollur.length;
+  await get(env, { 'X-Admin-Key': 'adm-key' });
+  assert.equal(njosn.kollur.length, fyrir, 'GET án ?thvinga notar geymsluna — engin ný köll');
+  await get(env, { 'X-Admin-Key': 'adm-key' }, '?thvinga=1');
+  assert.equal(njosn.kollur.length, fyrir, 'lykill EINN má ALDREI þvinga ferskan lestur — sami fjöldi kalla og án ?thvinga=1');
+});
+
+test('lota MEÐ ?thvinga=1 þvingar ferskan lestur — það sem lykillinn má ekki', async (t) => {
+  const state = mkState(); const env = mkEnv(state);
+  const njosn = stubFetch(t, leidir({ status: 200, d: { results: [samningur(1, 'kvoti', 9900)] } }));
+  await saekjaFjarmal(env, {});   // fyllir geymsluna, fersk
+  const fyrir = njosn.kollur.length;
+  const c = await kaka(env, 8);
+  const j = await (await get(env, { Cookie: c }, '?thvinga=1')).json();
+  assert.ok(njosn.kollur.length > fyrir, 'lota MEÐ ?thvinga=1 gerir NÝ Áskels-köll — annars væri þvingun ónothæf öllum');
+  assert.equal(j.fjarmal.ok, true);
 });
 
 // ── Peningagirðingin ─────────────────────────────────────────────────────────────────────────────
@@ -409,6 +479,38 @@ test('rofi stöðvar POST-aðgerðir áfram', async (t) => {
   const r = await adminFjarmalHandler(bein({ action: 'hrafn', verk: 'Lagaðu bilunina í verðskránni' }, { Cookie: c }), env, {});
   assert.equal((await r.json()).error, 'rofi');
   assert.equal(njosn.dispatch().length, 0);
+});
+
+// ── `sott` er tímastimpill GEYMDU myndarinnar, aldrei núið ──────────────────────────────────────
+// ⚠⚠ Bæði rofa-greinin og varabrautin BERA fram gamla mynd meðan þær SEGJA frá aldri hennar með
+//   `sott: geymt.uppfaert`. Skipti annar hvor `_fjNow()` inn í staðinn sýnist gömul tala ný — nákvæmlega
+//   það sem athugasemdirnar í fjarmal.mjs lofa að megi aldrei gerast. Til að mælið grípi þetta þarf
+//   geymda tímamerkið að vera ÓTVÍRÆTT frábrugðið „núna", ekki bara eina keyrslu á eftir í tíma.
+
+test('sott er tímastimpill GEYMDU myndarinnar í rofa-greininni, ekki núið', async (t) => {
+  const nu = Math.floor(Date.now() / 1000);
+  const gamalt = nu - 100000;   // rúmur sólarhringur — ótvírætt frábrugðið „núna"
+  const gogn = { misraemi: [], fripofanir: [], tvirukkun: [], mrrAskell: 9900, mrrD1: 0, verdrek: [], verdUppsprettur: { lidur: 1, verdskra: 0, ekkert: 0 }, mrrAskellOvisst: false };
+  const state = mkState(); state.sync.fjarmal = { v: JSON.stringify(gogn), updated: gamalt }; state.sync.rofi_elin = '1';
+  const env = mkEnv(state);
+  const njosn = stubFetch(t, { status: 200, d: { results: [] } });
+  const r = await saekjaFjarmal(env, { thvinga: true });
+  assert.equal(njosn.kollur.length, 0, 'rofinn: ekkert Áskels-kall, svo sannanlega engin ný mæling');
+  assert.equal(r.mrrAskell, 9900, 'geymda myndin er borin fram');
+  assert.equal(r.sott, gamalt, 'sott VERÐUR að vera geymda tímamerkið — annars sýnist gömul tala ný');
+});
+
+test('sott er tímastimpill GEYMDU myndarinnar í varabrautinni (Áskell niðri), ekki núið', async (t) => {
+  const nu = Math.floor(Date.now() / 1000);
+  const gamalt = nu - 100000;
+  const gogn = { misraemi: [], fripofanir: [], tvirukkun: [], mrrAskell: 9900, mrrD1: 0, verdrek: [], verdUppsprettur: { lidur: 1, verdskra: 0, ekkert: 0 }, mrrAskellOvisst: false };
+  const state = mkState(); state.sync.fjarmal = { v: JSON.stringify(gogn), updated: gamalt };
+  const env = mkEnv(state);
+  stubFetch(t, new Error('net'));
+  const r = await saekjaFjarmal(env, { thvinga: true });
+  assert.equal(r.villa, 'askell');
+  assert.equal(r.mrrAskell, 9900, 'geymda myndin er borin fram');
+  assert.equal(r.sott, gamalt, 'sott VERÐUR að vera geymda tímamerkið — annars sýnist gömul tala ný');
 });
 
 // ── Auðkenning um kökulotu ───────────────────────────────────────────────────────────────────────
