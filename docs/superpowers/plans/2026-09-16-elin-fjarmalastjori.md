@@ -722,11 +722,18 @@ export function elinGogn(svar, bidurListi, now) {
   const mismunur = (Number(f.mrrD1) || 0) - (Number(f.mrrAskell) || 0);
   const fripVirdi = frip.reduce((a, x) => a + (Number(x && x.verd) || 0), 0);
 
+  // ⚠ ALLIR villukóðar sem Verk 2 getur skilað verða að eiga texta hér. Óþekktur kóði birtist
+  //   annars sem tómt eða sem hrár strengur, og þá segir spjaldið ekkert þótt eitthvað sé að.
+  const VILLUTEXTI = {
+    askell: 'náði ekki í Áskel — talan er óviss',
+    d1_hluti: 'náði í Áskel en ekki alla heimildalista',
+    verdskra_hluti: 'náði í samningana en ekki verðskrána — verðrek var aldrei mælt',
+    rofi: 'slökkt á Elínu — þetta er síðasta myndin, ekki ný',
+  };
   const stada = ostillt ? 'Áskell er óstilltur — engan lykil að finna'
-    : f.villa === 'askell' ? 'náði ekki í Áskel — talan er óviss'
-      : f.villa === 'd1_hluti' ? 'náði í Áskel en ekki alla heimildalista'
-        : misraemi.length ? misraemi.length + ' misræmi milli Áskels og réttinda'
-          : 'Áskell og réttindin stemma';
+    : f.villa ? (VILLUTEXTI[f.villa] || ('óþekkt villa: ' + f.villa))
+      : misraemi.length ? misraemi.length + ' misræmi milli Áskels og réttinda'
+        : 'Áskell og réttindin stemma';
 
   // ⚠ Raðað eftir PENINGUM, ekki tíma. `sidan` er fasti (`nu`) á hverju staki eftir Verk 1, svo röðun
   //   eftir honum væri núll-aðgerð og „fimm efstu" yrðu fimm handahófskennd í stað fimm dýrustu.
