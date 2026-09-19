@@ -1,0 +1,64 @@
+{
+ "kt": "6609180270",
+ "nafn": "6609180270",
+ "sott": "2026-09-19",
+ "heimildir": [
+  "Hlutafélagaskrá (RSK)",
+  "Ársreikningaskrá (RSK)",
+  "Raunverulegir eigendur (Skatturinn)"
+ ],
+ "dypt": 0,
+ "hnutar_alls": 2,
+ "afmarkad": false,
+ "net": {
+  "nodes": [
+   {
+    "id": "kt6609180270",
+    "kt": "6609180270",
+    "nafn": "—",
+    "tegund": "felag",
+    "er_rot": true
+   },
+   {
+    "id": "n1",
+    "kt": null,
+    "nafn": "Sigurður Ingi Jóelsson",
+    "tegund": "einst",
+    "faeding": "1978-JANÚAR"
+   }
+  ],
+  "edges": [
+   {
+    "fra": "n1",
+    "til": "kt6609180270",
+    "hlutur": 100,
+    "band": "51",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   }
+  ]
+ },
+ "endanlegir": [
+  {
+   "nafn": "Sigurður Ingi Jóelsson",
+   "kt": null,
+   "faeding": "1978-JANÚAR",
+   "tegund": "einst",
+   "hlutur": 100,
+   "gegnum": []
+  }
+ ],
+ "othekkt": 0,
+ "raunverulegir": [
+  {
+   "nafn": "Sigurður Ingi Jóelsson",
+   "faeding": "1978-JANÚAR",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": "100%",
+   "tegund": null
+  }
+ ],
+ "raunverulegirTomt": false,
+ "hluthafar": [],
+ "hluthafarUppspretta": null
+}
