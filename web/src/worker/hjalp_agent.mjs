@@ -11,7 +11,8 @@ import { _ajson, _emailTpl, _esc, sendGmail } from './felag.mjs';
 import { renderEmail } from '../lib/emails.mjs';
 import { readSession } from './auth.mjs';
 import { OPNAR_STODUR, TICKET_STODUR, ackVars, efniUrLysingu, flokkaFallback, greiningPrompt, greiningUser, kbSjalfvirkt, parseGreining, svarUppfaersla, ticketSubject } from '../lib/hjalp_agent.mjs';
-import { persona, rofiLykill, veljaFundarmenn } from '../lib/personur.mjs';   // 🛟 Sigrún skrifar undir öll póst-samskipti við notendur; fundarmenn f. Moot-forsýn
+import { persona, rofiLykill, veljaFundarmenn } from '../lib/personur.mjs';
+import { skraAtburd, sigrunVika, sigrunTillaga, sigrunSpjall, lokaMargt } from './sigrun_vinna.mjs';   // Sigrún sem starfsmaður: vikan, tillaga, samtal, lokun margra   // 🛟 Sigrún skrifar undir öll póst-samskipti við notendur; fundarmenn f. Moot-forsýn
 
 const MODEL = 'claude-haiku-4-5-20251001';
 const _nowSek = () => Math.floor(Date.now() / 1000);
@@ -239,6 +240,12 @@ export async function adminTicketHandler(request, env, ctx) {
     ctx.waitUntil(processNewTicket(env, t));
     return _ajson({ ok: true, id: t.id });
   }
+  // 🙋 Sigrún sem starfsmaður — aðgerðir án einnar miðatölu, svo þær koma á undan id-gátinni.
+  //    Engin þeirra breytir stöðu nema loka_margt, og hana kallar AÐEINS Aron með smelli.
+  if (action === 'sigrun_vika') return _ajson(await sigrunVika(env, Number(b.fra), Number(b.til)));
+  if (action === 'sigrun_tillaga') return _ajson(await sigrunTillaga(env));
+  if (action === 'sigrun_spjall') return _ajson(await sigrunSpjall(env, b));
+  if (action === 'loka_margt') return _ajson(await lokaMargt(env, b, { setTicket }));
   const id = parseInt(b.id, 10);
   if (!id) return _ajson({ ok: false, error: 'id' });
   const t = await env.TENGSL.prepare('SELECT * FROM tickets WHERE id=?').bind(id).first().catch(() => null);
@@ -254,6 +261,7 @@ export async function adminTicketHandler(request, env, ctx) {
     if (!TICKET_STODUR.includes(s)) return _ajson({ ok: false, error: 'stada' });
     const extra = s === 'samthykkt' ? { samthykkt_by: uid || null, samthykkt_at: _nowSek() } : {};
     await setTicket(env, id, Object.assign({ stada: s }, extra));
+    if (s === 'lokad' || s === 'hafnad') await skraAtburd(env, s, id);   // hver lokaði ekki skráð áður — nú hvenær
     return _ajson({ ok: true });
   }
   if (action === 'greina') {
@@ -268,7 +276,7 @@ export async function adminTicketHandler(request, env, ctx) {
   }
   if (action === 'cto') {
     const r = await _ghDispatch(env, 'cto', { ticket: t.id });
-    if (r.ok) await setTicket(env, id, { stada: 'cto' });
+    if (r.ok) { await setTicket(env, id, { stada: 'cto' }); await skraAtburd(env, 'cto', id); }
     return _ajson(r);
   }
   if (action === 'samthykkja') {
@@ -294,6 +302,7 @@ export async function adminTicketHandler(request, env, ctx) {
     await setTicket(env, id, { stada: 'lagad' });
     const r = await sendSvar(env, Object.assign({}, t, { efni: t.efni }), 'Sæl/Sæll' + (t.nafn ? ' ' + t.nafn.split(' ')[0] : '') + ',\n\nmálið sem þú bentir okkur á (#' + id + ') hefur verið lagað og breytingin er komin í loftið á karp.is. Takk fyrir að láta vita — það hjálpar okkur að gera vefinn betri.\n\nBestu kveðjur,', 'agent');
     await setTicket(env, id, { stada: 'lokad' });
+    await skraAtburd(env, 'lokad', id);
     return _ajson({ ok: r.ok });
   }
   return _ajson({ ok: false, error: 'action' });
