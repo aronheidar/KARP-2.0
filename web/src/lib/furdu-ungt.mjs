@@ -41,6 +41,9 @@ export function sagartonn({ fra = 1, til = 20 } = {}) {
   return ut;
 }
 
+/** Aðeins púðar sem gjaldið nær til (1 mg/g og yfir). Nikótínlausir púðar (0 mg/g) teljast ekki. */
+export const medNikotini = (vorur) => vorur.filter((v) => v.mgG >= 1);
+
 /** Fjöldi púða á hverjum styrk, algengast fyrst. */
 export function hillutalning(vorur) {
   const m = new Map();

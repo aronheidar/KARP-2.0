@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  NIKOTIN_THREP, gjaldPerGramm, gjaldADos, sagartonn, hillutalning, aThrepamorkum, rettYfirThrepi,
+  NIKOTIN_THREP, gjaldPerGramm, gjaldADos, sagartonn, medNikotini, hillutalning, aThrepamorkum, rettYfirThrepi,
   koffinKrona, kaffibolli, nettoAnSkatts, skattleysismork, minutur, midgildi, tolfManudir,
   midgildiSolu, islattarIUtborgun, skilagjaldHlutfall, oskilad,
 } from '../src/lib/furdu-ungt.mjs';
@@ -49,6 +49,10 @@ const PUDAR = [
   { nafn: 'D', mgG: 8, dosG: 10, verd: 800 },
   { nafn: 'E', mgG: 20, dosG: 10, verd: 800 },
 ];
+
+test('nikótínlausir púðar (0 mg/g) teljast ekki með', () => {
+  assert.equal(medNikotini([...PUDAR, { nafn: 'Z', mgG: 0, dosG: 10, verd: 700 }]).length, PUDAR.length);
+});
 
 test('hillutalning: algengast fyrst', () => {
   assert.deepEqual(hillutalning(PUDAR).slice(0, 2), [{ mgG: 16.5, n: 9 }, { mgG: 16, n: 2 }]);

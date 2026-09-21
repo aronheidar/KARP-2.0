@@ -1,0 +1,1788 @@
+{
+ "dags": "2026-09-21",
+ "heimild": "svens.is",
+ "slodir": 415,
+ "n": 194,
+ "rafrettur": 163,
+ "othattad": [
+  {
+   "nafn": "Kelly White Hot Cherry Extra Strong",
+   "slod": "https://svens.is/products/kelly-white-hot-cherry-extra-strong/",
+   "strengur": "12mg, 20mg"
+  },
+  {
+   "nafn": "Kelly White Cool Mint Extra Strong",
+   "slod": "https://svens.is/products/kelly-white-cool-mint-extra-strong/",
+   "strengur": "12mg, 20mg"
+  },
+  {
+   "nafn": "Greatest Rage Lemonade #3",
+   "slod": "https://svens.is/products/greatest-rage-lemonade/",
+   "strengur": "10 mg, 16.55 mg"
+  },
+  {
+   "nafn": "Greatest Cold Dry #1",
+   "slod": "https://svens.is/products/greatest-cold-dry-1/",
+   "strengur": "4 mg, 8 mg"
+  },
+  {
+   "nafn": "Greatest Cold Dry #5",
+   "slod": "https://svens.is/products/greatest-cold-dry-5/",
+   "strengur": "12 mg, 16 mg"
+  },
+  {
+   "nafn": "Greatest Cold Dry #3",
+   "slod": "https://svens.is/products/greatest-cold-dry-3/",
+   "strengur": "8 mg, 16 mg"
+  }
+ ],
+ "villur": [],
+ "vorur": [
+  {
+   "nafn": "Thor Arctic Berries #5",
+   "slod": "https://svens.is/products/thor-arctic-berries/",
+   "verd": 1245,
+   "dosG": 16,
+   "strengur": "12-15",
+   "mgPudi": 12,
+   "mgG": 15
+  },
+  {
+   "nafn": "Zyn Icy Blackcurrant #4",
+   "slod": "https://svens.is/products/zyn-icy-blackcurrant-4/",
+   "verd": 1195,
+   "dosG": 14.7,
+   "strengur": "11 – 15,7",
+   "mgPudi": 11,
+   "mgG": 15.7
+  },
+  {
+   "nafn": "Thor Honeymelon Heaven #5",
+   "slod": "https://svens.is/products/thor-honeymelon-heaven/",
+   "verd": 1245,
+   "dosG": 16,
+   "strengur": "12-15",
+   "mgPudi": 12,
+   "mgG": 15
+  },
+  {
+   "nafn": "Zyn Blackcurrant Ice #5",
+   "slod": "https://svens.is/products/zyn-blackcurrant-ice-5/",
+   "verd": 1295,
+   "dosG": 14.7,
+   "strengur": "13,5 – 19,3",
+   "mgPudi": 13.5,
+   "mgG": 19.3
+  },
+  {
+   "nafn": "Thor Hammer Arctic Berries #6",
+   "slod": "https://svens.is/products/thor-hammer-arctic-berries/",
+   "verd": 1295,
+   "dosG": 16,
+   "strengur": "16-20",
+   "mgPudi": 16,
+   "mgG": 20
+  },
+  {
+   "nafn": "Thor Hammer Black Mint #6",
+   "slod": "https://svens.is/products/thor-hammer-black-mint/",
+   "verd": 1295,
+   "dosG": 16,
+   "strengur": "16-20",
+   "mgPudi": 16,
+   "mgG": 20
+  },
+  {
+   "nafn": "Björn Watermelon Ice #3",
+   "slod": "https://svens.is/products/bjorn-watermelon-ice/",
+   "verd": 995,
+   "dosG": 13,
+   "strengur": "9,1 – 14",
+   "mgPudi": 9.1,
+   "mgG": 14
+  },
+  {
+   "nafn": "Zyn Mini Citrus 6mg",
+   "slod": "https://svens.is/products/citrus-mini-normal/",
+   "verd": 995,
+   "dosG": 8,
+   "strengur": "6-14.9",
+   "mgPudi": 6,
+   "mgG": 14.9
+  },
+  {
+   "nafn": "Loop Hot Rhubarb #3",
+   "slod": "https://svens.is/products/hot-rhubarb-strong/",
+   "verd": 1145,
+   "dosG": 13.75,
+   "strengur": "9,4-15",
+   "mgPudi": 9.4,
+   "mgG": 15
+  },
+  {
+   "nafn": "Thor Hammer Nordic Freeze #6",
+   "slod": "https://svens.is/products/thor-hammer-nordic-freeze/",
+   "verd": 1295,
+   "dosG": 16,
+   "strengur": "16-20",
+   "mgPudi": 16,
+   "mgG": 20
+  },
+  {
+   "nafn": "VYou+ Mint Freeze #5",
+   "slod": "https://svens.is/products/boost-plus-boost-mint-freeze/",
+   "verd": 1195,
+   "dosG": 12,
+   "strengur": "11.8 – 20",
+   "mgPudi": 11.8,
+   "mgG": 20
+  },
+  {
+   "nafn": "Björn Frozen Mint #3",
+   "slod": "https://svens.is/products/bjorn-frozen-mint/",
+   "verd": 995,
+   "dosG": 13,
+   "strengur": "9,1 – 14",
+   "mgPudi": 9.1,
+   "mgG": 14
+  },
+  {
+   "nafn": "Maverick Berry Valley #3",
+   "slod": "https://svens.is/products/maverick-berry-valley/",
+   "verd": 1145,
+   "dosG": 12.5,
+   "strengur": "9 – 18",
+   "mgPudi": 9,
+   "mgG": 18
+  },
+  {
+   "nafn": "77 Freeze Mint #3",
+   "slod": "https://svens.is/products/77-freeze-mint/",
+   "verd": 895,
+   "dosG": 13,
+   "strengur": "10,4 – 16",
+   "mgPudi": 10.4,
+   "mgG": 16
+  },
+  {
+   "nafn": "Zyn Mini Cool Mint 6mg",
+   "slod": "https://svens.is/products/cool-mint-normal/",
+   "verd": 995,
+   "dosG": 8,
+   "strengur": "6-14.9",
+   "mgPudi": 6,
+   "mgG": 14.9
+  },
+  {
+   "nafn": "Kick Berry Mix #3",
+   "slod": "https://svens.is/products/kick-berry-mix-12mg/",
+   "verd": 895,
+   "dosG": 12,
+   "strengur": "7,2 – 12",
+   "mgPudi": 7.2,
+   "mgG": 12
+  },
+  {
+   "nafn": "77 Spearmint #3",
+   "slod": "https://svens.is/products/77-spearmint/",
+   "verd": 895,
+   "dosG": 13,
+   "strengur": "10,4 – 16",
+   "mgPudi": 10.4,
+   "mgG": 16
+  },
+  {
+   "nafn": "VYou Liquorice Mint #3",
+   "slod": "https://svens.is/products/vyou-liquorice-mint-3/",
+   "verd": 995,
+   "dosG": 16.8,
+   "strengur": "6 – 10",
+   "mgPudi": 6,
+   "mgG": 10
+  },
+  {
+   "nafn": "Maverick Frost Wood #3",
+   "slod": "https://svens.is/products/maverick-frost-wood/",
+   "verd": 1145,
+   "dosG": 12.5,
+   "strengur": "9 – 18",
+   "mgPudi": 9,
+   "mgG": 18
+  },
+  {
+   "nafn": "Maverick Sicilian Sunset #3",
+   "slod": "https://svens.is/products/maverick-sicilian-sunset/",
+   "verd": 1145,
+   "dosG": 12.5,
+   "strengur": "9 – 18",
+   "mgPudi": 9,
+   "mgG": 18
+  },
+  {
+   "nafn": "Kick Tropical #4",
+   "slod": "https://svens.is/products/kick-tropical-20mg/",
+   "verd": 995,
+   "dosG": 12,
+   "strengur": "12 – 20",
+   "mgPudi": 12,
+   "mgG": 20
+  },
+  {
+   "nafn": "Thor Ginger Blast #5",
+   "slod": "https://svens.is/products/thor-ginger-blast/",
+   "verd": 1245,
+   "dosG": 16,
+   "strengur": "12-15",
+   "mgPudi": 12,
+   "mgG": 15
+  },
+  {
+   "nafn": "Kick Eucalyptus #3",
+   "slod": "https://svens.is/products/kick-eucalyptus-12mg/",
+   "verd": 895,
+   "dosG": 12,
+   "strengur": "7,2 – 12",
+   "mgPudi": 7.2,
+   "mgG": 12
+  },
+  {
+   "nafn": "Ice Jalapeño Lime #5",
+   "slod": "https://svens.is/products/ice-jalapeno-lime/",
+   "verd": 1145,
+   "dosG": 14,
+   "strengur": "11-16,5",
+   "mgPudi": 11,
+   "mgG": 16.5
+  },
+  {
+   "nafn": "Björn Cola Ice #3",
+   "slod": "https://svens.is/products/bjorn-cola-ice/",
+   "verd": 995,
+   "dosG": 13,
+   "strengur": "9,1 – 14",
+   "mgPudi": 9.1,
+   "mgG": 14
+  },
+  {
+   "nafn": "PAZ Cool Mint + #5",
+   "slod": "https://svens.is/products/paz-cool-mint-2/",
+   "verd": 1195,
+   "dosG": 17,
+   "strengur": "17 – 20",
+   "mgPudi": 17,
+   "mgG": 20
+  },
+  {
+   "nafn": "XQS Soft Toffee #4",
+   "slod": "https://svens.is/products/pipe-candy-slim-strong/",
+   "verd": 1145,
+   "dosG": 10,
+   "strengur": "8 – 16",
+   "mgPudi": 8,
+   "mgG": 16
+  },
+  {
+   "nafn": "PAZ Cool Mint Zero",
+   "slod": "https://svens.is/products/paz-cool-mint-zerozero/",
+   "verd": 695,
+   "dosG": 13,
+   "strengur": "0-0",
+   "mgPudi": 0,
+   "mgG": 0
+  },
+  {
+   "nafn": "77 Peppermint #3",
+   "slod": "https://svens.is/products/77-peppermint/",
+   "verd": 895,
+   "dosG": 13,
+   "strengur": "10,4 – 16",
+   "mgPudi": 10.4,
+   "mgG": 16
+  },
+  {
+   "nafn": "Zyn Mini Cool Mint 3mg",
+   "slod": "https://svens.is/products/cool-mint-light/",
+   "verd": 845,
+   "dosG": 8,
+   "strengur": "3-7.5",
+   "mgPudi": 3,
+   "mgG": 7.5
+  },
+  {
+   "nafn": "77 Cola Ice #3",
+   "slod": "https://svens.is/products/77-cola-ice/",
+   "verd": 895,
+   "dosG": 13,
+   "strengur": "10,4 – 16",
+   "mgPudi": 10.4,
+   "mgG": 16
+  },
+  {
+   "nafn": "77 Fresh Mint #3",
+   "slod": "https://svens.is/products/77-fresh-mint-medium/",
+   "verd": 895,
+   "dosG": 13,
+   "strengur": "10,4 – 16",
+   "mgPudi": 10.4,
+   "mgG": 16
+  },
+  {
+   "nafn": "Thor Black Mint #5",
+   "slod": "https://svens.is/products/thor-black-mint/",
+   "verd": 1245,
+   "dosG": 16,
+   "strengur": "12-15",
+   "mgPudi": 12,
+   "mgG": 15
+  },
+  {
+   "nafn": "Ice Sour Apple #5",
+   "slod": "https://svens.is/products/sour-apple/",
+   "verd": 1145,
+   "dosG": 14,
+   "strengur": "11 – 16,5",
+   "mgPudi": 11,
+   "mgG": 16.5
+  },
+  {
+   "nafn": "77 Forest Fruits #3",
+   "slod": "https://svens.is/products/77-forest-fruits-medium/",
+   "verd": 895,
+   "dosG": 13,
+   "strengur": "10,4 – 16",
+   "mgPudi": 10.4,
+   "mgG": 16
+  },
+  {
+   "nafn": "VYou Liquorice Mint #4",
+   "slod": "https://svens.is/products/vyou-liquorice-mint-4/",
+   "verd": 1095,
+   "dosG": 16.8,
+   "strengur": "10 – 16",
+   "mgPudi": 10,
+   "mgG": 16
+  },
+  {
+   "nafn": "Helwit Mocha Extra Strong",
+   "slod": "https://svens.is/products/helwit-mocha/",
+   "verd": 995,
+   "dosG": 10,
+   "strengur": "7,5 – 15",
+   "mgPudi": 7.5,
+   "mgG": 15
+  },
+  {
+   "nafn": "XQS Double Mint #5",
+   "slod": "https://svens.is/products/xqs-double-mint/",
+   "verd": 1195,
+   "dosG": 15,
+   "strengur": "10 – 13,3",
+   "mgPudi": 10,
+   "mgG": 13.3
+  },
+  {
+   "nafn": "77 Ice Mint #3",
+   "slod": "https://svens.is/products/77-ice-mint-medium/",
+   "verd": 895,
+   "dosG": 13,
+   "strengur": "10,4 – 16",
+   "mgPudi": 10.4,
+   "mgG": 16
+  },
+  {
+   "nafn": "Ice Saltlakkrís #5",
+   "slod": "https://svens.is/products/saltlakkris/",
+   "verd": 1145,
+   "dosG": 14,
+   "strengur": "11-16,5",
+   "mgPudi": 11,
+   "mgG": 16.5
+  },
+  {
+   "nafn": "PAZ X Freeze + #5",
+   "slod": "https://svens.is/products/paz-x-freeze-2/",
+   "verd": 1195,
+   "dosG": 17,
+   "strengur": "17 – 20",
+   "mgPudi": 17,
+   "mgG": 20
+  },
+  {
+   "nafn": "Loop Crispy Peppermint #3",
+   "slod": "https://svens.is/products/loop-crispy-peppermint-3/",
+   "verd": 1145,
+   "dosG": 12.5,
+   "strengur": "9,4 – 15",
+   "mgPudi": 9.4,
+   "mgG": 15
+  },
+  {
+   "nafn": "77 Cola Vanilla #3",
+   "slod": "https://svens.is/products/77-cola-vanilla-medium/",
+   "verd": 895,
+   "dosG": 13,
+   "strengur": "10,4 – 16",
+   "mgPudi": 10.4,
+   "mgG": 16
+  },
+  {
+   "nafn": "77 Peach Mint #3",
+   "slod": "https://svens.is/products/77-peach-mint/",
+   "verd": 895,
+   "dosG": 13,
+   "strengur": "10,4 – 16",
+   "mgPudi": 10.4,
+   "mgG": 16
+  },
+  {
+   "nafn": "Klint Breeze Mint #2",
+   "slod": "https://svens.is/products/klint-breeze-mint-2/",
+   "verd": 995,
+   "dosG": 14,
+   "strengur": "5,6 – 8",
+   "mgPudi": 5.6,
+   "mgG": 8
+  },
+  {
+   "nafn": "Klint Polar Mint #3",
+   "slod": "https://svens.is/products/klint-polar-mint-3/",
+   "verd": 995,
+   "dosG": 14,
+   "strengur": "8,4 -12",
+   "mgPudi": 8.4,
+   "mgG": 12
+  },
+  {
+   "nafn": "PAZ Cool Mint #5",
+   "slod": "https://svens.is/products/paz-cool-mint/",
+   "verd": 1045,
+   "dosG": 13,
+   "strengur": "13 – 20",
+   "mgPudi": 13,
+   "mgG": 20
+  },
+  {
+   "nafn": "Garant Wild Berry",
+   "slod": "https://svens.is/products/garant-wild-berry/",
+   "verd": 995,
+   "dosG": 13.5,
+   "strengur": "8-16",
+   "mgPudi": 8,
+   "mgG": 16
+  },
+  {
+   "nafn": "Ice Liquorice Reaper #5",
+   "slod": "https://svens.is/products/liquorice-reaper/",
+   "verd": 1145,
+   "dosG": 14,
+   "strengur": "11-16,5",
+   "mgPudi": 11,
+   "mgG": 16.5
+  },
+  {
+   "nafn": "77 Ice Mint #2",
+   "slod": "https://svens.is/products/77-ice-mint-light/",
+   "verd": 895,
+   "dosG": 13,
+   "strengur": "5,2 – 8",
+   "mgPudi": 5.2,
+   "mgG": 8
+  },
+  {
+   "nafn": "VYou+ Intense Mint #5",
+   "slod": "https://svens.is/products/vyou-boost-intense-mint/",
+   "verd": 1195,
+   "dosG": 12,
+   "strengur": "11,8 -19",
+   "mgPudi": 11.8,
+   "mgG": 19
+  },
+  {
+   "nafn": "Ice Lemon Berry #4",
+   "slod": "https://svens.is/products/liquorice-reaper-copy/",
+   "verd": 1145,
+   "dosG": 14,
+   "strengur": "9-12,5",
+   "mgPudi": 9,
+   "mgG": 12.5
+  },
+  {
+   "nafn": "77 Salted Caramel #3",
+   "slod": "https://svens.is/products/77-salted-caramel/",
+   "verd": 895,
+   "dosG": 13,
+   "strengur": "10,4 – 16",
+   "mgPudi": 10.4,
+   "mgG": 16
+  },
+  {
+   "nafn": "77 Blueberry Ice #3",
+   "slod": "https://svens.is/products/77-blueberry-ice/",
+   "verd": 895,
+   "dosG": 13,
+   "strengur": "10,4 – 16",
+   "mgPudi": 10.4,
+   "mgG": 16
+  },
+  {
+   "nafn": "77 Raspberry #3",
+   "slod": "https://svens.is/products/77-raspberry-medium/",
+   "verd": 895,
+   "dosG": 13,
+   "strengur": "10,4 – 16",
+   "mgPudi": 10.4,
+   "mgG": 16
+  },
+  {
+   "nafn": "Kick Spearmint #3",
+   "slod": "https://svens.is/products/kick-spermint/",
+   "verd": 895,
+   "dosG": 12,
+   "strengur": "7,2 – 12",
+   "mgPudi": 7.2,
+   "mgG": 12
+  },
+  {
+   "nafn": "XQS Frost Bite #6",
+   "slod": "https://svens.is/products/xqs-frost-bite/",
+   "verd": 1195,
+   "dosG": 15,
+   "strengur": "12 – 16",
+   "mgPudi": 12,
+   "mgG": 16
+  },
+  {
+   "nafn": "77 Apple Mint #2",
+   "slod": "https://svens.is/products/77-apple-mint-light/",
+   "verd": 895,
+   "dosG": 13,
+   "strengur": "5,2 – 8",
+   "mgPudi": 5.2,
+   "mgG": 8
+  },
+  {
+   "nafn": "XQS Crisp Ice #5",
+   "slod": "https://svens.is/products/xqs-crisp-ice/",
+   "verd": 1195,
+   "dosG": 15,
+   "strengur": "11 – 14,7",
+   "mgPudi": 11,
+   "mgG": 14.7
+  },
+  {
+   "nafn": "Ice Freeze Reaper #2",
+   "slod": "https://svens.is/products/freeze-reaper-2/",
+   "verd": 845,
+   "dosG": 14,
+   "strengur": "5,6 – 8",
+   "mgPudi": 5.6,
+   "mgG": 8
+  },
+  {
+   "nafn": "Ice Lemon Berry #2",
+   "slod": "https://svens.is/products/lemon-berry-2/",
+   "verd": 845,
+   "dosG": 14,
+   "strengur": "4 – 8",
+   "mgPudi": 4,
+   "mgG": 8
+  },
+  {
+   "nafn": "Loop Creamy Cappuccino #3",
+   "slod": "https://svens.is/products/loop-creamy-cappuccino/",
+   "verd": 1145,
+   "dosG": 12.5,
+   "strengur": "9,4-15",
+   "mgPudi": 9.4,
+   "mgG": 15
+  },
+  {
+   "nafn": "BAOW Ice Mint Extra Strong",
+   "slod": "https://svens.is/products/baow-ice-mint/",
+   "verd": 1145,
+   "dosG": 12,
+   "strengur": "12 – 20",
+   "mgPudi": 12,
+   "mgG": 20
+  },
+  {
+   "nafn": "Helwit Blueberry Extra Strong",
+   "slod": "https://svens.is/products/helwit-blueberry/",
+   "verd": 995,
+   "dosG": 10,
+   "strengur": "7,5 – 15",
+   "mgPudi": 7.5,
+   "mgG": 15
+  },
+  {
+   "nafn": "Helwit Banana Extra Strong",
+   "slod": "https://svens.is/products/helwit-banana/",
+   "verd": 995,
+   "dosG": 10,
+   "strengur": "7,5 – 15",
+   "mgPudi": 7.5,
+   "mgG": 15
+  },
+  {
+   "nafn": "Kick Tropical #3",
+   "slod": "https://svens.is/products/kick-tropical-12mg/",
+   "verd": 895,
+   "dosG": 12,
+   "strengur": "7,2 – 12",
+   "mgPudi": 7.2,
+   "mgG": 12
+  },
+  {
+   "nafn": "77 Forest Fruits #2",
+   "slod": "https://svens.is/products/77-forest-fruit/",
+   "verd": 895,
+   "dosG": 13,
+   "strengur": "5,2 – 8",
+   "mgPudi": 5.2,
+   "mgG": 8
+  },
+  {
+   "nafn": "Zyn Cool Mint #4",
+   "slod": "https://svens.is/products/zyn-cool-mint-4/",
+   "verd": 1195,
+   "dosG": 14.7,
+   "strengur": "11 – 15,7",
+   "mgPudi": 11,
+   "mgG": 15.7
+  },
+  {
+   "nafn": "Thor Nordic Freeze #5",
+   "slod": "https://svens.is/products/thor-nordic-freeze/",
+   "verd": 1245,
+   "dosG": 16,
+   "strengur": "12-15",
+   "mgPudi": 12,
+   "mgG": 15
+  },
+  {
+   "nafn": "Garant Ice Peach",
+   "slod": "https://svens.is/products/garant-ice-peach/",
+   "verd": 995,
+   "dosG": 13.5,
+   "strengur": "10-20",
+   "mgPudi": 10,
+   "mgG": 20
+  },
+  {
+   "nafn": "Björn Blueberry Ice #3",
+   "slod": "https://svens.is/products/bjorn-blueberry-ice/",
+   "verd": 995,
+   "dosG": 13,
+   "strengur": "9,1 – 14",
+   "mgPudi": 9.1,
+   "mgG": 14
+  },
+  {
+   "nafn": "Helwit Salmiak #4",
+   "slod": "https://svens.is/products/helwit-salmiak/",
+   "verd": 845,
+   "dosG": 10,
+   "strengur": "6 – 12",
+   "mgPudi": 6,
+   "mgG": 12
+  },
+  {
+   "nafn": "Loop Mini Red Chili Melon #2",
+   "slod": "https://svens.is/products/red-chili-melon-mini/",
+   "verd": 995,
+   "dosG": 9,
+   "strengur": "6,75 – 15",
+   "mgPudi": 6.75,
+   "mgG": 15
+  },
+  {
+   "nafn": "Ace X Double Mint #5",
+   "slod": "https://svens.is/products/ace-x-double-mint/",
+   "verd": 1295,
+   "dosG": 12,
+   "strengur": "12 – 20",
+   "mgPudi": 12,
+   "mgG": 20
+  },
+  {
+   "nafn": "Zyn Mini Coffee 3mg",
+   "slod": "https://svens.is/products/espressino-light/",
+   "verd": 845,
+   "dosG": 8,
+   "strengur": "3-7.5",
+   "mgPudi": 3,
+   "mgG": 7.5
+  },
+  {
+   "nafn": "Helwit Mint #2",
+   "slod": "https://svens.is/products/helwit-mint/",
+   "verd": 845,
+   "dosG": 10,
+   "strengur": "3,5 – 7",
+   "mgPudi": 3.5,
+   "mgG": 7
+  },
+  {
+   "nafn": "Loop Ice Cool Mint #3",
+   "slod": "https://svens.is/products/ice-cool-mint-2/",
+   "verd": 1145,
+   "dosG": 13.75,
+   "strengur": "9,4-15",
+   "mgPudi": 9.4,
+   "mgG": 15
+  },
+  {
+   "nafn": "77 Arctic Mint #3",
+   "slod": "https://svens.is/products/77-arctic-mint/",
+   "verd": 895,
+   "dosG": 13,
+   "strengur": "10,4-16",
+   "mgPudi": 10.4,
+   "mgG": 16
+  },
+  {
+   "nafn": "PAZ X Freeze #5",
+   "slod": "https://svens.is/products/freeze-x-copy/",
+   "verd": 1045,
+   "dosG": 13,
+   "strengur": "13 – 20",
+   "mgPudi": 13,
+   "mgG": 20
+  },
+  {
+   "nafn": "White Fox Mini Double Mint",
+   "slod": "https://svens.is/products/white-fox-mini-double-mint/",
+   "verd": 995,
+   "dosG": 10,
+   "strengur": "10-16",
+   "mgPudi": 10,
+   "mgG": 16
+  },
+  {
+   "nafn": "White Fox Mini Peppered Mint",
+   "slod": "https://svens.is/products/white-fox-mini-peppered-mint/",
+   "verd": 995,
+   "dosG": 10,
+   "strengur": "10-16",
+   "mgPudi": 10,
+   "mgG": 16
+  },
+  {
+   "nafn": "BAOW Piña Colada Extra Strong",
+   "slod": "https://svens.is/products/baow-pina-colada/",
+   "verd": 1145,
+   "dosG": 12,
+   "strengur": "12 – 20",
+   "mgPudi": 12,
+   "mgG": 20
+  },
+  {
+   "nafn": "77 Strawberry #3",
+   "slod": "https://svens.is/products/77-strawberry-medium/",
+   "verd": 895,
+   "dosG": 13,
+   "strengur": "10,4 – 16",
+   "mgPudi": 10.4,
+   "mgG": 16
+  },
+  {
+   "nafn": "Kick Eucalyptus #4",
+   "slod": "https://svens.is/products/kick-eucalyptus-20mg/",
+   "verd": 995,
+   "dosG": 12,
+   "strengur": "12 -20",
+   "mgPudi": 12,
+   "mgG": 20
+  },
+  {
+   "nafn": "Zyn Cactus Spice",
+   "slod": "https://svens.is/products/zyn-cactus-spice/",
+   "verd": 1195,
+   "dosG": 14.3,
+   "strengur": "11-16,2",
+   "mgPudi": 11,
+   "mgG": 16.2
+  },
+  {
+   "nafn": "Ice Cool Mint #2",
+   "slod": "https://svens.is/products/cool-mint-2-2/",
+   "verd": 845,
+   "dosG": 14,
+   "strengur": "5,6-8",
+   "mgPudi": 5.6,
+   "mgG": 8
+  },
+  {
+   "nafn": "VYou+ Flavour Free #5",
+   "slod": "https://svens.is/products/boost-air/",
+   "verd": 1195,
+   "dosG": 12,
+   "strengur": "11,8 – 19",
+   "mgPudi": 11.8,
+   "mgG": 19
+  },
+  {
+   "nafn": "Skruf Frozen Mint #4",
+   "slod": "https://svens.is/products/frozen-shot-4-extra-strong/",
+   "verd": 1245,
+   "dosG": 13.4,
+   "strengur": "8-15",
+   "mgPudi": 8,
+   "mgG": 15
+  },
+  {
+   "nafn": "Thor Frost Kick #5",
+   "slod": "https://svens.is/products/thor-frost-kick/",
+   "verd": 1245,
+   "dosG": 16,
+   "strengur": "12-15",
+   "mgPudi": 12,
+   "mgG": 15
+  },
+  {
+   "nafn": "Ace X Nordic Freeze #5",
+   "slod": "https://svens.is/products/ace-x-nordic-freeze/",
+   "verd": 1295,
+   "dosG": 12,
+   "strengur": "12 – 20",
+   "mgPudi": 12,
+   "mgG": 20
+  },
+  {
+   "nafn": "Kick Icy Mint #3",
+   "slod": "https://svens.is/products/kick-icy-mint-12mg/",
+   "verd": 895,
+   "dosG": 12,
+   "strengur": "7,2 – 12",
+   "mgPudi": 7.2,
+   "mgG": 12
+  },
+  {
+   "nafn": "XQS Cactus Sour #4",
+   "slod": "https://svens.is/products/cactus-sour-slim-strong/",
+   "verd": 1145,
+   "dosG": 20,
+   "strengur": "10 – 20",
+   "mgPudi": 10,
+   "mgG": 20
+  },
+  {
+   "nafn": "Loop Blackcurrant #3",
+   "slod": "https://svens.is/products/cassis-bliss-strong/",
+   "verd": 1145,
+   "dosG": 13.75,
+   "strengur": "9,37-15",
+   "mgPudi": 9.37,
+   "mgG": 15
+  },
+  {
+   "nafn": "Loop Fresh Spearmint #3",
+   "slod": "https://svens.is/products/loop-fresh-spearmint/",
+   "verd": 1145,
+   "dosG": 12.5,
+   "strengur": "8,9 – 15",
+   "mgPudi": 8.9,
+   "mgG": 15
+  },
+  {
+   "nafn": "Ice Habanero Sunset #5",
+   "slod": "https://svens.is/products/habanero-sunset-5-2/",
+   "verd": 1145,
+   "dosG": 14,
+   "strengur": "11-16,5",
+   "mgPudi": 11,
+   "mgG": 16.5
+  },
+  {
+   "nafn": "Ice Blueberry #4",
+   "slod": "https://svens.is/products/lemon-berry-copy/",
+   "verd": 1145,
+   "dosG": 14,
+   "strengur": "9-12,5",
+   "mgPudi": 9,
+   "mgG": 12.5
+  },
+  {
+   "nafn": "Klint Cola Lime #4",
+   "slod": "https://svens.is/products/klint-cola-lime-4/",
+   "verd": 1045,
+   "dosG": 14,
+   "strengur": "11,2 -16",
+   "mgPudi": 11.2,
+   "mgG": 16
+  },
+  {
+   "nafn": "XQS Arctic Freeze #6",
+   "slod": "https://svens.is/products/xqs-arctic-freeze/",
+   "verd": 1195,
+   "dosG": 14,
+   "strengur": "11.2 – 16",
+   "mgPudi": 11.2,
+   "mgG": 16
+  },
+  {
+   "nafn": "Ice Reaper XL",
+   "slod": "https://svens.is/products/reaper-x-l/",
+   "verd": 1295,
+   "dosG": 18,
+   "strengur": "20-20",
+   "mgPudi": 20,
+   "mgG": 20
+  },
+  {
+   "nafn": "77 Watermelon Ice #2",
+   "slod": "https://svens.is/products/77-watermelon-light/",
+   "verd": 895,
+   "dosG": 13,
+   "strengur": "5,2 – 8",
+   "mgPudi": 5.2,
+   "mgG": 8
+  },
+  {
+   "nafn": "Loop Hot Peach #3",
+   "slod": "https://svens.is/products/hot-peach/",
+   "verd": 1145,
+   "dosG": 13.75,
+   "strengur": "9,4-15",
+   "mgPudi": 9.4,
+   "mgG": 15
+  },
+  {
+   "nafn": "77 Black Currant Ice #3",
+   "slod": "https://svens.is/products/77-black-currant/",
+   "verd": 895,
+   "dosG": 13,
+   "strengur": "10,4 – 16",
+   "mgPudi": 10.4,
+   "mgG": 16
+  },
+  {
+   "nafn": "Ice Habanero X",
+   "slod": "https://svens.is/products/habanero-x/",
+   "verd": 1145,
+   "dosG": 14,
+   "strengur": "14-20",
+   "mgPudi": 14,
+   "mgG": 20
+  },
+  {
+   "nafn": "Ice Cool Mint #5",
+   "slod": "https://svens.is/products/permafrost-5-copy/",
+   "verd": 1145,
+   "dosG": 14,
+   "strengur": "11-16,5",
+   "mgPudi": 11,
+   "mgG": 16.5
+  },
+  {
+   "nafn": "Zyn Mini Spearmint 3mg",
+   "slod": "https://svens.is/products/zyn-spearmint-mini/",
+   "verd": 845,
+   "dosG": 8,
+   "strengur": "3 – 7,5",
+   "mgPudi": 3,
+   "mgG": 7.5
+  },
+  {
+   "nafn": "Kick Icy Mint #4",
+   "slod": "https://svens.is/products/kick-icy-mint-20mg/",
+   "verd": 995,
+   "dosG": 12,
+   "strengur": "12 – 20",
+   "mgPudi": 12,
+   "mgG": 20
+  },
+  {
+   "nafn": "White Fox Mini Mint",
+   "slod": "https://svens.is/products/white-fox-mini-mint/",
+   "verd": 995,
+   "dosG": 10,
+   "strengur": "10-16",
+   "mgPudi": 10,
+   "mgG": 16
+  },
+  {
+   "nafn": "Ice Cola Slush #5",
+   "slod": "https://svens.is/products/cola-slush/",
+   "verd": 1145,
+   "dosG": 14,
+   "strengur": "11-16,5",
+   "mgPudi": 11,
+   "mgG": 16.5
+  },
+  {
+   "nafn": "Loop Smooth Mint #3",
+   "slod": "https://svens.is/products/mint-mania-strong/",
+   "verd": 1145,
+   "dosG": 13.75,
+   "strengur": "9,4-15",
+   "mgPudi": 9.4,
+   "mgG": 15
+  },
+  {
+   "nafn": "77 Cola Cherry #3",
+   "slod": "https://svens.is/products/77-cola-cherry/",
+   "verd": 895,
+   "dosG": 13,
+   "strengur": "10,4 – 16",
+   "mgPudi": 10.4,
+   "mgG": 16
+  },
+  {
+   "nafn": "Zyn Menthol Ice #5",
+   "slod": "https://svens.is/products/zyn-icy-mint-5/",
+   "verd": 1295,
+   "dosG": 14.7,
+   "strengur": "13,5 – 19,3",
+   "mgPudi": 13.5,
+   "mgG": 19.3
+  },
+  {
+   "nafn": "Ice Freeze #5",
+   "slod": "https://svens.is/products/freeze-5/",
+   "verd": 1145,
+   "dosG": 14,
+   "strengur": "11,55-16,5",
+   "mgPudi": 11.55,
+   "mgG": 16.5
+  },
+  {
+   "nafn": "Ace Berry Breeze Low #2",
+   "slod": "https://svens.is/products/berry-breeze-low/",
+   "verd": 995,
+   "dosG": 12,
+   "strengur": "3,9 – 6",
+   "mgPudi": 3.9,
+   "mgG": 6
+  },
+  {
+   "nafn": "Zyn Mini Coffee 6mg",
+   "slod": "https://svens.is/products/espressino-normal/",
+   "verd": 995,
+   "dosG": 8,
+   "strengur": "6-14.9",
+   "mgPudi": 6,
+   "mgG": 14.9
+  },
+  {
+   "nafn": "Skruf Fresh #2",
+   "slod": "https://svens.is/products/fresh-2-normal/",
+   "verd": 995,
+   "dosG": 14.4,
+   "strengur": "6-8",
+   "mgPudi": 6,
+   "mgG": 8
+  },
+  {
+   "nafn": "Ice Frost 2.0",
+   "slod": "https://svens.is/products/frost-2-0/",
+   "verd": 845,
+   "dosG": 14,
+   "strengur": "4-8,5",
+   "mgPudi": 4,
+   "mgG": 8.5
+  },
+  {
+   "nafn": "Loop Smooth Mint Hyper #5",
+   "slod": "https://svens.is/products/loop-smooth-mint-hyper-5/",
+   "verd": 1295,
+   "dosG": 15,
+   "strengur": "14,3 – 15",
+   "mgPudi": 14.3,
+   "mgG": 15
+  },
+  {
+   "nafn": "VYou+ Cool Berry #5",
+   "slod": "https://svens.is/products/vyou-boost-cool-berry/",
+   "verd": 1195,
+   "dosG": 12,
+   "strengur": "11,8 – 19",
+   "mgPudi": 11.8,
+   "mgG": 19
+  },
+  {
+   "nafn": "Ice Cris’P’Mint #4",
+   "slod": "https://svens.is/products/ice-crispmint/",
+   "verd": 1245,
+   "dosG": 14,
+   "strengur": "9 – 12,5",
+   "mgPudi": 9,
+   "mgG": 12.5
+  },
+  {
+   "nafn": "VYou Flavour Free #3",
+   "slod": "https://svens.is/products/airfocus-flavour-free/",
+   "verd": 995,
+   "dosG": 11,
+   "strengur": "6 – 10",
+   "mgPudi": 6,
+   "mgG": 10
+  },
+  {
+   "nafn": "77 Watermelon Ice #3",
+   "slod": "https://svens.is/products/77-watermelon-ice/",
+   "verd": 895,
+   "dosG": 13,
+   "strengur": "10,4 – 16",
+   "mgPudi": 10.4,
+   "mgG": 16
+  },
+  {
+   "nafn": "VYou Berry #3",
+   "slod": "https://svens.is/products/focus-berry/",
+   "verd": 995,
+   "dosG": 11,
+   "strengur": "6 – 10",
+   "mgPudi": 6,
+   "mgG": 10
+  },
+  {
+   "nafn": "VYou Citrus #4",
+   "slod": "https://svens.is/products/boost-citrus/",
+   "verd": 1095,
+   "dosG": 12,
+   "strengur": "10 – 16",
+   "mgPudi": 10,
+   "mgG": 16
+  },
+  {
+   "nafn": "VYou Blueberry Ice #4",
+   "slod": "https://svens.is/products/vyou-boost-blueberry-ice/",
+   "verd": 1095,
+   "dosG": 12,
+   "strengur": "10 – 16",
+   "mgPudi": 10,
+   "mgG": 16
+  },
+  {
+   "nafn": "Ice Freeze XL",
+   "slod": "https://svens.is/products/freeze-xl/",
+   "verd": 1295,
+   "dosG": 18,
+   "strengur": "20-20",
+   "mgPudi": 20,
+   "mgG": 20
+  },
+  {
+   "nafn": "Ice Habanero Sunset #3",
+   "slod": "https://svens.is/products/habanero-sunset-3/",
+   "verd": 995,
+   "dosG": 14,
+   "strengur": "7-10",
+   "mgPudi": 7,
+   "mgG": 10
+  },
+  {
+   "nafn": "Velo Mini Purple Grape #2",
+   "slod": "https://svens.is/products/royal-purple-mini/",
+   "verd": 1045,
+   "dosG": 8.4,
+   "strengur": "6-14,2",
+   "mgPudi": 6,
+   "mgG": 14.2
+  },
+  {
+   "nafn": "VYou Flavour Free #4",
+   "slod": "https://svens.is/products/airboost-flavour-free/",
+   "verd": 1095,
+   "dosG": 12,
+   "strengur": "10 – 16",
+   "mgPudi": 10,
+   "mgG": 16
+  },
+  {
+   "nafn": "Klint Freeze Mint #4",
+   "slod": "https://svens.is/products/klint-freeze-mint-4/",
+   "verd": 1045,
+   "dosG": 14,
+   "strengur": "11,2 -16",
+   "mgPudi": 11.2,
+   "mgG": 16
+  },
+  {
+   "nafn": "White Fox Peppered Mint",
+   "slod": "https://svens.is/products/peppered-mint/",
+   "verd": 1245,
+   "dosG": 12,
+   "strengur": "12-16",
+   "mgPudi": 12,
+   "mgG": 16
+  },
+  {
+   "nafn": "Ace X Guarana Chili Boost #5",
+   "slod": "https://svens.is/products/ace-x-guarana-chili-boost/",
+   "verd": 1295,
+   "dosG": 12,
+   "strengur": "12 – 20",
+   "mgPudi": 12,
+   "mgG": 20
+  },
+  {
+   "nafn": "Velo Tropical Mango #2",
+   "slod": "https://svens.is/products/tropic-breeze/",
+   "verd": 1145,
+   "dosG": 14.7,
+   "strengur": "6-11,9",
+   "mgPudi": 6,
+   "mgG": 11.9
+  },
+  {
+   "nafn": "Loop Mini Jalapeño Lime #2",
+   "slod": "https://svens.is/products/loop-jalapeno-lime-mini/",
+   "verd": 995,
+   "dosG": 9,
+   "strengur": "6,75-15",
+   "mgPudi": 6.75,
+   "mgG": 15
+  },
+  {
+   "nafn": "Zyn Menthol Ice #4",
+   "slod": "https://svens.is/products/zyn-icy-mint-4/",
+   "verd": 1195,
+   "dosG": 14.7,
+   "strengur": "11 – 15,7",
+   "mgPudi": 11,
+   "mgG": 15.7
+  },
+  {
+   "nafn": "Ice Cris’P’Mint Nicotine Free",
+   "slod": "https://svens.is/products/ice-crispmint-nicotine-free/",
+   "verd": 695,
+   "dosG": 14,
+   "strengur": "0 – 0",
+   "mgPudi": 0,
+   "mgG": 0
+  },
+  {
+   "nafn": "Ice Smooth Mint Mini Nicotine Free",
+   "slod": "https://svens.is/products/ice-smooth-mint-mini-nicotine-free/",
+   "verd": 695,
+   "dosG": 14,
+   "strengur": "0 – 0",
+   "mgPudi": 0,
+   "mgG": 0
+  },
+  {
+   "nafn": "Ice Freeze X",
+   "slod": "https://svens.is/products/freeze-x/",
+   "verd": 1145,
+   "dosG": 14,
+   "strengur": "14-20",
+   "mgPudi": 14,
+   "mgG": 20
+  },
+  {
+   "nafn": "Loop Liqourice Fusion #3",
+   "slod": "https://svens.is/products/salty-ludicris-strong/",
+   "verd": 1145,
+   "dosG": 13.75,
+   "strengur": "9,4-15",
+   "mgPudi": 9.4,
+   "mgG": 15
+  },
+  {
+   "nafn": "Velo Salty Liquorice #3",
+   "slod": "https://svens.is/products/liquorice-3/",
+   "verd": 1245,
+   "dosG": 14.7,
+   "strengur": "10-14,2",
+   "mgPudi": 10,
+   "mgG": 14.2
+  },
+  {
+   "nafn": "XQS Blueberry Mint #4",
+   "slod": "https://svens.is/products/blueberry-mint-slim-strong/",
+   "verd": 1145,
+   "dosG": 10,
+   "strengur": "8 – 16",
+   "mgPudi": 8,
+   "mgG": 16
+  },
+  {
+   "nafn": "Ice Frz Peppermint #4",
+   "slod": "https://svens.is/products/ice-frz-peppermint/",
+   "verd": 1245,
+   "dosG": 14,
+   "strengur": "9 – 12,5",
+   "mgPudi": 9,
+   "mgG": 12.5
+  },
+  {
+   "nafn": "XQS Black Cherry #4",
+   "slod": "https://svens.is/products/black-cherry-slim-strong/",
+   "verd": 1145,
+   "dosG": 10,
+   "strengur": "8 – 16",
+   "mgPudi": 8,
+   "mgG": 16
+  },
+  {
+   "nafn": "Zyn Mini Citrus 3mg",
+   "slod": "https://svens.is/products/citrus-light-2/",
+   "verd": 845,
+   "dosG": 8,
+   "strengur": "3-7.5",
+   "mgPudi": 3,
+   "mgG": 7.5
+  },
+  {
+   "nafn": "Loop Jalapeño Lime #4",
+   "slod": "https://svens.is/products/jalapeno-lime-extra-strong/",
+   "verd": 1295,
+   "dosG": 13.75,
+   "strengur": "12,5-20",
+   "mgPudi": 12.5,
+   "mgG": 20
+  },
+  {
+   "nafn": "Loop Red Chili Melon #4",
+   "slod": "https://svens.is/products/red-chili-melon-extra-strong/",
+   "verd": 1295,
+   "dosG": 13.75,
+   "strengur": "12,5-20",
+   "mgPudi": 12.5,
+   "mgG": 20
+  },
+  {
+   "nafn": "Loop Mini Smooth Mint #2",
+   "slod": "https://svens.is/products/loop-mint-mania-mini/",
+   "verd": 995,
+   "dosG": 9,
+   "strengur": "6,75-15",
+   "mgPudi": 6.75,
+   "mgG": 15
+  },
+  {
+   "nafn": "Loop Blueberry Ice #3",
+   "slod": "https://svens.is/products/loop-blueberry-ice/",
+   "verd": 1145,
+   "dosG": 12.5,
+   "strengur": "9,6-15",
+   "mgPudi": 9.6,
+   "mgG": 15
+  },
+  {
+   "nafn": "BAOW Gin Tonic Extra Strong",
+   "slod": "https://svens.is/products/baow-gin-tonic/",
+   "verd": 1145,
+   "dosG": 12,
+   "strengur": "12 – 20",
+   "mgPudi": 12,
+   "mgG": 20
+  },
+  {
+   "nafn": "Ace X Cosmic Cool Mint #5",
+   "slod": "https://svens.is/products/x-cosmic-cool-mint/",
+   "verd": 1295,
+   "dosG": 16.2,
+   "strengur": "18 – 20",
+   "mgPudi": 18,
+   "mgG": 20
+  },
+  {
+   "nafn": "VYou+ Fresh Citrus #5",
+   "slod": "https://svens.is/products/vyou-boost-fresh-citrus/",
+   "verd": 1195,
+   "dosG": 12,
+   "strengur": "11,8 -19",
+   "mgPudi": 11.8,
+   "mgG": 19
+  },
+  {
+   "nafn": "XQS Citrus Cooling #4",
+   "slod": "https://svens.is/products/xqs-citrus-cooling/",
+   "verd": 1145,
+   "dosG": 10,
+   "strengur": "10 – 20",
+   "mgPudi": 10,
+   "mgG": 20
+  },
+  {
+   "nafn": "Loop Jalapeño Lime #3",
+   "slod": "https://svens.is/products/jalapeno-lime/",
+   "verd": 1145,
+   "dosG": 13.75,
+   "strengur": "9,37-15",
+   "mgPudi": 9.37,
+   "mgG": 15
+  },
+  {
+   "nafn": "Loop Spicy Apple #3",
+   "slod": "https://svens.is/products/spicy-apple/",
+   "verd": 1145,
+   "dosG": 13.75,
+   "strengur": "9,4-15",
+   "mgPudi": 9.4,
+   "mgG": 15
+  },
+  {
+   "nafn": "Garant Extreme",
+   "slod": "https://svens.is/products/garant-extreme/",
+   "verd": 995,
+   "dosG": 11.8,
+   "strengur": "9-20",
+   "mgPudi": 9,
+   "mgG": 20
+  },
+  {
+   "nafn": "Garant Ice Cool",
+   "slod": "https://svens.is/products/garant-ice-cool/",
+   "verd": 995,
+   "dosG": 11.8,
+   "strengur": "9-20",
+   "mgPudi": 9,
+   "mgG": 20
+  },
+  {
+   "nafn": "PAZ Cool Mint Zero+",
+   "slod": "https://svens.is/products/paz-cool-mint-zero/",
+   "verd": 695,
+   "dosG": 13,
+   "strengur": "0-0",
+   "mgPudi": 0,
+   "mgG": 0
+  },
+  {
+   "nafn": "Velo Crispy Peppermint #3",
+   "slod": "https://svens.is/products/ice-cool-mint/",
+   "verd": 1245,
+   "dosG": 14.7,
+   "strengur": "10-14,2",
+   "mgPudi": 10,
+   "mgG": 14.2
+  },
+  {
+   "nafn": "Kick Spearmint #4",
+   "slod": "https://svens.is/products/kick-spermint-20mg/",
+   "verd": 995,
+   "dosG": 12,
+   "strengur": "12 – 20",
+   "mgPudi": 12,
+   "mgG": 20
+  },
+  {
+   "nafn": "White Fox Full Charge",
+   "slod": "https://svens.is/products/full-charge-extra-strong/",
+   "verd": 1245,
+   "dosG": 15,
+   "strengur": "16-16",
+   "mgPudi": 16,
+   "mgG": 16
+  },
+  {
+   "nafn": "Skruf Fresh #4",
+   "slod": "https://svens.is/products/fresh-4-extra-strong/",
+   "verd": 1245,
+   "dosG": 14.4,
+   "strengur": "11-15",
+   "mgPudi": 11,
+   "mgG": 15
+  },
+  {
+   "nafn": "77 Apple Mint #3",
+   "slod": "https://svens.is/products/77-apple-mint-medium/",
+   "verd": 895,
+   "dosG": 13,
+   "strengur": "10,4 – 16",
+   "mgPudi": 10.4,
+   "mgG": 16
+  },
+  {
+   "nafn": "Ace Cool Mint #4",
+   "slod": "https://svens.is/products/cool-mint-2/",
+   "verd": 1145,
+   "dosG": 12,
+   "strengur": "9,6 – 16",
+   "mgPudi": 9.6,
+   "mgG": 16
+  },
+  {
+   "nafn": "Ace Liquorice Salty Caramel #4",
+   "slod": "https://svens.is/products/ace-liquorice-salty-carmel/",
+   "verd": 1145,
+   "dosG": 12,
+   "strengur": "9,6 – 16",
+   "mgPudi": 9.6,
+   "mgG": 16
+  },
+  {
+   "nafn": "Ace Eucalyptus #4",
+   "slod": "https://svens.is/products/eucalyptus/",
+   "verd": 1145,
+   "dosG": 12,
+   "strengur": "9,6 – 16",
+   "mgPudi": 9.6,
+   "mgG": 16
+  },
+  {
+   "nafn": "Velo Tropical Mango #5",
+   "slod": "https://svens.is/products/tropical-mango-5/",
+   "verd": 1295,
+   "dosG": 14.7,
+   "strengur": "14-20",
+   "mgPudi": 14,
+   "mgG": 20
+  },
+  {
+   "nafn": "White Fox Double Mint",
+   "slod": "https://svens.is/products/double-mint-extra-strong/",
+   "verd": 1245,
+   "dosG": 15,
+   "strengur": "12-16",
+   "mgPudi": 12,
+   "mgG": 16
+  },
+  {
+   "nafn": "Kick Berry Mix #4",
+   "slod": "https://svens.is/products/kick-berry-mix-20mg/",
+   "verd": 995,
+   "dosG": 12,
+   "strengur": "12 -20",
+   "mgPudi": 12,
+   "mgG": 20
+  },
+  {
+   "nafn": "Ace Cool Mint Low #2",
+   "slod": "https://svens.is/products/cool-mint-low/",
+   "verd": 995,
+   "dosG": 12,
+   "strengur": "3,6 – 6",
+   "mgPudi": 3.6,
+   "mgG": 6
+  },
+  {
+   "nafn": "VYou Citrus #3",
+   "slod": "https://svens.is/products/focus-citrus/",
+   "verd": 995,
+   "dosG": 11,
+   "strengur": "6 – 10",
+   "mgPudi": 6,
+   "mgG": 10
+  },
+  {
+   "nafn": "Ice Smooth Mint Mini #3",
+   "slod": "https://svens.is/products/ice-smooth-mint-mini/",
+   "verd": 1245,
+   "dosG": 14,
+   "strengur": "8,25 – 16,5",
+   "mgPudi": 8.25,
+   "mgG": 16.5
+  },
+  {
+   "nafn": "Ace X Cool Mint #5",
+   "slod": "https://svens.is/products/x-cool-mint-extra-strong-2/",
+   "verd": 1295,
+   "dosG": 12,
+   "strengur": "12 – 20",
+   "mgPudi": 12,
+   "mgG": 20
+  },
+  {
+   "nafn": "77 Fresh Mint #2",
+   "slod": "https://svens.is/products/77-fresh-mint-light/",
+   "verd": 895,
+   "dosG": 13,
+   "strengur": "5,2 – 8",
+   "mgPudi": 5.2,
+   "mgG": 8
+  },
+  {
+   "nafn": "VYou Berry #4",
+   "slod": "https://svens.is/products/boost-berry-2/",
+   "verd": 1095,
+   "dosG": 12,
+   "strengur": "10 – 16",
+   "mgPudi": 10,
+   "mgG": 16
+  },
+  {
+   "nafn": "Loop Strawberry Ice #3",
+   "slod": "https://svens.is/products/loop-strawberry-ice/",
+   "verd": 1145,
+   "dosG": 12.5,
+   "strengur": "9,6-15",
+   "mgPudi": 9.6,
+   "mgG": 15
+  },
+  {
+   "nafn": "Loop Habanero Mint #4",
+   "slod": "https://svens.is/products/habenero-mint-extra-strong/",
+   "verd": 1295,
+   "dosG": 13.75,
+   "strengur": "12,5-20",
+   "mgPudi": 12.5,
+   "mgG": 20
+  },
+  {
+   "nafn": "Ice Frost #5",
+   "slod": "https://svens.is/products/frost-5-2/",
+   "verd": 1145,
+   "dosG": 14,
+   "strengur": "11-16,5",
+   "mgPudi": 11,
+   "mgG": 16.5
+  },
+  {
+   "nafn": "Ice Frz Peppermint Nicotine Free",
+   "slod": "https://svens.is/products/ice-frz-peppermint-nicotine-free/",
+   "verd": 695,
+   "dosG": 14,
+   "strengur": "0 – 0",
+   "mgPudi": 0,
+   "mgG": 0
+  },
+  {
+   "nafn": "VYou Mint #4",
+   "slod": "https://svens.is/products/boost-mint/",
+   "verd": 1095,
+   "dosG": 12,
+   "strengur": "6 – 10",
+   "mgPudi": 6,
+   "mgG": 10
+  },
+  {
+   "nafn": "Velo Mini Crispy Peppermint #3",
+   "slod": "https://svens.is/products/velo-ice-cool-mini/",
+   "verd": 1095,
+   "dosG": 10,
+   "strengur": "8 – 16",
+   "mgPudi": 8,
+   "mgG": 16
+  },
+  {
+   "nafn": "Skruf Fresh #3",
+   "slod": "https://svens.is/products/fresh-3-strong/",
+   "verd": 1245,
+   "dosG": 14.4,
+   "strengur": "10-14",
+   "mgPudi": 10,
+   "mgG": 14
+  },
+  {
+   "nafn": "Velo Mini Bright Spearmint #1",
+   "slod": "https://svens.is/products/easy-mint-mini/",
+   "verd": 995,
+   "dosG": 10,
+   "strengur": "4-8,5",
+   "mgPudi": 4,
+   "mgG": 8.5
+  },
+  {
+   "nafn": "Ice Freeze Reaper #5",
+   "slod": "https://svens.is/products/freeze-reaper-5-2/",
+   "verd": 1145,
+   "dosG": 14,
+   "strengur": "11-16,5",
+   "mgPudi": 11,
+   "mgG": 16.5
+  },
+  {
+   "nafn": "Velo Smooth Spearmint #2",
+   "slod": "https://svens.is/products/mint/",
+   "verd": 1145,
+   "dosG": 14.7,
+   "strengur": "6-11,9",
+   "mgPudi": 6,
+   "mgG": 11.9
+  },
+  {
+   "nafn": "Ice Habanero XL",
+   "slod": "https://svens.is/products/habanero-xl/",
+   "verd": 1295,
+   "dosG": 18,
+   "strengur": "20-20",
+   "mgPudi": 20,
+   "mgG": 20
+  },
+  {
+   "nafn": "White Fox Mint",
+   "slod": "https://svens.is/products/mint-extra-strong/",
+   "verd": 1245,
+   "dosG": 15,
+   "strengur": "12-16",
+   "mgPudi": 12,
+   "mgG": 16
+  },
+  {
+   "nafn": "Loop Smooth Mint #4",
+   "slod": "https://svens.is/products/mint-mania-extra-strong/",
+   "verd": 1295,
+   "dosG": 20,
+   "strengur": "12,5-20",
+   "mgPudi": 12.5,
+   "mgG": 20
+  },
+  {
+   "nafn": "Loop Zero Cool Mint",
+   "slod": "https://svens.is/products/loop-zero-cool-mint/",
+   "verd": 695,
+   "dosG": 13.2,
+   "strengur": "0 – 0",
+   "mgPudi": 0,
+   "mgG": 0
+  },
+  {
+   "nafn": "Klint Arctic Mint #5",
+   "slod": "https://svens.is/products/klint-arctic-mint-5/",
+   "verd": 1145,
+   "dosG": 14,
+   "strengur": "14 -20",
+   "mgPudi": 14,
+   "mgG": 20
+  },
+  {
+   "nafn": "77 Zero Arctic Berry",
+   "slod": "https://svens.is/products/77-zero-arctic-berry/",
+   "verd": 695,
+   "dosG": 13,
+   "strengur": "0-0",
+   "mgPudi": 0,
+   "mgG": 0
+  },
+  {
+   "nafn": "77 Zero Cola",
+   "slod": "https://svens.is/products/77-zero-cola/",
+   "verd": 695,
+   "dosG": 13,
+   "strengur": "0-0",
+   "mgPudi": 0,
+   "mgG": 0
+  },
+  {
+   "nafn": "Velo Freezing Peppermint #4",
+   "slod": "https://svens.is/products/freeze/",
+   "verd": 1245,
+   "dosG": 14.7,
+   "strengur": "10,9-15,6",
+   "mgPudi": 10.9,
+   "mgG": 15.6
+  },
+  {
+   "nafn": "Ice Reaper X",
+   "slod": "https://svens.is/products/reaper-x/",
+   "verd": 1145,
+   "dosG": 14,
+   "strengur": "14-20",
+   "mgPudi": 14,
+   "mgG": 20
+  },
+  {
+   "nafn": "XQS Tropical #4",
+   "slod": "https://svens.is/products/xqs-tropical/",
+   "verd": 1145,
+   "dosG": 10,
+   "strengur": "8 – 16",
+   "mgPudi": 8,
+   "mgG": 16
+  },
+  {
+   "nafn": "Velo Freezing Peppermint #5",
+   "slod": "https://svens.is/products/velo-freeze-5/",
+   "verd": 1295,
+   "dosG": 14.7,
+   "strengur": "14-20",
+   "mgPudi": 14,
+   "mgG": 20
+  }
+ ]
+}
