@@ -2599,7 +2599,7 @@ async function userDataHandler(request, env) {
   if (path === '/news-ingest' && method === 'POST') {
     const u = await env.TENGSL.prepare('SELECT is_admin FROM users WHERE id=?').bind(uid).first().catch(() => null);
     if (!u || u.is_admin !== 1) return _ajson({ ok: false, error: 'admin' });
-    return _ajson(await newsIngest(env));
+    return _ajson(await newsIngest(env, { handvirkt: true }));   // sér skrá: gagnaver Arons má ekki þurrka út mynd cron-sins
   }
 
   return _ajson({ ok: false, error: 'unknown' });

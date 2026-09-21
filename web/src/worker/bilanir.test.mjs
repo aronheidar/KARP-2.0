@@ -241,10 +241,43 @@ test('rusl í skránni fellir ekki listann', () => {
   for (const x of [null, undefined, 'x', 7, {}, { straumar: null }, { straumar: { u: null } }]) assert.deepEqual(thagnadirStraumar(x, NN), []);
 });
 
+test('frosin skrá: EIN færsla um að innlesturinn sé hættur, engar um einstaka strauma', () => {
+  // Allt-í-lagi mynd sem frýs þegði að eilífu, og bilaður straumur héldi áfram að telja daga eftir bata.
+  const frosin = { ts: NN - 13 * KLST, straumar: { 'https://vb.is/rss/': { src: 'Viðskiptablaðið', villa: 'http', status: 403, bilunFra: NN - 9 * DAGUR } } };
+  const r = thagnadirStraumar(frosin, NN);
+  assert.equal(r.length, 1);
+  assert.equal(r[0].uppspretta, 'Innlestur');
+  assert.equal(r[0].alvarleiki, 'hatt');
+  assert.equal(r[0].sidan, NN - 13 * KLST);
+  assert.match(r[0].lysing, /^Fréttainnlesturinn hefur ekkert skráð síðan \d+\.\d+\. kl\. \d\d:\d\d$/);
+  const allt = thagnadirStraumar({ ts: NN - 13 * KLST, straumar: {} }, NN);
+  assert.equal(allt.length, 1, 'frosin allt-í-lagi mynd má ekki þegja');
+  assert.deepEqual(thagnadirStraumar({ ts: NN - 11 * KLST, straumar: {} }, NN), [], 'innan 12 klst er skráin fersk');
+});
+
+test('innsetning sem bregst í sólarhring fer á listann með villuboðunum', () => {
+  const r = thagnadirStraumar({ ts: NN, innsetningBilunFra: NN - 2 * DAGUR, batchMelding: 'D1_ERROR: SQLITE_CONSTRAINT', straumar: {} }, NN);
+  assert.equal(r.length, 1);
+  assert.equal(r[0].uppspretta, 'Innlestur');
+  assert.equal(r[0].alvarleiki, 'midlungs');
+  assert.match(r[0].lysing, /innsetning í grunninn hefur brugðist í 2 daga \(D1_ERROR: SQLITE_CONSTRAINT\)/);
+  assert.deepEqual(thagnadirStraumar({ ts: NN, innsetningBilunFra: NN - 5 * KLST, straumar: {} }, NN), [], 'stök bilun er ekki frétt');
+});
+
+test('miðill með fleiri en einn straum fær slóðina með — annars birtust eins raðir í forstofunni', () => {
+  const b = { src: 'mbl.is', villa: 'http', status: 403, bilunFra: NN - 8 * DAGUR };
+  const r = thagnadirStraumar(skraMed({ 'https://www.mbl.is/feeds/fp/': b, 'https://www.mbl.is/feeds/innlent/': b, 'https://heimildin.is/rss/': { src: 'Heimildin', villa: 'net', bilunFra: NN - 2 * DAGUR } }), NN);
+  const texti = r.map((x) => x.lysing);
+  assert.ok(texti.some((l) => l.startsWith('mbl.is (/feeds/fp/) hefur')));
+  assert.ok(texti.some((l) => l.startsWith('mbl.is (/feeds/innlent/) hefur')));
+  assert.ok(texti.some((l) => l.startsWith('Heimildin hefur')), 'eini straumur miðils fær ekki slóð');
+  assert.equal(new Set(texti).size, texti.length);
+});
+
 test('þagnaður straumur birtist í heildarlistanum — og skemmd skrá fellir hann ekki', async (t) => {
   stubGh(t, GH_ALLT_GOTT);
   const state = mkState();
-  state.frettastraumar = JSON.stringify(skraMed({ 'https://vb.is/rss/': { src: 'Viðskiptablaðið', villa: 'http', status: 403, bilunFra: NU() - 3 * DAGUR } }));
+  state.frettastraumar = JSON.stringify({ ts: NU(), straumar: { 'https://vb.is/rss/': { src: 'Viðskiptablaðið', villa: 'http', status: 403, bilunFra: NU() - 3 * DAGUR } } });
   const r = await saekjaBilanir(mkEnv(state), { thvinga: true });
   assert.ok(r.bilanir.some((b) => b.uppspretta === 'Straumur' && /Viðskiptablaðið/.test(b.lysing)), 'þögn VB á að sjást hjá Hrafni');
 
@@ -253,4 +286,33 @@ test('þagnaður straumur birtist í heildarlistanum — og skemmd skrá fellir 
   const r2 = await saekjaBilanir(mkEnv(skemmt), { thvinga: true });
   assert.equal(r2.ok, true);
   assert.deepEqual(r2.bilanir, []);
+});
+
+test('GitHub niðri og enginn geymdur listi: straumarnir sjást SAMT', async (t) => {
+  // Útrunninn GitHub-lykill (401 á öll fimm köll) má ekki fela bilun sem er alfarið í D1.
+  const state = mkState();
+  state.frettastraumar = JSON.stringify({ ts: NU(), straumar: { 'https://vb.is/rss/': { src: 'Viðskiptablaðið', villa: 'http', status: 403, bilunFra: NU() - 3 * DAGUR } } });
+  const orig = globalThis.fetch;
+  globalThis.fetch = async () => ({ ok: false, status: 401, json: async () => ({}) });
+  t.after(() => { globalThis.fetch = orig; });
+  const r = await saekjaBilanir(mkEnv(state), { thvinga: true });
+  assert.equal(r.villa, 'github');
+  assert.ok(r.bilanir.some((b) => b.uppspretta === 'Straumur'), 'VB-þögnin hverfur ekki þótt GitHub svari ekki');
+});
+
+test('GitHub niðri með geymdum lista: gamla straumafærslan víkur fyrir ferskri, engin tvítalning', async (t) => {
+  const state = mkState(); const env = mkEnv(state);
+  state.frettastraumar = JSON.stringify({ ts: NU(), straumar: { 'https://vb.is/rss/': { src: 'Viðskiptablaðið', villa: 'http', status: 403, bilunFra: NU() - 2 * DAGUR } } });
+  stubGh(t, Object.assign({}, GH_ALLT_GOTT, {
+    'workflows/ci.yml/runs': { d: { workflow_runs: [{ conclusion: 'failure', head_sha: 'abc', created_at: '2026-09-14T10:00:00Z', html_url: 'ci-url' }] } },
+  }));
+  await saekjaBilanir(env, { thvinga: true });   // geymir lista með CI + gamalli VB-færslu
+  state.frettastraumar = JSON.stringify({ ts: NU(), straumar: { 'https://vb.is/rss/': { src: 'Viðskiptablaðið', villa: 'timamork', status: 0, bilunFra: NU() - 2 * DAGUR } } });
+  globalThis.fetch = async () => { throw new Error('net'); };
+  const r = await saekjaBilanir(env, { thvinga: true });
+  assert.equal(r.villa, 'github');
+  assert.ok(r.bilanir.some((b) => b.uppspretta === 'CI'), 'gamli GitHub-hlutinn stendur');
+  const vb = r.bilanir.filter((b) => b.uppspretta === 'Straumur');
+  assert.equal(vb.length, 1, 'engin tvítalning');
+  assert.match(vb[0].lysing, /svarar ekki/, 'ferska D1-myndin gildir, ekki sú geymda');
 });

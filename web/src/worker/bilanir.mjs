@@ -46,6 +46,8 @@ export function fallnarVaktir(runs, nu) {
 
 const _BL_STRAUMUR_KLST = 24;       // straumur sem hefur ekkert skilað svona lengi fer á spjald Hrafns
 const _BL_STRAUMUR_HATT_DAGAR = 7;  // … og í forstofuna eftir viku
+const _BL_INNLESTUR_KLST = 12;      // cron keyrir á 3 klst fresti: eldri skrá = fjórar keyrslur skráðu ekkert
+const _BL_D1_UPPSPRETTUR = ['Straumur', 'Innlestur'];   // færslur sem koma úr D1, ekki GitHub
 const _BL_STRAUMUR_ASTAEDA = {
   http: (s) => 'HTTP ' + s.status + (s.hindrun ? ', Cloudflare-lokun hjá miðlinum' : ''),
   net: () => 'tenging brást',
@@ -61,26 +63,62 @@ const _BL_STRAUMUR_ASTAEDA = {
  * hvorugt sást, því bilunin varð inni í workernum þar sem GitHub-uppspretturnar hér að ofan ná ekki
  * til. Miðlungs eftir sólarhring (spjald Hrafns), hátt eftir viku (forstofan).
  * ⚠ Dagafjöldinn er MÆLDUR frá því skráning hófst, ekki frá raunverulegu upphafi bilunar.
+ * ⚠ Frosin skrá er verri en engin: allt-í-lagi mynd þegði að eilífu, og bilaður straumur héldi áfram
+ *   að telja daga eftir að hann lagaðist. Hætti innlesturinn að skrá kemur því EIN færsla um það og
+ *   engin um einstaka strauma.
  */
 export function thagnadirStraumar(skra, nu) {
   const n = Number.isFinite(nu) ? nu : Math.floor(Date.now() / 1000);
-  const straumar = (skra && typeof skra === 'object' && skra.straumar) || {};
+  if (!skra || typeof skra !== 'object') return [];
+  const ts = Number(skra.ts) || 0;
+  if (ts && ts <= n - _BL_INNLESTUR_KLST * 3600) {
+    return [{ uppspretta: 'Innlestur', lysing: 'Fréttainnlesturinn hefur ekkert skráð síðan ' + _blDags(ts), sidan: ts, alvarleiki: 'hatt', slod: '' }];
+  }
   const ut = [];
+  const inn = Number(skra.innsetningBilunFra) || 0;
+  if (inn && inn <= n - _BL_STRAUMUR_KLST * 3600) {
+    ut.push({
+      uppspretta: 'Innlestur',
+      lysing: 'Fréttir berast en innsetning í grunninn hefur brugðist í ' + _blDagar(n - inn) + (skra.batchMelding ? ' (' + String(skra.batchMelding).slice(0, 80) + ')' : ''),
+      sidan: inn,
+      alvarleiki: _blAlvarleiki(inn, n),
+      slod: '',
+    });
+  }
+  const straumar = (skra.straumar && typeof skra.straumar === 'object') ? skra.straumar : {};
+  // Miðill með fleiri en einn straum (mbl.is ber þrjá) fær slóðina með, annars birtust eins raðir.
+  const fjoldi = {};
+  for (const s of Object.values(straumar)) if (s && s.src) fjoldi[s.src] = (fjoldi[s.src] || 0) + 1;
   for (const url of Object.keys(straumar)) {
     const s = straumar[url] || {};
     const fra = Number(s.bilunFra) || 0;
     if (!fra || fra > n - _BL_STRAUMUR_KLST * 3600) continue;
-    const dagar = Math.max(1, Math.floor((n - fra) / 86400));
     const astaeda = _BL_STRAUMUR_ASTAEDA[s.villa] ? _BL_STRAUMUR_ASTAEDA[s.villa](s) : (s.villa || 'óþekkt');
+    const nafn = (s.src || url) + (s.src && fjoldi[s.src] > 1 ? ' (' + _blSlodarhluti(url) + ')' : '');
     ut.push({
       uppspretta: 'Straumur',
-      lysing: (s.src || url) + ' hefur ekkert skilað í ' + dagar + ' ' + (dagar === 1 ? 'dag' : 'daga') + ' (' + astaeda + ')',
+      lysing: nafn + ' hefur ekkert skilað í ' + _blDagar(n - fra) + ' (' + astaeda + ')',
       sidan: fra,
-      alvarleiki: fra <= n - _BL_STRAUMUR_HATT_DAGAR * 86400 ? 'hatt' : 'midlungs',
+      alvarleiki: _blAlvarleiki(fra, n),
       slod: url,
     });
   }
   return ut;
+}
+
+const _blDagar = (sek) => { const d = Math.max(1, Math.floor(sek / 86400)); return d + ' ' + (d === 1 ? 'dag' : 'daga'); };
+const _blAlvarleiki = (fra, n) => (fra <= n - _BL_STRAUMUR_HATT_DAGAR * 86400 ? 'hatt' : 'midlungs');
+const _blSlodarhluti = (url) => { try { return new URL(url).pathname; } catch (e) { return String(url); } };
+// Ísland er á UTC allt árið, svo UTC-klukkan er staðartími.
+function _blDags(ts) {
+  const d = new Date(ts * 1000);
+  return d.getUTCDate() + '.' + (d.getUTCMonth() + 1) + '. kl. ' + String(d.getUTCHours()).padStart(2, '0') + ':' + String(d.getUTCMinutes()).padStart(2, '0');
+}
+
+/** Straumafærslurnar úr D1. Reiknaðar UTAN GitHub-blokkarinnar: útrunninn GitHub-lykill má ekki fela þær. */
+async function _blStraumar(env) {
+  const r = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='frettastraumar'").first().catch(() => null);
+  try { return thagnadirStraumar(r ? JSON.parse(r.v) : null, _blNow()); } catch (e) { return []; }   // skemmd skrá fellir ekki listann
 }
 
 async function _blGh(env, slod) {
@@ -126,6 +164,7 @@ export async function saekjaBilanir(env, { thvinga = false } = {}) {
   const geymt = await _blGeymt(env);
   if (!thvinga && geymt && geymt.uppfaert > _blNow() - _BL_FYRNING) return Object.assign({ ok: true, sott: geymt.uppfaert }, geymt.gogn);
 
+  const straumar = await _blStraumar(env);
   const bilanir = [];
   let vantar = [];
   try {
@@ -161,9 +200,7 @@ export async function saekjaBilanir(env, { thvinga = false } = {}) {
       // Gagnakeyrslur (nætur-crawl, refresh-data, on-demand byggingar) sem féllu — sjá fallnarVaktir.
       for (const b of fallnarVaktir((vaktir && vaktir.workflow_runs) || [], _blNow())) bilanir.push(b);
     }
-    // Fréttastraumar sem hafa þagnað — úr D1, ekki GitHub. Skemmd skrá fellir ekki listann.
-    const straumRod = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='frettastraumar'").first().catch(() => null);
-    try { for (const b of thagnadirStraumar(straumRod ? JSON.parse(straumRod.v) : null, _blNow())) bilanir.push(b); } catch (e) { /* sjá ofar */ }
+    for (const b of straumar) bilanir.push(b);   // þagnaðir fréttastraumar — sjá thagnadirStraumar
     if (prs) {
       const markPr = _blNow() - _BL_PR_DAGAR * 86400;
       for (const p of (Array.isArray(prs) ? prs : [])) {
@@ -173,8 +210,11 @@ export async function saekjaBilanir(env, { thvinga = false } = {}) {
       }
     }
   } catch (e) {
-    // Síðasti þekkti listi stendur; spjaldið segir frá því að hann sé ekki ferskur.
-    return Object.assign({ ok: true, villa: 'github', sott: geymt ? geymt.uppfaert : 0 }, (geymt && geymt.gogn) || { bilanir: [] });
+    // Síðasti þekkti listi stendur; spjaldið segir frá því að hann sé ekki ferskur. D1-færslurnar eru
+    // hins vegar ferskar, svo gömlu eintökin þeirra víkja fyrir nýjum í stað þess að tvítelja.
+    const gamalt = (geymt && geymt.gogn && Array.isArray(geymt.gogn.bilanir) ? geymt.gogn.bilanir : [])
+      .filter((b) => !_BL_D1_UPPSPRETTUR.includes(b && b.uppspretta));
+    return { ok: true, villa: 'github', sott: geymt ? geymt.uppfaert : 0, bilanir: _blSnyrta(gamalt.concat(straumar)) };
   }
 
   const snyrt = _blSnyrta(bilanir);
