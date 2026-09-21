@@ -62,6 +62,12 @@ test('tengingarvilla er net, ekki þögn, og villuboðin fylgja', async (t) => {
 
 // { timeout } svo afturför (tímamörkin fjarlægð) FELLI prófið í stað þess að láta CI hanga.
 test('hangandi straumur fellur á tímamörkum í stað þess að halda allri keðjunni', { timeout: 5000 }, async (t) => {
+  // ⚠ Tímamælir AbortSignal.timeout er unref-aður í Node: hann heldur lykkjunni EKKI gangandi. Án annars
+  //   handfangs tæmdist hún í CI (Node 22, Linux) á 16 ms, abort féll aldrei, og Node felldi niður ÖLL
+  //   tólf prófin sem eftir voru í skránni (21.9). Á Windows hélt eitthvað annað lykkjunni lifandi, svo
+  //   prófið stóðst hér. Í Workers heldur beiðnin sjálf keyrslunni lifandi; þetta á aðeins við prófið.
+  const halda = setInterval(() => {}, 1000);
+  t.after(() => clearInterval(halda));
   stubFetch(t, {
     [A]: (opt) => new Promise((_, hafna) => opt.signal.addEventListener('abort', () => hafna(opt.signal.reason))),
     [B]: new Response(rss([['Frétt B', 'https://b.is/1']])),
