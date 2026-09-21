@@ -33,12 +33,14 @@ jobs:
     timeout-minutes: 20
     env:
       TICKET: ${{ github.event.client_payload.ticket || inputs.ticket }}
-      KARP_ADMIN_KEY: ${{ secrets.KARP_ADMIN_KEY }}
+      # KARP_ADMIN_KEY aðeins á skrefunum sem kalla á /api/admin/ticket, sama regla og í cto.yml.
       GH_TOKEN: ${{ github.token }}
       REPO: aronheidar/KARP-2.0
     steps:
       - name: Sækja ticket úr karp.is — verður að vera 'samthykkt' og bera PR
         id: t
+        env:
+          KARP_ADMIN_KEY: ${{ secrets.KARP_ADMIN_KEY }}
         run: |
           curl -sf -H "X-Admin-Key: $KARP_ADMIN_KEY" "https://karp.is/api/admin/ticket?id=$TICKET" -o ticket.json
           node -e "
@@ -90,6 +92,8 @@ jobs:
           echo "note=Deploy karp21 á $SHA staðfestist ekki innan 10 mín — lokapóstur EKKI sendur; athuga Cloudflare Workers Builds" >> $GITHUB_OUTPUT; exit 1
       - name: Lokapóstur Sigrúnar á notanda (lagad → lokad)
         if: steps.d.outputs.ok == '1'
+        env:
+          KARP_ADMIN_KEY: ${{ secrets.KARP_ADMIN_KEY }}
         run: |
           node -e "
             fetch('https://karp.is/api/admin/ticket', { method: 'POST', headers: { 'X-Admin-Key': process.env.KARP_ADMIN_KEY, 'content-type': 'application/json' }, body: JSON.stringify({ action: 'lagad', id: Number(process.env.TICKET) }) })
@@ -98,6 +102,7 @@ jobs:
       - name: Nóta á ticketið ef eitthvað fór úrskeiðis (sést á /stjorn/)
         if: failure()
         env:
+          KARP_ADMIN_KEY: ${{ secrets.KARP_ADMIN_KEY }}
           NOTE: ${{ steps.t.outputs.note || steps.m.outputs.note || steps.d.outputs.note }}
         run: |
           node -e "

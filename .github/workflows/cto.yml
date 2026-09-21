@@ -33,7 +33,9 @@ jobs:
     env:
       TICKET: ${{ github.event.client_payload.ticket || inputs.ticket }}
       VERK: ${{ github.event.client_payload.verk || inputs.verk }}
-      KARP_ADMIN_KEY: ${{ secrets.KARP_ADMIN_KEY }}
+      # ⚠ KARP_ADMIN_KEY er viljandi EKKI hér heldur aðeins á skrefunum sem kalla á /api/admin/* (ticket, moot, cto_result).
+      #   Claude-skrefið les texta notanda og má keyra node, svo lykill í umhverfi þess leyfði prompt-innspýtingu að senda
+      #   póst í nafni Karp (svara/create) eða breyta stöðu beiðna. Færðu hann ekki aftur upp á job-stig.
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
       - uses: actions/checkout@v7
@@ -44,6 +46,8 @@ jobs:
           node-version: '22'
       - name: Sækja ticket úr karp.is (sleppt þegar frjálst verk er sent)
         if: env.TICKET != ''
+        env:
+          KARP_ADMIN_KEY: ${{ secrets.KARP_ADMIN_KEY }}
         run: |
           curl -sf -H "X-Admin-Key: $KARP_ADMIN_KEY" "https://karp.is/api/admin/ticket?id=$TICKET" -o ticket.json
           node -e "const t=require('./ticket.json'); if(!t.ok) throw new Error('ticket '+JSON.stringify(t)); console.log('#'+t.ticket.id, t.ticket.tegund, '—', t.ticket.efni)"
@@ -58,6 +62,8 @@ jobs:
           "
       - name: Sækja Moot (verkbeiðni Hrafns) úr karp.is
         if: env.TICKET != ''
+        env:
+          KARP_ADMIN_KEY: ${{ secrets.KARP_ADMIN_KEY }}
         # Nýjasti ráðsfundur um málið: /api/admin/moot?id=N → { nidurstada:{cto_brief,…}, atkvaedi_arons:{val,…} }.
         # Vantar Moot eða veitan svarar ekki → '{}' (promptið segir „(engin)“). Aldrei fellur keyrslan á þessu skrefi.
         run: |
@@ -154,5 +160,6 @@ jobs:
             fetch('https://karp.is/api/admin/ticket',{method:'POST',headers:{'X-Admin-Key':process.env.KARP_ADMIN_KEY,'content-type':'application/json'},body:JSON.stringify(body)}).then(r=>r.text()).then(t=>console.log('cto_result →',t));
           " || true
         env:
+          KARP_ADMIN_KEY: ${{ secrets.KARP_ADMIN_KEY }}
           PR: ${{ steps.pr.outputs.pr }}
           NOTE: ${{ steps.pr.outputs.note }}
