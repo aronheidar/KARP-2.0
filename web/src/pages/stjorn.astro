@@ -1183,6 +1183,8 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       if (!r || !r.ok) { body.textContent = 'Náði ekki í þráðinn.'; return; }
       body.dataset.loaded = '1';
       const t = r.ticket; let g = {}; try { g = JSON.parse(t.ai_greining || '{}'); } catch (e) {}
+      // Efi: hún lyftir brún þegar þú opnar mið sem hún náði EKKI að greina (líkanið féll á varaleið).
+      if (typeof g.model === 'string' && g.model.startsWith('fallback')) spilaVidbragd(sigrunHylki(), 'efi');
       // Þráðurinn: in/out-bólur + Moot-línur (niðurstaða/atkvæði/fall). Persónu-innlegg birtast AÐEINS í ráðsalnum.
       // ⚠ ALLT úr r.* fer gegnum esc() — meta þáttað með try/catch, hrynur aldrei á skemmdu JSON.
       const msgs = (r.msgs || []).map((m) => {
