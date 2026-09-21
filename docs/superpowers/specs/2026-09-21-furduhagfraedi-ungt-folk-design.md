@@ -85,7 +85,7 @@ Verð á hver 100 mg af koffíni. Ein heimild og ein verslun: Neytandinn (striml
 
 | drykkur | verð | koffín | athugað |
 |---|---|---|---|
-| Nocco 330 ml | 304 kr | 105 mg (íslenska útgáfan) | 15.9.2026 |
+| Nocco 330 ml | 304 kr | 105 mg (íslenska útgáfan, Limón) | 31.8.2026 |
 | Red Bull 250 ml | 233 kr | 80 mg (32 mg/100 ml) | 6.9.2026 |
 | Monster Ultra 500 ml | 249 kr | 150 mg (30 mg/100 ml, ESB-merking) | 13.9.2026 |
 | Merrild 103, 500 g | 1.298 kr | 8 g og 90 mg í bolla (EFSA) | 9.9.2026 |

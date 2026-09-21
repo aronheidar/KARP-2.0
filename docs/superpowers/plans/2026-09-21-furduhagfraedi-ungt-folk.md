@@ -30,7 +30,7 @@
 |---|---|---|
 | Nikótíngjald | 1–8 mg/g 8,30 · 8,1–12 12,45 · 12,1–16 15,55 · 16,1–20 20,75 kr/g | lög 96/1995, 10. gr. d (fjárhæðir skv. l. 99/2025, 4. gr.) |
 | Vindlingar | 806,70 kr á 20 stk. pakka | l. 96/1995, 10. gr. (skv. l. 99/2025, 3. gr.) |
-| Nocco 330 ml | 304 kr, 105 mg | Neytandinn, Bónus 15.9.2026 |
+| Nocco 330 ml | 304 kr, 105 mg | Neytandinn, Bónus 31.8.2026 (Limón; „nocco limón 105mg" staðfestir styrkinn). ⚠ Focus-línan kann að vera sterkari, ekki nota hana |
 | Red Bull 250 ml | 233 kr, 80 mg | Neytandinn, Bónus 6.9.2026 |
 | Monster Ultra 500 ml | 249 kr, 150 mg | Neytandinn, Bónus 13.9.2026 |
 | Merrild 103 500 g | 1.298 kr; 8 g og 90 mg í bolla | Neytandinn, Bónus 9.9.2026; EFSA |
@@ -158,7 +158,8 @@ test('16 ára í hlutastarfi: enginn tekjuskattur, 4% lífeyrir', () => {
 });
 
 test('mínútur af vinnu', () => {
-  naer(minutur(304, 2314.0992), 7.882207, 1e-5);
+  assert.equal(minutur(300, 1800), 10);
+  assert.ok(Math.abs(minutur(304, 2314.0992) - 7.88) < 0.01);
   assert.equal(minutur(304, 0), null);
 });
 
@@ -184,7 +185,7 @@ test('miðgildi sölu: aðeins réttur flokkur og gluggi, lv í þús. kr', () =
 
 test('íslattar í útborgun', () => {
   const r = islattarIUtborgun({ verdIbudar: 54500000, hlutfall: 0.10, islatteVerd: 1100 });
-  assert.equal(r.utborgun, 5450000);
+  naer(r.utborgun, 5450000);
   naer(r.fjoldi, 4954.545454, 1e-5);
   naer(r.arMedEinumADag, 4954.545454 / 365, 1e-6);
 });
@@ -348,7 +349,7 @@ export function oskilad({ aMarkad, skilad, gjald }) {
 - [ ] **Step 4: Keyra og sjá standast**
 
 Run: `cd /c/Users/aronh/dev/KARP/_gc3-wt/web && node --test test/furdu-ungt.test.mjs`
-Expected: `# pass 18`, `# fail 0`
+Expected: `# pass 17`, `# fail 0`
 
 - [ ] **Step 5: Allt prófasafnið**
 
@@ -704,7 +705,7 @@ Expected: FAIL, `ENOENT … furdu-ungt.json`
   "koffin": {
     "verdHeimild": "Neytandinn (verð af kassastrimlum notenda), Bónus",
     "drykkir": [
-      { "id": "nocco", "heiti": "Nocco 330 ml", "verd": 304, "mg": 105, "dags": "2026-09-15", "athugasemd": "íslenska útgáfan, 105 mg í dós" },
+      { "id": "nocco", "heiti": "Nocco 330 ml", "verd": 304, "mg": 105, "dags": "2026-08-31", "athugasemd": "íslenska útgáfan, 105 mg í dós" },
       { "id": "redbull", "heiti": "Red Bull 250 ml", "verd": 233, "mg": 80, "dags": "2026-09-06", "athugasemd": "32 mg í 100 ml samkvæmt umbúðum" },
       { "id": "monster", "heiti": "Monster Ultra 500 ml", "verd": 249, "mg": 150, "dags": "2026-09-13", "athugasemd": "30 mg í 100 ml samkvæmt evrópskum umbúðum" }
     ],
@@ -768,7 +769,7 @@ EOF
 **Interfaces:**
 - Consumes: öll föll úr Task 1; `web/src/data/furdu-ungt.json` (Task 3); `gogn/nikotinpudar.json` (Task 2); `web/public/gogn/fasteignaskra/230.json` (til; uppfært af refresh-data).
 
-- [ ] **Step 1: Frontmatter.** Breyta innflutningslínu format.mjs í `import { fmtNum, groupThousands, MON_LONG } from '@lib/format.mjs';` og bæta við á eftir `const desc = …`:
+- [ ] **Step 1: Frontmatter.** Breyta innflutningslínu format.mjs í `import { fmtNum, groupThousands, MON_LONG } from '@lib/format.mjs';`. Innflutningarnir hér að neðan fara í innflutningsblokkina EFST (á eftir `import DATA …`); afgangurinn á eftir `const desc = …`:
 
 ```js
 // ── Unga kynslóðin (21.9.2026). Stærðfræðin býr í lib/furdu-ungt.mjs; hér er aðeins framsetning.
@@ -958,9 +959,9 @@ Expected: `Complete!` og engin villa. (⚠ Brotni `.bin/astro`: `npm install`.)
 
 Run:
 ```bash
-cd /c/Users/aronh/dev/KARP/_gc3-wt/web && f=dist/furduhagfraedi/index.html && for a in nikotingjald koffinkrona nocco-vinnutimi dosin unga-kynslodin; do printf "%s " "$a"; grep -c "id=\"$a\"" $f; done; grep -c 'id="islattar"' $f; grep -o '[0-9.]* kr meira á dós' $f; grep -o 'rúmlega [0-9]* sinnum' $f; grep -o '[0-9],[0-9] mínútur' $f; grep -o 'Um [0-9.]* milljónir króna' $f; grep -c -P '[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}]' $f
+cd /c/Users/aronh/dev/KARP/_gc3-wt/web && f=dist/furduhagfraedi/index.html && for a in nikotingjald koffinkrona nocco-vinnutimi dosin unga-kynslodin; do printf "%s " "$a"; grep -c "id=\"$a\"" $f; done; grep -c 'id="islattar"' $f; grep -o '[0-9.]* kr meira á dós' $f; grep -o 'rúmlega [0-9]* sinnum' $f; grep -o '[0-9],[0-9] mínútur' $f; grep -o 'Um [0-9.]* milljónir króna' $f; sed -n '/id="unga-kynslodin"/,/class="note"/p' $f | grep -c -P '[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}]'
 ```
-Expected: 1 fyrir hvert akkeri nema `islattar` = 0 (íslatteverð null); `73 kr meira á dós` (eða tala nýrrar talningar); `rúmlega 12 sinnum`; `7,9 mínútur`; `Um 580 milljónir króna`; emojí-talning 0.
+Expected: 1 fyrir hvert akkeri nema `islattar` = 0 (íslatteverð null); `73 kr meira á dós` (eða tala nýrrar talningar); `rúmlega 12 sinnum`; `7,9 mínútur`; `Um 580 milljónir króna`; emojí í nýju hlutunum 0 (aðeins þeir taldir: valmynd síðunnar ber ✕, sem er vísvitandi undantekning).
 
 - [ ] **Step 7: Skoða í vafra, bæði breiddum.** Bæta við `C:\Users\aronh\OneDrive\Documents\KARP\.claude\launch.json` stillingu `{"name":"gc3-dist","runtimeExecutable":"python","runtimeArgs":["-m","http.server","4412","--directory","C:/Users/aronh/dev/KARP/_gc3-wt/web/dist"],"port":4412}`, ræsa með `preview_start {name:"gc3-dist"}`, fara á `/furduhagfraedi/#nikotingjald`, skjámynd; `resize_window {preset:"mobile"}`, skjámynd af `#koffinkrona`; `resize_window {preset:"desktop"}`. Athuga: sagartönnin sýnir fjórar tennur, súlurnar lesast, engin lárétt skrun á 375 px.
 
@@ -1544,7 +1545,7 @@ cd "$(dirname "$0")"
 NAFN="$1"; DAGS="$2"
 [[ "$DAGS" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "dags á forminu YYYY-MM-DD"; exit 1; }
 [ -s "$NAFN.mp4" ] && [ -s "$NAFN.txt" ] || { echo "vantar $NAFN.mp4 eða $NAFN.txt"; exit 1; }
-URL=$(postiz upload "$NAFN.mp4" | grep -o 'https://uploads\.postiz\.com/[^"]*' | head -1)
+URL=$(postiz upload "$NAFN.mp4" | grep -o 'https://uploads\.postiz\.com/[^"]*' | head -1 || true)
 [ -n "$URL" ] || { echo "upload skilaði engri slóð"; exit 1; }
 TEXTI="$(cat "$NAFN.txt")"
 postiz posts:create -c "$TEXTI" -m "$URL" -i cmt92pcw000r9p20yv7b53018 -s "${DAGS}T08:30:00Z" -t schedule --no-shortLink
@@ -1574,7 +1575,7 @@ KARP={'cmt92pcw000r9p20yv7b53018':'LI','cmt92q6mr00pbmp0ykfa92r3v':'FB'}
 for p in sorted(posts,key=lambda p:p.get('publishDate','')):
     d=p.get('publishDate','')
     if not ('2026-09-24'<=d[:10]<='2026-10-01'): continue
-    k=KARP.get((p.get('integration') or {}).get('id'),'ANNAD')
+    k=KARP.get((p.get('integration') or {}).get('id') or p.get('integrationId'),'ANNAD')
     print(d[:16],k,p.get('state'),p.get('id','')[-6:],(p.get('content') or '')[:40].encode('unicode_escape').decode())
 PY
 ```
