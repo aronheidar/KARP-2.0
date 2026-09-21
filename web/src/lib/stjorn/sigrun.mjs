@@ -1,6 +1,7 @@
 // sigrun.mjs — HREIN eining: yfirlit → hólfin fimm á spjaldi Sigrúnar (þjónustufulltrúi).
 // Engin fetch, engin D1 — allt kemur úr /api/admin/overview svo spjaldið kosti ekkert aukalega.
 import { bidurFyrir } from './bidur_thin.mjs';
+import { eintala } from './vikutexti.mjs';
 
 const KLST = 3600;
 function midgildi(tolur) {
@@ -10,7 +11,10 @@ function midgildi(tolur) {
 }
 function timiTexti(sek) {
   if (sek == null) return '—';
-  return sek < KLST ? Math.max(1, Math.round(sek / 60)) + ' mín' : sek < 86400 ? Math.round(sek / KLST) + ' klst' : Math.round(sek / 86400) + ' dagar';
+  if (sek < KLST) return Math.max(1, Math.round(sek / 60)) + ' mín';
+  if (sek < 86400) return Math.round(sek / KLST) + ' klst';
+  const d = Math.round(sek / 86400);
+  return d + ' ' + (eintala(d) ? 'dagur' : 'dagar');   // „1 dagar" stóð á spjaldinu (sást í vafra 22.9)
 }
 function dagsTexti(ts) {
   if (!ts) return '';
@@ -26,11 +30,15 @@ export function sigrunGogn(overview = {}, bidurListi = [], now = 0) {
   const ny7 = listi.filter((t) => Number(t.created) > nu - 7 * 86400).length;
   const sidastVirk = listi.reduce((m, t) => Math.max(m, Number(t.updated) || 0), 0);
   const opnar = Number(tx.open) || 0;
+  // „Ég þarf þig á þessum" fer EFST á spjaldið, og þær raðir eru þá ekki endurteknar í „Bíður þín".
+  // Samtals er þetta sama tala og á andlitinu: sömu raðir úr sömu uppsprettu, aðeins skipt í tvennt.
+  const allt = bidurFyrir(bidurListi, 'sigrun');
 
   return {
     stada: opnar ? opnar + (opnar === 1 ? ' opin beiðni' : ' opnar beiðnir') : 'engin opin beiðni',
     sidast: dagsTexti(sidastVirk),
-    bidur: bidurFyrir(bidurListi, 'sigrun'),
+    hjalp: allt.filter((r) => r.tegund === 'hjalp'),
+    bidur: allt.filter((r) => r.tegund !== 'hjalp'),
     // Þráður hverrar beiðni er á sínum stað í listanum neðar á spjaldinu; hér er aðeins nýjasta hreyfingin.
     vinnsla: listi.slice(0, 5).map((t) => ({ texti: '#' + t.id + ' ' + (t.efni || ''), hvenaer: dagsTexti(t.updated) })),
     tolur: [

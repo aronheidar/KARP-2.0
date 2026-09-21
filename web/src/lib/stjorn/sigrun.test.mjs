@@ -35,6 +35,14 @@ test('miðgildi svartíma er reiknað úr svar_sent − created, aðeins af svö
   assert.equal(t.s, '2 svöruð');
 });
 
+test('miðgildi svartíma: 1 dagur og 21 dagur í eintölu, 2 dagar í fleirtölu', () => {
+  const med = (sek) => sigrunGogn({ now: NU, tickets: { open: 0, by: {}, list: [{ id: 1, stada: 'svarad', created: NU - sek, updated: NU, svar_sent: NU, efni: 'x' }] } }, [], NU)
+    .tolur.find((x) => x.l === 'miðgildi svartíma').n;
+  assert.equal(med(86400), '1 dagur');
+  assert.equal(med(2 * 86400), '2 dagar');
+  assert.equal(med(21 * 86400), '21 dagur');
+});
+
 test('engin svöruð beiðni → miðgildi sýnir striklu en fellur ekki', () => {
   const g = sigrunGogn({ now: NU, tickets: { open: 0, by: {}, list: [{ id: 9, stada: 'nytt', created: NU, updated: NU, efni: 'x' }] } }, [], NU);
   assert.equal(g.tolur.find((x) => x.l === 'miðgildi svartíma').n, '—');
@@ -46,6 +54,18 @@ test('bíður þín-raðir eru síaðar á Sigrúnu', () => {
     { starfsmadur: 'hrafn', tegund: 'tillaga', titill: 'b', vidbot: '', slod: '#t2', bid: 10, adkallandi: false },
   ];
   assert.deepEqual(sigrunGogn(OV, listi, NU).bidur.map((r) => r.titill), ['a']);
+});
+
+test('hjálparbeiðnir fara efst og eru ekki endurteknar í bíður þín — samtals sama tala og á andlitinu', () => {
+  const listi = [
+    { starfsmadur: 'sigrun', tegund: 'hjalp', titill: '#1 — nefnir endurgreiðslu', slod: '#ticket-1', bid: 10 },
+    { starfsmadur: 'sigrun', tegund: 'svar', titill: '#2 — bíður svars', slod: '#ticket-2', bid: 10 },
+    { starfsmadur: 'hrafn', tegund: 'tillaga', titill: 'b', slod: '#t3', bid: 10 },
+  ];
+  const g = sigrunGogn(OV, listi, NU);
+  assert.deepEqual(g.hjalp.map((r) => r.titill), ['#1 — nefnir endurgreiðslu']);
+  assert.deepEqual(g.bidur.map((r) => r.titill), ['#2 — bíður svars']);
+  assert.equal(g.hjalp.length + g.bidur.length, 2);
 });
 
 test('rofinn ber lykil Sigrúnar og núverandi stöðu', () => {

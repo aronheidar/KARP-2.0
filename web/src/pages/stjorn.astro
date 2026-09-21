@@ -469,6 +469,30 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     .stj-tillaga li span { color: var(--faint); font-size: 13px; }
     .stj-tillaga li q { display: block; margin: 2px 0 0 24px; color: var(--muted); font-size: 13px; font-style: italic; }
     .stj-tillaga button + button { margin-left: 6px; }
+    /* 🙋 Kveðjan, „ég þarf þig á þessum", lærdómurinn og hjálpargreinarnar (hugmyndirnar sex, 22.9) */
+    .stj-kvedja { margin: -8px 0 20px; max-width: 70ch; font-size: 15px; line-height: 1.5; color: var(--ink); }
+    .stj-hola--hjalp h3 { color: var(--gold); }
+    .stj-hola--hjalp .stj-bidur-rod { background: rgba(246,177,59,.05); }
+    .stj-vikan p.stj-vikan-laert { margin-top: 8px; color: var(--muted); }
+    .stj-vikan-postur { margin-top: 10px; }
+    .stj-taka-til + .stj-kb-leita { margin-left: 6px; }
+    .stj-tix-man { margin: 0 0 10px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); font-size: 13.5px; line-height: 1.5; color: var(--muted); }
+    .stj-tix-man b { color: var(--ink); font-weight: 600; }
+    .stj-greinar-inn { margin: 0 0 10px; }
+    .stj-greinar-til { display: grid; gap: 10px; }
+    .stj-grein { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+    .stj-grein-haus { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+    .stj-grein-ids { color: var(--faint); font-size: 13px; }
+    .stj-grein-drog { display: grid; gap: 8px; }
+    .stj-grein-drog label { display: grid; gap: 4px; font-size: 13px; color: var(--faint); }
+    /* litur SÉRSTAKLEGA: merkið er dauft og reitirnir myndu erfa það (sást í vafra 22.9) */
+    .stj-grein-drog input, .stj-grein-drog textarea { font: inherit; font-size: 14px; color: var(--ink); width: 100%; box-sizing: border-box; }
+    .stj-grein-drog textarea { min-height: 110px; resize: vertical; }
+    .stj-grein-villa:empty { display: none; }
+    .stj-grein-villa { display: block; margin-top: 6px; color: #c0392b; }
+    .stj-greinar-h4 { margin: 16px 0 6px; font-size: 13.5px; color: var(--muted); }
+    .stj-grein-vistud { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; color: var(--muted); }
+    .stj-grein-vistud b { color: var(--ink); font-weight: 600; }
     .stj-tilbaka:hover { color: var(--gold); }
   </style>
 
@@ -484,6 +508,9 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     import { vikutexti } from '../lib/stjorn/vikutexti.mjs';   // samantektin er SNIÐIN úr tölum, aldrei skrifuð af líkani
     import { sidastaFullaVika, vikuBil } from '../lib/stjorn/vika.mjs';
     import { samtalHtml, hreinsaSogu } from '../lib/stjorn/samtal.mjs';
+    import { morgunkvedja } from '../lib/stjorn/kvedja.mjs';   // 🙋 kveðjan hennar, sniðin úr tölum
+    import { mannEftir, mannEftirTexti } from '../lib/stjorn/hjalparbeidni.mjs';   // hún man eftir fólki
+    import { laerdomsTexti } from '../lib/stjorn/laerdomur.mjs';   // það sem hún lærði af breytingum þínum
     const $ = (id) => document.getElementById(id);
     const dIS = (ts) => { try { const d = new Date(ts * 1000); return d.getUTCDate() + '.' + (d.getUTCMonth() + 1) + '. ' + String(d.getUTCFullYear()).slice(2); } catch (e) { return ''; } };
     // Starfsmenn með spjald. ⚠ Bættu EKKI við andliti fyrr en vélin á bak við það er komin —
@@ -527,19 +554,33 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         + (id === 'sigrun' ? '<div id="stj-spjald-tix"></div>' : '');
       if (id === 'sigrun') $('stj-spjald-tix').appendChild($('stj-tix-wrap'));   // beiðnalistinn FLYST, ekki afritast
       if (id === 'sigrun') {
-        // Samantekt vikunnar og samtal — BEINT UNDIR myndinni, ekki neðst á spjaldinu.
+        // Kveðjan, „ég þarf þig á þessum", samantekt vikunnar og samtal — BEINT UNDIR myndinni.
+        // Kveðjan telur „bíður þín" úr sömu röðum og andlitið (hjálparraðir + hinar), svo tölurnar stangist ekki á.
+        const tk = d.tickets || {};
+        // Síðasta heimsókn er skráð á klukku VAFRANS, svo „nú" verður að vera á sömu klukku: annars sýnist
+        // heimsókn fyrir mínútu vera í framtíðinni þegar klukka þjónsins er örlítið á eftir.
+        const kvedja = morgunkvedja({ nu: Math.max(nu, Math.floor(Date.now() / 1000)), sidast: sigrunSidast(), klst: new Date().getHours(), listi: tk.list || [], bida: (gogn.hjalp || []).length + (gogn.bidur || []).length });
+        const hjalpHtml = (gogn.hjalp || []).length
+          ? '<section class="stj-hola stj-hola--bidur stj-hola--hjalp"><h3>Ég þarf þig á þessum <span class="stj-hola-n">' + gogn.hjalp.length + '</span></h3>'
+            + gogn.hjalp.map((r) => bidurRod(r)).join('') + '</section>'
+          : '';
         $('stj-spjald').querySelector('.stj-spjald-haus').insertAdjacentHTML('afterend',
-          '<section class="stj-hola stj-vikan" id="stj-sigrun-vika"><h3>Vikan hjá mér</h3><p class="stj-note">Tek saman…</p></section>'
+          '<p class="stj-kvedja" id="stj-kvedja">' + esc(kvedja) + '</p>'
+          + hjalpHtml
+          + '<section class="stj-hola stj-vikan" id="stj-sigrun-vika"><h3>Vikan hjá mér</h3><p class="stj-note">Tek saman…</p></section>'
           + '<section class="stj-hola"><h3>Talaðu við mig</h3>'
           + '<div class="stj-samtal" id="stj-samtal" aria-live="polite">' + samtalHtml(samtalSaga) + '</div>'
           + '<div class="stj-samtal-inn"><textarea id="stj-samtal-texti" rows="2" placeholder="T.d. hvað bíður lengst? eða: lokaðu þeim sem eru búnir"></textarea>'
           + '<button type="button" class="stj-btn" id="stj-samtal-senda">Senda</button></div>'
           + '<button type="button" class="stj-btn stj-btn-sm stj-taka-til" id="stj-taka-til">Biðja Sigrúnu að taka til í miðunum</button>'
-          + '</section>');
+          + '<button type="button" class="stj-btn stj-btn-sm stj-kb-leita" id="stj-kb-leita">Finna spurningar sem endurtaka sig</button>'
+          + '</section>'
+          + greinaHtml(tk));
         if (gamaltSamtal) $('stj-samtal-texti').value = gamaltSamtal;
         const sm = $('stj-samtal'); if (sm) sm.scrollTop = sm.scrollHeight;
         teiknaViku();
         tengjaSamtal();
+        tengjaGreinar();
       }
       // 🙋 Smellur á andlitið → veifa. Hylkið er sett AÐEINS þegar teikningin ber .av-hond, svo
       // stýringin er til nákvæmlega þegar eitthvað getur hreyfst — engin dauð stýring á ómálaðri
@@ -1073,6 +1114,29 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         try { await spyrja({ action: 'sigrun_tillaga' }); }
         finally { _samtalIGangi = false; const t2 = $('stj-taka-til'); if (t2) t2.disabled = false; }
       };
+      // 📚 Leit að spurningum sem endurtaka sig. Svarið kemur í samtalið, tillögurnar í hlutann fyrir neðan.
+      const kl = $('stj-kb-leita');
+      if (kl) kl.onclick = async () => {
+        if (_samtalIGangi) return;
+        _samtalIGangi = true;
+        kl.disabled = true;
+        samtalSaga = hreinsaSogu([...samtalSaga, { hver: 'aron', texti: 'Eru einhverjar spurningar sem endurtaka sig?' }]);
+        endurteiknaSamtal();
+        try {
+          const r = await hugsarMedan(() => tixPost({ action: 'sigrun_kb_leita' }));
+          const n = r && r.ok ? (Array.isArray(r.hopar) ? r.hopar.length : 0) : -1;
+          const FJ = ['', 'eina spurningu', 'tvær spurningar', 'þrjár spurningar', 'fjórar spurningar', 'fimm spurningar'];
+          const texti = n < 0
+            ? (r && r.error === 'unconfigured' ? 'Ég næ ekki sambandi, ANTHROPIC_API_KEY vantar í worker.' : 'Ég náði ekki að leita núna. Reyndu aftur eftir smá stund.')
+            : n === 0 ? 'Ég fann enga spurningu sem hefur borist þrisvar eða oftar síðustu 60 daga.'
+              : 'Ég fann ' + (FJ[n] || n + ' spurningar') + ' sem ' + (n === 1 ? 'hefur' : 'hafa') + ' borist þrisvar eða oftar. Tillögurnar eru hér fyrir neðan.';
+          samtalSaga = hreinsaSogu([...samtalSaga, { hver: 'sigrun', texti }]);
+          endurteiknaSamtal();
+          if (n > 0) { vidbragdEftirBoot('lita'); boot(); }   // tillögurnar berast með yfirlitinu
+          else if (n === 0) talar(texti);
+          else spilaVidbragd(sigrunHylki(), 'dapur');
+        } finally { _samtalIGangi = false; const k2 = $('stj-kb-leita'); if (k2) k2.disabled = false; }
+      };
       // Tillaga: „Loka völdum" kallar loka_margt EINU SINNI. Þjónninn metur regluna AFTUR á þeirri
       // stundu og sleppir því sem hefur breyst (t.d. notandi skrifaði aftur). Aron smellir; hún ekki.
       $('stj-samtal').onclick = async (e) => {
@@ -1104,18 +1168,121 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         boot();
       };
     }
+    // 🙋 KVEÐJAN. Síðasta heimsókn á spjaldið hennar er lesin EINU SINNI á hverja síðuhleðslu og sú
+    // nýja skráð strax: endurteikning eftir aðgerð má ekki breyta „síðan þú leist við" í núll. Vafra-
+    // geymslan er þægindi hér; bregðist hún heilsar hún um síðasta sólarhringinn.
+    let _sidastaHeimsokn;
+    function sigrunSidast() {
+      if (_sidastaHeimsokn !== undefined) return _sidastaHeimsokn;
+      let s = null;
+      try { s = Number(localStorage.getItem('stj_sigrun_sidast')) || null; } catch (e) { s = null; }
+      try { localStorage.setItem('stj_sigrun_sidast', String(Math.floor(Date.now() / 1000))); } catch (e) { /* engin geymsla */ }
+      // Hún veifar við fyrstu kveðju dagsins: þú komst, það er raunverulegur atburður. Aldrei oftar á dag.
+      const dagur = new Date().toDateString();
+      let veifad = ''; try { veifad = localStorage.getItem('stj_sigrun_veifad') || ''; } catch (e) { veifad = ''; }
+      if (veifad !== dagur) { try { localStorage.setItem('stj_sigrun_veifad', dagur); } catch (e) { /* engin geymsla */ } vidbragdEftirBoot('veifa'); }
+      _sidastaHeimsokn = s;
+      return s;
+    }
+    // 📚 HJÁLPARGREINAR: tillögur hennar og greinarnar sem þú hefur vistað. Engin tóm skúffa — hlutinn
+    // er aðeins til þegar eitthvað er í honum; leitin er hnappur í samtalinu. Drög lifa í minni síðunnar
+    // yfir endurteikningu, eins og samtalið, og aldrei í vafrageymslu.
+    let _greinaDrog = {}, _greinIGangi = false;
+    function greinaHtml(tk) {
+      const till = Array.isArray(tk.kb_tillogur) ? tk.kb_tillogur.filter((h) => h && Array.isArray(h.ids)) : [];
+      const vist = Array.isArray(tk.kb_greinar) ? tk.kb_greinar : [];
+      if (!till.length && !vist.length) return '';
+      const tillHtml = till.map((h) => {
+        const lykill = h.ids.map(Number).join(',');
+        const d = _greinaDrog[lykill];
+        return '<div class="stj-grein" data-ids="' + esc(lykill) + '">'
+          + '<div class="stj-grein-haus"><b>„' + esc(h.efni) + '“</b><span class="stj-grein-ids">' + h.ids.length + ' beiðnir · ' + esc(h.ids.map((n) => '#' + Number(n)).join(' ')) + '</span></div>'
+          + (d
+            ? '<div class="stj-grein-drog">'
+              + '<label>Leitarorð<input type="text" class="stj-grein-um" maxlength="120" value="' + esc(d.um) + '"></label>'
+              + '<label>Texti<textarea class="stj-grein-svar" maxlength="1500" rows="5">' + esc(d.svar) + '</textarea></label>'
+              + '<span class="stj-note">Ég nota greinina eins og hinar og má senda hana orðrétt þegar ég er viss.</span>'
+              + '<div><button type="button" class="stj-btn stj-btn-sm" data-grein="vista">Vista í þekkingarsafnið</button> '
+              + '<button type="button" class="stj-btn stj-btn-sm" data-grein="haetta">Hætta við</button></div></div>'
+            : '<div class="stj-grein-takkar"><button type="button" class="stj-btn stj-btn-sm" data-grein="drog">Skrifa drög</button> '
+              + '<button type="button" class="stj-btn stj-btn-sm" data-grein="hafna">Ekki núna</button></div>')
+          + '<span class="stj-note stj-grein-villa"></span></div>';
+      }).join('');
+      const vistHtml = vist.map((k) => '<div class="stj-grein-vistud" data-kb="' + esc(k.id) + '"><span><b>' + esc(k.um) + '</b><br>' + esc(k.svar) + '</span>'
+        + '<button type="button" class="stj-btn stj-btn-sm" data-grein="eyda">Eyða</button></div>').join('');
+      return '<section class="stj-hola" id="stj-sigrun-greinar"><h3>Hjálpargreinar</h3>'
+        + (till.length ? '<p class="stj-note stj-greinar-inn">Sama spurningin hefur borist þrisvar eða oftar. Drögin skrifa ég upp úr svörunum sem þú sendir.</p><div class="stj-greinar-til">' + tillHtml + '</div>' : '')
+        + (vist.length ? '<h4 class="stj-greinar-h4">Greinar sem þú hefur vistað</h4>' + vistHtml : '')
+        + '</section>';
+    }
+    function tengjaGreinar() {
+      const s = $('stj-sigrun-greinar'); if (!s) return;
+      // það sem þú skrifar í drögin lifir endurteikninguna af
+      s.addEventListener('input', (e) => {
+        const g = e.target.closest('.stj-grein'); const d = g && _greinaDrog[g.dataset.ids]; if (!d) return;
+        if (e.target.classList.contains('stj-grein-um')) d.um = e.target.value;
+        if (e.target.classList.contains('stj-grein-svar')) d.svar = e.target.value;
+      });
+      s.onclick = async (e) => {
+        const b = e.target.closest('button[data-grein]'); if (!b || _greinIGangi) return;
+        const adg = b.dataset.grein;
+        if (adg === 'eyda') {
+          const k = b.closest('.stj-grein-vistud'); if (!k) return;
+          if (!confirm('Eyða greininni? Ég hætti þá að nota hana í svörum.')) return;
+          _greinIGangi = true; b.disabled = true;
+          let r = null; try { r = await tixPost({ action: 'sigrun_grein_eyda', kb: k.dataset.kb }); } finally { _greinIGangi = false; }
+          if (r && r.ok) { vidbragdEftirBoot('kinka'); boot(); } else { b.disabled = false; spilaVidbragd(sigrunHylki(), 'dapur'); }
+          return;
+        }
+        const g = b.closest('.stj-grein'); if (!g) return;
+        const lykill = g.dataset.ids, ids = lykill.split(',').map(Number);
+        const villa = (t) => { const v = g.querySelector('.stj-grein-villa'); if (v) v.textContent = t; };
+        if (adg === 'haetta') { delete _greinaDrog[lykill]; syna(location.hash); return; }
+        villa('');
+        if (adg === 'drog') {
+          _greinIGangi = true; b.disabled = true;
+          let r = null; try { r = await hugsarMedan(() => tixPost({ action: 'sigrun_grein_drog', ids })); } finally { _greinIGangi = false; }
+          if (r && r.ok && r.grein) { _greinaDrog[lykill] = { um: r.grein.um, svar: r.grein.svar }; vidbragdEftirBoot('lita'); syna(location.hash); return; }
+          b.disabled = false; spilaVidbragd(sigrunHylki(), 'dapur');
+          villa(r && r.error === 'engin_svor' ? 'Þú hefur ekki svarað neinni þeirra enn, svo ég hef ekkert að byggja á.'
+            : r && r.error === 'tillaga' ? 'Tillagan er ekki lengur til. Leitaðu aftur.'
+              : r && r.error === 'unconfigured' ? 'ANTHROPIC_API_KEY vantar í worker.' : 'Náði ekki að skrifa drögin. Reyndu aftur.');
+          return;
+        }
+        if (adg === 'vista') {
+          const um = g.querySelector('.stj-grein-um').value.trim(), svar = g.querySelector('.stj-grein-svar').value.trim();
+          if (um.length < 3 || svar.length < 40) { villa('Skrifaðu leitarorð og texta, minnst 40 stafi.'); return; }
+          _greinIGangi = true; b.disabled = true;
+          let r = null; try { r = await tixPost({ action: 'sigrun_grein_vista', ids, um, svar }); } finally { _greinIGangi = false; }
+          if (r && r.ok) { delete _greinaDrog[lykill]; vidbragdEftirBoot('kinka brosa'); boot(); return; }
+          b.disabled = false; spilaVidbragd(sigrunHylki(), 'dapur');
+          villa(r && r.error === 'grein' ? 'Skrifaðu leitarorð og texta, minnst 40 stafi.' : 'Náði ekki að vista. Reyndu aftur.');
+          return;
+        }
+        if (adg === 'hafna') {
+          _greinIGangi = true; b.disabled = true;
+          let r = null; try { r = await tixPost({ action: 'sigrun_grein_hafna', ids }); } finally { _greinIGangi = false; }
+          if (r && r.ok) { delete _greinaDrog[lykill]; vidbragdEftirBoot('kinka'); boot(); return; }
+          b.disabled = false; spilaVidbragd(sigrunHylki(), 'dapur'); villa('Náði ekki að taka tillöguna af. Reyndu aftur.');
+        }
+      };
+    }
     // VIKAN — síðasta FULLNAÐA vika, svo samantektin er föst frá mánudegi til sunnudags. Geymd
     // í minni per viku: boot() keyrir eftir hverja aðgerð og hún á ekki að sækja D1 aftur fyrir það.
-    let vikuGeymsla = null, vikuVilla = '';   // villa munuð per viku og síðu: boot() á ekki að reyna aftur við hverja aðgerð
+    let vikuGeymsla = null, vikuVilla = '', vikuLofor = null;   // villa munuð per viku og síðu: boot() á ekki að reyna aftur við hverja aðgerð
     async function teiknaViku() {
       const hola = $('stj-sigrun-vika'); if (!hola) return;
       const v = sidastaFullaVika(Math.floor(Date.now() / 1000));
       const lykill = v.ar + '-' + v.vika;
       if (vikuVilla === lykill) { const h0 = $('stj-sigrun-vika'); if (h0) h0.querySelector('.stj-note').textContent = 'Náði ekki í tölur vikunnar.'; return; }
       if (!vikuGeymsla || vikuGeymsla.lykill !== lykill) {
-        const r = await tixPost({ action: 'sigrun_vika', fra: v.fra, til: v.til });
+        // EITT kall í einu: boot() teiknar spjaldið oft á meðan fyrsta svarið er á leiðinni, og hvert
+        // aukakall kostar D1-lestra (vikan, lærdómurinn og þekkingin). Sást í vafra: fjögur köll á tveimur hleðslum.
+        if (!vikuLofor || vikuLofor.lykill !== lykill) vikuLofor = { lykill, p: tixPost({ action: 'sigrun_vika', fra: v.fra, til: v.til }) };
+        const r = await vikuLofor.p;
+        if (!r || !r.ok) vikuLofor = null;
         if (!r || !r.ok) { vikuVilla = lykill; const h2 = $('stj-sigrun-vika'); if (h2) h2.querySelector('.stj-note').textContent = 'Náði ekki í tölur vikunnar.'; return; }
-        vikuGeymsla = { lykill, tolur: r.tolur || {} };
+        vikuGeymsla = { lykill, tolur: r.tolur || {}, laerdomur: r.laerdomur || null, still: r.still || null };
       }
       const h = $('stj-sigrun-vika'); if (!h) return;   // spjaldið gæti hafa verið endurteiknað á meðan
       // „enn opnar" og „lengst beðið" eru NÚNA, ekki í síðustu viku — þær koma úr yfirlitinu sem boot()
@@ -1129,8 +1296,26 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       const elst = (Array.isArray(tk.list) ? tk.list : []).filter((m) => m && (m.stada === 'nytt' || m.stada === 'stadfest'))
         .reduce((a, m) => (!a || bidTimi(m) < bidTimi(a) ? m : a), null);
       const lifandi = { opnir: Number(tk.open) || 0, lengstOpinn: elst ? { id: elst.id, dagar: Math.floor((nuS - bidTimi(elst)) / 86400) } : null };
+      // Hún lærir af þér: hvað breyttist milli draga hennar og þess sem þú sendir. Loforðið „svo nú…"
+      // stendur aðeins þegar stíllinn er í raun kominn í promptið (still úr sama svari).
+      const laert = laerdomsTexti({ vika: vikuGeymsla.laerdomur, still: vikuGeymsla.still });
       h.innerHTML = '<h3>Vikan hjá mér <span class="stj-vikan-bil">vika ' + v.vika + ' · ' + esc(vikuBil(v)) + '</span></h3>'
-        + '<p>' + esc(vikutexti(Object.assign({}, vikuGeymsla.tolur, lifandi)).join(' ')) + '</p>';   // ein málsgrein í hennar rödd, ekki listi
+        + '<p>' + esc(vikutexti(Object.assign({}, vikuGeymsla.tolur, lifandi)).join(' ')) + '</p>'   // ein málsgrein í hennar rödd, ekki listi
+        + (laert.length ? '<p class="stj-vikan-laert">' + esc(laert.join(' ')) + '</p>' : '')
+        + '<button type="button" class="stj-btn stj-btn-sm stj-vikan-postur" id="stj-vikupostur">Senda mér þetta í pósti</button>'
+        + '<span class="stj-note" id="stj-vikupostur-svar"></span>';
+      // Sami póstur og fer sjálfkrafa á mánudögum kl. 08:10 — hnappurinn sendir hann strax á hjalp@karp.is.
+      const pb = $('stj-vikupostur');
+      if (pb) pb.onclick = async () => {
+        pb.disabled = true;
+        const r2 = await hugsarMedan(() => tixPost({ action: 'sigrun_vikupostur' }));
+        const b2 = $('stj-vikupostur'); if (b2) b2.disabled = false;
+        const svar = $('stj-vikupostur-svar');
+        if (svar) svar.textContent = ' ' + (r2 && r2.ok && r2.sent ? 'Sent á hjalp@karp.is.'
+          : r2 && r2.error === 'nylega' ? 'Ég sendi hann rétt áðan.'
+            : r2 && r2.error === 'rofi' ? 'Slökkt er á mér, svo ég sendi ekkert.' : 'Náði ekki að senda. Reyndu aftur.');
+        spilaVidbragd(sigrunHylki(), r2 && r2.ok && r2.sent ? 'kinka' : 'dapur');
+      };
     }
     // Hvaða miða-aðgerð kallar á hvaða svip. Aðeins aðgerðir sem SKILA ok fá viðbragð.
     const VIDBRAGD = { svara: 'kinka', loka: 'kinka brosa', hafna: 'hrista', samthykkja: 'kinka brosa',
@@ -1197,8 +1382,19 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       if (!r || !r.ok) { body.textContent = 'Náði ekki í þráðinn.'; return; }
       body.dataset.loaded = '1';
       const t = r.ticket; let g = {}; try { g = JSON.parse(t.ai_greining || '{}'); } catch (e) {}
-      // Efi: hún lyftir brún þegar þú opnar mið sem hún náði EKKI að greina (líkanið féll á varaleið).
-      if (typeof g.model === 'string' && g.model.startsWith('fallback')) spilaVidbragd(sigrunHylki(), 'efi');
+      // Hún man eftir fólki og segir hvers vegna hún þarf þig — bæði úr yfirlitinu sem boot() sótti
+      // hvort eð er (síðustu 60 beiðnir), svo enginn auka D1-lestur fylgir því að opna mið.
+      const yfirlitsListi = (sidastaSvar && sidastaSvar.tickets && Array.isArray(sidastaSvar.tickets.list)) ? sidastaSvar.tickets.list : [];
+      const me = mannEftir(t, yfirlitsListi);
+      const radIYfirliti = yfirlitsListi.find((x) => Number(x.id) === Number(t.id));
+      const hj = radIYfirliti && radIYfirliti.hjalp && radIYfirliti.hjalp.astaeda !== 'endurtekid' ? radIYfirliti.hjalp : null;   // endurtekið: línan um fyrri erindi segir það
+      const manLina = hj || me
+        ? '<div class="stj-tix-man">' + (hj ? '<b>Ég þarf þig á þessari</b>, ' + esc((String(hj.texti).startsWith('nefnir') ? 'hún ' : '') + hj.texti) + '. ' : '')
+          + (me ? esc(mannEftirTexti(me, t)) : '') + '</div>'
+        : '';
+      // Efi: hún lyftir brún þegar þú opnar mið sem hún náði EKKI að greina (líkanið féll á varaleið),
+      // eða þar sem forsamið svar gæti átt við en hún er ekki viss.
+      if ((typeof g.model === 'string' && g.model.startsWith('fallback')) || (hj && hj.astaeda === 'ovisst')) spilaVidbragd(sigrunHylki(), 'efi');
       // Þráðurinn: in/out-bólur + Moot-línur (niðurstaða/atkvæði/fall). Persónu-innlegg birtast AÐEINS í ráðsalnum.
       // ⚠ ALLT úr r.* fer gegnum esc() — meta þáttað með try/catch, hrynur aldrei á skemmdu JSON.
       const msgs = (r.msgs || []).map((m) => {
@@ -1213,7 +1409,7 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         return `<div class="stj-msg stj-msg-${m.dir}"><div class="stj-msg-meta">${hver} · ${esc(m.fra || '')} → ${esc(m.til || '')} · ${dIS(m.ts)}${m.efni ? ' · <i>' + esc(m.efni) + '</i>' : ''}</div><div class="stj-msg-txt">${esc(m.texti || '')}</div></div>`;
       }).join('');
       const tillaga = g.svar || '';
-      body.innerHTML = `<div class="stj-msgs">${msgs || '<div class="stj-kv-empty">Engin skilaboð.</div>'}</div>`
+      body.innerHTML = manLina + `<div class="stj-msgs">${msgs || '<div class="stj-kv-empty">Engin skilaboð.</div>'}</div>`
         + (g.samantekt || g.cto_brief ? `<div class="stj-tix-ai"><b>🤖 Greining</b> (${esc(g.model || '')}): ${esc(g.samantekt || '')}${g.cto_brief ? '<br><b>Verkbeiðni til CTO:</b> <span style="white-space:pre-wrap">' + esc(g.cto_brief) + '</span>' : ''}</div>` : '')
         + (t.cto_pr ? `<div class="stj-tix-ai"><b>🛠️ CTO-tillaga:</b> <a href="${esc(t.cto_pr)}" target="_blank" rel="noopener">${esc(t.cto_pr)}</a><br><span style="white-space:pre-wrap">${esc(t.cto_samantekt || '')}</span></div>` : '')
         + `<textarea class="stj-tix-svar" rows="5" placeholder="Svar á notandann — sendist frá hjalp@karp.is">${esc(tillaga)}</textarea>`

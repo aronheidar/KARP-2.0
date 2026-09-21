@@ -39,7 +39,8 @@ export function vikutexti(t) {
     const hun = Number(t.svaradHenni) || 0, hann = Number(t.svaradAroni) || 0, hr = Number(t.tilHrafns) || 0;
     const hlutar = [];
     if (hun) hlutar.push('ég svaraði ' + tala(hun));
-    if (hann) hlutar.push('þú tókst ' + tala(hann) + ' sjálfur');
+    // Kynhlutlaust: „þú tókst 4 sjálfur" gerði ráð fyrir kyni lesandans út frá nafni.
+    if (hann) hlutar.push('þú svaraðir ' + tala(hann));
     if (hr) hlutar.push((t.aaetlad ? 'um það bil ' : '') + tala(hr) + ' ' + b(hr, 'fór', 'fóru') + ' áfram til Hrafns');
     if (hlutar.length) s.push(fyrstiStor(saman(hlutar)) + '.');
   }

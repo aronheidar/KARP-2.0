@@ -10,9 +10,10 @@
 import { _ajson, _emailTpl, _esc, sendGmail } from './felag.mjs';
 import { renderEmail } from '../lib/emails.mjs';
 import { readSession } from './auth.mjs';
-import { OPNAR_STODUR, TICKET_STODUR, ackVars, efniUrLysingu, flokkaFallback, greiningPrompt, greiningUser, kbSjalfvirkt, parseGreining, svarUppfaersla, ticketSubject } from '../lib/hjalp_agent.mjs';
+import { OPNAR_STODUR, TICKET_STODUR, ackVars, efniUrLysingu, flokkaFallback, greiningPrompt, greiningUser, kbAllt, kbSjalfvirkt, parseGreining, svarUppfaersla, ticketSubject } from '../lib/hjalp_agent.mjs';
 import { persona, rofiLykill, veljaFundarmenn } from '../lib/personur.mjs';   // 🛟 Sigrún skrifar undir öll póst-samskipti við notendur; fundarmenn f. Moot-forsýn
-import { skraAtburd, sigrunVika, sigrunTillaga, sigrunSpjall, lokaMargt } from './sigrun_vinna.mjs';   // Sigrún sem starfsmaður: vikan, tillaga, samtal, lokun margra
+import { thurfHjalp } from '../lib/stjorn/hjalparbeidni.mjs';   // 🙋 „ég þarf þig á þessari" — reiknað hér, þar sem lýsingin er
+import { skraAtburd, sigrunVika, sigrunTillaga, sigrunSpjall, lokaMargt, sigrunThekking, sigrunLaerdomur, sigrunKbLeita, sigrunGreinDrog, sigrunGreinVista, sigrunGreinHafna, sigrunGreinEyda, sigrunVikupostur } from './sigrun_vinna.mjs';   // Sigrún sem starfsmaður
 
 const MODEL = 'claude-haiku-4-5-20251001';
 const _nowSek = () => Math.floor(Date.now() / 1000);
@@ -83,8 +84,10 @@ export async function setTicket(env, id, fields) {
   await env.TENGSL.prepare(sql).bind(...keys.map((k) => fields[k]), _nowSek(), id).run().catch(() => {});
 }
 
-/** Claude-greining (Haiku) → gátað JSON; fellur á lykilorða-flokkun ef lykill vantar/villa. */
-export async function greinaTicket(env, t) {
+/** Claude-greining (Haiku) → gátað JSON; fellur á lykilorða-flokkun ef lykill vantar/villa.
+ *  `auka` = hjálpargreinar sem Aron hefur vistað · `still` = það sem hún hefur lært af breytingum hans
+ *  (bæði úr sigrunThekking). Hvort tveggja má vanta: þá greinir hún eins og áður. */
+export async function greinaTicket(env, t, auka = [], still = null) {
   const fb = flokkaFallback(t.flokkur, t.lysing);
   if (!env.ANTHROPIC_API_KEY) return Object.assign({ samantekt: '', svar: '', cto_brief: '', kb: null, model: 'fallback' }, fb);
   try {
@@ -92,13 +95,13 @@ export async function greinaTicket(env, t) {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
       // 2000 tókar: cto_brief + svar á íslensku fóru yfir 900 í fyrstu prufu → klippt JSON → þáttun brást.
-      body: JSON.stringify({ model: MODEL, max_tokens: 2000, system: greiningPrompt(), messages: [{ role: 'user', content: greiningUser(t) }] }),
+      body: JSON.stringify({ model: MODEL, max_tokens: 2000, system: greiningPrompt(auka, still), messages: [{ role: 'user', content: greiningUser(t) }] }),
       signal: AbortSignal.timeout(40000),
     });
     if (!res.ok) throw new Error('ai ' + res.status);
     const j = await res.json();
     const text = (j.content || []).map((b) => b.text || '').join('');
-    const g = parseGreining(text);
+    const g = parseGreining(text, auka);
     if (!g) { const e = new Error('parse'); e.raw = text.slice(0, 400); e.stop = j.stop_reason; throw e; }
     return Object.assign(g, { model: MODEL });
   } catch (e) {
@@ -149,12 +152,13 @@ async function notifyIntern(env, t, g, auto) {
 /** Allt flæðið eftir að ticket er til: greining → staðfesting → KB-svar eða bið → innri tilkynning. */
 export async function processNewTicket(env, t) {
   const off = await _rofiOff(env);
-  const g = off ? Object.assign({ samantekt: '', svar: '', cto_brief: '', kb: null, model: 'off' }, flokkaFallback(t.flokkur, t.lysing)) : await greinaTicket(env, t);
+  const th = off ? null : await sigrunThekking(env);
+  const g = off ? Object.assign({ samantekt: '', svar: '', cto_brief: '', kb: null, model: 'off' }, flokkaFallback(t.flokkur, t.lysing)) : await greinaTicket(env, t, th.auka, th.still);
   await setTicket(env, t.id, { tegund: g.tegund, forgangur: g.forgangur, ai_greining: JSON.stringify(g).slice(0, 6000) });
   let auto = null;
   if (!off) {
     await sendAck(env, t);
-    auto = kbSjalfvirkt(g);
+    auto = kbSjalfvirkt(g, th.auka);
     // Endar á „Bestu kveðjur,“ — sendSvar bætir undirskrift Sigrúnar við í fótinn (annars nafnið tvisvar í sama pósti).
     if (auto) await sendSvar(env, t, 'Sæl/Sæll' + (t.nafn ? ' ' + t.nafn.split(' ')[0] : '') + ',\n\n' + auto.svar + '\n\nBestu kveðjur,', 'agent');
     else await setTicket(env, t.id, { stada: 'stadfest' });
@@ -244,11 +248,29 @@ export async function adminTicketHandler(request, env, ctx) {
   //    ⚠ AÐEINS kökulota Arons, ALDREI X-Admin-Key (sama vörn og samthykkja). Rýnin 21.9: CTO-keyrslan
   //    (cto.yml) ber lykilinn og les texta sem NOTENDUR skrifuðu. Miði með innskotnum fyrirmælum mætti
   //    ekki geta lokað 50 miðum án smells eða eytt Claude-kvóta á spjall. Enginn þjónn kallar þessar.
-  if (['sigrun_vika', 'sigrun_tillaga', 'sigrun_spjall', 'loka_margt'].includes(action)) {
+  //    Hjálpargreinarnar bætast í sama hóp: vistuð grein getur farið ORÐRÉTT á viðskiptavini, og
+  //    innskotinn texti í miða má aldrei geta skrifað hana.
+  if (['sigrun_vika', 'sigrun_tillaga', 'sigrun_spjall', 'loka_margt', 'sigrun_vikupostur',
+    'sigrun_kb_leita', 'sigrun_grein_drog', 'sigrun_grein_vista', 'sigrun_grein_hafna', 'sigrun_grein_eyda'].includes(action)) {
     if (byKey) return _ajson({ ok: false, error: 'lota' });
-    if (action === 'sigrun_vika') return _ajson(await sigrunVika(env, Number(b.fra), Number(b.til)));
+    if (action === 'sigrun_vika') {
+      // Vikan og það sem hún lærði í henni. Lærdómurinn má bregðast án þess að vikan falli.
+      const r = await sigrunVika(env, Number(b.fra), Number(b.til));
+      if (r.ok) {
+        const l = await sigrunLaerdomur(env, Number(b.fra), Number(b.til)).catch(() => null);
+        if (l && l.ok) r.laerdomur = l.laerdomur;
+        r.still = (await sigrunThekking(env)).still;
+      }
+      return _ajson(r);
+    }
     if (action === 'sigrun_tillaga') return _ajson(await sigrunTillaga(env));
     if (action === 'sigrun_spjall') return _ajson(await sigrunSpjall(env, b));
+    if (action === 'sigrun_vikupostur') return _ajson(await sigrunVikupostur(env, ticketsOverview, { thvinga: true }));
+    if (action === 'sigrun_kb_leita') return _ajson(await sigrunKbLeita(env));
+    if (action === 'sigrun_grein_drog') return _ajson(await sigrunGreinDrog(env, b));
+    if (action === 'sigrun_grein_vista') return _ajson(await sigrunGreinVista(env, b));
+    if (action === 'sigrun_grein_hafna') return _ajson(await sigrunGreinHafna(env, b));
+    if (action === 'sigrun_grein_eyda') return _ajson(await sigrunGreinEyda(env, b));
     return _ajson(await lokaMargt(env, b, setTicket));
   }
   const id = parseInt(b.id, 10);
@@ -272,7 +294,8 @@ export async function adminTicketHandler(request, env, ctx) {
   }
   if (action === 'greina') {
     // Endurkeyra AI-greiningu á til ticket — sendir ENGAN póst (nýtist í prófunum og þegar módel/prompt breytist).
-    const g = await greinaTicket(env, t);
+    const th = await sigrunThekking(env);
+    const g = await greinaTicket(env, t, th.auka, th.still);
     await setTicket(env, id, { tegund: g.tegund, forgangur: g.forgangur, ai_greining: JSON.stringify(g).slice(0, 6000) });
     return _ajson({ ok: true, greining: g });
   }
@@ -316,11 +339,24 @@ export async function adminTicketHandler(request, env, ctx) {
 
 /** Samantekt fyrir /api/admin/overview → /stjorn/-spjöld. */
 export async function ticketsOverview(env) {
-  // lysing sótt AÐEINS til að reikna fundarmenn (Moot-forsýn á /stjorn/) — fer EKKI í svarið (listinn er léttur).
-  const rows = await env.TENGSL.prepare('SELECT id, created, updated, uppruni, nafn, netfang, flokkur, tegund, forgangur, efni, lysing, stada, ack_sent, svar_sent, cto_pr FROM tickets ORDER BY created DESC LIMIT 60').all().catch(() => ({ results: [] }));
-  const list = (rows.results || []).map((t) => {
+  // lysing sótt AÐEINS til að reikna fundarmenn (Moot-forsýn á /stjorn/) og hvort Sigrún þurfi Aron á
+  // beiðninni — fer EKKI í svarið (listinn er léttur, og lýsingin er persónuupplýsingar).
+  // ⚠ json_valid á undan json_extract: ai_greining er klippt á 6000 stafi við vistun, svo löng greining
+  //   getur verið BROTIÐ JSON — og json_extract á brotnu JSON fellir ALLA fyrirspurnina, ekki bara röðina.
+  const jx = (p) => "CASE WHEN json_valid(t.ai_greining) THEN json_extract(t.ai_greining,'" + p + "') END";
+  const rows = await env.TENGSL.prepare('SELECT t.id, t.created, t.updated, t.uppruni, t.nafn, t.netfang, t.flokkur, t.tegund, t.forgangur, t.efni, t.lysing, t.stada, t.ack_sent, t.svar_sent, t.cto_pr, '
+    + jx('$.model') + ' AS g_model, ' + jx('$.kb.id') + ' AS g_kb, ' + jx('$.kb.vissa') + ' AS g_vissa, '
+    // nýjustu skilaboð notanda, AÐEINS þar sem beiðnin bíður okkar: CASE sleppir undirfyrirspurninni á hinum
+    + "CASE WHEN t.stada IN ('nytt','stadfest') THEN (SELECT substr(m.texti, 1, 1500) FROM ticket_msgs m WHERE m.ticket_id=t.id AND m.dir='in' ORDER BY m.ts DESC, m.id DESC LIMIT 1) END AS sidastaInn "
+    + 'FROM tickets t ORDER BY t.created DESC LIMIT 60').all().catch(() => ({ results: [] }));
+  const th = await sigrunThekking(env);
+  const kb = kbAllt(th.auka);
+  const radir = rows.results || [];
+  const list = radir.map((t) => {
     const o = Object.assign({}, t, { fundarmenn: veljaFundarmenn(t.tegund || 'annad', (t.efni || '') + ' ' + (t.lysing || '')) });
-    delete o.lysing;
+    const h = thurfHjalp(t, { listi: radir, kb });
+    if (h) o.hjalp = h;
+    for (const k of ['lysing', 'sidastaInn', 'g_model', 'g_kb', 'g_vissa']) delete o[k];
     return o;
   });
   const by = {}; for (const t of list) by[t.stada] = (by[t.stada] || 0) + 1;
@@ -350,5 +386,8 @@ export async function ticketsOverview(env) {
   // lykla. Eins og allar hinar hér má hún aldrei fella yfirlitið þótt hún bregðist (t.d. töfluleysi).
   const rofaRadir = await env.TENGSL.prepare("SELECT k, v FROM stjorn_sync WHERE k IN ('hjalp_agent_off','rofi_hrafn')").all().catch(() => ({ results: [] }));
   const rofar = {}; for (const r of (rofaRadir.results || [])) rofar[r.k] = String(r.v) === '1';
-  return { list, open: list.filter((t) => OPNAR_STODUR.includes(t.stada)).length, by, off, moot_bida, moot_osent, sjalfvirk: Number(sjalfv && sjalfv.n) || 0, rofar };
+  // 📚 Þekkingarsafnið hennar: vistaðar greinar (Aron getur eytt) og tillögur að nýjum. Sama lestur og
+  //    greiningin notar, sótt einu sinni ofar í fallinu.
+  const kb_greinar = th.auka.map((k) => ({ id: k.id, um: k.um, svar: k.svar, vistad: k.vistad }));
+  return { list, open: list.filter((t) => OPNAR_STODUR.includes(t.stada)).length, by, off, moot_bida, moot_osent, sjalfvirk: Number(sjalfv && sjalfv.n) || 0, rofar, kb_greinar, kb_tillogur: th.tillogur };
 }

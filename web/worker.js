@@ -24,7 +24,8 @@ import { askellSessionHandler, askellWebhookHandler, payCallbackHandler, payChec
 import { RSK_ROT, _isStem, _kycAfterEvents, _kycRunDiff, _lobbyGate, atvinnugreinHandler, computeGreinRank, greinRankHandler, hladLeit, kycHandler, leiHandler, leyfiHandler, lobbyvaktHandler, loftforHandler, newsSince, roadsSectorsHandler, rskErFyrirtaeki, rskHandler, rskProxyHandler, sanctionsHandler, tengslStatsHandler, tengslanetHandler, topplistarHandler, vanskilHandler } from './src/worker/veitur.mjs';
 import { FRETTA_TYPES, _mentions, _rssItems, digestRun, eftirlitCriticalCron, fetchNews, kycCriticalCron, kycDiffCron, leikurPruneCron, logbirtingCriticalCron, newsIngest, newsSearch } from './src/worker/cron.mjs';
 import { adminEmailHandler, adminOverviewHandler, adminRefreshHandler, adminSendHandler, adminSetTypeHandler, adminSyncHandler, adminUserHandler } from './src/worker/stjornbord.mjs';
-import { adminTicketHandler, createTicket, processNewTicket } from './src/worker/hjalp_agent.mjs';   // 🎫 þjónustufulltrúi: ticket → greining → svar/tillaga
+import { adminTicketHandler, createTicket, processNewTicket, ticketsOverview } from './src/worker/hjalp_agent.mjs';   // 🎫 þjónustufulltrúi: ticket → greining → svar/tillaga
+import { sigrunVikupostur } from './src/worker/sigrun_vinna.mjs';   // 🙋 vikupóstur Sigrúnar á mánudagsmorgni
 import { adminMootHandler } from './src/worker/moot.mjs';   // 🏛️ Moot: ráðsfundur persónanna um eitt ticket — tillaga sem Aron greiðir atkvæði um
 import { adminGmailHandler, gmailIntakeCron } from './src/worker/gmail_intake.mjs';   // 📥 póstur beint á hjalp@ → ticket (3-tíma cron + hnappur á /stjorn/)
 import { adminBilanirHandler } from './src/worker/bilanir.mjs';   // 🛠️ bilanalisti Hrafns: CI, byggingar, gleymdir PR-ar
@@ -3001,7 +3002,8 @@ export default {
   async scheduled(event, env, ctx) {
     // Morgunfundurinn (KYC viku-forgangsröðun) fylgir mánudags-digestinu — sami taktur, sér póstur.
     // RÁS-Leikurinn: vikuleg varðveislutakmörkun (leikurPruneCron) á sama takti — SÉR waitUntil svo digest-villa stöðvi hana aldrei (og öfugt).
-    if (event.cron === '10 8 * * 1') { ctx.waitUntil(digestRun(env).then(() => kycVikuDigest(env))); ctx.waitUntil(leikurPruneCron(env)); }
+    // 🙋 Vikupóstur Sigrúnar: SÉR waitUntil af sömu ástæðu, og hann krefst kröfu í stjorn_sync svo hann fari einu sinni.
+    if (event.cron === '10 8 * * 1') { ctx.waitUntil(digestRun(env).then(() => kycVikuDigest(env))); ctx.waitUntil(leikurPruneCron(env)); ctx.waitUntil(sigrunVikupostur(env, ticketsOverview).catch(() => null)); }
     // Orðsporsvaktin fylgir DAGLEGA cron-inum (ekki 3-tíma): tón-þróun er dagamælikvarði,
     // og daglegt þak ver bæði gegn hávaða í pósthólfi og D1-álagi (ein fréttaleit per vaktað félag).
     else if (event.cron === '30 6 * * *') ctx.waitUntil(kycDiffCron(env).then(() => ordsporCron(env)));

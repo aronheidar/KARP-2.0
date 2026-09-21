@@ -21,8 +21,10 @@ test('vikutexti: sögnin og nafnorðið fylgja tölunni, líka 21 og 11', () => 
 test('vikutexti: hver hluti birtist aðeins ef talan er til — engin „0 svaraði ég"', () => {
   const t = vikutexti({ barust: 5, svaradHenni: 4, svaradAroni: 0, tilHrafns: 1, opnir: 0 });
   assert.equal(t[1], 'Ég svaraði 4 og 1 fór áfram til Hrafns.');
-  assert.ok(!t.join(' ').includes('þú tókst'));
+  assert.ok(!t.join(' ').includes('þú svaraðir'));
   assert.equal(t[t.length - 1], 'Engin er opin núna.');
+  // kynhlutlaust: hvorki „sjálfur" né „sjálf" um lesandann
+  assert.equal(vikutexti({ barust: 8, svaradHenni: 3, svaradAroni: 4, tilHrafns: 1 })[1], 'Ég svaraði 3, þú svaraðir 4 og 1 fór áfram til Hrafns.');
 });
 
 test('vikutexti: ein athugasemd að hámarki, valin eftir reglu', () => {

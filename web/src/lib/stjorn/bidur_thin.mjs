@@ -42,6 +42,9 @@ export function bidurThin({ tickets = {}, bilanir = [], now = 0, markads = null,
     // ný atkvæðagreiðsla getur beðið.
     if (osent.has(t.id)) ut.push(rod('sigrun', 'moot_osent', '#' + t.id + ' — samþykkt svar ósent', t.efni, sidan, slod));
     else if (mootBida.has(t.id)) ut.push(rod('sigrun', 'moot', '#' + t.id + ' — Moot bíður atkvæðis', t.efni, sidan, slod));
+    // 🙋 „Ég þarf þig á þessari": ástæðan kemur úr ticketsOverview (stjorn/hjalparbeidni.mjs), sem sér
+    //    lýsinguna. Sama beiðni, sama röð, aðeins ástæðan í titlinum — hún er EKKI tvítalin.
+    else if ((t.stada === 'nytt' || t.stada === 'stadfest') && t.hjalp && t.hjalp.texti) ut.push(rod('sigrun', 'hjalp', '#' + t.id + ' — ' + t.hjalp.texti, t.efni, sidan, slod));
     else if (t.stada === 'nytt' || t.stada === 'stadfest') ut.push(rod('sigrun', 'svar', '#' + t.id + ' — bíður svars', t.efni, sidan, slod));
     else if (t.stada === 'tillaga') ut.push(rod('hrafn', 'tillaga', '#' + t.id + ' — CTO-tillaga tilbúin', t.efni, sidan, slod));
     // `cto` og `samthykkt` eiga bæði að ganga yfir á mínútum (keyrsla annars vegar, merge+deploy hins

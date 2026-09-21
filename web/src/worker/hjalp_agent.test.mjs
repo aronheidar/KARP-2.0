@@ -25,7 +25,11 @@ function fakeDb(state) {
       return { results: ['hjalp_agent_off', 'rofi_hrafn'].filter((k) => state.sync[k] != null).map((k) => ({ k, v: state.sync[k] })) };
     }
     // ── ticketsOverview ──────────────────────────────────────────────────────────────────────────────────────────
-    if (/^SELECT id, created, updated, uppruni, nafn, netfang, flokkur, tegund, forgangur, efni, lysing, stada, ack_sent, svar_sent, cto_pr FROM tickets ORDER BY created DESC LIMIT 60$/.test(sql)) return { results: Object.values(state.tickets) };
+    // (hjálparástæður og json_valid-vörnin eru prófaðar á raunverulegri SQLite í sigrun_starfsmadur.test.mjs)
+    if (/^SELECT t\.id, t\.created, .* FROM tickets t ORDER BY t\.created DESC LIMIT 60$/.test(sql)) return { results: Object.values(state.tickets) };
+    if (/^SELECT k, v FROM stjorn_sync WHERE \(k>='kb:' AND k<'kb;'\) OR k IN /.test(sql)) {
+      return { results: Object.entries(state.sync).filter(([k]) => k.startsWith('kb:') || ['sigrun_still', 'sigrun_kb_tillogur', 'sigrun_kb_lokid'].includes(k)).map(([k, v]) => ({ k, v })) };
+    }
     if (/^SELECT m\.ticket_id, MAX\(CASE WHEN m\.sent_by='moot' THEN m\.ts END\) t_moot, MAX\(CASE WHEN m\.sent_by='aron' THEN m\.ts END\) t_atkv FROM ticket_msgs m JOIN tickets t ON t\.id=m\.ticket_id WHERE m\.dir='moot' AND t\.stada IN \([?,]+\) GROUP BY m\.ticket_id$/.test(sql)) return { results: [] };
     if (/^SELECT m\.ticket_id, m\.ts, m\.meta, t\.svar_sent FROM ticket_msgs m JOIN tickets t ON t\.id=m\.ticket_id WHERE m\.dir='moot' AND m\.sent_by='aron' AND t\.stada IN \([?,]+\) ORDER BY m\.ts DESC, m\.id DESC$/.test(sql)) return { results: [] };
     if (/^SELECT COUNT\(\*\) n FROM tickets t WHERE t\.svar_sent IS NOT NULL AND NOT EXISTS/.test(sql)) {
@@ -188,6 +192,7 @@ test('ticketsOverview skilar rofa-stöðum beggja starfsmanna úr stjorn_sync', 
   state.sync.rofi_hrafn = '1';
   state.sync.hjalp_agent_off = '0';
   const r = await ticketsOverview(mkEnv(state));
+  assert.equal(r.list.length, 1, 'listinn berst — fyrirspurnin þekkist');
   assert.equal(r.rofar.rofi_hrafn, true, 'slökkt á Hrafni skilar sér');
   assert.equal(r.rofar.hjalp_agent_off, false, 'kveikt á Sigrúnu skilar sér');
 });

@@ -39,6 +39,18 @@ test('beiðni í stöðu cto telst föst fyrst eftir klukkustund', () => {
   assert.equal(fost[0].tegund, 'cto_fast');
 });
 
+test('„ég þarf þig á þessari": sama röð og bíður svars, aðeins ástæðan í titlinum', () => {
+  const r = bidurThin({ now: NU, tickets: { list: [
+    t(1, 'stadfest', NU - 10, { hjalp: { astaeda: 'peningar', texti: 'nefnir endurgreiðslu' } }),
+    t(2, 'nytt', NU - 20),
+    t(3, 'svarad', NU - 30, { hjalp: { astaeda: 'peningar', texti: 'nefnir endurgreiðslu' } }),   // svarað: ekki hennar að biðja um
+  ], moot_osent: [] } });
+  assert.deepEqual(r.map((x) => [x.tegund, x.titill]), [['svar', '#2 — bíður svars'], ['hjalp', '#1 — nefnir endurgreiðslu']]);
+  // Moot-ástand er sértækara og gengur fyrir
+  const m = bidurThin({ now: NU, tickets: { list: [t(1, 'stadfest', NU - 10, { hjalp: { texti: 'nefnir endurgreiðslu' } })], moot_osent: [1] } });
+  assert.equal(m[0].tegund, 'moot_osent');
+});
+
 test('aðkallandi eftir 48 klst; bid er reiknað í sekúndum', () => {
   const r = bidurThin({ now: NU, tickets: { list: [t(1, 'stadfest', NU - ADKALLANDI_SEK - 1), t(2, 'stadfest', NU - 60)] } });
   assert.equal(r[0].adkallandi, true);
