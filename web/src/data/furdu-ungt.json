@@ -1,0 +1,44 @@
+{
+  "athugad": "2026-09-21",
+  "nikotin": {
+    "heimild": "Lög nr. 96/1995, 10. gr. d. Fjárhæðir skv. lögum nr. 99/2025, 4. gr.",
+    "slod": "https://www.althingi.is/lagas/nuna/1995096.html",
+    "vindlingar": { "gjaldPakki": 806.70, "stk": 20, "heimild": "Lög nr. 96/1995, 10. gr. Fjárhæð skv. lögum nr. 99/2025, 3. gr." },
+    "pudiDaemi": { "g": 0.7, "mgG": 12 }
+  },
+  "koffin": {
+    "verdHeimild": "Neytandinn (verð af kassastrimlum notenda), Bónus",
+    "drykkir": [
+      { "id": "nocco", "heiti": "Nocco 330 ml", "verd": 304, "mg": 105, "dags": "2026-08-31", "athugasemd": "íslenska útgáfan, 105 mg í dós" },
+      { "id": "redbull", "heiti": "Red Bull 250 ml", "verd": 233, "mg": 80, "dags": "2026-09-06", "athugasemd": "32 mg í 100 ml samkvæmt umbúðum" },
+      { "id": "monster", "heiti": "Monster Ultra 500 ml", "verd": 249, "mg": 150, "dags": "2026-09-13", "athugasemd": "30 mg í 100 ml samkvæmt evrópskum umbúðum" }
+    ],
+    "kaffi": { "heiti": "Uppáhellt kaffi", "vara": "Merrild 103, 500 g", "pakkiVerd": 1298, "pakkiG": 500, "dags": "2026-09-09", "gBolli": 8, "mgBolli": 90, "athugasemd": "8 g í bolla; 90 mg koffín í 200 ml bolla er viðmið EFSA" },
+    "islatte": { "heiti": "Íslatte, Te & Kaffi", "verd": null, "dags": null, "heimild": null, "skot": 2, "mgSkot": 63, "athugasemd": "tvö espressóskot, 63 mg í skoti (USDA)" }
+  },
+  "laun": {
+    "heimild": "kjarasamnings VR og SA, afgreiðslufólk í verslunum",
+    "gildir": "2026-04-01",
+    "taxti16": 2410.52,
+    "taxti17": 2554.00,
+    "byrjun": 2869.67,
+    "lifeyrir": 0.04,
+    "personuafslattur": 72492,
+    "skattur1": 0.3149,
+    "skatturHeimild": "Persónuafsláttur 2026 og 1. skattþrep, 16,55% auk meðalútsvars 14,94%"
+  },
+  "utborgun": {
+    "pn": "230",
+    "stadur": "Reykjanesbæ",
+    "teg": "Fjölbýli",
+    "hlutfall": 0.10,
+    "heimild": "Seðlabanki Íslands, hámark veðsetningarhlutfalls fyrstu kaupenda 90% frá lokum október 2025"
+  },
+  "dosin": {
+    "skilagjald": 23,
+    "gildirFra": "2026-03-01",
+    "lagaFjarhaed": 20.73,
+    "heimild": "Skilagjald 23 kr frá mars 2026 (20,73 kr án vsk, lög nr. 52/1989, 1. gr., skv. lögum nr. 99/2025, 43. gr.).",
+    "ar2024": { "aMarkad": 240000000, "skilad": 211000000, "gjald": 20, "heimild": "Endurvinnslan, mbl.is 4.3.2025" }
+  }
+}
