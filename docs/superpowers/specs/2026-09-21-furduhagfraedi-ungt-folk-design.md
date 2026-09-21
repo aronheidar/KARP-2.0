@@ -61,7 +61,10 @@ Veikustu púðarnir (1 mg/g) bera 8,30 kr/mg, átta sinnum meira en þeir á 8 m
 **Á hillunni** (svens.is, 21.9.2026, 83 púðar með uppgefinn styrk af 204):
 
 - 15 mg/g: 19 púðar · 20 mg/g: 19 · 16,5 mg/g: 9 · 16 mg/g: 6
-- ⚠ Upphaflega tilgátan var að hillurnar hópuðust á þrepamörkunum. **Hún stenst ekki.** 15 mg/g
+- ⚠⚠ **LEIÐRÉTT eftir fulla talningu 21.9 (194 púðar af 415 síðum):** 16 mg/g er algengast (43),
+  beint á þrepinu, og 60 af 186 nikótínpúðum sitja á mörkunum 8/12/16. Talningin hér fyrir neðan
+  (83 púðar) var hlutatalning og niðurstaða hennar stendur EKKI. Síðan segir aðeins það sem talningin
+  sýnir og að hún sýni ekki hvort gjaldið ráði því. Gamla textinn: tilgátan „stenst ekki", 15 mg/g
   er jafnstórt og 20 en er mitt í þrepi. Og 20 mg/g má ekki eigna gjaldinu, það er líka hringlaga
   tala. Framleiðendurnir hanna fyrir Svíþjóð, ekki íslensku þrepin.
 - **Fréttin:** allir níu á 16,5 mg/g eru sama vörulínan, 14 g dós á 1.245 kr. ⚠ Síðan og myndbandið
@@ -138,7 +141,7 @@ Lög nr. 52/1989, 2. gr. heimila að skilagjald óskilaðra umbúða renni til E
   varninginn sjálfan.** Umræðan snýst um að tóbaksfyrirtæki haldi púðum að börnum.
 - **Hver forsenda stendur upphátt í greininni**: fjöldi skota, útborgunarhlutfall, hlutastarf,
   hvaða Nocco-útgáfa.
-- **Upphaflega tilgátan sem stóðst ekki er sögð**, ekki falin. Það er það sem gerir greinina trúverðuga.
+- **Niðurstaðan er sögð eins og talningin sýnir hana**, líka þegar hún snýst við. Það er það sem gerir greinina trúverðuga.
 - Útreikningarnir fara í prófaða einingu í `web/src/lib/`, aldrei í `.astro`.
 
 ## Útfærsla
