@@ -15,9 +15,11 @@ const YEAR = '2026';
 const WANT_TITLES = process.argv.includes('--titles');
 const CONC = 6;
 
+// `name` verður `news.source` og VERÐUR að vera sama merki og NEWS_FEEDS gefur (web/src/worker/cron.mjs).
+// 'dv.is' hér gerði DV að tveimur miðlum í fjölmiðlavoginni þar til 21.9.2026 (build_backfill.test.mjs).
 const SRC = [
   { prefixes: ['mbl.is/frettir/innlent/' + YEAR, 'mbl.is/frettir/erlent/' + YEAR, 'mbl.is/vidskipti/' + YEAR], name: 'mbl.is' },
-  { prefixes: ['dv.is/frettir/' + YEAR, 'dv.is/eyjan/' + YEAR], name: 'dv.is' }
+  { prefixes: ['dv.is/frettir/' + YEAR, 'dv.is/eyjan/' + YEAR], name: 'DV' }
 ];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const dec = s => String(s || '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
@@ -60,7 +62,7 @@ function extractDesc(html) {
   return m ? dec(m[1]).slice(0, 400) : '';
 }
 
-(async () => {
+async function main() {
   // Fasi 1: CDX
   const recs = []; const seen = {};
   for (const s of SRC) {
@@ -126,4 +128,7 @@ function extractDesc(html) {
   const withDesc = out.filter(x => x.desc && x.desc.length > 10).length;
   console.log('\nbackfill.json:', out.length, 'greinar |', (fs.statSync(DIR + 'backfill.json').size / 1048576).toFixed(1), 'MB | ísl. stafir í titli:', real, '| með lýsingu:', withDesc);
   if (out.length) console.log('dæmi:', JSON.stringify(out[Math.floor(out.length / 2)]));
-})().catch(e => { console.error('ERR', e); process.exit(1); });
+}
+
+module.exports = { SRC };
+if (require.main === module) main().catch(e => { console.error('ERR', e); process.exit(1); });

@@ -85,7 +85,7 @@ async function cdx(prefix) {
   return out;
 }
 
-(async () => {
+async function main() {
   const cfg = SRC[SEL];
   if (!cfg) { console.error('Veldu miðil: node build_backfill_more.js <ruv|visir|vb|mannlif> [--titles]'); process.exit(1); }
   console.log('Miðill:', cfg.name, '(' + SEL + ')', WANT ? '— sæki titla' : '— bara CDX');
@@ -150,4 +150,7 @@ async function cdx(prefix) {
   const real = out.filter(x => /[áéíóúýþæðöÁÉÍÓÚÝÞÆÐÖ]/.test(x.title)).length, wd = out.filter(x => x.desc && x.desc.length > 10).length;
   console.log('\nbackfill_' + SEL + '.json:', out.length, 'greinar |', (out.length ? (fs.statSync(DIR + 'backfill_' + SEL + '.json').size / 1048576).toFixed(1) : 0), 'MB | ísl. titlar:', real, '| með lýsingu:', wd);
   if (out.length) { console.log('elsta:', new Date(out[0].ts * 1000).toISOString().slice(0, 10), '· nýjasta:', new Date(out[out.length - 1].ts * 1000).toISOString().slice(0, 10)); console.log('dæmi:', JSON.stringify(out[Math.floor(out.length / 2)]).slice(0, 200)); }
-})().catch(e => { console.error('ERR', e); process.exit(1); });
+}
+
+module.exports = { SRC };
+if (require.main === module) main().catch(e => { console.error('ERR', e); process.exit(1); });

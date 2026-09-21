@@ -221,7 +221,8 @@ export async function logbirtingCriticalCron(env) {
   return { sent, hits: Object.keys(hits).length };
 }
 
-const NEWS_FEEDS = [
+// Merkin hér verða `news.source`. Bakvistunin (skriptur/build_backfill*.js) er prófuð gegn þeim svo miðill beri eitt merki.
+export const NEWS_FEEDS = [
   ['https://www.mbl.is/feeds/fp/', 'mbl.is'], ['https://www.mbl.is/feeds/innlent/', 'mbl.is'], ['https://www.mbl.is/feeds/vidskipti/', 'mbl.is'],
   ['https://www.ruv.is/rss/frettir', 'RÚV'], ['https://www.ruv.is/rss/innlent', 'RÚV'],
   ['https://www.visir.is/rss/frettir', 'Vísir'], ['https://www.visir.is/rss/vidskipti', 'Vísir'],
