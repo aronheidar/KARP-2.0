@@ -16,10 +16,14 @@ Karp birtir mánudaga, miðvikudaga og föstudaga kl. 08:30. Fullt til 9.10. Ver
 | dagur | grein | akkeri |
 |---|---|---|
 | fim 24.9 | Þrepin í nikótíngjaldinu | `#nikotingjald` |
-| þri 29.9 | Koffínkrónan | `#koffinkrona` |
-| fim 1.10 | Íslattar í útborgun | `#islattar` |
-| þri 6.10 | Nocco í vinnutíma | `#nocco-vinnutimi` |
-| fim 8.10 | Dósin | `#dosin` |
+| þri 29.9 | Nocco í vinnutíma | `#nocco-vinnutimi` |
+| fim 1.10 | Dósin | `#dosin` |
+| þri 6.10 | Koffínkrónan | `#koffinkrona` |
+| fim 8.10 | Íslattar í útborgun | `#islattar` |
+
+⚠ **Röðinni breytt 21.9 eftir samþykkt.** Te & Kaffi birtir ekki verð kaffihúsanna á vefnum
+(vefverslunin selur baunir; pöntunarvefurinn `panta.teogkaffi.is` skilar villu). Greinarnar tvær
+sem þurfa íslatteverðið fara því síðast og Aron staðfestir verðið. Sömu dagar, sama taktur.
 
 Síðar: verðbólga unga fólksins 13.10, ríkið og reykleysið 15.10.
 
@@ -39,7 +43,9 @@ ekki úrelst í þögn.
 
 ### 1. Þrepin í nikótíngjaldinu
 
-**Heimild:** lög nr. 99/2025, 5. gr. (Skatturinn, breytingar á tollskrá 1.1.2026).
+**Heimild:** lög nr. 96/1995, 10. gr. d. Fjárhæðirnar komu inn með lögum nr. 99/2025, **4. gr.**
+(ekki 5. gr. eins og stóð fyrst). Staðfest orðrétt á althingi.is 21.9.2026. Mörkin eru „1 til og með 8“,
+„8,1 til og með 12“ o.s.frv., og „gjald skal lagt á í samræmi við upplýsingar á umbúðum vöru“.
 
 | styrkur | gjald |
 |---|---|
@@ -58,7 +64,8 @@ Veikustu púðarnir (1 mg/g) bera 8,30 kr/mg, átta sinnum meira en þeir á 8 m
 - ⚠ Upphaflega tilgátan var að hillurnar hópuðust á þrepamörkunum. **Hún stenst ekki.** 15 mg/g
   er jafnstórt og 20 en er mitt í þrepi. Og 20 mg/g má ekki eigna gjaldinu, það er líka hringlaga
   tala. Framleiðendurnir hanna fyrir Svíþjóð, ekki íslensku þrepin.
-- **Fréttin:** allir níu á 16,5 mg/g eru **ICE #5-línan**, 14 g dós á 1.245 kr. Hver ber 291 kr í
+- **Fréttin:** allir níu á 16,5 mg/g eru sama vörulínan, 14 g dós á 1.245 kr. ⚠ Síðan og myndbandið
+  nefna EKKI vörumerkið; greinin fjallar um gjaldið. Hver ber 291 kr í
   gjald. Á 16,0 mg/g væri það 218 kr. **73 kr meira á dós fyrir 3% meira nikótín**, og gjaldið eitt
   er 23% af verðinu.
 
@@ -74,18 +81,28 @@ myndbandi**, því hún hvílir á ágiskaðri púðaþyngd.
 
 ### 2. Koffínkrónan
 
-Verð á hver 100 mg af koffíni. Nocco 330 ml 180 mg, 304 kr í Bónus (Neytandinn, athugað
-27.6.2026). Afgangurinn sóttur í útfærslunni af Neytandanum þvert á verslanir, ein heimild fyrir
-sanngjarnan samanburð. ⚠ Nocco selur hér bæði 180 mg og 105 mg útgáfur; greinin tilgreinir hvora.
-⚠ Koffín í íslatte ræðst af fjölda skota; forsendan stendur upphátt.
+Verð á hver 100 mg af koffíni. Ein heimild og ein verslun: Neytandinn (strimlar notenda), Bónus.
+
+| drykkur | verð | koffín | athugað |
+|---|---|---|---|
+| Nocco 330 ml | 304 kr | 105 mg (íslenska útgáfan) | 15.9.2026 |
+| Red Bull 250 ml | 233 kr | 80 mg (32 mg/100 ml) | 6.9.2026 |
+| Monster Ultra 500 ml | 249 kr | 150 mg (30 mg/100 ml, ESB-merking) | 13.9.2026 |
+| Merrild 103, 500 g | 1.298 kr | 8 g og 90 mg í bolla (EFSA) | 9.9.2026 |
+| Íslatte, Te & Kaffi | ⏳ Aron | tvö skot × 63 mg (USDA) | ⏳ |
+
+⚠ Nocco-verðið hér áður (180 mg) var rangt fyrir Ísland; vöruheitin í Neytandanum segja 105 mg.
 
 ### 3. Íslattar í útborgun
 
-Miðgildi fjölbýlis í 230 síðustu 12 mánuði: **55.200.000 kr** (146 sölur, okkar eigin kaupskrá).
+Miðgildi fjölbýlis í 230, **reiknað við byggingu** úr `web/public/gogn/fasteignaskra/230.json` yfir
+12 HEILA mánuði á undan líðandi mánuði. 21.9.2026: sept. 2025 til ág. 2026, **145 sölur, 54.500.000 kr**.
+⚠ Talan 55,2 m.kr. (146 sölur) sem stóð hér fyrst endurtókst ekki úr neinni skrá; hún víkur.
+⚠ Skráin geymir síðustu sölu hverrar eignar, svo eign sem seldist tvisvar telst einu sinni.
 
 ⚠⚠ **Útborgun fyrstu kaupenda er 10%, ekki 15%.** Seðlabankinn hækkaði hámark veðsetningarhlutfalls
 fyrir fyrstu kaupendur úr 85% í 90% í lok október 2025 (HMS mánaðarskýrsla júní 2026). Útborgun því
-**5.520.000 kr**. Ég ætlaði fyrst að nota 15%; það hefði verið rangt.
+**5.450.000 kr** (21.9). Ég ætlaði fyrst að nota 15%; það hefði verið rangt.
 
 Íslatteverð Te & Kaffi sótt í útfærslunni.
 
@@ -107,9 +124,13 @@ lífeyrissjóð. Nettó ≈ 2.314 kr/klst. Forsendan um hlutastarf stendur upph�
 
 ### 5. Dósin
 
-Skilagjald 2026: **20,73 kr** á áldós (+0,60 kr umsýsla), lög nr. 99/2025, 38. gr. Hlutfall af verði
-Nocco. Skilahlutfall úr tölum Endurvinnslunnar, staðfest í útfærslunni (87% árið 2023 samkvæmt
-Endurvinnslunni; nýrri tala sótt ef til).
+Neytandinn fær **23 kr** til baka fyrir dósina (frá mars 2026). Lögbundna fjárhæðin er 20,73 kr án
+vsk, lög nr. 52/1989, 1. gr., skv. lögum nr. 99/2025, **43. gr.** (ekki 38. gr.); 20,73 × 1,11 = 23,01.
+23 kr eru 7,6% af verði Nocco.
+
+2024 (Endurvinnslan, mbl.is 4.3.2025): um 240 milljónir umbúða á markað, 211 milljónir skiluðu sér
+(88%). **29 milljónir skiluðu sér ekki, á 20 kr þess árs um 580 milljónir króna sem enginn sótti.**
+Lög nr. 52/1989, 2. gr. heimila að skilagjald óskilaðra umbúða renni til Endurvinnslunnar.
 
 ## Reglur sem víkja ekki
 
@@ -136,7 +157,8 @@ efst, `karp.is/furduhagfraedi/#<akkeri>` neðst. Sami stíll og kaupmáttur og l
 
 ⚠⚠ **Hjálparföllin fyrir myndböndin eru hvergi til lengur.** Þau lágu í vinnusvæðum eldri lota sem
 hafa verið hreinsuð, og minnið lýsir tækninni í orðum en geymir engan kóða. Verkkeyrslan fyrir lotu
-5 á að „afrita hjálparblokkina úr verklaginu" en hún er ekki þar. Hjálparföllin eru smíðuð **einu
+5 á að „afrita hjálparblokkina úr verklaginu" en hún er ekki þar. ⚠ Hún vísar líka á
+`C:/Users/aronh/dev/karp-fyrirtaeki`, sem er ekki til; repo-ið er `dev/KARP/GIT repository - hagvisir`. Hjálparföllin eru smíðuð **einu
 sinni í skrá sem lifir** og lota 5 vísað á hana.
 
 Allar gildrurnar úr minninu fara inn í hana:
