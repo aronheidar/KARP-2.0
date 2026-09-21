@@ -65,10 +65,11 @@ try {
     VIKAN.push(`Skráð atvinnuleysi stendur í ${isNum(ATVL.latest)}%.`);
     TALA['/vinnumarkadur/'] = { v: isNum(ATVL.latest) + '%', l: 'atvinnuleysi' };
   }
-  const lq = (LEIGA.quarters || []).filter((x) => x.n >= 100);
-  if (lq.length >= 5) {
-    const now = lq[lq.length - 1], ago = lq[lq.length - 5];
-    VIKAN.push(`Leiguverð (miðgildi) var ${isNum(now.medM2)} kr/m² í ${now.q} — ${Math.round(((now.medM2 / ago.medM2) - 1) * 100)}% hærra en ári fyrr.`);
+  // ⚠ Framreiknaða landsmiðgildið (LEIGA.nu) og ársbreyting vísitölu leiguverðs, EKKI hrár ársfjórðungur.
+  //   Leiguskrá HMS hætti að uppfærast snemma árs 2024. Síðasti ársfjórðungur með 100+ samningum var því
+  //   2023F4, og hann birtist hér sem frétt vikunnar. Framreikningurinn er gerður í build_leiga.js.
+  if (LEIGA.nu && LEIGA.nu.medM2 && LEIGA.visitala && LEIGA.visitala.yoy != null) {
+    VIKAN.push(`Leiguverð (miðgildi) er ${isNum(LEIGA.nu.medM2)} kr/m² á mánuði og hefur hækkað um ${isNum(LEIGA.visitala.yoy)}% á einu ári.`);
   }
   const ix = (MARKADIR.indices || [])[0];
   if (ix && ix.chgPct != null) {
