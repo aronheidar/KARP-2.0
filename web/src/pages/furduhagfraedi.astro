@@ -7,7 +7,16 @@ import SiduHaus from '../components/SiduHaus.astro';
 import FURDU from '../data/furdu.json';
 import NUMBEO from '@gogn/numbeo.json';
 import DATA from '@gogn/furduhagfraedi.json';
-import { fmtNum, groupThousands } from '@lib/format.mjs';
+import { fmtNum, groupThousands, MON_LONG } from '@lib/format.mjs';
+// ── Unga kynslóðin (21.9.2026). Stærðfræðin býr í lib/furdu-ungt.mjs; hér er aðeins framsetning.
+import UNGT from '../data/furdu-ungt.json';
+import PUDAR from '@gogn/nikotinpudar.json';
+import SOLUR230 from '../../public/gogn/fasteignaskra/230.json';
+import {
+  NIKOTIN_THREP, gjaldPerGramm, sagartonn, medNikotini, hillutalning, aThrepamorkum, rettYfirThrepi, koffinKrona,
+  kaffibolli, nettoAnSkatts, skattleysismork, minutur, midgildiSolu, islattarIUtborgun,
+  skilagjaldHlutfall, oskilad,
+} from '../lib/furdu-ungt.mjs';
 
 const { RACE, updated } = DATA;
 
@@ -30,7 +39,65 @@ const rows = (FURDU.items || []).map((it) => {
 }).filter(Boolean).sort((a, b) => a.mins - b.mins);
 
 const f1 = (v) => String(v).replace('.', ',');
-const desc = `Furðuhagfræði — hvað kaupir klukkustund af íslenskri vinnu? Tímakaupið (${hourly ? groupThousands(Math.round(hourly)) : '—'} kr) mælt í bjórum, kaffibollum og bíómiðum${RACE ? `, og Launakapphlaupið: frá ${RACE.baseY} hafa laun ${f1(RACE.fW)}-faldast en húsnæðisverð ${f1(RACE.fH)}-faldast` : ''}.`;
+const desc = `Furðuhagfræði — hvað kaupir klukkustund af íslenskri vinnu? Tímakaupið (${hourly ? groupThousands(Math.round(hourly)) : '—'} kr) mælt í bjórum, kaffibollum og bíómiðum${RACE ? `, og Launakapphlaupið: frá ${RACE.baseY} hafa laun ${f1(RACE.fW)}-faldast en húsnæðisverð ${f1(RACE.fH)}-faldast` : ''}. Og unga kynslóðin: nikótíngjaldið, koffínkrónan, Nocco í vinnutíma og dósin.`;
+
+const pro = (x, d = 1) => fmtNum(x * 100, d) + '%';
+const dagsIs = (iso) => { const [y, m, d] = iso.split('-'); return `${+d}.${+m}.${y}`; };
+const manudur = (ym) => { const [y, m] = ym.split('-'); return `${MON_LONG[+m - 1]} ${y}`; };
+const mg = (v) => fmtNum(v, v % 1 ? 1 : 0);
+const nocco = UNGT.koffin.drykkir.find((d) => d.id === 'nocco');
+
+// 1. Nikótíngjaldið: sagartönnin sem SVG, reiknuð við byggingu (ekkert JS).
+const TONN = (() => {
+  const B = 720, HH = 300, ml = 52, mr = 14, mt = 14, mb = 34;
+  const X = (v) => ml + ((v - 4) / 16) * (B - ml - mr);
+  const Y = (v) => mt + (1 - v / 2.2) * (HH - mt - mb);
+  return {
+    B, HH, x0: ml, x1: B - mr, y0: mt, y1: HH - mb,
+    lina: sagartonn({ fra: 4, til: 20 }).map((q, i) => `${i ? 'L' : 'M'}${X(q.mgG).toFixed(1)} ${Y(q.krMg).toFixed(1)}`).join(' '),
+    y: [0.5, 1, 1.5, 2].map((v) => ({ y: Y(v), t: fmtNum(v, 1) })),
+    x: [4, 8, 12, 16, 20].map((v) => ({ x: X(v), t: String(v) })),
+    mork: [8, 12, 16].map(X),
+  };
+})();
+const NIKP = medNikotini(PUDAR.vorur);
+const HILLA = hillutalning(NIKP).slice(0, 5);
+const A_MORKUM = aThrepamorkum(NIKP);
+const TOPP_A_MORKUM = [8, 12, 16].includes(HILLA[0].mgG);
+const YFIR = rettYfirThrepi(NIKP)[0] || null;
+const VINDL = UNGT.nikotin.vindlingar;
+const PUDI = UNGT.nikotin.pudiDaemi;
+
+// 2. Koffínkrónan. Íslattinn bætist við þegar verðið er staðfest.
+const KB = kaffibolli(UNGT.koffin.kaffi);
+const ISL = UNGT.koffin.islatte;
+const KOFFIN = [
+  ...UNGT.koffin.drykkir.map((d) => ({ heiti: d.heiti, kr: koffinKrona(d.verd, d.mg), skyring: `${d.verd} kr, ${d.mg} mg (${d.athugasemd}), ${dagsIs(d.dags)}` })),
+  { heiti: UNGT.koffin.kaffi.heiti, kr: koffinKrona(KB, UNGT.koffin.kaffi.mgBolli), kaffi: true,
+    skyring: `${UNGT.koffin.kaffi.vara} á ${groupThousands(UNGT.koffin.kaffi.pakkiVerd)} kr, ${dagsIs(UNGT.koffin.kaffi.dags)}. ${UNGT.koffin.kaffi.athugasemd}` },
+  ...(ISL.verd != null ? [{ heiti: ISL.heiti, kr: koffinKrona(ISL.verd, ISL.skot * ISL.mgSkot), skyring: `${groupThousands(ISL.verd)} kr, ${ISL.heimild}, ${dagsIs(ISL.dags)}. ${ISL.athugasemd}` }] : []),
+].sort((a, b) => b.kr - a.kr);
+const KMAX = KOFFIN[0].kr;
+const KOFFIN_MARGF = Math.floor(koffinKrona(nocco.verd, nocco.mg) / koffinKrona(KB, UNGT.koffin.kaffi.mgBolli));
+
+// 3. Íslattar í útborgun: 12 heilir mánuðir á undan byggingarmánuði.
+const SALA = midgildiSolu(SOLUR230, { teg: UNGT.utborgun.teg, nu: new Date().toISOString().slice(0, 7) });
+const ISLATTAR = ISL.verd != null && SALA.midgildi
+  ? islattarIUtborgun({ verdIbudar: SALA.midgildi, hlutfall: UNGT.utborgun.hlutfall, islatteVerd: ISL.verd }) : null;
+
+// 4. Nocco í vinnutíma.
+const LA = UNGT.laun;
+const T16 = nettoAnSkatts(LA.taxti16, LA.lifeyrir);
+const M16 = minutur(nocco.verd, T16);
+const MMED = hourly ? minutur(nocco.verd, hourly) : null;
+const MMAX = Math.max(M16, MMED || 0);
+const KLST_MAN = (30 * nocco.verd) / T16;
+const SKATTLAUST = skattleysismork(LA);
+
+// 5. Dósin.
+const DOS = UNGT.dosin;
+const DOS_HL = skilagjaldHlutfall(DOS.skilagjald, nocco.verd);
+const OSK = oskilad(DOS.ar2024);
 ---
 
 <Layout title="Furðuhagfræði — hvað kaupir tímakaupið? | Karp" description={desc} canonical="https://karp.is/furduhagfraedi/" ogTitle="Furðuhagfræði">
@@ -71,6 +138,80 @@ const desc = `Furðuhagfræði — hvað kaupir klukkustund af íslenskri vinnu?
       </>
     )}
 
+    <h2 id="unga-kynslodin">Unga kynslóðin</h2>
+    <nav class="fu-nav" aria-label="Greinar um unga kynslóðina">
+      <a href="#nikotingjald">Nikótíngjaldið</a>
+      <a href="#koffinkrona">Koffínkrónan</a>
+      {ISLATTAR && <a href="#islattar">Íslattar í útborgun</a>}
+      <a href="#nocco-vinnutimi">Nocco í vinnutíma</a>
+      <a href="#dosin">Dósin</a>
+    </nav>
+
+    <section class="fu" id="nikotingjald">
+      <h3>Þrepin í nikótíngjaldinu</h3>
+      <p>Gjaldið á nikótínpúðum fer eftir styrk, í fjórum þrepum. Reiknað á hvert milligramm nikótíns verður það sagartönn: ódýrast á þaki hvers þreps og stökk rétt fyrir ofan. Frá 8,0 í 8,1 mg/g hækkar gjaldið um 50% fyrir 1,25% meira nikótín.</p>
+      <table class="fu-tafla">
+        <thead><tr><th>Styrkur</th><th>Gjald á gramm</th></tr></thead>
+        <tbody>{NIKOTIN_THREP.map((t) => <tr><td>{mg(t.fra)} til {mg(t.til)} mg/g</td><td>{fmtNum(t.krG, 2)} kr</td></tr>)}</tbody>
+      </table>
+      <figure class="fu-graf">
+        <svg viewBox={`0 0 ${TONN.B} ${TONN.HH}`} role="img" aria-label="Gjald á hvert milligramm nikótíns eftir styrk, 4 til 20 mg/g">
+          {TONN.y.map((g) => <g><line class="grid" x1={TONN.x0} x2={TONN.x1} y1={g.y} y2={g.y} /><text class="lbl" x={TONN.x0 - 8} y={g.y + 4} text-anchor="end">{g.t}</text></g>)}
+          {TONN.mork.map((x) => <line class="mork" x1={x} x2={x} y1={TONN.y0} y2={TONN.y1} />)}
+          {TONN.x.map((g) => <text class="lbl" x={g.x} y={TONN.HH - 10} text-anchor="middle">{g.t}</text>)}
+          <path class="lina" d={TONN.lina} />
+        </svg>
+        <figcaption>Gjald á hvert mg nikótíns í krónum eftir styrk púðans í mg/g. Undir 4 mg/g hækkar það enn: 8,30 kr á 1 mg/g.</figcaption>
+      </figure>
+      <p><strong>Á hillunni.</strong> Við töldum {NIKP.length} nikótínpúða með uppgefinn styrk hjá Svens {dagsIs(PUDAR.dags)}. Algengustu styrkirnir: {HILLA.map((h) => `${mg(h.mgG)} mg/g (${h.n})`).join(', ')}.</p>
+      <p>{A_MORKUM} af {NIKP.length} sitja nákvæmlega á þrepamörkunum 8, 12 og 16 mg/g{TOPP_A_MORKUM ? `, og algengasti styrkurinn, ${mg(HILLA[0].mgG)} mg/g, er einn þeirra` : ''}. Hvort gjaldið ræður því sýnir talningin ekki.</p>
+      {YFIR && <div class="fu-lykill"><b>{groupThousands(YFIR.aukagjald)} kr meira á dós.</b> {YFIR.n} púðar sitja á {mg(YFIR.mgG)} mg/g, {fmtNum(YFIR.mgG - YFIR.thak, 1)} mg yfir þrepi. Á {mg(YFIR.dosG)} g dós bera þeir {groupThousands(YFIR.gjald)} kr í gjald en bæru {groupThousands(YFIR.gjaldAThaki)} kr á {YFIR.thak} mg/g, fyrir {pro(YFIR.aukaNikotin, 0)} meira nikótín. Gjaldið eitt er {pro(YFIR.hlutfallAfVerdi, 0)} af verðinu.</div>}
+      <p class="fu-smatt">Til samanburðar er gjaldið á einn vindling {fmtNum(VINDL.gjaldPakki / VINDL.stk, 2)} kr ({fmtNum(VINDL.gjaldPakki, 2)} kr á {VINDL.stk} stk. pakka) en {fmtNum(gjaldPerGramm(PUDI.mgG) * PUDI.g, 2)} kr á einn {fmtNum(PUDI.g, 1)} g púða á {PUDI.mgG} mg/g. Ein eining er ekki sami skammtur, svo samanburðurinn segir meira um gjaldið en neysluna.</p>
+      <p class="fu-heimild">Heimild: {UNGT.nikotin.heimild} Gjaldið leggst á uppgefinn styrk á umbúðum. Talning: svens.is {dagsIs(PUDAR.dags)}, einn vefsali. Endurkeyranleg með skriptur/saekja_nikotinpuda.mjs.</p>
+    </section>
+
+    <section class="fu" id="koffinkrona">
+      <h3>Koffínkrónan</h3>
+      <p>Hvað kosta 100 mg af koffíni? Í Nocco er koffínið rúmlega {KOFFIN_MARGF} sinnum dýrara en í uppáhelltu kaffi heima.</p>
+      <div class="fu-sulur">
+        {KOFFIN.map((k) => (
+          <div class="fu-rod">
+            <span class="fu-heiti">{k.heiti}</span>
+            <span class="fu-sula"><span class={k.kaffi ? 'fylling graent' : 'fylling'} style={`width:${Math.max(2, (k.kr / KMAX) * 100).toFixed(1)}%`}></span></span>
+            <span class="fu-gildi">{groupThousands(k.kr)} kr</span>
+          </div>
+        ))}
+      </div>
+      <ul class="fu-forsendur">{KOFFIN.map((k) => <li><b>{k.heiti}:</b> {k.skyring}</li>)}</ul>
+      <p class="fu-heimild">Verð: {UNGT.koffin.verdHeimild}. Ein verslun og ein heimild fyrir alla drykki svo samanburðurinn sé sanngjarn.</p>
+    </section>
+
+    {ISLATTAR && (
+      <section class="fu" id="islattar">
+        <h3>Íslattar í útborgun</h3>
+        <p>Miðgildi kaupverðs fjölbýlis í {UNGT.utborgun.pn} {UNGT.utborgun.stadur} frá {manudur(SALA.fra)} til {manudur(SALA.til)} var {groupThousands(SALA.midgildi)} kr ({SALA.n} sölur). Fyrstu kaupendur mega fá 90% lán, svo útborgunin er 10%: {groupThousands(ISLATTAR.utborgun)} kr.</p>
+        <div class="fu-lykill"><b>{groupThousands(ISLATTAR.fjoldi)} íslattar.</b> Einn á dag í {fmtNum(ISLATTAR.arMedEinumADag, 1)} ár.</div>
+        <p class="fu-heimild">Íslatte: {ISL.heiti}, {groupThousands(ISL.verd)} kr ({ISL.heimild}, {dagsIs(ISL.dags)}). Kaupverð: HMS kaupskrá, síðasta þinglýsta sala hverrar eignar. {UNGT.utborgun.heimild}.</p>
+      </section>
+    )}
+
+    <section class="fu" id="nocco-vinnutimi">
+      <h3>Nocco í vinnutíma</h3>
+      <p>Sextán ára afgreiðslumaður í verslun vinnur í {fmtNum(M16, 1)} mínútur fyrir einni Nocco. Nocco á dag í mánuð kostar hann {fmtNum(KLST_MAN, 1)} vinnustundir.</p>
+      <div class="fu-sulur">
+        <div class="fu-rod"><span class="fu-heiti">16 ára, afgreiðsla</span><span class="fu-sula"><span class="fylling" style={`width:${((M16 / MMAX) * 100).toFixed(1)}%`}></span></span><span class="fu-gildi">{fmtNum(M16, 1)} mín</span></div>
+        {MMED && <div class="fu-rod"><span class="fu-heiti">Meðallaun</span><span class="fu-sula"><span class="fylling grar" style={`width:${((MMED / MMAX) * 100).toFixed(1)}%`}></span></span><span class="fu-gildi">{fmtNum(MMED, 1)} mín</span></div>}
+      </div>
+      <p class="fu-heimild">Taxti {LA.heimild}: {fmtNum(LA.taxti16, 2)} kr á klst. fyrir 16 ára frá {dagsIs(LA.gildir)}. Í hlutastarfi undir {groupThousands(SKATTLAUST)} kr á mánuði greiðist enginn tekjuskattur, aðeins {pro(LA.lifeyrir, 0)} í lífeyrissjóð, svo eftir standa {fmtNum(T16, 0)} kr á klst. Félagsgjald stéttarfélags er ekki dregið frá. Skatthlutfall barna, 6%, á aðeins við um þau sem fædd eru 2011 eða síðar. {LA.skatturHeimild}. Meðallaun: Numbeo, {wage ? groupThousands(wage) : ''} kr á mánuði eftir skatt, 160 stundir. Nocco {nocco.verd} kr í Bónus {dagsIs(nocco.dags)}.</p>
+    </section>
+
+    <section class="fu" id="dosin">
+      <h3>Dósin</h3>
+      <p>{DOS.skilagjald} krónur af hverri Nocco eru skilagjald, {pro(DOS_HL, 1)} af verðinu. Þær færðu aftur ef þú skilar dósinni.</p>
+      <div class="fu-lykill"><b>Um {groupThousands(OSK.kr / 1e6)} milljónir króna</b> í skilagjaldi voru aldrei sóttar árið 2024. Um {groupThousands(DOS.ar2024.aMarkad / 1e6)} milljónir umbúða fóru á markað og {groupThousands(DOS.ar2024.skilad / 1e6)} milljónir skiluðu sér ({pro(OSK.skilahlutfall, 0)}). {groupThousands(OSK.n / 1e6)} milljónir gerðu það ekki, á {DOS.ar2024.gjald} kr stykkið.</div>
+      <p class="fu-heimild">{DOS.heimild} Tölur 2024: {DOS.ar2024.heimild}. Lög nr. 52/1989, 2. gr. heimila að skilagjald óskilaðra umbúða renni til Endurvinnslunnar.</p>
+    </section>
+
     <p class="note">ⓘ Verð frá Numbeo (samfélagslega söfnuð), laun = meðalnettólaun. Fylgni er ekki orsök og bjór er ekki fjárfestingarráðgjöf.</p>
     <p class="foot">Forþjónað (SSG, daglegt gagna-snapshot) {updated}. Sama fyrirbæri og gamla mælaborðið — tímakaups-hagfræðin. #2.</p>
   </main>
@@ -98,6 +239,32 @@ const desc = `Furðuhagfræði — hvað kaupir klukkustund af íslenskri vinnu?
     .race-sub { font-size: 13px; color: var(--muted); margin: 0 0 6px; }
     #c-race { width: 100%; height: 310px; }
     .race-insight { font-size: 13.5px; color: var(--ink); background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 10px; padding: 11px 14px; margin-top: 8px; line-height: 1.55; }
+    h3 { font-size: 19px; margin: 0 0 8px; }
+    .fu { margin: 24px 0 0; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.08); scroll-margin-top: 80px; }
+    .fu-nav { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13.5px; margin: 6px 0 2px; }
+    .fu-nav a { color: var(--gold); text-decoration: none; }
+    .fu-tafla { border-collapse: collapse; font-size: 13.5px; margin: 10px 0; }
+    .fu-tafla th, .fu-tafla td { text-align: left; padding: 5px 16px 5px 0; border-bottom: 1px solid rgba(255,255,255,.08); font-variant-numeric: tabular-nums; }
+    .fu-tafla th { font-size: 11.5px; color: var(--faint); text-transform: uppercase; letter-spacing: .04em; font-weight: 600; }
+    .fu-graf { margin: 12px 0; }
+    .fu-graf svg { width: 100%; height: auto; display: block; }
+    .fu-graf .grid { stroke: rgba(255,255,255,.08); stroke-width: 1; }
+    .fu-graf .mork { stroke: rgba(255,255,255,.2); stroke-dasharray: 4 4; }
+    .fu-graf .lbl { fill: var(--faint); font-size: 11px; }
+    .fu-graf .lina { fill: none; stroke: var(--gold); stroke-width: 2.4; stroke-linejoin: round; }
+    .fu-graf figcaption { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .fu-lykill { font-size: 14px; background: rgba(246,177,59,.07); border: 1px solid rgba(246,177,59,.28); border-radius: 10px; padding: 11px 14px; margin: 12px 0; line-height: 1.55; }
+    .fu-lykill b { color: var(--gold); }
+    .fu-sulur { display: grid; gap: 7px; margin: 12px 0; }
+    .fu-rod { display: grid; grid-template-columns: minmax(110px, 190px) 1fr 72px; gap: 10px; align-items: center; font-size: 13px; }
+    .fu-sula { background: rgba(255,255,255,.05); border-radius: 6px; height: 14px; overflow: hidden; }
+    .fu-sula .fylling { display: block; height: 100%; background: var(--gold); border-radius: 6px; }
+    .fu-sula .fylling.graent { background: #46e08a; }
+    .fu-sula .fylling.grar { background: #9fb0c8; }
+    .fu-gildi { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+    .fu-forsendur { font-size: 12px; color: var(--muted); padding-left: 18px; margin: 6px 0; }
+    .fu-smatt { font-size: 13px; color: var(--muted); }
+    .fu-heimild { font-size: 11.5px; color: var(--faint); margin-top: 8px; }
   </style>
 
   <!-- Eyja: 🏃 Launakapphlaupið (LOTA 13g) -->
