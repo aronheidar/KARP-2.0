@@ -230,7 +230,9 @@ const NEWS_FEEDS = [
   // ⚠⚠ LÉNIN ERU VÍXLUÐ: `fiskifrettir.is/rss/…` skilar ALMENNUM VB-fréttum (2% sjávarútvegur,
   //    hlekkir á vb.is = tvítalning á straumnum hér fyrir ofan). Rétta slóðin er á vb.is-léninu.
   //    Sannreynt: 100 færslur, 100/100 hlekkir á fiskifrettir, nýjasta 32 klst gömul.
-  ['https://www.vb.is/rss/fiskifrettir/', 'Fiskifréttir'],
+  // ⚠ 21.9.2026: www.vb.is 301-ar á vb.is, svo slóðin er nú sú endanlega. Hún skilaði samt ALDREI einni
+  //    röð í framleiðslu, og VB-straumurinn þagnaði 4.9 — sjá _saekjaStrauma.
+  ['https://vb.is/rss/fiskifrettir/', 'Fiskifréttir'],
   // ➕ 20.8.2026 (ósk notanda um breiðari fjölmiðlavakt): lands- og landshlutamiðlar. Hver slóð SANNREYND með
   // KarpBot-UA (200 + item-fjöldi + ferskur pubDate) áður en hún fór inn — Feykir/Vikublaðið nota Moya-CMS
   // (/is/rss, /is/feed), Austurfrétt Joomla (?format=feed). BB.is (CF-challenge), Víkurfréttir og Eyjafréttir
@@ -255,14 +257,85 @@ export function _rssItems(xml, source) {
   return out;
 }
 
-export async function fetchNews() {
+// Hámarksbið eftir hverjum straumi. Án hennar gat einn hangandi straumur haldið allri 3-tíma
+// keðjunni í gíslingu, því fréttavakt, KYC, eftirlit og lögbirting keyra á eftir innlestrinum.
+const _STRAUMUR_TIMAMORK = 20000;
+
+// Grein er merkt eftir HÝSLI sínum, ekki eftir straumnum sem náði henni fyrst. Aðalstraumur VB ber
+// líka greinar Fiskifrétta (24 af 150 þann 21.9) og afritunarvörnin heldur fyrsta eintaki. Þar sem
+// VB-straumurinn ber alltaf nýjustu greinarnar hefðu nær allar nýjar Fiskifréttir lent á VB.
+const _HYSILL_MIDILL = { 'fiskifrettir.vb.is': 'Fiskifréttir' };
+
+function _midillEftirHysli(url, src) {
+  try { return _HYSILL_MIDILL[new URL(url).host] || src; } catch (e) { return src; }
+}
+
+/**
+ * Sækir alla strauma og skilar BÆÐI fréttunum og heilsu hvers straums.
+ *
+ * ⚠⚠ AF HVERJU HEILSAN (21.9.2026). VB-straumurinn skilaði engu frá 4.9 og enginn tók eftir því í
+ * 18 daga. Fiskifréttir, sem bætt var við 13.9, skiluðu aldrei einni röð. Sóknin gleypti allar
+ * villur (`r.ok ? … : []` og `catch → []`), svo straumur sem svaraði 403, breytti um snið eða hékk
+ * leit nákvæmlega eins út og straumur sem hafði ekkert nýtt að segja. Straumarnir svöruðu þó
+ * eðlilega bæði af vél Arons og af jaðri Cloudflare í prófi. Bilunin sést AÐEINS innan úr
+ * framleiðslunni, og þess vegna er hún skráð í hverri keyrslu (newsIngest → stjorn_sync).
+ *
+ * villa: 'http' (ekki 2xx) · 'net' (tenging brást) · 'timamork' · 'snid' (svar án einnar
+ * þáttanlegrar fréttar) · 'urelt' (fréttir þáttuðust en engin innan viku) · '' = í lagi.
+ */
+export async function _saekjaStrauma(feeds = NEWS_FEEDS, { timamork = _STRAUMUR_TIMAMORK } = {}) {
   const wkDate = new Date(Date.now() - 7 * 86400 * 1000).toISOString().slice(0, 10);
-  const lists = await Promise.all(NEWS_FEEDS.map(async ([u, src]) => {
-    try { const r = await fetch(u, { headers: { 'user-agent': 'Mozilla/5.0 (KarpBot; +https://karp.is)' }, cf: { cacheTtl: 900 } }); return r.ok ? _rssItems(await r.text(), src) : []; } catch (e) { return []; }
+  const nidurstodur = await Promise.all(feeds.map(async ([u, src]) => {
+    const h = { src, url: u, status: 0, n: 0, ferskt: 0, villa: '', ray: '' };
+    try {
+      const r = await fetch(u, { headers: { 'user-agent': 'Mozilla/5.0 (KarpBot; +https://karp.is)' }, cf: { cacheTtl: 900 }, signal: AbortSignal.timeout(timamork) });
+      h.status = r.status;
+      // cf-ray endar á gagnaverinu sem svaraði. Cron keyrir í gagnaverum víða um heim, svo landfræðileg
+      // lokun hjá miðli sést hér en ekki í prófi af vél hér heima.
+      h.ray = String(r.headers.get('cf-ray') || '').slice(0, 40);
+      const hindrun = r.headers.get('cf-mitigated');
+      if (hindrun) h.hindrun = String(hindrun).slice(0, 20);
+      if (!r.ok) { h.villa = 'http'; return { h, items: [] }; }
+      const items = _rssItems(await r.text(), src);
+      for (const it of items) it.source = _midillEftirHysli(it.url, it.source);
+      h.n = items.length;
+      h.ferskt = items.filter((it) => !it.date || it.date >= wkDate).length;
+      if (!h.n) h.villa = 'snid';
+      else if (!h.ferskt) h.villa = 'urelt';
+      return { h, items };
+    } catch (e) {
+      h.villa = (e && e.name === 'TimeoutError') ? 'timamork' : 'net';
+      return { h, items: [] };
+    }
   }));
   const seen = new Set(), out = [];
-  for (const arr of lists) for (const it of arr) { if (it.date && it.date < wkDate) continue; const k = it.title.toLowerCase(); if (seen.has(k)) continue; seen.add(k); out.push(it); }
-  return out;
+  for (const { items } of nidurstodur) for (const it of items) { if (it.date && it.date < wkDate) continue; const k = it.title.toLowerCase(); if (seen.has(k)) continue; seen.add(k); out.push(it); }
+  return { items: out, heilsa: nidurstodur.map((x) => x.h) };
+}
+
+export async function fetchNews() {
+  return (await _saekjaStrauma()).items;
+}
+
+/**
+ * Fellir nýja keyrslu inn í fyrri heilsuskrá strauma. Hreint fall.
+ *   sidastOk  síðasta keyrsla sem skilaði ferskri frétt (0 = aldrei síðan mæling hófst)
+ *   bilunFra  hvenær YFIRSTANDANDI bilanahrina hófst (0 = í lagi)
+ * ⚠ Straumur sem er tekinn af listanum hverfur úr skránni, svo hann veki ekki viðvörun að eilífu.
+ */
+export function _straumaHeilsa(fyrri, heilsa, nu) {
+  const ut = {};
+  for (const h of (Array.isArray(heilsa) ? heilsa : [])) {
+    const f = (fyrri && typeof fyrri === 'object' && fyrri[h.url]) || {};
+    const ok = !h.villa;
+    ut[h.url] = {
+      src: h.src, status: h.status, n: h.n, ferskt: h.ferskt, villa: h.villa || '', ray: h.ray || '',
+      ...(h.hindrun ? { hindrun: h.hindrun } : {}),
+      sidastOk: ok ? nu : (Number(f.sidastOk) || 0),
+      bilunFra: ok ? 0 : (Number(f.bilunFra) || nu),
+    };
+  }
+  return ut;
 }
 
 export const FRETTA_TYPES = new Set(Object.keys(CAT));
@@ -481,19 +554,35 @@ export async function digestRun(env) {
 
 export async function newsIngest(env) {
   if (!env.TENGSL) return { kept: 0 };
-  const items = await fetchNews();
+  const { items, heilsa } = await _saekjaStrauma();
   const now = Math.floor(Date.now() / 1000);
   const stmt = env.TENGSL.prepare('INSERT OR IGNORE INTO news (url, title, source, ts, body, sent) VALUES (?,?,?,?,?,?)');
-  const batch = [];
+  const batch = [], midlar = [];
   for (const it of items) {
     if (!it.url || !it.title) continue;
     const ts = it.date ? Math.floor(new Date(it.date + 'T12:00:00Z').getTime() / 1000) || now : now;
     const body = (String(it.title) + ' ' + String(it.desc || '')).slice(0, 800);
     batch.push(stmt.bind(String(it.url).slice(0, 400), String(it.title).slice(0, 300), it.source || '', ts, body, _tone(body)));
+    midlar.push(it.source || '');
   }
-  for (let i = 0; i < batch.length; i += 40) await env.TENGSL.batch(batch.slice(i, i + 40)).catch(() => {});
+  // Nýjar raðir per miðil (meta.changes: 1 = ný, 0 = var þegar til). Án talningarinnar sæist ekki munurinn
+  // á „straumurinn skilaði engu" og „straumurinn skilaði, en ekkert komst í grunninn".
+  const innsett = {};
+  let batchVillur = 0;
+  for (let i = 0; i < batch.length; i += 40) {
+    const svar = await env.TENGSL.batch(batch.slice(i, i + 40)).catch(() => null);
+    if (!svar) { batchVillur++; continue; }
+    svar.forEach((s, j) => { const m = midlar[i + j]; innsett[m] = (innsett[m] || 0) + ((s && s.meta && s.meta.changes) || 0); });
+  }
   await env.TENGSL.prepare('DELETE FROM news WHERE ts < ?').bind(now - 400 * 86400).run().catch(() => {});   // 400 daga geymsla (heilt ár+ f. yearreview/firma)
-  return { fetched: items.length, batched: batch.length };
+  // Heilsa hvers straums í stjorn_sync, svo bilanalisti Hrafns sjái straum sem þagnar (bilanir.mjs).
+  const fyrriRod = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='frettastraumar'").first().catch(() => null);
+  let fyrri = null;
+  try { fyrri = fyrriRod ? JSON.parse(fyrriRod.v).straumar : null; } catch (e) { fyrri = null; }
+  const skra = { ts: now, straumar: _straumaHeilsa(fyrri, heilsa, now), innsett, batchVillur };
+  await env.TENGSL.prepare("INSERT INTO stjorn_sync (k, v, updated) VALUES ('frettastraumar', ?, ?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated")
+    .bind(JSON.stringify(skra), now).run().catch(() => {});
+  return { fetched: items.length, batched: batch.length, innsett, batchVillur, straumar: heilsa };
 }
 
 // Orðstafir (íslenskt stafróf + tölur). Allt annað telst orðamörk.

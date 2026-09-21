@@ -44,6 +44,45 @@ export function fallnarVaktir(runs, nu) {
   return ut;
 }
 
+const _BL_STRAUMUR_KLST = 24;       // straumur sem hefur ekkert skilað svona lengi fer á spjald Hrafns
+const _BL_STRAUMUR_HATT_DAGAR = 7;  // … og í forstofuna eftir viku
+const _BL_STRAUMUR_ASTAEDA = {
+  http: (s) => 'HTTP ' + s.status + (s.hindrun ? ', Cloudflare-lokun hjá miðlinum' : ''),
+  net: () => 'tenging brást',
+  timamork: () => 'svarar ekki',
+  snid: () => 'engin frétt þáttaðist, sniðið hefur breyst',
+  urelt: () => 'aðeins gamlar fréttir',
+};
+
+/**
+ * Fréttastraumar sem hafa þagnað. Skráin er skrifuð í hverjum innlestri (cron.mjs, newsIngest).
+ *
+ * ⚠⚠ AF HVERJU (21.9.2026). VB-straumurinn skilaði engu í 18 daga og Fiskifréttir aldrei neinu, og
+ * hvorugt sást, því bilunin varð inni í workernum þar sem GitHub-uppspretturnar hér að ofan ná ekki
+ * til. Miðlungs eftir sólarhring (spjald Hrafns), hátt eftir viku (forstofan).
+ * ⚠ Dagafjöldinn er MÆLDUR frá því skráning hófst, ekki frá raunverulegu upphafi bilunar.
+ */
+export function thagnadirStraumar(skra, nu) {
+  const n = Number.isFinite(nu) ? nu : Math.floor(Date.now() / 1000);
+  const straumar = (skra && typeof skra === 'object' && skra.straumar) || {};
+  const ut = [];
+  for (const url of Object.keys(straumar)) {
+    const s = straumar[url] || {};
+    const fra = Number(s.bilunFra) || 0;
+    if (!fra || fra > n - _BL_STRAUMUR_KLST * 3600) continue;
+    const dagar = Math.max(1, Math.floor((n - fra) / 86400));
+    const astaeda = _BL_STRAUMUR_ASTAEDA[s.villa] ? _BL_STRAUMUR_ASTAEDA[s.villa](s) : (s.villa || 'óþekkt');
+    ut.push({
+      uppspretta: 'Straumur',
+      lysing: (s.src || url) + ' hefur ekkert skilað í ' + dagar + ' ' + (dagar === 1 ? 'dag' : 'daga') + ' (' + astaeda + ')',
+      sidan: fra,
+      alvarleiki: fra <= n - _BL_STRAUMUR_HATT_DAGAR * 86400 ? 'hatt' : 'midlungs',
+      slod: url,
+    });
+  }
+  return ut;
+}
+
 async function _blGh(env, slod) {
   const r = await fetch('https://api.github.com/repos/' + _blRepo + '/' + slod, {
     headers: { Authorization: 'Bearer ' + env.GITHUB_DISPATCH_TOKEN, Accept: 'application/vnd.github+json', 'User-Agent': 'karp21-worker' },
@@ -122,6 +161,9 @@ export async function saekjaBilanir(env, { thvinga = false } = {}) {
       // Gagnakeyrslur (nætur-crawl, refresh-data, on-demand byggingar) sem féllu — sjá fallnarVaktir.
       for (const b of fallnarVaktir((vaktir && vaktir.workflow_runs) || [], _blNow())) bilanir.push(b);
     }
+    // Fréttastraumar sem hafa þagnað — úr D1, ekki GitHub. Skemmd skrá fellir ekki listann.
+    const straumRod = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='frettastraumar'").first().catch(() => null);
+    try { for (const b of thagnadirStraumar(straumRod ? JSON.parse(straumRod.v) : null, _blNow())) bilanir.push(b); } catch (e) { /* sjá ofar */ }
     if (prs) {
       const markPr = _blNow() - _BL_PR_DAGAR * 86400;
       for (const p of (Array.isArray(prs) ? prs : [])) {

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { adminBilanirHandler, fallnarVaktir, saekjaBilanir } from './bilanir.mjs';
+import { adminBilanirHandler, fallnarVaktir, saekjaBilanir, thagnadirStraumar } from './bilanir.mjs';
 
 const NU = () => Math.floor(Date.now() / 1000);
 function fakeDb(state) {
@@ -8,6 +8,7 @@ function fakeDb(state) {
     if (/SELECT v, updated FROM stjorn_sync WHERE k='bilanir'/.test(sql)) return state.bilanir || null;
     if (/^INSERT INTO stjorn_sync \(k, v, updated\) VALUES \('bilanir'/.test(sql)) { state.bilanir = { v: args[0], updated: args[1] }; return { meta: {} }; }
     if (/SELECT is_admin FROM users WHERE id=\?/.test(sql)) return state.users[args[0]] || null;
+    if (/SELECT v FROM stjorn_sync WHERE k='frettastraumar'/.test(sql)) return state.frettastraumar ? { v: state.frettastraumar } : null;
     throw new Error('fakeDb: óþekkt SQL: ' + sql);
   };
   return { prepare(sql) { let a = []; const st = { bind(...x) { a = x; return st; }, async first() { return exec(sql, a); }, async all() { return exec(sql, a); }, async run() { return exec(sql, a); } }; return st; } };
@@ -199,4 +200,57 @@ test('fallin næturkeyrsla birtist í heildarlistanum', async (t) => {
   }));
   const r = await saekjaBilanir(mkEnv(mkState()), { thvinga: true });
   assert.ok(r.bilanir.some((b) => b.uppspretta === 'Vakt' && /Tengslagrunnur/.test(b.lysing)), 'næturcrawlið á að sjást hjá Hrafni');
+});
+
+// ══════════════════════════════════════════════════════════════════════════
+// ÞAGNAÐIR FRÉTTASTRAUMAR (21.9.2026). VB-straumurinn skilaði engu í 18 daga og Fiskifréttir aldrei
+// neinu. Bilunin varð inni í workernum, þar sem GitHub-uppspretturnar ná ekki til, svo hún sást hvergi.
+// ══════════════════════════════════════════════════════════════════════════
+const KLST = 3600, DAGUR = 86400, NN = 1_800_000_000;
+const skraMed = (s) => ({ ts: NN, straumar: s });
+
+test('straumur sem hefur bilað skemur en sólarhring er EKKI á listanum (hávaði, ekki frétt)', () => {
+  const skra = skraMed({ 'https://vb.is/rss/': { src: 'Viðskiptablaðið', villa: 'http', status: 403, bilunFra: NN - 23 * KLST } });
+  assert.deepEqual(thagnadirStraumar(skra, NN), []);
+});
+
+test('þagnaður straumur: miðlungs eftir sólarhring, hátt (forstofan) eftir viku, ástæðan fylgir', () => {
+  const skra = skraMed({
+    'https://vb.is/rss/': { src: 'Viðskiptablaðið', villa: 'http', status: 403, hindrun: 'challenge', bilunFra: NN - 2 * DAGUR },
+    'https://vb.is/rss/fiskifrettir/': { src: 'Fiskifréttir', villa: 'timamork', status: 0, bilunFra: NN - 8 * DAGUR },
+    'https://heimildin.is/rss/': { src: 'Heimildin', villa: '', status: 200, bilunFra: 0 },
+  });
+  const r = thagnadirStraumar(skra, NN);
+  assert.equal(r.length, 2, 'heilbrigður straumur er ekki bilun');
+  const vb = r.find((b) => b.slod === 'https://vb.is/rss/');
+  assert.equal(vb.uppspretta, 'Straumur');
+  assert.equal(vb.alvarleiki, 'midlungs');
+  assert.equal(vb.sidan, NN - 2 * DAGUR);
+  assert.match(vb.lysing, /^Viðskiptablaðið hefur ekkert skilað í 2 daga \(HTTP 403, Cloudflare-lokun hjá miðlinum\)$/);
+  const fi = r.find((b) => b.slod === 'https://vb.is/rss/fiskifrettir/');
+  assert.equal(fi.alvarleiki, 'hatt', 'vika af þögn á að ná til Arons, ekki bara Hrafns');
+  assert.match(fi.lysing, /8 daga \(svarar ekki\)/);
+});
+
+test('eintala: einn dagur', () => {
+  const r = thagnadirStraumar(skraMed({ u: { src: 'X', villa: 'snid', bilunFra: NN - 30 * KLST } }), NN);
+  assert.match(r[0].lysing, /í 1 dag \(engin frétt þáttaðist/);
+});
+
+test('rusl í skránni fellir ekki listann', () => {
+  for (const x of [null, undefined, 'x', 7, {}, { straumar: null }, { straumar: { u: null } }]) assert.deepEqual(thagnadirStraumar(x, NN), []);
+});
+
+test('þagnaður straumur birtist í heildarlistanum — og skemmd skrá fellir hann ekki', async (t) => {
+  stubGh(t, GH_ALLT_GOTT);
+  const state = mkState();
+  state.frettastraumar = JSON.stringify(skraMed({ 'https://vb.is/rss/': { src: 'Viðskiptablaðið', villa: 'http', status: 403, bilunFra: NU() - 3 * DAGUR } }));
+  const r = await saekjaBilanir(mkEnv(state), { thvinga: true });
+  assert.ok(r.bilanir.some((b) => b.uppspretta === 'Straumur' && /Viðskiptablaðið/.test(b.lysing)), 'þögn VB á að sjást hjá Hrafni');
+
+  const skemmt = mkState();
+  skemmt.frettastraumar = '{ekki json';
+  const r2 = await saekjaBilanir(mkEnv(skemmt), { thvinga: true });
+  assert.equal(r2.ok, true);
+  assert.deepEqual(r2.bilanir, []);
 });
