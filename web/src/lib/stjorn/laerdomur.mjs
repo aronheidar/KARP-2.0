@@ -29,8 +29,30 @@ export function meginmal(texti) {
   return (k >= 0 ? linur.slice(0, k) : linur).join('\n').trim();
 }
 
+// Skammstafanir sem enda á punkti án þess að setningin endi. ⚠ Rýnin 22.9: „t.d." klauf setningu í
+// tvennt, brotið „Þú getur t.d" lærðist sem setning sem Aron tók út, og síðari drög urðu að
+// „breytt netfanginu undir Mitt svæði.".
+const SKAMMSTAFANIR = new Set(['t.d.', 'o.fl.', 'o.s.frv.', 'þ.e.', 'þ.e.a.s.', 'þ.m.t.', 'm.a.', 'u.þ.b.', 'a.m.k.', 'kl.', 'nr.', 'sbr.', 'skv.',
+  'ca.', 'bls.', 'kr.', 'ma.', 'klst.', 'mín.', 'sek.', 'ehf.', 'hf.', 'dr.', 'hr.', 'frú.', 'e.g.', 'i.e.', 'etc.', 'no.']);
+
+/** Ein lína → setningar. Klýfur aðeins á eftir . ! ? þar sem næsta orð byrjar á hástaf eða
+ *  gæsalöppum, og aldrei á eftir skammstöfun: „14. september" og „t.d. þetta" eru ein setning. */
+function klofna(lina) {
+  const s = String(lina || ''), ut = [];
+  let byrjun = 0;
+  for (const m of s.matchAll(/[.!?]+(\s+)(?=[\p{Lu}„"“])/gu)) {
+    const endir = m.index + m[0].length - m[1].length;
+    const sidastaOrd = s.slice(byrjun, endir).trim().split(/\s+/).pop().toLowerCase();
+    if (SKAMMSTAFANIR.has(sidastaOrd)) continue;
+    ut.push(s.slice(byrjun, endir));
+    byrjun = m.index + m[0].length;
+  }
+  ut.push(s.slice(byrjun));
+  return ut;
+}
+
 export function setningar(texti) {
-  return String(texti || '').split(/(?<=[.!?])\s+|\n+/).map((s) => s.replace(/\s+/g, ' ').trim()).filter((s) => /\p{L}/u.test(s));
+  return String(texti || '').split(/\n+/).flatMap(klofna).map((s) => s.replace(/\s+/g, ' ').trim()).filter((s) => /\p{L}/u.test(s));
 }
 
 const lykill = (s) => String(s).toLowerCase().replace(/[„“”"'«»]/g, '').replace(/\s+/g, ' ').replace(/[\s.!?,:;…]+$/u, '').trim();
@@ -70,12 +92,22 @@ function endurtekid(radir, svid) {
 }
 
 /**
- * @param {Array<{id, drog, sent}>} pars fyrsta svar Arons á hverja beiðni þar sem hún átti drög
+ * @param {Array<{id, drog, sent, fjarlaegt?}>} pars fyrsta svar Arons á hverja beiðni þar sem hún átti drög.
+ *   fjarlaegt = setningar sem ÞJÓNNINN tók úr drögunum (hreinsaDrogUt) áður en Aron sá þau.
  * @returns tölur sem má geyma: engir heilir textar, aðeins setningar sem endurtóku sig
+ *   tekidUtOft — það sem ARON tók út (vikutextinn segir frá því)
+ *   sleppaOft  — það sem Aron tók út EÐA þjónninn tók út og Aron setti ekki aftur inn (stíllinn byggir á því).
+ *   ⚠ Rýnin 22.9: án sleppaOft þurrkaðist lærdómurinn út á mánuði. Þegar þjónninn tók setninguna
+ *     sjálfur sá Aron hana aldrei, tók hana því aldrei út, og næsti 30 daga gluggi fann engin merki.
  */
 export function samantektLaerdoms(pars) {
   const r = (Array.isArray(pars) ? pars : []).filter((p) => p && String(p.drog || '').trim() && String(p.sent || '').trim())
-    .map((p) => Object.assign({ id: p.id }, berSaman(p.drog, p.sent)));
+    .map((p) => {
+      const b = berSaman(p.drog, p.sent);
+      const iSendu = new Set(setningar(meginmal(p.sent)).map(lykill));
+      const thjonn = (Array.isArray(p.fjarlaegt) ? p.fjarlaegt : []).map(String).filter((s) => !iSendu.has(lykill(s)));
+      return Object.assign({ id: p.id, sleppaAlls: b.tekidUt.concat(thjonn) }, b);
+    });
   const breytt = r.filter((x) => !x.obreytt);
   const lengd = midgildi(breytt.filter((x) => x.drogOrd > 0).map((x) => x.sentOrd / x.drogOrd));
   return {
@@ -85,6 +117,7 @@ export function samantektLaerdoms(pars) {
     lengd: lengd == null ? null : Math.round(lengd * 100) / 100,
     sentOrdMidgildi: midgildi(breytt.map((x) => x.sentOrd)),
     tekidUtOft: endurtekid(breytt, 'tekidUt'),
+    sleppaOft: endurtekid(r, 'sleppaAlls'),
     baettVidOft: endurtekid(breytt, 'baettVid'),
   };
 }
@@ -94,36 +127,56 @@ export function samantektLaerdoms(pars) {
  *   ordHamark — TALA, í stað „≤ 120 orð" í greiningPrompt. Aðeins ef hún er í raun lægri en 120:
  *               rýnin 22.9 sá þakið verða 120 (engin breyting) meðan textinn sagði „svo nú hef ég
  *               drögin styttri".
+ *               ⚠ `fyrri` heldur þakinu: þegar drögin eru orðin stutt styttir Aron þau ekki lengur,
+ *               og án fyrri stíls hyrfi þakið næsta mánuð og drögin lengdust aftur. Það fer aðeins
+ *               upp ef Aron LENGIR drögin.
  *   sleppa    — setningar sem hreinsaDrog tekur úr drögunum. Fara ALDREI í promptið (sjá efst).
  * Það sem Aron bætir oft við er sagt frá í vikutextanum en ekki notað: að bæta setningu sjálfkrafa
  * í svar sem hún á ekki við væri verra en að sleppa henni.
  */
-export function stillFra(l) {
-  if (!l || !(l.fjoldi >= 3)) return null;
+export function stillFra(l, fyrri = null) {
   const s = {};
-  if (l.breytt >= 2 && l.lengd != null && l.lengd <= 0.8 && l.sentOrdMidgildi) {
-    const thak = Math.max(40, Math.round(l.sentOrdMidgildi / 10) * 10);
+  const nogu = !!l && l.fjoldi >= 3;
+  const thakFra = (m) => Math.max(40, Math.round(m / 10) * 10);
+  if (nogu && l.breytt >= 2 && l.lengd != null && l.lengd <= 0.8 && l.sentOrdMidgildi) {
+    const thak = thakFra(l.sentOrdMidgildi);
     if (thak < 120) s.ordHamark = thak;
+  } else if (fyrri && Number(fyrri.ordHamark) >= 40 && Number(fyrri.ordHamark) < 120) {
+    s.ordHamark = Number(fyrri.ordHamark);
+    if (nogu && l.breytt >= 2 && l.lengd != null && l.lengd >= 1.2 && l.sentOrdMidgildi) {
+      const thak = thakFra(l.sentOrdMidgildi);
+      if (thak >= 120) delete s.ordHamark; else s.ordHamark = Math.max(s.ordHamark, thak);
+    }
   }
-  if (l.tekidUtOft && l.tekidUtOft.length) s.sleppa = l.tekidUtOft.slice(0, 3).map((x) => x.setning);
+  // Nóg gögn: setningarnar ráðast af merkjunum (líka því sem þjónninn tók út). Of fá svör í
+  // mánuðinum segja hvorki já né nei, og þá stendur fyrri stíll.
+  const sl = nogu ? (l.sleppaOft || l.tekidUtOft || []).map((x) => x.setning)
+    : (fyrri && Array.isArray(fyrri.sleppa) ? fyrri.sleppa.map(String) : []);
+  if (sl.length) s.sleppa = sl.slice(0, 3);
   return Object.keys(s).length ? s : null;
 }
 
 /**
  * Tekur úr drögunum setningar sem Aron tekur alltaf út. Ávarp, kveðja og málsgreinaskil standa.
  * Ef ekkert efni yrði eftir standa drögin óbreytt: tóm drög væru verri en of löng.
+ * @returns {{texti:string, fjarlaegt:string[]}} fjarlaegt fer í ai_greining svo lærdómurinn sjái það
  */
-export function hreinsaDrog(svar, still) {
+export function hreinsaDrogUt(svar, still) {
   const texti = String(svar == null ? '' : svar);
   const burt = new Set((still && Array.isArray(still.sleppa) ? still.sleppa.slice(0, 10) : []).map(lykill).filter(Boolean));
-  if (!burt.size || !texti.trim()) return texti;
+  if (!burt.size || !texti.trim()) return { texti, fjarlaegt: [] };
+  const fjarlaegt = [];
   const linur = texti.replace(/\r/g, '').split('\n').map((l) => {
-    const s = l.split(/(?<=[.!?])\s+/);
-    const eftir = s.filter((x) => !burt.has(lykill(x)));
-    return eftir.length === s.length ? l : eftir.join(' ').trim();
+    const s = klofna(l);
+    const eftir = s.filter((x) => { const burtu = burt.has(lykill(x)); if (burtu) fjarlaegt.push(x.trim()); return !burtu; });
+    return eftir.length === s.length ? l : eftir.map((x) => x.trim()).join(' ').trim();
   });
   const ut = linur.join('\n').replace(/\n{3,}/g, '\n\n').trim();
-  return /\p{L}/u.test(meginmal(ut)) ? ut : texti;
+  return /\p{L}/u.test(meginmal(ut)) ? { texti: ut, fjarlaegt } : { texti, fjarlaegt: [] };
+}
+
+export function hreinsaDrog(svar, still) {
+  return hreinsaDrogUt(svar, still).texti;
 }
 
 // ── Vikutextinn ────────────────────────────────────────────────────────────────────────────

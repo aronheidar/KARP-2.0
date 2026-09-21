@@ -559,7 +559,9 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         const tk = d.tickets || {};
         // Síðasta heimsókn er skráð á klukku VAFRANS, svo „nú" verður að vera á sömu klukku: annars sýnist
         // heimsókn fyrir mínútu vera í framtíðinni þegar klukka þjónsins er örlítið á eftir.
-        const kvedja = morgunkvedja({ nu: Math.max(nu, Math.floor(Date.now() / 1000)), sidast: sigrunSidast(), klst: new Date().getHours(), listi: tk.list || [], bida: (gogn.hjalp || []).length + (gogn.bidur || []).length });
+        // Ólesinn listi er EKKI tómur listi (rýnin 22.9): þá segir hún það, og engar tölur.
+        const kvedja = tk.villa ? 'Ég næ ekki í beiðnirnar núna. Reyndu aftur eftir smá stund.'
+          : morgunkvedja({ nu: Math.max(nu, Math.floor(Date.now() / 1000)), sidast: sigrunSidast(), klst: new Date().getHours(), listi: tk.list || [], bida: (gogn.hjalp || []).length + (gogn.bidur || []).length });
         const hjalpHtml = (gogn.hjalp || []).length
           ? '<section class="stj-hola stj-hola--bidur stj-hola--hjalp"><h3>Ég þarf þig á þessum <span class="stj-hola-n">' + gogn.hjalp.length + '</span></h3>'
             + gogn.hjalp.map((r) => bidurRod(r)).join('') + '</section>'

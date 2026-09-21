@@ -25,7 +25,7 @@ import { RSK_ROT, _isStem, _kycAfterEvents, _kycRunDiff, _lobbyGate, atvinnugrei
 import { FRETTA_TYPES, _mentions, _rssItems, digestRun, eftirlitCriticalCron, fetchNews, kycCriticalCron, kycDiffCron, leikurPruneCron, logbirtingCriticalCron, newsIngest, newsSearch } from './src/worker/cron.mjs';
 import { adminEmailHandler, adminOverviewHandler, adminRefreshHandler, adminSendHandler, adminSetTypeHandler, adminSyncHandler, adminUserHandler } from './src/worker/stjornbord.mjs';
 import { adminTicketHandler, createTicket, processNewTicket, ticketsOverview } from './src/worker/hjalp_agent.mjs';   // 🎫 þjónustufulltrúi: ticket → greining → svar/tillaga
-import { sigrunVikupostur } from './src/worker/sigrun_vinna.mjs';   // 🙋 vikupóstur Sigrúnar á mánudagsmorgni
+import { sigrunVikupostur, endurreynaNu } from './src/worker/sigrun_vinna.mjs';   // 🙋 vikupóstur Sigrúnar á mánudagsmorgni
 import { adminMootHandler } from './src/worker/moot.mjs';   // 🏛️ Moot: ráðsfundur persónanna um eitt ticket — tillaga sem Aron greiðir atkvæði um
 import { adminGmailHandler, gmailIntakeCron } from './src/worker/gmail_intake.mjs';   // 📥 póstur beint á hjalp@ → ticket (3-tíma cron + hnappur á /stjorn/)
 import { adminBilanirHandler } from './src/worker/bilanir.mjs';   // 🛠️ bilanalisti Hrafns: CI, byggingar, gleymdir PR-ar
@@ -3014,8 +3014,8 @@ export default {
       // 📥 Póstur beint á hjalp@ → ticket. SÉR waitUntil: frétta-pípan má aldrei fella innlesturinn (né öfugt),
       //    og hann er ódýr (ein Gmail-leit; Claude-kall aðeins fyrir erindi sem raunverulega bárust).
       ctx.waitUntil(gmailIntakeCron(env, { dagar: 2, max: 10 })); ctx.waitUntil(leikurAsyncCron(env).then((r) => leikurAsyncPostur(env, r && r.tilkynna)));
-      // 🙋 Endurtilraun vikupóstsins: gerir ekkert nema á mánudegi eftir kl. 09 og þá aðeins ef 08:10-keyrslan brást.
-      ctx.waitUntil(sigrunVikupostur(env, ticketsOverview, { endurreyna: true }).catch(() => null)); }
+      // 🙋 Endurtilraun vikupóstsins: aðeins á mánudegi eftir kl. 09, og þá sendir hún aðeins ef 08:10-keyrslan brást.
+      if (endurreynaNu(Math.floor(Date.now() / 1000))) ctx.waitUntil(sigrunVikupostur(env, ticketsOverview, { endurreyna: true }).catch(() => null)); }
   },
   async fetch(request, env, ctx) {
     const url = new URL(request.url);

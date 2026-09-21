@@ -263,8 +263,9 @@ async function laerdomsPor(env, fra, til) {
   const ut = [];
   for (const x of (r && r.results) || []) {
     let g = null; try { g = JSON.parse(x.g || 'null'); } catch { g = null; }
-    if (!g || typeof g.svar !== 'string' || !g.svar.trim() || g.model === 'stjorn' || g.model === 'off') continue;
-    ut.push({ id: Number(x.id), drog: g.svar, sent: String(x.sent || '') });
+    // drög sem voru vistuð grein eru ekki hennar drög og kenna henni ekkert um hennar stíl
+    if (!g || typeof g.svar !== 'string' || !g.svar.trim() || g.model === 'stjorn' || g.model === 'off' || g.greinDrog) continue;
+    ut.push({ id: Number(x.id), drog: g.svar, sent: String(x.sent || ''), fjarlaegt: Array.isArray(g.fjarlaegt) ? g.fjarlaegt : [] });
   }
   return ut;
 }
@@ -283,12 +284,16 @@ export async function sigrunLaerdomur(env, fra, til) {
   return { ok: true, geymt: false, laerdomur };
 }
 
-/** Síðustu 30 dagar → `sigrun_still`, sem greiningin les. Bilun skrifar EKKERT yfir fyrri stíl. */
+/** Síðustu 30 dagar → `sigrun_still`, sem greiningin les. Bilun skrifar EKKERT yfir fyrri stíl.
+ *  Fyrri stíll fer með inn (stillFra): þakið hverfur ekki bara af því að drögin eru orðin stutt. */
 export async function sigrunStillUppfaera(env) {
   const nu = _nu();
+  const fyrriRod = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='sigrun_still'").first().catch(() => VILLA);
+  if (fyrriRod === VILLA) return VILLA;
+  let fyrri = null; try { fyrri = fyrriRod ? JSON.parse(fyrriRod.v) : null; } catch { fyrri = null; }
   const por = await laerdomsPor(env, nu - 30 * 86400, nu);
   if (por === VILLA) return VILLA;
-  const still = stillFra(samantektLaerdoms(por));
+  const still = stillFra(samantektLaerdoms(por), fyrri);
   await _skrifaJson(env, 'sigrun_still', still);
   return still;
 }
@@ -396,33 +401,42 @@ export async function sigrunGreinEyda(env, b) {
 // ── VIKUPÓSTURINN ────────────────────────────────────────────────────────────────────────────
 
 /** Endurtilraunin keyrir á 3-tíma cron-inum, en aðeins á mánudegi eftir aðalkeyrsluna kl. 08:10:
- *  annars færi vika sem aldrei var send (t.d. daginn sem þetta fór í loftið) út um miðja nótt. */
+ *  annars færi vika sem aldrei var send (t.d. daginn sem þetta fór í loftið) út um miðja nótt.
+ *  Gátað í worker.js, svo sigrunVikupostur sjálft sé prófanlegt óháð klukkunni. */
 export const endurreynaNu = (nu) => { const d = new Date(Number(nu) * 1000); return d.getUTCDay() === 1 && d.getUTCHours() >= 9; };
+
+const HALFTIMI = 1800;   // krafa sem hefur staðið svo lengi án „sent:" er frá keyrslu sem dó
 
 /**
  * Mánudagspósturinn (cron `10 8 * * 1`), endurtilraun á 3-tíma cron-inum sama mánudag (`endurreyna`),
  * og „Senda mér þetta í pósti" á spjaldinu (`thvinga`).
  * `yfirlit` er ticketsOverview úr hjalp_agent.mjs, gefið stöðubundið: það flytti annars inn skrá sem
  * flytur þessa inn, og CI-tengingaprófið les nöfn með mynstri.
- * ⚠ Einu sinni á viku, og KRAFAN KEMUR FYRST. Rýnin 22.9: krafan kom á eftir sekúndunum sem
- *   samantektin tekur, svo tveir smellir (tveir flipar) sendu tvo pósta. Nú: kröfu er slegið í
- *   stjorn_sync með einkvæmu tákni og hún lesin aftur ÁÐUR en nokkuð er reiknað. Hnappurinn má taka
- *   kröfu sem er eldri en fimm mínútna, aldrei yngri. Allt sem bregst eftir það tekur kröfuna aftur.
+ * ⚠ KRAFAN KEMUR FYRST (rýnin 22.9: tveir smellir sendu tvo pósta). Kröfu er slegið í stjorn_sync
+ *   með einkvæmu tákni og hún lesin aftur ÁÐUR en nokkuð er reiknað; allt sem bregst eftir það tekur
+ *   hana aftur, og tókst sendingin verður hún `sent:<tími>`.
+ *   · Vikulykillinn: cron-ið tekur hann aðeins sé hann laus. Endurtilraunin má líka taka `sendi:`-
+ *     kröfu sem er eldri en hálftími (keyrsla sem dó), aldrei `sent:`.
+ *   · Hnappurinn á SINN lykil, fimm mínútna bil. Rýnin 22.9: misheppnaður smellur tók áður vikukröfuna
+ *     með sér og endurtilraunin kl. 12 sendi þá annan sjálfvirkan póst sömu viku. Takist smellurinn
+ *     er vikan merkt send, svo sjálfvirki pósturinn fari ekki á eftir.
  */
 export async function sigrunVikupostur(env, yfirlit, { thvinga = false, endurreyna = false } = {}) {
   if (!env || !env.TENGSL) return { ok: false, error: 'd1' };
   const D = env.TENGSL;
   const nu = _nu();
-  if (endurreyna && !endurreynaNu(nu)) return { ok: true, sent: false, bida: true };
   const rofi = await D.prepare("SELECT v FROM stjorn_sync WHERE k='hjalp_agent_off'").first().catch(() => VILLA);
   if (rofi === VILLA) return { ok: false, error: 'd1' };
   if (rofi && String(rofi.v) === '1') return { ok: false, error: 'rofi' };
   const v = sidastaFullaVika(nu);
-  const lykill = 'sigrun_vikupostur:' + v.ar + '-' + v.vika;
+  const vikuLykill = 'sigrun_vikupostur:' + v.ar + '-' + v.vika;
+  const lykill = thvinga ? 'sigrun_vikupostur_takki' : vikuLykill;
   const takn = 'sendi:' + nu + ':' + Math.random().toString(36).slice(2, 10);
   const krafa = thvinga
     ? D.prepare(UPSERT + ' WHERE stjorn_sync.updated < ?').bind(lykill, takn, nu, nu - 300)
-    : D.prepare('INSERT OR IGNORE INTO stjorn_sync (k, v, updated) VALUES (?, ?, ?)').bind(lykill, takn, nu);
+    : endurreyna
+      ? D.prepare(UPSERT + " WHERE stjorn_sync.v LIKE 'sendi:%' AND stjorn_sync.updated < ?").bind(lykill, takn, nu, nu - HALFTIMI)
+      : D.prepare('INSERT OR IGNORE INTO stjorn_sync (k, v, updated) VALUES (?, ?, ?)').bind(lykill, takn, nu);
   if ((await krafa.run().then(() => true).catch(() => false)) === false) return { ok: false, error: 'd1' };
   const eigin = await D.prepare('SELECT v FROM stjorn_sync WHERE k=?').bind(lykill).first().catch(() => VILLA);
   if (eigin === VILLA) return { ok: false, error: 'd1' };
@@ -459,5 +473,11 @@ export async function sigrunVikupostur(env, yfirlit, { thvinga = false, endurrey
 
   const s = await sendGmail(env, { to: _til(env), subject: p.efni, html: p.html }).catch(() => ({ ok: false }));
   if (!s || !s.ok) return sleppa('send');
+  if (thvinga) {
+    // Vikan merkt send (laus lykill, eða föst krafa frá keyrslu sem dó) — aldrei yfir `sent:` né kröfu í gangi.
+    await D.prepare(UPSERT + " WHERE stjorn_sync.v LIKE 'sendi:%' AND stjorn_sync.updated < ?").bind(vikuLykill, 'sent:' + nu, nu, nu - HALFTIMI).run().catch(() => {});
+  } else {
+    await D.prepare('UPDATE stjorn_sync SET v=? WHERE k=? AND v=?').bind('sent:' + nu, lykill, takn).run().catch(() => {});
+  }
   return { ok: true, sent: true, efni: p.efni };
 }

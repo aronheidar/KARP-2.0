@@ -11,7 +11,7 @@ import { _ajson, _emailTpl, _esc, sendGmail } from './felag.mjs';
 import { renderEmail } from '../lib/emails.mjs';
 import { readSession } from './auth.mjs';
 import { OPNAR_STODUR, TICKET_STODUR, ackVars, drogUrGrein, efniUrLysingu, flokkaFallback, greiningPrompt, greiningUser, kbAllt, kbSjalfvirkt, kbVistudDrog, parseGreining, svarUppfaersla, ticketSubject } from '../lib/hjalp_agent.mjs';
-import { hreinsaDrog } from '../lib/stjorn/laerdomur.mjs';   // setningar sem Aron tekur alltaf út fara úr drögunum hjá ÞJÓNINUM
+import { hreinsaDrogUt } from '../lib/stjorn/laerdomur.mjs';   // setningar sem Aron tekur alltaf út fara úr drögunum hjá ÞJÓNINUM
 import { persona, rofiLykill, veljaFundarmenn } from '../lib/personur.mjs';   // 🛟 Sigrún skrifar undir öll póst-samskipti við notendur; fundarmenn f. Moot-forsýn
 import { thurfHjalp } from '../lib/stjorn/hjalparbeidni.mjs';   // 🙋 „ég þarf þig á þessari" — reiknað hér, þar sem lýsingin er
 import { skraAtburd, sigrunVika, sigrunTillaga, sigrunSpjall, lokaMargt, sigrunThekking, sigrunLaerdomur, sigrunKbLeita, sigrunGreinDrog, sigrunGreinVista, sigrunGreinHafna, sigrunGreinEyda, sigrunVikupostur } from './sigrun_vinna.mjs';   // Sigrún sem starfsmaður
@@ -104,11 +104,16 @@ export async function greinaTicket(env, t, auka = [], still = null) {
     const text = (j.content || []).map((b) => b.text || '').join('');
     const g = parseGreining(text, auka);
     if (!g) { const e = new Error('parse'); e.raw = text.slice(0, 400); e.stop = j.stop_reason; throw e; }
-    // Það sem hún hefur lært: setningar sem Aron tekur alltaf út. Þjónninn fjarlægir þær, líkanið sér þær aldrei.
-    g.svar = hreinsaDrog(g.svar, still);
-    // Vistuð grein sem greiningin valdi fer í svarreitinn. Hún sendist ALDREI sjálf (kbSjalfvirkt, lib).
+    // Vistuð grein sem greiningin valdi fer í svarreitinn. Hún sendist ALDREI sjálf (kbSjalfvirkt, lib),
+    // og drögin eru þá greinin en ekki hún: lærdómurinn sleppir þeim (`greinDrog`).
     const grein = kbVistudDrog(g, auka);
-    if (grein) g.svar = drogUrGrein(grein, t.nafn);
+    if (grein) return Object.assign(g, { svar: drogUrGrein(grein, t.nafn), greinDrog: grein.id, model: MODEL });
+    // Það sem hún hefur lært: setningar sem Aron tekur alltaf út. Þjónninn fjarlægir þær, líkanið sér þær
+    // aldrei. Það sem var tekið er skráð (`fjarlaegt`), annars sæi lærdómurinn ekki lengur að Aron vill
+    // það burt og stíllinn þurrkaðist út á mánuði (rýnin 22.9).
+    const h = hreinsaDrogUt(g.svar, still);
+    g.svar = h.texti;
+    if (h.fjarlaegt.length) g.fjarlaegt = h.fjarlaegt.slice(0, 10).map((s) => String(s).slice(0, 200));
     return Object.assign(g, { model: MODEL });
   } catch (e) {
     // raw/stop geymast í ai_greining svo hægt sé að sjá HVERS VEGNA þáttun brást (klipping vs rusl)

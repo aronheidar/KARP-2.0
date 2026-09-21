@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { meginmal, berSaman, samantektLaerdoms, stillFra, hreinsaDrog, laerdomsTexti, brot } from './laerdomur.mjs';
+import { meginmal, setningar, berSaman, samantektLaerdoms, stillFra, hreinsaDrog, hreinsaDrogUt, laerdomsTexti, brot } from './laerdomur.mjs';
 import * as laerdomur from './laerdomur.mjs';
 
 const DROG = 'Sæl/Sæll Jón,\n\nTakk fyrir að hafa samband. Aðgangurinn þinn hefur verið endurstilltur og þú getur skráð þig inn aftur. Ef það gengur ekki máttu svara þessum pósti og við skoðum málið betur saman.\n\nBestu kveðjur,';
@@ -79,6 +79,36 @@ test('laerdomsTexti: í hennar rödd, með talnasamræmi, og lofar aðeins því
   const tuttugu = laerdomsTexti({ vika: { fjoldi: 30, obreytt: 9, breytt: 21, lengd: 1, tekidUtOft: [{ setning: 'A b', n: 21 }], baettVidOft: [{ setning: 'C d', n: 2 }] }, still: { sleppa: ['A b'] } });
   assert.ok(tuttugu.includes('21 sinni tókstu út „A b“ og ég er hætt að skrifa það.'), tuttugu.join(' | '));
   assert.ok(tuttugu.includes('Þú bætir oft við „C d“.'));
+});
+
+test('setningar: rýnin 22.9 — „t.d.", „14. september" og „kl. 14" kljúfa ekki setningu', () => {
+  assert.deepEqual(setningar('Þú getur t.d. breytt netfanginu undir Mitt svæði. Greiðslan fór 14. september kl. 14 og kvittunin barst. Hún er á Mitt svæði!'),
+    ['Þú getur t.d. breytt netfanginu undir Mitt svæði.', 'Greiðslan fór 14. september kl. 14 og kvittunin barst.', 'Hún er á Mitt svæði!']);
+  assert.deepEqual(setningar('Sjá t.d. Karp. Takk.'), ['Sjá t.d. Karp.', 'Takk.'], 'skammstöfun á undan hástaf');
+  const r = hreinsaDrog('Þú getur t.d. breytt netfanginu. Takk fyrir.', { sleppa: ['Þú getur t.d'] });
+  assert.equal(r, 'Þú getur t.d. breytt netfanginu. Takk fyrir.', 'brot úr setningu passar ekki við heila setningu');
+});
+
+test('lærdómurinn þurrkast ekki út annan mánuðinn — rýnin 22.9', () => {
+  const still1 = stillFra(samantektLaerdoms(pars));
+  // Mánuður 2: þjónninn tók setninguna úr drögunum og skráði það; Aron sendi drögin eins og þau voru.
+  const h = hreinsaDrogUt(DROG, still1);
+  assert.deepEqual(h.fjarlaegt, ['Takk fyrir að hafa samband.', 'Ef það gengur ekki máttu svara þessum pósti og við skoðum málið betur saman.']);
+  const manudur2 = [1, 2, 3].map((id) => ({ id, drog: h.texti, sent: h.texti, fjarlaegt: h.fjarlaegt }));
+  const l2 = samantektLaerdoms(manudur2);
+  assert.equal(l2.obreytt, 3, 'Aron breytti engu');
+  assert.deepEqual(l2.tekidUtOft, [], 'vikutextinn segir ekki að Aron hafi tekið neitt út');
+  const still2 = stillFra(l2, still1);
+  assert.ok(still2.sleppa.includes('Takk fyrir að hafa samband'), 'en setningin fer áfram úr drögunum');
+  assert.equal(still2.ordHamark, still1.ordHamark, 'og þakið stendur þótt drögin séu orðin stutt');
+  // Setji Aron setninguna AFTUR inn vill hann hana: þá hættir þjónninn að taka hana
+  const aftur = [1, 2, 3].map((id) => ({ id, drog: h.texti, sent: DROG, fjarlaegt: h.fjarlaegt }));
+  assert.ok(!(stillFra(samantektLaerdoms(aftur), still1).sleppa || []).includes('Takk fyrir að hafa samband'));
+  // Lengi Aron drögin fer þakið upp eða hverfur
+  const lengt = { fjoldi: 3, obreytt: 0, breytt: 3, lengd: 1.6, sentOrdMidgildi: 130, tekidUtOft: [], sleppaOft: [], baettVidOft: [] };
+  assert.equal(stillFra(lengt, { ordHamark: 40 }), null);
+  // Of fá svör í mánuðinum segja hvorki já né nei
+  assert.deepEqual(stillFra({ fjoldi: 1, obreytt: 1, breytt: 0, lengd: null, tekidUtOft: [], sleppaOft: [] }, still1), still1);
 });
 
 test('brot: nálæg brot fá heiti, annars prósenta', () => {

@@ -250,8 +250,12 @@ t('sigrunVikupostur: einu sinni á viku, rofinn stöðvar hann, og misheppnuð s
   assert.ok(postur[0].includes('To: hjalp@karp.is'));
   const b = await sigrunVikupostur(E, ticketsOverview);
   assert.deepEqual(b, { ok: true, sent: false, adur: true });
-  assert.equal(sendPostar(log).length, 1, 'enginn annar póstur sömu viku');
-  assert.equal((await sigrunVikupostur(E, ticketsOverview, { thvinga: true })).error, 'nylega', 'hnappurinn sendir ekki tvisvar á fimm mínútum');
+  assert.equal(sendPostar(log).length, 1, 'enginn annar sjálfvirkur póstur sömu viku');
+  assert.match(db.prepare('SELECT v FROM stjorn_sync WHERE k=?').get(lykill).v, /^sent:/, 'tókst: krafan verður sent:');
+  // Hnappurinn á sinn lykil: Aron biður um póstinn og fær hann, en ekki tvisvar á fimm mínútum
+  assert.equal((await sigrunVikupostur(E, ticketsOverview, { thvinga: true })).sent, true);
+  assert.equal((await sigrunVikupostur(E, ticketsOverview, { thvinga: true })).error, 'nylega');
+  assert.equal(sendPostar(log).length, 2);
   const { env: env2, sync: sync2 } = nyrGrunnur();
   sync2('hjalp_agent_off', '1');
   assert.deepEqual(await sigrunVikupostur(Object.assign({}, GMAIL, env2), ticketsOverview), { ok: false, error: 'rofi' });
@@ -298,6 +302,57 @@ t('sigrunVikupostur: rýnin 22.9 — tveir smellir á sama tíma senda EINN pós
   const [a, b] = await Promise.all([sigrunVikupostur(E, ticketsOverview, { thvinga: true }), sigrunVikupostur(E, ticketsOverview, { thvinga: true })]);
   assert.equal(sendPostar(log).length, 1, JSON.stringify([a, b]));
   assert.deepEqual([a.sent, b.error].sort(), [true, 'nylega'].sort());
+});
+
+t('sigrunVikupostur: rýnin 22.9 — misheppnaður smellur snertir ekki vikukröfuna, og föst krafa losnar', async (tc) => {
+  const { env, midi, sync, db } = nyrGrunnur();
+  const nu = NU();
+  const v = sidastaFullaVika(nu);
+  midi({ id: 1, created: v.fra + H, stada: 'nytt' });
+  const E = Object.assign({}, GMAIL, env);
+  const lykill = 'sigrun_vikupostur:' + v.ar + '-' + v.vika;
+  const vikan = () => (db.prepare('SELECT v FROM stjorn_sync WHERE k=?').get(lykill) || {}).v;
+  // 08:10 sendi; síðdegis mistekst smellur — vikan stendur send, svo 12:00-endurtilraunin sendir ekki aftur
+  sync(lykill, 'sent:' + (nu - 5 * H), nu - 5 * H);
+  stubFetch(tc, { gmailOk: false });
+  assert.equal((await sigrunVikupostur(E, ticketsOverview, { thvinga: true })).error, 'send');
+  assert.match(vikan(), /^sent:/);
+  let log = stubFetch(tc);
+  assert.deepEqual(await sigrunVikupostur(E, ticketsOverview, { endurreyna: true }), { ok: true, sent: false, adur: true });
+  assert.equal(sendPostar(log).length, 0);
+  // Keyrsla sem dó eftir kröfuna: cron-ið sér hana sem senda, endurtilraunin tekur hana eftir hálftíma
+  db.prepare('UPDATE stjorn_sync SET v=?, updated=? WHERE k=?').run('sendi:gamalt', nu - 3600, lykill);
+  assert.deepEqual(await sigrunVikupostur(E, ticketsOverview), { ok: true, sent: false, adur: true });
+  log = stubFetch(tc);
+  assert.equal((await sigrunVikupostur(E, ticketsOverview, { endurreyna: true })).sent, true);
+  assert.equal(sendPostar(log).length, 1);
+  assert.match(vikan(), /^sent:/);
+  // fersk krafa annarrar keyrslu er aldrei tekin
+  db.prepare('UPDATE stjorn_sync SET v=?, updated=? WHERE k=?').run('sendi:annar', nu - 60, lykill);
+  assert.equal((await sigrunVikupostur(E, ticketsOverview, { endurreyna: true })).adur, true);
+  // tókst smellur merkir vikuna senda, svo sjálfvirki pósturinn fari ekki á eftir
+  const { env: env2, midi: midi2, db: db2 } = nyrGrunnur();
+  midi2({ id: 1, created: v.fra + H, stada: 'nytt' });
+  stubFetch(tc);
+  assert.equal((await sigrunVikupostur(Object.assign({}, GMAIL, env2), ticketsOverview, { thvinga: true })).sent, true);
+  assert.match(db2.prepare('SELECT v FROM stjorn_sync WHERE k=?').get(lykill).v, /^sent:/);
+});
+
+t('greinaTicket: það sem þjónninn tók úr drögunum er skráð, og drög úr vistaðri grein kenna ekkert', async (tc) => {
+  const { env, midi, skilabod, sync, db } = nyrGrunnur();
+  const nu = NU();
+  sync('sigrun_still', { sleppa: ['Takk fyrir að hafa samband'] });
+  stubFetch(tc, { claude: JSON.stringify({ tegund: 'spurning', forgangur: 2, samantekt: 'x', kb: null, svar: DROG }) });
+  midi({ id: 5, created: nu, lysing: 'Spurning' });
+  await processNewTicket(Object.assign({ ANTHROPIC_API_KEY: 'k' }, GMAIL, env), { id: 5, netfang: 'a@b.is', lysing: 'Spurning', efni: 'S' });
+  const g = JSON.parse(db.prepare('SELECT ai_greining FROM tickets WHERE id=5').get().ai_greining);
+  assert.deepEqual(g.fjarlaegt, ['Takk fyrir að hafa samband.']);
+  assert.ok(!g.svar.includes('Takk fyrir að hafa samband'));
+  // Þrjú slík svör send óbreytt: stíllinn heldur setningunni úti í stað þess að þurrkast út
+  for (const id of [6, 7]) midi({ id, created: nu - id * H, ai_greining: JSON.stringify(Object.assign({}, g)) });
+  for (const id of [5, 6, 7]) skilabod({ ticket_id: id, ts: nu - H + id, dir: 'out', sent_by: 'aron', texti: g.svar });
+  const still = await sigrunStillUppfaera(env);
+  assert.deepEqual(still.sleppa, ['Takk fyrir að hafa samband']);
 });
 
 t('endurreynaNu: aðeins mánudag eftir kl. 09 — aldrei um miðja nótt vikuna sem aldrei var send', () => {
