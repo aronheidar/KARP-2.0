@@ -42,6 +42,17 @@ test('vikupostur: málsgreinar úr tölum, engir tvípunktar eða strik í megin
   assert.ok(p.html.includes('https://karp.is/stjorn/#sigrun'));
 });
 
+test('vikupostur: rýnin 22.9 — póst-tónninn nær líka yfir það sem er sett inn', () => {
+  const p = vikupostur({
+    vika: V38, tolur: { barust: 3 }, lifandi: { opnir: 1 },
+    laerdomur: { fjoldi: 3, obreytt: 0, breytt: 3, lengd: 1, tekidUtOft: [{ setning: 'Athugið: þetta — og hitt', n: 2 }], baettVidOft: [] },
+    greinar: [{ efni: 'Innskráning — gleymt lykilorð', ids: [1, 2, 3] }],
+  });
+  const meginmal = p.texti.split('\n\nSpjaldið mitt')[0];
+  assert.ok(!/[:–—]/.test(meginmal) && !/ - /.test(meginmal), meginmal);
+  assert.ok(meginmal.includes('„Innskráning, gleymt lykilorð“'));
+});
+
 test('vikupostur: róleg vika án lærdóms eða hjálpar er samt heill póstur', () => {
   const p = vikupostur({ vika: V38, tolur: { barust: 0 }, lifandi: { opnir: 0 } });
   assert.equal(p.texti.split('\n\n').slice(0, 2).join(' | '), 'Góðan daginn. | Engin beiðni barst í vikunni. Engin er opin núna.');

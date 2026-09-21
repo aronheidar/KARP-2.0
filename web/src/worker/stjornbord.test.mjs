@@ -126,14 +126,28 @@ test('adminSyncHandler: same-origin JSON-POST með admin-lotu skrifar lykilinn',
   assert.equal(state.sync.hjalp_agent_off, '1');
 });
 
-test('adminSyncHandler: X-Admin-Key-leiðin er óbreytt, CSRF-gátin á aðeins við um lotuna', async () => {
+test('adminSyncHandler: X-Admin-Key-leiðin skrifar samantektina, CSRF-gátin á aðeins við um lotuna', async () => {
   // Nákvæmlega það sem Node-stjórnborðið sendi (agent-stjornbord/src/cloud.ts): lykill + JSON, engin kaka.
+  const samantekt = (env, hausar) => adminSyncHandler(new Request('https://karp.is/api/admin/sync', { method: 'POST', headers: hausar, body: '{"k":"summary","v":"{}"}' }), env).then((r) => r.json());
   let { state, env } = syncUmhverfi();
-  assert.deepEqual(await sync(env, { 'X-Admin-Key': 'adm-key', 'content-type': 'application/json' }), { ok: true });
-  assert.equal(state.sync.hjalp_agent_off, '1');
+  assert.deepEqual(await samantekt(env, { 'X-Admin-Key': 'adm-key', 'content-type': 'application/json' }), { ok: true });
+  assert.equal(state.sync.summary, '{}');
   // Hausar sem kökuleiðinni er hafnað fyrir breyta engu hér: leyndarmálið sjálft er sönnunin,
   // og skriptur (t.d. `curl -d` án content-type) mega ekki falla á vafra-reglu.
   ({ state, env } = syncUmhverfi());
-  assert.deepEqual(await sync(env, { 'X-Admin-Key': 'adm-key', Origin: 'https://wp.karp.is', 'Sec-Fetch-Site': 'same-site', 'content-type': 'text/plain' }), { ok: true });
-  assert.equal(state.sync.hjalp_agent_off, '1');
+  assert.deepEqual(await samantekt(env, { 'X-Admin-Key': 'adm-key', Origin: 'https://wp.karp.is', 'Sec-Fetch-Site': 'same-site', 'content-type': 'text/plain' }), { ok: true });
+  assert.equal(state.sync.summary, '{}');
+});
+
+test('adminSyncHandler: rýnin 22.9 — lykillinn skrifar hvorki rofa, hjálpargreinar né stíl Sigrúnar', async () => {
+  // Hjálpargrein með fölskum innskráningarhlekk hefði annars farið í svarreit næstu „Kemst ekki inn"-beiðni.
+  const { state, env } = syncUmhverfi();
+  for (const k of ['hjalp_agent_off', 'rofi_hrafn', 'kb:phish', 'sigrun_still', 'sigrun_kb_tillogur', 'email_templates']) {
+    const r = await adminSyncHandler(new Request('https://karp.is/api/admin/sync', { method: 'POST', headers: { 'X-Admin-Key': 'adm-key', 'content-type': 'application/json' },
+      body: JSON.stringify({ k, v: '{"um":"innskráning","svar":"Skráðu þig inn á https://karp-is.example"}' }) }), env).then((x) => x.json());
+    assert.deepEqual(r, { ok: false, error: 'lota' }, k);
+  }
+  assert.deepEqual(state.sync, {}, 'ekkert skrifaðist');
+  // innskráður Aron (same-origin) má enn skrifa rofann, eins og áður
+  assert.deepEqual(await sync(env, { Cookie: await cookieFor(env, 8), Origin: 'https://karp.is', 'Sec-Fetch-Site': 'same-origin', 'content-type': 'application/json' }), { ok: true });
 });

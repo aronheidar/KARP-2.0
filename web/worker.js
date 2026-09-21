@@ -3013,7 +3013,9 @@ export default {
     else { ctx.waitUntil(newsIngest(env).then(() => frettavaktCron(env)).then(() => kycCriticalCron(env)).then(() => eftirlitCriticalCron(env)).then(() => logbirtingCriticalCron(env)));
       // 📥 Póstur beint á hjalp@ → ticket. SÉR waitUntil: frétta-pípan má aldrei fella innlesturinn (né öfugt),
       //    og hann er ódýr (ein Gmail-leit; Claude-kall aðeins fyrir erindi sem raunverulega bárust).
-      ctx.waitUntil(gmailIntakeCron(env, { dagar: 2, max: 10 })); ctx.waitUntil(leikurAsyncCron(env).then((r) => leikurAsyncPostur(env, r && r.tilkynna))); }
+      ctx.waitUntil(gmailIntakeCron(env, { dagar: 2, max: 10 })); ctx.waitUntil(leikurAsyncCron(env).then((r) => leikurAsyncPostur(env, r && r.tilkynna)));
+      // 🙋 Endurtilraun vikupóstsins: gerir ekkert nema á mánudegi eftir kl. 09 og þá aðeins ef 08:10-keyrslan brást.
+      ctx.waitUntil(sigrunVikupostur(env, ticketsOverview, { endurreyna: true }).catch(() => null)); }
   },
   async fetch(request, env, ctx) {
     const url = new URL(request.url);

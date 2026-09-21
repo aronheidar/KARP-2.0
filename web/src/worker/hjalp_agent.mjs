@@ -10,7 +10,8 @@
 import { _ajson, _emailTpl, _esc, sendGmail } from './felag.mjs';
 import { renderEmail } from '../lib/emails.mjs';
 import { readSession } from './auth.mjs';
-import { OPNAR_STODUR, TICKET_STODUR, ackVars, efniUrLysingu, flokkaFallback, greiningPrompt, greiningUser, kbAllt, kbSjalfvirkt, parseGreining, svarUppfaersla, ticketSubject } from '../lib/hjalp_agent.mjs';
+import { OPNAR_STODUR, TICKET_STODUR, ackVars, drogUrGrein, efniUrLysingu, flokkaFallback, greiningPrompt, greiningUser, kbAllt, kbSjalfvirkt, kbVistudDrog, parseGreining, svarUppfaersla, ticketSubject } from '../lib/hjalp_agent.mjs';
+import { hreinsaDrog } from '../lib/stjorn/laerdomur.mjs';   // setningar sem Aron tekur alltaf út fara úr drögunum hjá ÞJÓNINUM
 import { persona, rofiLykill, veljaFundarmenn } from '../lib/personur.mjs';   // 🛟 Sigrún skrifar undir öll póst-samskipti við notendur; fundarmenn f. Moot-forsýn
 import { thurfHjalp } from '../lib/stjorn/hjalparbeidni.mjs';   // 🙋 „ég þarf þig á þessari" — reiknað hér, þar sem lýsingin er
 import { skraAtburd, sigrunVika, sigrunTillaga, sigrunSpjall, lokaMargt, sigrunThekking, sigrunLaerdomur, sigrunKbLeita, sigrunGreinDrog, sigrunGreinVista, sigrunGreinHafna, sigrunGreinEyda, sigrunVikupostur } from './sigrun_vinna.mjs';   // Sigrún sem starfsmaður
@@ -103,6 +104,11 @@ export async function greinaTicket(env, t, auka = [], still = null) {
     const text = (j.content || []).map((b) => b.text || '').join('');
     const g = parseGreining(text, auka);
     if (!g) { const e = new Error('parse'); e.raw = text.slice(0, 400); e.stop = j.stop_reason; throw e; }
+    // Það sem hún hefur lært: setningar sem Aron tekur alltaf út. Þjónninn fjarlægir þær, líkanið sér þær aldrei.
+    g.svar = hreinsaDrog(g.svar, still);
+    // Vistuð grein sem greiningin valdi fer í svarreitinn. Hún sendist ALDREI sjálf (kbSjalfvirkt, lib).
+    const grein = kbVistudDrog(g, auka);
+    if (grein) g.svar = drogUrGrein(grein, t.nafn);
     return Object.assign(g, { model: MODEL });
   } catch (e) {
     // raw/stop geymast í ai_greining svo hægt sé að sjá HVERS VEGNA þáttun brást (klipping vs rusl)
@@ -158,7 +164,7 @@ export async function processNewTicket(env, t) {
   let auto = null;
   if (!off) {
     await sendAck(env, t);
-    auto = kbSjalfvirkt(g, th.auka);
+    auto = kbSjalfvirkt(g);   // aðeins greinar í kóðanum sendast sjálfar; vistuð grein er komin í drögin
     // Endar á „Bestu kveðjur,“ — sendSvar bætir undirskrift Sigrúnar við í fótinn (annars nafnið tvisvar í sama pósti).
     if (auto) await sendSvar(env, t, 'Sæl/Sæll' + (t.nafn ? ' ' + t.nafn.split(' ')[0] : '') + ',\n\n' + auto.svar + '\n\nBestu kveðjur,', 'agent');
     else await setTicket(env, t.id, { stada: 'stadfest' });
@@ -248,8 +254,9 @@ export async function adminTicketHandler(request, env, ctx) {
   //    ⚠ AÐEINS kökulota Arons, ALDREI X-Admin-Key (sama vörn og samthykkja). Rýnin 21.9: CTO-keyrslan
   //    (cto.yml) ber lykilinn og les texta sem NOTENDUR skrifuðu. Miði með innskotnum fyrirmælum mætti
   //    ekki geta lokað 50 miðum án smells eða eytt Claude-kvóta á spjall. Enginn þjónn kallar þessar.
-  //    Hjálpargreinarnar bætast í sama hóp: vistuð grein getur farið ORÐRÉTT á viðskiptavini, og
-  //    innskotinn texti í miða má aldrei geta skrifað hana.
+  //    Hjálpargreinarnar bætast í sama hóp: vistuð grein fer inn í greiningar-promptið og í svarreit
+  //    Arons, og innskotinn texti í miða má aldrei geta skrifað hana. Sama vörn er á /api/admin/sync
+  //    (stjornbord.mjs): lykilleiðin þar skrifar aðeins rekstrar-samantektina.
   if (['sigrun_vika', 'sigrun_tillaga', 'sigrun_spjall', 'loka_margt', 'sigrun_vikupostur',
     'sigrun_kb_leita', 'sigrun_grein_drog', 'sigrun_grein_vista', 'sigrun_grein_hafna', 'sigrun_grein_eyda'].includes(action)) {
     if (byKey) return _ajson({ ok: false, error: 'lota' });
@@ -348,10 +355,13 @@ export async function ticketsOverview(env) {
     + jx('$.model') + ' AS g_model, ' + jx('$.kb.id') + ' AS g_kb, ' + jx('$.kb.vissa') + ' AS g_vissa, '
     // nýjustu skilaboð notanda, AÐEINS þar sem beiðnin bíður okkar: CASE sleppir undirfyrirspurninni á hinum
     + "CASE WHEN t.stada IN ('nytt','stadfest') THEN (SELECT substr(m.texti, 1, 1500) FROM ticket_msgs m WHERE m.ticket_id=t.id AND m.dir='in' ORDER BY m.ts DESC, m.id DESC LIMIT 1) END AS sidastaInn "
-    + 'FROM tickets t ORDER BY t.created DESC LIMIT 60').all().catch(() => ({ results: [] }));
+    + 'FROM tickets t ORDER BY t.created DESC LIMIT 60').all().catch(() => null);
   const th = await sigrunThekking(env);
   const kb = kbAllt(th.auka);
-  const radir = rows.results || [];
+  // ⚠ Rýnin 22.9: bilun hér varð að tómum lista og vikupósturinn sagði „Engin er opin núna" með
+  //   beiðni um endurgreiðslu í bið. `villa` segir kallandanum að listinn sé EKKI tómur heldur ólesinn.
+  const lesVilla = !rows;
+  const radir = (rows && rows.results) || [];
   const list = radir.map((t) => {
     const o = Object.assign({}, t, { fundarmenn: veljaFundarmenn(t.tegund || 'annad', (t.efni || '') + ' ' + (t.lysing || '')) });
     const h = thurfHjalp(t, { listi: radir, kb });
@@ -389,5 +399,6 @@ export async function ticketsOverview(env) {
   // 📚 Þekkingarsafnið hennar: vistaðar greinar (Aron getur eytt) og tillögur að nýjum. Sama lestur og
   //    greiningin notar, sótt einu sinni ofar í fallinu.
   const kb_greinar = th.auka.map((k) => ({ id: k.id, um: k.um, svar: k.svar, vistad: k.vistad }));
-  return { list, open: list.filter((t) => OPNAR_STODUR.includes(t.stada)).length, by, off, moot_bida, moot_osent, sjalfvirk: Number(sjalfv && sjalfv.n) || 0, rofar, kb_greinar, kb_tillogur: th.tillogur };
+  return Object.assign({ list, open: list.filter((t) => OPNAR_STODUR.includes(t.stada)).length, by, off, moot_bida, moot_osent, sjalfvirk: Number(sjalfv && sjalfv.n) || 0, rofar, kb_greinar, kb_tillogur: th.tillogur },
+    lesVilla ? { villa: 'd1' } : {});
 }

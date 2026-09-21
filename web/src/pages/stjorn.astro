@@ -505,7 +505,7 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     import { hrafnGogn } from '../lib/stjorn/hrafn.mjs';
     import { bjarkiGogn } from '../lib/stjorn/bjarki.mjs';
     import { elinGogn } from '../lib/stjorn/elin.mjs';
-    import { vikutexti } from '../lib/stjorn/vikutexti.mjs';   // samantektin er SNIÐIN úr tölum, aldrei skrifuð af líkani
+    import { vikutexti, eintala } from '../lib/stjorn/vikutexti.mjs';   // samantektin er SNIÐIN úr tölum, aldrei skrifuð af líkani
     import { sidastaFullaVika, vikuBil } from '../lib/stjorn/vika.mjs';
     import { samtalHtml, hreinsaSogu } from '../lib/stjorn/samtal.mjs';
     import { morgunkvedja } from '../lib/stjorn/kvedja.mjs';   // 🙋 kveðjan hennar, sniðin úr tölum
@@ -1196,12 +1196,12 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         const lykill = h.ids.map(Number).join(',');
         const d = _greinaDrog[lykill];
         return '<div class="stj-grein" data-ids="' + esc(lykill) + '">'
-          + '<div class="stj-grein-haus"><b>„' + esc(h.efni) + '“</b><span class="stj-grein-ids">' + h.ids.length + ' beiðnir · ' + esc(h.ids.map((n) => '#' + Number(n)).join(' ')) + '</span></div>'
+          + '<div class="stj-grein-haus"><b>„' + esc(h.efni) + '“</b><span class="stj-grein-ids">' + h.ids.length + ' ' + (eintala(h.ids.length) ? 'beiðni' : 'beiðnir') + ' · ' + esc(h.ids.map((n) => '#' + Number(n)).join(' ')) + '</span></div>'
           + (d
             ? '<div class="stj-grein-drog">'
               + '<label>Leitarorð<input type="text" class="stj-grein-um" maxlength="120" value="' + esc(d.um) + '"></label>'
               + '<label>Texti<textarea class="stj-grein-svar" maxlength="1500" rows="5">' + esc(d.svar) + '</textarea></label>'
-              + '<span class="stj-note">Ég nota greinina eins og hinar og má senda hana orðrétt þegar ég er viss.</span>'
+              + '<span class="stj-note">Þegar sama spurning berst aftur set ég greinina í svarreitinn og þú sendir hana.</span>'
               + '<div><button type="button" class="stj-btn stj-btn-sm" data-grein="vista">Vista í þekkingarsafnið</button> '
               + '<button type="button" class="stj-btn stj-btn-sm" data-grein="haetta">Hætta við</button></div></div>'
             : '<div class="stj-grein-takkar"><button type="button" class="stj-btn stj-btn-sm" data-grein="drog">Skrifa drög</button> '
@@ -1315,6 +1315,9 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
           : r2 && r2.error === 'nylega' ? 'Ég sendi hann rétt áðan.'
             : r2 && r2.error === 'rofi' ? 'Slökkt er á mér, svo ég sendi ekkert.' : 'Náði ekki að senda. Reyndu aftur.');
         spilaVidbragd(sigrunHylki(), r2 && r2.ok && r2.sent ? 'kinka' : 'dapur');
+        // Pósturinn uppfærði stílinn hennar á þjóninum. Spjaldið sækir vikuna aftur svo það segi það
+        // sama og pósturinn sem var að fara (rýnin 22.9), og svarið við hnappinn fær að standa.
+        if (r2 && r2.ok && r2.sent) { vikuGeymsla = null; vikuLofor = null; await teiknaViku(); const s3 = $('stj-vikupostur-svar'); if (s3) s3.textContent = ' Sent á hjalp@karp.is.'; }
       };
     }
     // Hvaða miða-aðgerð kallar á hvaða svip. Aðeins aðgerðir sem SKILA ok fá viðbragð.

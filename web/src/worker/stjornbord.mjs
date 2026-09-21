@@ -262,6 +262,12 @@ export async function adminSyncHandler(request, env) {
     const b = (await request.json().catch(() => null)) || {};
     const k = String(b.k || '').slice(0, 40); const v = String(b.v || '');
     if (!k || v.length > 200000) return _ajson({ ok: false, error: 'input' });
+    // ⚠⚠ Rýnin 22.9: lykilleiðin skrifaði HVAÐA lykil sem er, líka `kb:<id>` (hjálpargrein sem fer inn í
+    //    greiningar-promptið og í svarreitinn) og `sigrun_still` (breytir drögum Sigrúnar). Lykilinn bera
+    //    skriptur og GitHub-keyrslur sem lesa texta notenda. Enginn kallandi notar hann hér nema fyrir
+    //    samantektina sem GET-ið les; rofarnir hafa eigin aðgerð (`rofi` á /api/admin/ticket), og allt
+    //    annað skrifar innskráður Aron.
+    if (byKey && k !== 'summary') return _ajson({ ok: false, error: 'lota' });
     await env.TENGSL.prepare('INSERT INTO stjorn_sync (k, v, updated) VALUES (?,?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated').bind(k, v, Math.floor(Date.now() / 1000)).run().catch(() => {});
     return _ajson({ ok: true });
   }

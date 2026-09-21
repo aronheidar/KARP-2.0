@@ -313,6 +313,7 @@ export async function sigrunKbLeita(env) {
     const svar = await _kalla(env, klasaPrompt(), klasaGogn(kandidatar), 900);
     if (svar == null) return { ok: false, error: 'ai' };
     hopar = thattaKlasa(svar, kandidatar, fixJsonStrings);
+    if (hopar === null) return { ok: false, error: 'ai' };   // ólæsilegt svar er EKKI „engar tillögur" — ekkert skrifað
   }
   await _skrifaJson(env, 'sigrun_kb_tillogur', { ts: nu, hopar });
   return { ok: true, hopar, skodadar: kandidatar.length };
@@ -394,30 +395,46 @@ export async function sigrunGreinEyda(env, b) {
 
 // ── VIKUPÓSTURINN ────────────────────────────────────────────────────────────────────────────
 
+/** Endurtilraunin keyrir á 3-tíma cron-inum, en aðeins á mánudegi eftir aðalkeyrsluna kl. 08:10:
+ *  annars færi vika sem aldrei var send (t.d. daginn sem þetta fór í loftið) út um miðja nótt. */
+export const endurreynaNu = (nu) => { const d = new Date(Number(nu) * 1000); return d.getUTCDay() === 1 && d.getUTCHours() >= 9; };
+
 /**
- * Mánudagspósturinn (cron `10 8 * * 1`) og „Senda mér þetta í pósti" á spjaldinu (`thvinga`).
+ * Mánudagspósturinn (cron `10 8 * * 1`), endurtilraun á 3-tíma cron-inum sama mánudag (`endurreyna`),
+ * og „Senda mér þetta í pósti" á spjaldinu (`thvinga`).
  * `yfirlit` er ticketsOverview úr hjalp_agent.mjs, gefið stöðubundið: það flytti annars inn skrá sem
  * flytur þessa inn, og CI-tengingaprófið les nöfn með mynstri.
- * ⚠ Einu sinni á viku: kröfu er slegið í stjorn_sync með einkvæmu tákni og lesin aftur, svo tvær
- *   keyrslur sendi ekki tvo pósta. Mistakist sendingin er krafan tekin aftur.
+ * ⚠ Einu sinni á viku, og KRAFAN KEMUR FYRST. Rýnin 22.9: krafan kom á eftir sekúndunum sem
+ *   samantektin tekur, svo tveir smellir (tveir flipar) sendu tvo pósta. Nú: kröfu er slegið í
+ *   stjorn_sync með einkvæmu tákni og hún lesin aftur ÁÐUR en nokkuð er reiknað. Hnappurinn má taka
+ *   kröfu sem er eldri en fimm mínútna, aldrei yngri. Allt sem bregst eftir það tekur kröfuna aftur.
  */
-export async function sigrunVikupostur(env, yfirlit, { thvinga = false } = {}) {
+export async function sigrunVikupostur(env, yfirlit, { thvinga = false, endurreyna = false } = {}) {
   if (!env || !env.TENGSL) return { ok: false, error: 'd1' };
   const D = env.TENGSL;
+  const nu = _nu();
+  if (endurreyna && !endurreynaNu(nu)) return { ok: true, sent: false, bida: true };
   const rofi = await D.prepare("SELECT v FROM stjorn_sync WHERE k='hjalp_agent_off'").first().catch(() => VILLA);
   if (rofi === VILLA) return { ok: false, error: 'd1' };
   if (rofi && String(rofi.v) === '1') return { ok: false, error: 'rofi' };
-  const nu = _nu();
   const v = sidastaFullaVika(nu);
   const lykill = 'sigrun_vikupostur:' + v.ar + '-' + v.vika;
-  const adur = await D.prepare('SELECT v, updated FROM stjorn_sync WHERE k=?').bind(lykill).first().catch(() => VILLA);
-  if (adur === VILLA) return { ok: false, error: 'd1' };
-  if (adur && !thvinga) return { ok: true, sent: false, adur: true };
-  if (adur && thvinga && nu - Number(adur.updated) < 300) return { ok: false, error: 'nylega' };
+  const takn = 'sendi:' + nu + ':' + Math.random().toString(36).slice(2, 10);
+  const krafa = thvinga
+    ? D.prepare(UPSERT + ' WHERE stjorn_sync.updated < ?').bind(lykill, takn, nu, nu - 300)
+    : D.prepare('INSERT OR IGNORE INTO stjorn_sync (k, v, updated) VALUES (?, ?, ?)').bind(lykill, takn, nu);
+  if ((await krafa.run().then(() => true).catch(() => false)) === false) return { ok: false, error: 'd1' };
+  const eigin = await D.prepare('SELECT v FROM stjorn_sync WHERE k=?').bind(lykill).first().catch(() => VILLA);
+  if (eigin === VILLA) return { ok: false, error: 'd1' };
+  if (!eigin || eigin.v !== takn) return thvinga ? { ok: false, error: 'nylega' } : { ok: true, sent: false, adur: true };
+  const sleppa = async (villa) => {
+    await D.prepare('DELETE FROM stjorn_sync WHERE k=? AND v=?').bind(lykill, takn).run().catch(() => {});
+    return { ok: false, error: villa };
+  };
 
   const vr = await sigrunVika(env, v.fra, v.til);
-  if (!vr.ok) return { ok: false, error: vr.error || 'd1' };
-  // Stíllinn fyrst: textinn lofar „svo nú hef ég drögin styttri" aðeins ef það stendur í promptinu.
+  if (!vr.ok) return sleppa(vr.error || 'd1');
+  // Stíllinn fyrst: textinn lofar „svo nú hef ég drögin styttri" aðeins ef það er komið í gagnið.
   let still = await sigrunStillUppfaera(env).catch(() => VILLA);
   if (still === VILLA) still = (await sigrunThekking(env)).still;
   const lr = await sigrunLaerdomur(env, v.fra, v.til).catch(() => null);
@@ -426,7 +443,9 @@ export async function sigrunVikupostur(env, yfirlit, { thvinga = false } = {}) {
   if (!thvinga) { const k = await sigrunKbLeita(env).catch(() => null); greinar = k && k.ok ? k.hopar : (await sigrunThekking(env)).tillogur; }
   else greinar = (await sigrunThekking(env)).tillogur;
   const ov = typeof yfirlit === 'function' ? await yfirlit(env).catch(() => null) : null;
-  const listi = ov && Array.isArray(ov.list) ? ov.list : [];
+  // Rýnin 22.9: ólesið yfirlit varð að „Engin er opin núna" með beiðni um endurgreiðslu í bið.
+  if (!ov || ov.villa) return sleppa('d1');
+  const listi = Array.isArray(ov.list) ? ov.list : [];
   const bida = listi.filter((t) => t && (t.stada === 'nytt' || t.stada === 'stadfest'));
   const bidTimi = (t) => Number(t.updated) || Number(t.created) || 0;
   const elst = bida.reduce((a, t) => (!a || bidTimi(t) < bidTimi(a) ? t : a), null);
@@ -438,15 +457,7 @@ export async function sigrunVikupostur(env, yfirlit, { thvinga = false } = {}) {
     greinar,
   });
 
-  const takn = 'sendi:' + nu + ':' + Math.random().toString(36).slice(2, 10);
-  const krafa = thvinga ? UPSERT : 'INSERT OR IGNORE INTO stjorn_sync (k, v, updated) VALUES (?, ?, ?)';
-  await D.prepare(krafa).bind(lykill, takn, nu).run().catch(() => {});
-  const eigin = await D.prepare('SELECT v FROM stjorn_sync WHERE k=?').bind(lykill).first().catch(() => null);
-  if (!eigin || eigin.v !== takn) return { ok: true, sent: false, adur: true };   // önnur keyrsla var á undan
   const s = await sendGmail(env, { to: _til(env), subject: p.efni, html: p.html }).catch(() => ({ ok: false }));
-  if (!s || !s.ok) {
-    await D.prepare('DELETE FROM stjorn_sync WHERE k=? AND v=?').bind(lykill, takn).run().catch(() => {});
-    return { ok: false, error: 'send' };
-  }
+  if (!s || !s.ok) return sleppa('send');
   return { ok: true, sent: true, efni: p.efni };
 }

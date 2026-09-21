@@ -43,6 +43,8 @@ test('svartimi: mannlegt mál og rétt beyging á sólarhring', () => {
   assert.equal(svartimi(22 * 24), '22 sólarhringar');
   assert.equal(svartimi(21 * 24), '21 sólarhringur');
   assert.equal(svartimi(NaN), '');
+  assert.equal(svartimi(null), '', 'engin svör: enginn svartími, ekki „undir klukkustund"');
+  assert.ok(!vikutexti({ barust: 3, svartimiKlst: null }).join(' ').includes('svartíma'));
 });
 
 test('vikutexti: rusl-inntak skilar samt heilum setningum og kastar aldrei', () => {

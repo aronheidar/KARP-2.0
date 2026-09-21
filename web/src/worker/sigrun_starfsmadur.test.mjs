@@ -11,7 +11,7 @@ let DatabaseSync = null;
 try { ({ DatabaseSync } = await import('node:sqlite')); } catch { /* ekki til — prófum sleppt */ }
 const t = DatabaseSync ? test : test.skip;
 
-const { sigrunThekking, sigrunLaerdomur, sigrunStillUppfaera, sigrunKbLeita, sigrunGreinDrog, sigrunGreinVista, sigrunGreinHafna, sigrunGreinEyda, sigrunVikupostur } = await import('./sigrun_vinna.mjs');
+const { sigrunThekking, sigrunLaerdomur, sigrunStillUppfaera, sigrunKbLeita, sigrunGreinDrog, sigrunGreinVista, sigrunGreinHafna, sigrunGreinEyda, sigrunVikupostur, endurreynaNu } = await import('./sigrun_vinna.mjs');
 const { ticketsOverview, processNewTicket, adminTicketHandler } = await import('./hjalp_agent.mjs');
 const { isoVika, sidastaFullaVika } = await import('../lib/stjorn/vika.mjs');
 
@@ -134,8 +134,8 @@ t('sigrunLaerdomur: fyrsta svar Arons á hverja beiðni — og hvorki Moot, sami
   assert.equal((await sigrunLaerdomur(env, V38.fra + 5, V38.til)).error, 'vika');
 });
 
-t('sigrunStillUppfaera: þrjú svör á 30 dögum þar sem sama setningin fór út → hún fer í promptið', async (tc) => {
-  const { env, midi, skilabod, lesa } = nyrGrunnur();
+t('sigrunStillUppfaera: sama setning út í þremur svörum → þjónninn tekur hana úr næstu drögum, líkanið sér hana aldrei', async (tc) => {
+  const { env, midi, skilabod, lesa, db } = nyrGrunnur();
   const nu = NU();
   for (const id of [1, 2, 3]) {
     midi({ id, created: nu - (id + 1) * D, ai_greining: greining(DROG) });
@@ -144,12 +144,15 @@ t('sigrunStillUppfaera: þrjú svör á 30 dögum þar sem sama setningin fór �
   const still = await sigrunStillUppfaera(env);
   assert.deepEqual(still.sleppa, ['Takk fyrir að hafa samband']);
   assert.deepEqual(lesa('sigrun_still'), still);
-  // og næsta greining notar hann: promptið ber setninguna
+  // Næsta greining: líkanið skrifar setninguna aftur, og hún fer úr drögunum áður en þau eru vistuð.
+  // ⚠ Rýnin 22.9: setningin var áður sett í kerfis-promptið, þar sem texti notanda gat staðið í 30 daga.
   let kerfi = '';
-  stubFetch(tc, { claude: (j) => { kerfi = j.system; return '{"tegund":"spurning","forgangur":2,"samantekt":"x","svar":"","kb":null}'; } });
+  stubFetch(tc, { claude: (j) => { kerfi = j.system; return JSON.stringify({ tegund: 'spurning', forgangur: 2, samantekt: 'x', kb: null, svar: DROG }); } });
   midi({ id: 9, created: nu, lysing: 'Ný spurning' });
   await processNewTicket(Object.assign({ ANTHROPIC_API_KEY: 'k' }, GMAIL, env), { id: 9, netfang: 'a@b.is', lysing: 'Ný spurning', efni: 'Spurning' });
-  assert.match(kerfi, /Notaðu þær ekki: „Takk fyrir að hafa samband“/);
+  assert.ok(!kerfi.includes('Takk fyrir að hafa samband'), 'setningin kemst ekki í promptið');
+  const drog = JSON.parse(db.prepare('SELECT ai_greining FROM tickets WHERE id=9').get().ai_greining).svar;
+  assert.ok(!drog.includes('Takk fyrir að hafa samband') && drog.includes('Aðgangurinn þinn hefur verið endurstilltur.'), drog);
 });
 
 // ── 6. HÚN LEGGUR TIL HJÁLPARGREINAR ────────────────────────────────────────────────────────────
@@ -174,10 +177,14 @@ t('sigrunKbLeita: líkanið flokkar, en aðeins númer af listanum komast í geg
   assert.deepEqual(r.hopar, [{ efni: 'Staðfestingarpóstur', ids: [1, 2, 3] }], '999 er ekki til');
   assert.deepEqual(lesa('sigrun_kb_tillogur').hopar, r.hopar);
   assert.ok(log.some((c) => c.url.includes('anthropic') && c.body.includes('#4 · Staðfestingarpóstur barst ekki')));
+  // rýnin 22.9: ólæsilegt svar þurrkar ekki út tillögurnar sem fyrir eru og segir ekki „engin"
+  stubFetch(tc, { claude: 'Því miður get ég ekki hjálpað með þetta.' });
+  assert.deepEqual(await sigrunKbLeita(Object.assign({ ANTHROPIC_API_KEY: 'k' }, env)), { ok: false, error: 'ai' });
+  assert.deepEqual(lesa('sigrun_kb_tillogur').hopar, r.hopar, 'fyrri tillögur standa');
 });
 
-t('sigrunGreinDrog → Vista: drögin byggja á svörum Arons, vistuð grein verður LIFANDI í næstu greiningu', async (tc) => {
-  const { env, midi, skilabod, sync, lesa } = nyrGrunnur();
+t('sigrunGreinDrog → Vista: drögin byggja á svörum Arons, og vistuð grein fer í svarreitinn í næstu greiningu', async (tc) => {
+  const { env, midi, skilabod, sync, lesa, db } = nyrGrunnur();
   const nu = NU();
   spurningar(midi, skilabod, nu);
   sync('sigrun_kb_tillogur', { ts: nu, hopar: [{ efni: 'Staðfestingarpóstur', ids: [1, 2, 3] }] });
@@ -195,14 +202,19 @@ t('sigrunGreinDrog → Vista: drögin byggja á svörum Arons, vistuð grein ver
   assert.deepEqual(lesa('sigrun_kb_lokid'), [1, 2, 3]);
   assert.deepEqual(lesa('sigrun_kb_tillogur').hopar, [], 'tillagan hverfur');
   assert.deepEqual((await sigrunThekking(env)).auka.map((k) => k.id), ['stadfestingarpostur']);
-  // Ný beiðni: greiningin sér greinina og velur hana með vissu → hún fer ORÐRÉTT, eins og greinar í kóðanum
+  // Ný beiðni: greiningin sér greinina, texta hennar með, og velur hana með vissu → hún fer í SVARREITINN.
+  // ⚠ Rýnin 22.9: hún sendist ekki sjálf. Leitarorðin samdi líkan og þau ein duga ekki til að senda svar.
   let kerfi = '';
-  const log2 = stubFetch(tc, { claude: (j) => { kerfi = j.system; return '{"tegund":"adgangur","forgangur":2,"samantekt":"x","svar":"","kb":{"id":"stadfestingarpostur","vissa":0.95}}'; } });
+  const log2 = stubFetch(tc, { claude: (j) => { kerfi = j.system; return '{"tegund":"adgangur","forgangur":2,"samantekt":"x","svar":"Sæl/Sæll Gunna,\\n\\nannað","kb":{"id":"stadfestingarpostur","vissa":0.95}}'; } });
   midi({ id: 20, created: nu, lysing: 'Staðfestingarpósturinn kom ekki' });
-  const p = await processNewTicket(E, { id: 20, netfang: 'b@c.is', nafn: 'Gunna', lysing: 'Staðfestingarpósturinn kom ekki', efni: 'Póstur' });
-  assert.ok(kerfi.includes('- stadfestingarpostur: staðfestingarpóstur / netfang / ruslpóstur'));
-  assert.equal(p.auto, 'stadfestingarpostur');
-  assert.ok(sendPostar(log2).some((m) => m.includes('To: b@c.is')), 'svarið fór til notandans');
+  const p = await processNewTicket(E, { id: 20, netfang: 'b@c.is', nafn: 'Gunna Jónsdóttir', lysing: 'Staðfestingarpósturinn kom ekki', efni: 'Póstur' });
+  assert.ok(kerfi.includes('- stadfestingarpostur: staðfestingarpóstur / netfang / ruslpóstur (texti greinarinnar: „Staðfestingarpósturinn kemur frá noreply@karp.is.'), kerfi);
+  assert.equal(p.auto, null, 'ekkert sjálfvirkt svar');
+  const t20 = db.prepare('SELECT stada, ai_greining FROM tickets WHERE id=20').get();
+  assert.equal(t20.stada, 'stadfest', 'bíður Arons');
+  assert.ok(JSON.parse(t20.ai_greining).svar.startsWith('Sæl/Sæll Gunna,\n\nStaðfestingarpósturinn kemur frá noreply@karp.is.'), 'greinin er drögin');
+  // (innri tilkynningin á hjalp@ ber „Reply-To: b@c.is" — aðeins To-línan sjálf telst)
+  assert.equal(sendPostar(log2).filter((m) => /^To: b@c\.is\r?$/m.test(m)).length, 1, 'aðeins staðfestingin fór til notandans');
 });
 
 t('sigrunGreinHafna og sigrunGreinEyda: afgreitt kemur ekki aftur, og aðeins vistaðar greinar má fjarlægja', async () => {
@@ -262,9 +274,43 @@ t('sigrunVikupostur: innihaldið er vikan, það sem hún þarf þig á og engir
   assert.ok(!/[:–—]/.test(meginmal), meginmal);
 });
 
+t('sigrunVikupostur: rýnin 22.9 — ólesið yfirlit sendir ekki „Engin er opin núna", og tekur kröfuna aftur', async (tc) => {
+  const { env, midi, db } = nyrGrunnur();
+  const v = sidastaFullaVika(NU());
+  midi({ id: 1, created: v.fra + H, stada: 'stadfest', lysing: 'Ég vil endurgreiðslu' });
+  const log = stubFetch(tc);
+  const brotid = async () => ({ list: [], open: 0, villa: 'd1' });   // svona skilar ticketsOverview nú D1-bilun
+  assert.deepEqual(await sigrunVikupostur(Object.assign({}, GMAIL, env), brotid), { ok: false, error: 'd1' });
+  assert.equal(sendPostar(log).length, 0, 'enginn póstur með röngum tölum');
+  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM stjorn_sync WHERE k LIKE 'sigrun_vikupostur:%'").get().n, 0, 'krafan tekin aftur, næsta tilraun má senda');
+  // og ticketsOverview segir sjálft frá bilun í stað þess að skila tómum lista sem staðreynd
+  const bilad = { TENGSL: { prepare: (sql) => /FROM tickets t ORDER BY t\.created DESC LIMIT 60/.test(sql)
+    ? { bind: () => ({ all: async () => { throw new Error('D1 7500'); } }), all: async () => { throw new Error('D1 7500'); } } : env.TENGSL.prepare(sql) } };
+  assert.equal((await ticketsOverview(bilad)).villa, 'd1');
+});
+
+t('sigrunVikupostur: rýnin 22.9 — tveir smellir á sama tíma senda EINN póst', async (tc) => {
+  const { env, midi } = nyrGrunnur();
+  const v = sidastaFullaVika(NU());
+  midi({ id: 1, created: v.fra + H, stada: 'nytt' });
+  const log = stubFetch(tc);
+  const E = Object.assign({}, GMAIL, env);
+  const [a, b] = await Promise.all([sigrunVikupostur(E, ticketsOverview, { thvinga: true }), sigrunVikupostur(E, ticketsOverview, { thvinga: true })]);
+  assert.equal(sendPostar(log).length, 1, JSON.stringify([a, b]));
+  assert.deepEqual([a.sent, b.error].sort(), [true, 'nylega'].sort());
+});
+
+t('endurreynaNu: aðeins mánudag eftir kl. 09 — aldrei um miðja nótt vikuna sem aldrei var send', () => {
+  const ts = (iso) => Math.floor(Date.parse(iso) / 1000);
+  assert.equal(endurreynaNu(ts('2026-09-28T09:00:00Z')), true);
+  assert.equal(endurreynaNu(ts('2026-09-28T21:00:00Z')), true);
+  assert.equal(endurreynaNu(ts('2026-09-28T06:00:00Z')), false, 'á undan aðalkeyrslunni');
+  assert.equal(endurreynaNu(ts('2026-09-22T00:00:00Z')), false, 'þriðjudagur: daginn sem þetta fór í loftið');
+});
+
 // ── Aðgangur ─────────────────────────────────────────────────────────────────────────────────────
 
-t('nýju aðgerðirnar hafna X-Admin-Key: grein sem fer orðrétt á viðskiptavini má aldrei skrifast úr CTO-keyrslu', async () => {
+t('nýju aðgerðirnar hafna X-Admin-Key: grein sem fer í promptið og svarreitinn má aldrei skrifast úr CTO-keyrslu', async () => {
   const { env } = nyrGrunnur();
   const E = Object.assign({ ADMIN_API_KEY: 'adm' }, env);
   for (const action of ['sigrun_vikupostur', 'sigrun_kb_leita', 'sigrun_grein_drog', 'sigrun_grein_vista', 'sigrun_grein_hafna', 'sigrun_grein_eyda']) {

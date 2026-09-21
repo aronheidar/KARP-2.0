@@ -14,6 +14,8 @@ const tala = (n) => String(Math.max(0, Math.trunc(Number(n) || 0)));
 
 /** Svartími í mannlegu máli: „undir klukkustund", „3 klst.", „2 sólarhringar". */
 export function svartimi(klst) {
+  // ⚠ Number(null) er 0: vika án svara sagði „Miðgildi svartíma var undir klukkustund" (rýnin 22.9)
+  if (klst == null || klst === '') return '';
   const h = Number(klst);
   if (!Number.isFinite(h) || h < 0) return '';
   if (h < 1) return 'undir klukkustund';

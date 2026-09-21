@@ -12,6 +12,9 @@ const thgf = (n) => (n < KVK_THGF.length ? KVK_THGF[n] : String(n));
 const tf = (n) => (n < KVK_NF.length ? KVK_NF[n] : String(n));
 const saman = (a) => (a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' og ' + a[a.length - 1]);
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+/** Póst-tóninn á ALLT meginmálið, líka það sem er sett inn: setningar úr drögum og efni sem líkanið
+ *  nefndi (rýnin 22.9 sá þankastrik berast þannig inn). Tvípunktur og strik verða komma. */
+export const posttonn = (s) => String(s || '').replace(/\s*[–—]\s*/g, ', ').replace(/\s+-\s+/g, ', ').replace(/\s*:\s*/g, ', ').replace(/,\s*,/g, ',').replace(/\s{2,}/g, ' ').trim();
 
 /** „14. til 20. september" eða „28. september til 4. október". Ekkert strik, sjá póst-tóninn. */
 export function vikuOrd(v) {
@@ -52,7 +55,7 @@ export function vikupostur({ vika, tolur = {}, lifandi = {}, laerdomur = null, s
     laerdomsTexti({ vika: laerdomur, still }).join(' '),
     hjalparSetning(hjalp),
     greinaSetning(greinar),
-  ].filter(Boolean);
+  ].filter(Boolean).map(posttonn);
   const efni = 'Vikan hjá mér, ' + vikuOrd(vika);
   const html = '<div style="font-family:system-ui,Arial,sans-serif;color:#222;max-width:560px;line-height:1.55">'
     + malsgreinar.map((p) => '<p style="margin:0 0 14px">' + esc(p) + '</p>').join('')

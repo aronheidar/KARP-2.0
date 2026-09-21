@@ -6,9 +6,10 @@
 // beiðna og má aðeins flokka númer af honum; thattaKlasa síar svarið aftur og telur sjálft hvort
 // hópur nær þremur. Og greinin fer hvergi fyrr en Aron vistar hana.
 //
-// Vistuð grein er jafngild þeim sem standa í KB (lib/hjalp_agent.mjs): hún fer í greiningar-promptið
-// og má sendast ORÐRÉTT þegar greiningin velur hana með vissu ≥ 0,9. Það er ástæða þess að Aron
-// vistar, ekki hún, og að textinn er hreinsaður hér áður en hann er geymdur.
+// Vistuð grein fer í greiningar-promptið, og þegar greiningin velur hana fer hún í SVARREITINN, þar
+// sem Aron sendir. Hún sendist aldrei sjálf, ólíkt greinunum í KB (lib/hjalp_agent.mjs): leitarorðin
+// hennar samdi líkan, og þau ein duga ekki til að senda svar án þess að maður líti á það (rýnin 22.9).
+// Aron vistar, ekki hún, og textinn er hreinsaður hér áður en hann er geymdur.
 
 import { KB } from '../hjalp_agent.mjs';
 import { meginmal } from './laerdomur.mjs';
@@ -52,12 +53,15 @@ function jsonUr(text, fixJson) {
   try { return JSON.parse(bitur); } catch { try { return typeof fixJson === 'function' ? JSON.parse(fixJson(bitur)) : null; } catch { return null; } }
 }
 
-/** Hóparnir, síaðir aftur: aðeins númer af listanum, hvert í einum hópi, og þrjú hið minnsta. */
+/** Hóparnir, síaðir aftur: aðeins númer af listanum, hvert í einum hópi, og þrjú hið minnsta.
+ *  ⚠ `null` þegar svarið er ólæsilegt, ekki tómur listi. Rýnin 22.9: ólæsilegt svar varð að „engar
+ *    tillögur", þurrkaði út þær sem fyrir voru og sagði „Ég fann enga spurningu". */
 export function thattaKlasa(text, kandidatar, fixJson) {
   const j = jsonUr(text, fixJson);
+  if (!j || !Array.isArray(j.hopar)) return null;
   const leyfd = new Set((Array.isArray(kandidatar) ? kandidatar : []).map((k) => Number(k.id)));
   const notad = new Set(), ut = [];
-  for (const h of (j && Array.isArray(j.hopar) ? j.hopar : [])) {
+  for (const h of j.hopar) {
     if (!h || typeof h !== 'object') continue;
     const ids = [...new Set((Array.isArray(h.ids) ? h.ids : []).map(Number))].filter((n) => leyfd.has(n) && !notad.has(n));
     const efni = hreint(h.efni, 80);
