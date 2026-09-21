@@ -3,7 +3,7 @@
 // Rökfræðin er í ../lib/stjorn/sigrun_vinna.mjs (prófuð); hér er aðeins D1 og fetch.
 // Kallað úr adminTicketHandler (hjalp_agent.mjs), sem sér um aðgang og CSRF á undan.
 import { OPNAR_STODUR, fixJsonStrings } from '../lib/hjalp_agent.mjs';
-import { lokunarKandidatar, lokaMargtVal, vikuTolur, spjallPrompt, spjallGogn, spjallSkilabod, thattaSpjall } from '../lib/stjorn/sigrun_vinna.mjs';
+import { lokunarKandidatar, vikuTolur, spjallPrompt, spjallGogn, spjallSkilabod, thattaSpjall, tillagaLid } from '../lib/stjorn/sigrun_vinna.mjs';
 import { isoVika, sidastaFullaVika } from '../lib/stjorn/vika.mjs';
 import { eintala } from '../lib/stjorn/vikutexti.mjs';
 
@@ -11,6 +11,7 @@ import { eintala } from '../lib/stjorn/vikutexti.mjs';
 const MODEL = 'claude-haiku-4-5-20251001';
 const _nu = () => Math.floor(Date.now() / 1000);
 const TEGUNDIR_ATB = ['lokad', 'hafnad', 'cto'];
+const VILLA = Symbol('d1-villa');
 
 // ── ATBURÐASKRÁ. Lokun skráir hvorki hver lokaði né hvenær: `stada`-aðgerðin breytir aðeins
 //    `tickets.stada`, og `updated` færist líka þegar nóta er skrifuð. Vikutalan „lokað" væri því
@@ -39,7 +40,8 @@ export async function opnirMidar(env) {
     'SELECT t.id, t.efni, t.stada, t.tegund, t.forgangur, t.created, '
     + "(SELECT MAX(m.ts) FROM ticket_msgs m WHERE m.ticket_id=t.id AND m.dir IN ('in','out')) AS sidast, "
     + "(SELECT m.dir FROM ticket_msgs m WHERE m.ticket_id=t.id AND m.dir IN ('in','out') ORDER BY m.ts DESC, m.id DESC LIMIT 1) AS sidastaAtt, "
-    + "(SELECT substr(m.texti, 1, 300) FROM ticket_msgs m WHERE m.ticket_id=t.id AND m.dir='in' ORDER BY m.ts DESC, m.id DESC LIMIT 1) AS sidastaInnTexti "
+    + "(SELECT substr(m.texti, 1, 300) FROM ticket_msgs m WHERE m.ticket_id=t.id AND m.dir='in' ORDER BY m.ts DESC, m.id DESC LIMIT 1) AS sidastaInnTexti, "
+    + "(SELECT COUNT(*) FROM ticket_msgs m WHERE m.ticket_id=t.id AND m.dir='out' AND IFNULL(m.efni,'') NOT LIKE '%Móttekið:%') AS svorFraOkkur "
     + 'FROM tickets t WHERE t.stada IN (' + ph + ') ORDER BY t.created LIMIT 60',
   ).bind(...OPNAR_STODUR).all().catch(() => ({ results: [] }));
   return (r && r.results) || [];
@@ -73,7 +75,11 @@ export async function sigrunVika(env, fra, til) {
     q('SELECT t.tegund AS tegund, COUNT(*) AS n FROM tickets t WHERE t.created>=? AND t.created<? AND ' + EKKI_STJORN + ' GROUP BY t.tegund', ...a).all(),
     q("SELECT updated FROM stjorn_sync WHERE k='atb_byrjun'").first(),
     q("SELECT v, COUNT(*) AS n FROM stjorn_sync WHERE k>='atb:' AND k<'atb;' AND updated>=? AND updated<? GROUP BY v", ...a).all(),
-  ].map((p) => p.catch(() => null)));
+  ].map((p) => p.catch(() => VILLA)));
+  // ⚠ Rýnin 21.9 sannaði: ein misheppnuð COUNT varð null → 0 og var GEYMD að eilífu (barust: 0 þegar
+  //   rétt tala var 5). Nálægt lestrarþakinu falla fyrirspurnir af handahófi — einmitt þá. Nú:
+  //   ef EIN fyrirspurn brást er ekkert geymt og kallandinn fær villu.
+  if ([barust, henni, aroni, svor, teg, byrjun, atb].some((x) => x === VILLA)) return { ok: false, error: 'd1' };
 
   // Lokað/hafnað/til Hrafns: nákvæmt úr atburðaskránni ef hún náði yfir ALLA vikuna, annars áætlað
   // út frá `updated` á miðum sem standa í þeirri stöðu nú (rekst aðeins á ef miði var snertur aftur).
@@ -84,7 +90,8 @@ export async function sigrunVika(env, fra, til) {
     for (const r of (atb && atb.results) || []) if (r.v in tal) tal[r.v] = Number(r.n) || 0;
   } else {
     const r = await q("SELECT CASE WHEN stada IN ('cto','tillaga','samthykkt','lagad') THEN 'cto' ELSE stada END AS s, COUNT(*) AS n "
-      + "FROM tickets WHERE stada IN ('lokad','hafnad','cto','tillaga','samthykkt','lagad') AND updated>=? AND updated<? GROUP BY s", ...a).all().catch(() => null);
+      + "FROM tickets WHERE stada IN ('lokad','hafnad','cto','tillaga','samthykkt','lagad') AND updated>=? AND updated<? GROUP BY s", ...a).all().catch(() => VILLA);
+    if (r === VILLA) return { ok: false, error: 'd1' };
     for (const x of (r && r.results) || []) if (x.s in tal) tal[x.s] = Number(x.n) || 0;
   }
   const tolur = Object.assign(vikuTolur({
@@ -108,7 +115,7 @@ export async function sigrunTillaga(env) {
   return {
     ok: true,
     svar: 'Ég fann ' + k.length + ' ' + (eintala(k.length) ? 'beiðni' : 'beiðnir') + ' sem má loka. Taktu hakið af þeim sem þú vilt halda opnum.',
-    tillaga: { adgerd: 'loka', midar: k.map(({ id, efni, astaeda }) => ({ id, efni, astaeda })) },
+    tillaga: { adgerd: 'loka', midar: k.map(tillagaLid) },
   };
 }
 
@@ -122,7 +129,9 @@ export async function sigrunSpjall(env, b) {
   const kandidatar = lokunarKandidatar(midar, nu);
   const sv = sidastaFullaVika(nu);
   const vr = await sigrunVika(env, sv.fra, sv.til).catch(() => null);
-  const gogn = spjallGogn({ midar, kandidatar, vika: vr && vr.ok ? { vika: sv.vika, tolur: vr.tolur } : null, nu });
+  const ph = OPNAR_STODUR.map(() => '?').join(',');
+  const alls = await env.TENGSL.prepare('SELECT COUNT(*) AS n FROM tickets WHERE stada IN (' + ph + ')').bind(...OPNAR_STODUR).first().catch(() => null);
+  const gogn = spjallGogn({ midar, kandidatar, vika: vr && vr.ok ? { vika: sv.vika, tolur: vr.tolur } : null, nu, opnirAlls: alls && alls.n });
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -141,21 +150,27 @@ export async function sigrunSpjall(env, b) {
 }
 
 /**
- * Loka mörgum. Aðeins miðar sem eru til OG í lokanlegri stöðu. setTicket gleypir villur, svo hér er
- * lesið AFTUR eftir lokun og aðeins þeir taldir lokaðir sem standa sem 'lokad' — annars segði hún
- * „ég lokaði" um mið sem stendur enn opinn. Hver lokun fær nótu og atburð.
+ * Loka mörgum. Aðeins miðar sem ENN uppfylla lokunarregluna Á ÞESSARI STUNDU.
+ * ⚠ Rýnin 21.9: tillagan lifir í flipanum eins lengi og hann er opinn. Ef notandi skrifar aftur á
+ *   milli tillögu og smells færir póstinnlesturinn miðann í 'stadfest' — sem er lokanleg staða — og
+ *   eldri útgáfa lokaði honum. Nýi pósturinn hefði horfið úr „bíður þín", því lokun sendir engan
+ *   póst. Nú er reglan metin aftur og það sem hefur breyst er skilað sem sleppt.
+ * setTicket gleypir villur, svo lesið er AFTUR eftir lokun og aðeins það talið sem stendur 'lokad'.
+ * `vista` er setTicket úr hjalp_agent.mjs, gefið stöðubundið (CI-tengingaprófið les nöfn með mynstri).
  */
-export async function lokaMargt(env, b, { setTicket }) {
+export async function lokaMargt(env, b, vista) {
   const hrein = [...new Set((Array.isArray(b && b.ids) ? b.ids : []).map(Number))].filter((n) => Number.isInteger(n) && n > 0).slice(0, 50);
   if (!hrein.length) return { ok: false, error: 'ids' };
   const ph = hrein.map(() => '?').join(',');
   const fyrir = await env.TENGSL.prepare('SELECT id, stada, notur FROM tickets WHERE id IN (' + ph + ')').bind(...hrein).all().catch(() => null);
   const radir = (fyrir && fyrir.results) || [];
-  const { loka, sleppa } = lokaMargtVal(hrein, radir);
+  const enn = new Set(lokunarKandidatar(await opnirMidar(env), _nu()).map((k) => k.id));
+  const loka = hrein.filter((id) => enn.has(id));
+  const sleppa = hrein.filter((id) => !enn.has(id));
   const stimpill = new Date().toISOString().slice(0, 16);
   for (const id of loka) {
     const t = radir.find((x) => Number(x.id) === id) || {};
-    await setTicket(env, id, { stada: 'lokad', notur: ((t.notur ? t.notur + '\n' : '') + '[' + stimpill + '] Lokað að tillögu Sigrúnar').slice(-6000) });
+    await vista(env, id, { stada: 'lokad', notur: ((t.notur ? t.notur + '\n' : '') + '[' + stimpill + '] Lokað að tillögu Sigrúnar').slice(-6000) });
   }
   const eftir = loka.length
     ? await env.TENGSL.prepare('SELECT id, stada FROM tickets WHERE id IN (' + loka.map(() => '?').join(',') + ')').bind(...loka).all().catch(() => null)

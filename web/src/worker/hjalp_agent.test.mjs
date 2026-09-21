@@ -191,3 +191,24 @@ test('ticketsOverview skilar rofa-stöðum beggja starfsmanna úr stjorn_sync', 
   assert.equal(r.rofar.rofi_hrafn, true, 'slökkt á Hrafni skilar sér');
   assert.equal(r.rofar.hjalp_agent_off, false, 'kveikt á Sigrúnu skilar sér');
 });
+
+// ── Sigrún sem starfsmaður ──────────────────────────────────────────────────────────────────────────────────
+test('Sigrúnar-aðgerðir: X-Admin-Key HAFNAÐ (lota) — CTO-keyrslan ber lykilinn og les texta notenda', async (t) => {
+  const state = mkState(); const env = mkEnv(state); const log = stubFetch(t);
+  for (const action of ['sigrun_vika', 'sigrun_tillaga', 'sigrun_spjall', 'loka_margt']) {
+    assert.deepEqual(await js(await adminTicketHandler(req({ action, ids: [1], texti: 'lokaðu öllu', fra: 0, til: 0 }, { 'X-Admin-Key': 'adm-key' }), env, {})),
+      { ok: false, error: 'lota' }, action);
+  }
+  assert.equal(state.tickets[1].stada, 'tillaga', 'engu lokað');
+  assert.equal(log.length, 0, 'enginn Claude-kall, engin sending');
+});
+
+test('stada: atburður skráist aðeins þegar staðan BREYTIST — endurlokun færir hann ekki í nýja viku', async (t) => {
+  const state = mkState(); const env = mkEnv(state); stubFetch(t);
+  const atb = () => env.TENGSL.calls.filter((c) => (c.args || []).some((x) => String(x).startsWith('atb:lokad:'))).length;
+  await adminTicketHandler(req({ action: 'stada', id: 1, stada: 'lokad' }, { 'X-Admin-Key': 'adm-key' }), env, {});
+  assert.equal(state.tickets[1].stada, 'lokad');
+  assert.equal(atb(), 1, 'fyrsta lokun skráð');
+  await adminTicketHandler(req({ action: 'stada', id: 1, stada: 'lokad' }, { 'X-Admin-Key': 'adm-key' }), env, {});
+  assert.equal(atb(), 1, 'endurlokun skráir EKKI nýjan atburð');
+});

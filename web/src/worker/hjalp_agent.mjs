@@ -11,8 +11,8 @@ import { _ajson, _emailTpl, _esc, sendGmail } from './felag.mjs';
 import { renderEmail } from '../lib/emails.mjs';
 import { readSession } from './auth.mjs';
 import { OPNAR_STODUR, TICKET_STODUR, ackVars, efniUrLysingu, flokkaFallback, greiningPrompt, greiningUser, kbSjalfvirkt, parseGreining, svarUppfaersla, ticketSubject } from '../lib/hjalp_agent.mjs';
-import { persona, rofiLykill, veljaFundarmenn } from '../lib/personur.mjs';
-import { skraAtburd, sigrunVika, sigrunTillaga, sigrunSpjall, lokaMargt } from './sigrun_vinna.mjs';   // Sigrún sem starfsmaður: vikan, tillaga, samtal, lokun margra   // 🛟 Sigrún skrifar undir öll póst-samskipti við notendur; fundarmenn f. Moot-forsýn
+import { persona, rofiLykill, veljaFundarmenn } from '../lib/personur.mjs';   // 🛟 Sigrún skrifar undir öll póst-samskipti við notendur; fundarmenn f. Moot-forsýn
+import { skraAtburd, sigrunVika, sigrunTillaga, sigrunSpjall, lokaMargt } from './sigrun_vinna.mjs';   // Sigrún sem starfsmaður: vikan, tillaga, samtal, lokun margra
 
 const MODEL = 'claude-haiku-4-5-20251001';
 const _nowSek = () => Math.floor(Date.now() / 1000);
@@ -241,11 +241,16 @@ export async function adminTicketHandler(request, env, ctx) {
     return _ajson({ ok: true, id: t.id });
   }
   // 🙋 Sigrún sem starfsmaður — aðgerðir án einnar miðatölu, svo þær koma á undan id-gátinni.
-  //    Engin þeirra breytir stöðu nema loka_margt, og hana kallar AÐEINS Aron með smelli.
-  if (action === 'sigrun_vika') return _ajson(await sigrunVika(env, Number(b.fra), Number(b.til)));
-  if (action === 'sigrun_tillaga') return _ajson(await sigrunTillaga(env));
-  if (action === 'sigrun_spjall') return _ajson(await sigrunSpjall(env, b));
-  if (action === 'loka_margt') return _ajson(await lokaMargt(env, b, { setTicket }));
+  //    ⚠ AÐEINS kökulota Arons, ALDREI X-Admin-Key (sama vörn og samthykkja). Rýnin 21.9: CTO-keyrslan
+  //    (cto.yml) ber lykilinn og les texta sem NOTENDUR skrifuðu. Miði með innskotnum fyrirmælum mætti
+  //    ekki geta lokað 50 miðum án smells eða eytt Claude-kvóta á spjall. Enginn þjónn kallar þessar.
+  if (['sigrun_vika', 'sigrun_tillaga', 'sigrun_spjall', 'loka_margt'].includes(action)) {
+    if (byKey) return _ajson({ ok: false, error: 'lota' });
+    if (action === 'sigrun_vika') return _ajson(await sigrunVika(env, Number(b.fra), Number(b.til)));
+    if (action === 'sigrun_tillaga') return _ajson(await sigrunTillaga(env));
+    if (action === 'sigrun_spjall') return _ajson(await sigrunSpjall(env, b));
+    return _ajson(await lokaMargt(env, b, setTicket));
+  }
   const id = parseInt(b.id, 10);
   if (!id) return _ajson({ ok: false, error: 'id' });
   const t = await env.TENGSL.prepare('SELECT * FROM tickets WHERE id=?').bind(id).first().catch(() => null);
@@ -261,7 +266,8 @@ export async function adminTicketHandler(request, env, ctx) {
     if (!TICKET_STODUR.includes(s)) return _ajson({ ok: false, error: 'stada' });
     const extra = s === 'samthykkt' ? { samthykkt_by: uid || null, samthykkt_at: _nowSek() } : {};
     await setTicket(env, id, Object.assign({ stada: s }, extra));
-    if (s === 'lokad' || s === 'hafnad') await skraAtburd(env, s, id);   // hver lokaði ekki skráð áður — nú hvenær
+    // atburður aðeins ef staðan BREYTIST: endurlokun lokaðs miða færði annars atburðinn í nýja viku
+    if ((s === 'lokad' || s === 'hafnad') && t.stada !== s) await skraAtburd(env, s, id);
     return _ajson({ ok: true });
   }
   if (action === 'greina') {
@@ -276,7 +282,7 @@ export async function adminTicketHandler(request, env, ctx) {
   }
   if (action === 'cto') {
     const r = await _ghDispatch(env, 'cto', { ticket: t.id });
-    if (r.ok) { await setTicket(env, id, { stada: 'cto' }); await skraAtburd(env, 'cto', id); }
+    if (r.ok) { await setTicket(env, id, { stada: 'cto' }); if (t.stada !== 'cto') await skraAtburd(env, 'cto', id); }
     return _ajson(r);
   }
   if (action === 'samthykkja') {

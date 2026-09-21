@@ -16,21 +16,58 @@ test('lokunarKandidatar A: svarað, síðast frá okkur, þögn í 7+ daga → m
   assert.equal(k[0].astaeda, 'svarað fyrir 9 dögum, ekkert heyrst síðan');
 });
 
-test('lokunarKandidatar B: stuttar þakkir frá notanda → má loka, en ekki ný spurning', () => {
+test('lokunarKandidatar B: stuttar þakkir EFTIR svar okkar → má loka, en ekki ný spurning', () => {
   const k = lokunarKandidatar([
-    { id: 1, stada: 'stadfest', sidast: NU - D, sidastaAtt: 'in', sidastaInnTexti: 'Takk kærlega fyrir!' },
-    { id: 2, stada: 'stadfest', sidast: NU - D, sidastaAtt: 'in', sidastaInnTexti: 'Þúsund þakkir' },
-    { id: 3, stada: 'stadfest', sidast: NU - D, sidastaAtt: 'in', sidastaInnTexti: 'Takk, en hvað með reikninginn?' },
-    { id: 4, stada: 'svarad', sidast: NU - D, sidastaAtt: 'in', sidastaInnTexti: 'Thanks, all good now' },
+    { id: 1, stada: 'stadfest', sidast: NU - D, sidastaAtt: 'in', svorFraOkkur: 1, sidastaInnTexti: 'Takk kærlega fyrir!' },
+    { id: 2, stada: 'stadfest', sidast: NU - D, sidastaAtt: 'in', svorFraOkkur: 2, sidastaInnTexti: 'Þúsund þakkir' },
+    { id: 3, stada: 'stadfest', sidast: NU - D, sidastaAtt: 'in', svorFraOkkur: 1, sidastaInnTexti: 'Takk, en hvað með reikninginn?' },
+    { id: 4, stada: 'svarad', sidast: NU - D, sidastaAtt: 'in', svorFraOkkur: 1, sidastaInnTexti: 'Thanks, all good now' },
+    { id: 7, stada: 'stadfest', sidast: NU - D, sidastaAtt: 'in', svorFraOkkur: 1, sidastaInnTexti: 'Takk, þetta virkar!' },
   ], NU);
-  assert.deepEqual(k.map((x) => x.id).sort(), [1, 2, 4]);
+  assert.deepEqual(k.map((x) => x.id).sort(), [1, 2, 4, 7], '„virkar" eitt og sér er leyst, ekki kvörtun');
   assert.ok(k.every((x) => x.astaeda === 'notandinn þakkaði fyrir'));
+});
+
+test('lokunarKandidatar B: rýnin 21.9 — opnar kvartanir sem byrja á þökkum eru ALDREI lagðar til', () => {
+  const k = lokunarKandidatar([
+    { id: 1, stada: 'stadfest', sidast: NU, sidastaAtt: 'in', svorFraOkkur: 1, sidastaInnTexti: 'Takk fyrir svarið en ég kemst samt ekki inn' },
+    { id: 2, stada: 'stadfest', sidast: NU, sidastaAtt: 'in', svorFraOkkur: 1, sidastaInnTexti: 'Þakka ekki fyrir neitt, þetta er enn bilað' },
+    { id: 3, stada: 'nytt', sidast: NU, sidastaAtt: 'in', svorFraOkkur: 0, sidastaInnTexti: 'Takk fyrir góða þjónustu. Reikningurinn minn er samt rangur…' },
+    { id: 4, stada: 'stadfest', sidast: NU, sidastaAtt: 'in', svorFraOkkur: 1, sidastaInnTexti: 'Thanks but it is still broken' },
+  ], NU);
+  assert.deepEqual(k, []);
+});
+
+test('lokunarKandidatar B: þakkir án fyrra svars okkar eru ekki lagðar til — staðfestingin telst ekki', () => {
+  const k = lokunarKandidatar([{ id: 1, stada: 'nytt', sidast: NU, sidastaAtt: 'in', svorFraOkkur: 0, sidastaInnTexti: 'Takk fyrir' }], NU);
+  assert.deepEqual(k, []);
+});
+
+test('lokunarKandidatar: túlkun (þakkir) er óhökuð og ber orð notandans; staðreynd (þögn) er hökuð', () => {
+  const k = lokunarKandidatar([
+    { id: 1, stada: 'stadfest', sidast: NU - D, sidastaAtt: 'in', svorFraOkkur: 1, sidastaInnTexti: 'Takk   kærlega\nfyrir!' },
+    { id: 2, stada: 'svarad', sidast: NU - 9 * D, sidastaAtt: 'out' },
+  ], NU);
+  const b = k.find((x) => x.id === 1), a = k.find((x) => x.id === 2);
+  assert.equal(b.ohakad, true);
+  assert.equal(b.tilvitnun, 'Takk kærlega fyrir!', 'bil og línuskil þjöppuð');
+  assert.equal(a.ohakad, undefined);
+  assert.equal(a.tilvitnun, undefined);
+});
+
+test('lokunarKandidatar: rétt beyging — fyrir 21 degi, fyrir 22 dögum', () => {
+  const k = lokunarKandidatar([
+    { id: 1, stada: 'svarad', sidast: NU - 21 * D, sidastaAtt: 'out' },
+    { id: 2, stada: 'svarad', sidast: NU - 22 * D, sidastaAtt: 'out' },
+  ], NU);
+  assert.equal(k.find((x) => x.id === 1).astaeda, 'svarað fyrir 21 degi, ekkert heyrst síðan');
+  assert.equal(k.find((x) => x.id === 2).astaeda, 'svarað fyrir 22 dögum, ekkert heyrst síðan');
 });
 
 test('lokunarKandidatar: „stakk" er EKKI „takk" — og JS-\\b sér ekki íslenska stafi', () => {
   const k = lokunarKandidatar([
-    { id: 5, stada: 'stadfest', sidast: NU, sidastaAtt: 'in', sidastaInnTexti: 'Hann stakk upp á þessu' },
-    { id: 6, stada: 'stadfest', sidast: NU, sidastaAtt: 'in', sidastaInnTexti: 'Ég þakka fyrir skjótt svar' },
+    { id: 5, stada: 'stadfest', sidast: NU, sidastaAtt: 'in', svorFraOkkur: 1, sidastaInnTexti: 'Hann stakk upp á þessu' },
+    { id: 6, stada: 'stadfest', sidast: NU, sidastaAtt: 'in', svorFraOkkur: 1, sidastaInnTexti: 'Ég þakka fyrir skjótt svar' },
   ], NU);
   assert.deepEqual(k.map((x) => x.id), [6]);
 });
@@ -99,6 +136,19 @@ test('lokaMargtVal: aðeins til og lokanlegt, tvítekning og rusl fellur út', (
   const r = lokaMargtVal([1, 2, 2, 3, 4, 'x', -5], [{ id: 1, stada: 'svarad' }, { id: 2, stada: 'cto' }, { id: 3, stada: 'lokad' }]);
   assert.deepEqual(r.loka, [1]);
   assert.deepEqual(r.sleppa, [2, 3, 4]);
+});
+
+test('spjallGogn: heildartalan kemur úr COUNT, ekki sneidda listanum (rýnin: „30" við 45 opna)', () => {
+  const midar = Array.from({ length: 45 }, (_, i) => ({ id: i + 1, stada: 'stadfest', created: NU - D, efni: 'x' }));
+  assert.ok(spjallGogn({ midar, kandidatar: [], nu: NU, opnirAlls: 45 }).includes('Opnar beiðnir: 45 alls, 30 elstu sýndar.'));
+  assert.ok(spjallGogn({ midar: midar.slice(0, 3), kandidatar: [], nu: NU, opnirAlls: 3 }).includes('Opnar beiðnir: 3.'));
+  assert.ok(spjallGogn({ midar: [{ id: 1, stada: 'nytt', created: NU - 21 * D }], kandidatar: [], nu: NU }).includes('barst fyrir 21 degi'));
+});
+
+test('thattaSpjall: tillaga úr líkaninu ber tilvitnun og hakastöðu þjónsins, ekki líkansins', () => {
+  const k = [{ id: 5, efni: 'a', astaeda: 'notandinn þakkaði fyrir', tilvitnun: 'Takk!', ohakad: true }];
+  const r = thattaSpjall('{"svar":"Þennan má loka.","loka":[5],"ohakad":false,"tilvitnun":"<b>x</b>"}', k);
+  assert.deepEqual(r.tillaga.midar[0], { id: 5, efni: 'a', astaeda: 'notandinn þakkaði fyrir', tilvitnun: 'Takk!', ohakad: true });
 });
 
 test('spjallPrompt: bannar að finna upp númer og lofa endurgreiðslu', () => {

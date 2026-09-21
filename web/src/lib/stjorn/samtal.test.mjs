@@ -36,3 +36,13 @@ test('samtalHtml: tillaga birtist aðeins á skilaboðum frá henni, ekki Aroni'
   assert.ok(samtalHtml([{ hver: 'sigrun', texti: 'Þessi má loka.', tillaga: t }]).includes('stj-tillaga'));
   assert.ok(!samtalHtml([{ hver: 'aron', texti: 'x', tillaga: t }]).includes('stj-tillaga'));
 });
+
+test('tillagaHtml: túlkun er óhökuð og orð notandans birtast, esc-uð', () => {
+  const h = tillagaHtml({ adgerd: 'loka', midar: [
+    { id: 1, efni: 'Þögn', astaeda: 'svarað fyrir 9 dögum' },
+    { id: 2, efni: 'Þakkir', astaeda: 'notandinn þakkaði fyrir', tilvitnun: 'Takk <b>kærlega</b>', ohakad: true },
+  ] }, 'a');
+  assert.match(h, /<input type="checkbox" checked data-id="1">/);
+  assert.match(h, /<input type="checkbox" data-id="2">/, 'þakkir EKKI hakaðar fyrirfram');
+  assert.ok(h.includes('<q>Takk &lt;b&gt;kærlega&lt;/b&gt;</q>'));
+});

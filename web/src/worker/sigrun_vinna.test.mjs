@@ -130,13 +130,14 @@ t('opnirMidar + sigrunTillaga: raunverulegt SQL velur rétta miða til að loka'
   assert.equal(r.svar, 'Ég fann 2 beiðnir sem má loka. Taktu hakið af þeim sem þú vilt halda opnum.');
 });
 
-t('lokaMargt: aðeins lokanlegir miðar, les aftur eftir lokun, skráir nótu og atburð', async () => {
-  const { db, env, midi } = nyrGrunnur();
+t('lokaMargt: aðeins miðar sem ENN uppfylla regluna, les aftur, skráir nótu og atburð', async () => {
+  const { db, env, midi, skilabod } = nyrGrunnur();
   const nu = Math.floor(Date.now() / 1000);
-  midi({ id: 20, created: nu - D, stada: 'svarad' });
+  midi({ id: 20, created: nu - 20 * D, stada: 'svarad' });
+  skilabod({ ticket_id: 20, ts: nu - 9 * D, dir: 'out', sent_by: 'aron', efni: '[Karp #20] x' });   // raunverulegur kandídat
   midi({ id: 21, created: nu - D, stada: 'cto' });
   midi({ id: 22, created: nu - D, stada: 'lokad' });
-  const r = await lokaMargt(env, { ids: [20, 21, 22, 999, 'x'] }, { setTicket });
+  const r = await lokaMargt(env, { ids: [20, 21, 22, 999, 'x'] }, setTicket);
   assert.deepEqual(r.lokad, [20]);
   assert.deepEqual(r.sleppt, [21, 22, 999]);
   const t20 = db.prepare('SELECT stada, notur FROM tickets WHERE id=20').get();
@@ -144,7 +145,7 @@ t('lokaMargt: aðeins lokanlegir miðar, les aftur eftir lokun, skráir nótu og
   assert.match(t20.notur, /Lokað að tillögu Sigrúnar$/);
   assert.ok(db.prepare("SELECT 1 AS x FROM stjorn_sync WHERE k='atb:lokad:20'").get(), 'atburður skráður');
   assert.equal(db.prepare('SELECT stada FROM tickets WHERE id=21').get().stada, 'cto', 'Hrafn heldur sínum');
-  assert.equal((await lokaMargt(env, { ids: [] }, { setTicket })).error, 'ids');
+  assert.equal((await lokaMargt(env, { ids: [] }, setTicket)).error, 'ids');
 });
 
 t('skraAtburd: uppfærir í stað þess að tvítaka, og byrjunin festist við fyrstu skráningu', async () => {
@@ -177,4 +178,37 @@ t('sigrunSpjall: svarar, og aðeins lokunarhæf númer komast í tillöguna', as
   } finally { globalThis.fetch = upprunalegt; }
   assert.equal((await sigrunSpjall(env, { texti: 'hæ' })).error, 'unconfigured');
   assert.equal((await sigrunSpjall(Object.assign({ ANTHROPIC_API_KEY: 'k' }, env), { texti: 'x' })).error, 'texti');
+});
+
+t('lokaMargt: rýnin 21.9 — notandi skrifaði aftur EFTIR tillöguna, og miðanum er EKKI lokað', async () => {
+  const { db, env, midi, skilabod } = nyrGrunnur();
+  const nu = Math.floor(Date.now() / 1000);
+  midi({ id: 10, created: nu - 20 * D, stada: 'svarad' });
+  skilabod({ ticket_id: 10, ts: nu - 12 * D, dir: 'out', sent_by: 'aron', efni: '[Karp #10] x' });
+  const tillaga = await sigrunTillaga(env);
+  assert.deepEqual(tillaga.tillaga.midar.map((m) => m.id), [10], 'lagður til: þögn í 12 daga');
+  // póstinnlesturinn: nýtt skilaboð frá notanda, og miðinn færður í stadfest (gmail_intake.mjs:103)
+  skilabod({ ticket_id: 10, ts: nu - 60, dir: 'in', texti: 'Þetta virkar ENN ekki' });
+  db.prepare("UPDATE tickets SET stada='stadfest' WHERE id=10").run();
+  const r = await lokaMargt(env, { ids: [10] }, setTicket);
+  assert.deepEqual(r.lokad, []);
+  assert.deepEqual(r.sleppt, [10]);
+  assert.equal(db.prepare('SELECT stada FROM tickets WHERE id=10').get().stada, 'stadfest', 'nýi pósturinn situr ekki í lokuðum miða');
+});
+
+t('sigrunVika: rýnin 21.9 — bilun í D1 er ALDREI geymd sem tala', async () => {
+  const { db, env, midi } = nyrGrunnur();
+  midi({ id: 1, created: V38.fra + H });
+  const brothaett = { TENGSL: { prepare: (sql) => {
+    const st = env.TENGSL.prepare(sql);
+    if (/^SELECT COUNT\(\*\) AS n FROM tickets t WHERE t\.created/.test(sql)) return { bind: () => ({ first: async () => { throw new Error('D1 7500'); } }) };
+    return st;
+  } } };
+  const a = await sigrunVika(brothaett, V38.fra, V38.til);
+  assert.deepEqual(a, { ok: false, error: 'd1' });
+  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM stjorn_sync WHERE k LIKE 'sigrun_vika:%'").get().n, 0, 'ekkert geymt');
+  const b = await sigrunVika(env, V38.fra, V38.til);
+  assert.equal(b.ok, true);
+  assert.equal(b.geymt, false);
+  assert.equal(b.tolur.barust, 1, 'heilbrigt kall reiknar rétta tölu — ekki geymda núllið');
 });

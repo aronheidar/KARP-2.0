@@ -20,8 +20,11 @@ export function tillagaHtml(t, lykill) {
   const midar = t.midar.filter((m) => m && Number.isInteger(Number(m.id)) && Number(m.id) > 0);
   if (!midar.length) return '';
   return '<div class="stj-tillaga" data-lykill="' + esc(lykill) + '">'
-    + '<ul>' + midar.map((m) => '<li><label><input type="checkbox" checked data-id="' + Number(m.id) + '"> '
-      + '<b>#' + Number(m.id) + '</b> ' + esc(m.efni || '') + (m.astaeda ? ' <span>' + esc(m.astaeda) + '</span>' : '') + '</label></li>').join('')
+    // Liður sem hvílir á túlkun (þakkir) er EKKI hakaður fyrirfram og ber orð notandans, svo Aron lesi
+    // sjálfur hvað stendur. Liður sem hvílir á staðreynd (þögn í 7+ daga) er hakaður.
+    + '<ul>' + midar.map((m) => '<li><label><input type="checkbox"' + (m.ohakad ? '' : ' checked') + ' data-id="' + Number(m.id) + '"> '
+      + '<b>#' + Number(m.id) + '</b> ' + esc(m.efni || '') + (m.astaeda ? ' <span>' + esc(m.astaeda) + '</span>' : '') + '</label>'
+      + (m.tilvitnun ? '<q>' + esc(m.tilvitnun) + '</q>' : '') + '</li>').join('')
     + '</ul><button type="button" class="stj-btn stj-btn-sm stj-tillaga-ja">Loka völdum</button>'
     + '<button type="button" class="stj-btn stj-btn-sm stj-tillaga-nei">Ekki núna</button></div>';
 }

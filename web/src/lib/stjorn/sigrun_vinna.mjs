@@ -5,7 +5,12 @@
 // lokunarhæfa miða eftir föstum reglum (lokunarKandidatar), líkanið má aðeins velja úr þeim lista,
 // og þattaSpjall síar svarið aftur gegn honum. Og hún lokar engu sjálf — Aron smellir.
 
+import { eintala } from './vikutexti.mjs';
+
 const DAGUR = 86400;
+// VARÚÐ: ekki kalla þetta 'dagar'. lokunarKandidatar tekur viðfangið { dagar = 7 }, sem myndi
+// skyggja á fallið inni í því og gera dagaOrd(aldur) að 7(aldur) — gild setningafræði, keyrsluvilla.
+const dagaOrd = (n) => n + ' ' + (eintala(n) ? 'degi' : 'dögum');   // fyrir 21 degi, fyrir 22 dögum
 
 /** Stöður sem hún má leggja til að loka. cto/tillaga/samthykkt eru EKKI hér: þar er Hrafn að
  *  vinna að lagfæringu og lokun myndi yfirgefa hana á miðri leið. */
@@ -14,11 +19,17 @@ export const LOKANLEGAR = ['nytt', 'stadfest', 'svarad'];
 // „takk" en ekki „stakk" (hann stakk upp á…). JS-\b er ASCII-bundið og sér íslenska stafi sem
 // orðaskil, svo skilin eru skrifuð út: á undan kemur upphaf eða stafur sem er EKKI bókstafur.
 const TAKK = /(^|[^a-záðéíóúýþæöA-ZÁÐÉÍÓÚÝÞÆÖ])(takk|þakk|þökk|thank)/i;
+// ⚠ Rýnin 21.9 sannaði að „takk" eitt og sér leggur til OPNAR KVARTANIR: „Takk fyrir svarið en ég
+//   kemst samt ekki inn", „Þakka ekki fyrir neitt, þetta er enn bilað". Hér er andmælalisti — orð sem
+//   segja að málið sé EKKI leyst. Rangt nei (miði sem mátti loka er ekki lagður til) er skaðlaust;
+//   rangt já lokar kvörtun. Því er listinn viljandi víður.
+const EKKI_LEYST = /(^|[^a-záðéíóúýþæöA-ZÁÐÉÍÓÚÝÞÆÖ])(en|samt|enn|ekki|ekkert|aldrei|bilað|bilaður|bilun|villa|vandi|vandamál|vandræði|rangt|rangur|but|still|not|no|never|broken|issue|problem|wrong)(?=$|[^a-záðéíóúýþæöA-ZÁÐÉÍÓÚÝÞÆÖ])/i;
 
 /**
  * Lokunarhæfir miðar, eftir föstum reglum. Elstu fyrst, í mesta lagi 20.
  * @param {Array<{id,efni,stada,created,sidast,sidastaAtt,sidastaInnTexti}>} midar
  *   sidast = tími síðustu skilaboða (s) · sidastaAtt = 'in' | 'out' · sidastaInnTexti = síðustu skilaboð NOTANDA
+ *   svorFraOkkur = fjöldi RAUNVERULEGRA svara okkar (staðfestingin telst ekki)
  */
 export function lokunarKandidatar(midar, nu, { dagar = 7 } = {}) {
   const ut = [];
@@ -29,13 +40,17 @@ export function lokunarKandidatar(midar, nu, { dagar = 7 } = {}) {
     const aldur = Math.floor((Number(nu) - sidast) / DAGUR);
     // A: við svöruðum, og notandinn hefur ekki látið heyra í sér síðan
     if (m.stada === 'svarad' && m.sidastaAtt === 'out' && aldur >= dagar) {
-      ut.push({ id, efni: String(m.efni || ''), astaeda: 'svarað fyrir ' + aldur + ' dögum, ekkert heyrst síðan', dagar: aldur });
+      ut.push({ id, efni: String(m.efni || ''), astaeda: 'svarað fyrir ' + dagaOrd(aldur) + ', ekkert heyrst síðan', dagar: aldur });
       continue;
     }
-    // B: síðustu skilaboð eru stutt þakkir frá notanda, ekki ný spurning
+    // B: síðustu skilaboð eru stuttar þakkir frá notanda EFTIR raunverulegt svar okkar — ekki ný
+    //    spurning, ekkert andmælaorð. Aldrei hakað fyrirfram, og orð notandans fylgja með svo Aron
+    //    lesi sjálfur hvað stendur í stað þess að treysta flokkun.
     const inn = String(m.sidastaInnTexti || '').trim();
-    if (m.sidastaAtt === 'in' && inn && inn.length <= 240 && !inn.includes('?') && TAKK.test(inn)) {
-      ut.push({ id, efni: String(m.efni || ''), astaeda: 'notandinn þakkaði fyrir', dagar: aldur });
+    if (m.sidastaAtt === 'in' && (Number(m.svorFraOkkur) || 0) > 0 && inn && inn.length <= 240
+      && !inn.includes('?') && TAKK.test(inn) && !EKKI_LEYST.test(inn)) {
+      ut.push({ id, efni: String(m.efni || ''), astaeda: 'notandinn þakkaði fyrir', dagar: aldur,
+        tilvitnun: inn.replace(/\s+/g, ' ').slice(0, 140), ohakad: true });
     }
   }
   return ut.sort((a, b) => b.dagar - a.dagar || a.id - b.id).slice(0, 20);
@@ -74,7 +89,7 @@ export function vikuTolur(r) {
 
 const hreint = (s, n) => String(s == null ? '' : s).replace(/[<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, n);
 const dagarSidan = (ts, nu) => Math.max(0, Math.floor((Number(nu) - Number(ts)) / DAGUR));
-const fyrir = (d) => (d === 0 ? 'í dag' : d === 1 ? 'í gær' : 'fyrir ' + d + ' dögum');
+const fyrir = (d) => (d === 0 ? 'í dag' : d === 1 ? 'í gær' : 'fyrir ' + dagaOrd(d));
 
 export function spjallPrompt() {
   return [
@@ -101,10 +116,13 @@ export function spjallPrompt() {
 }
 
 /** Gagnablokkin: opnir miðar, lokunarhæfir og síðasta vika. Efni er hreinsað og stytt. */
-export function spjallGogn({ midar, kandidatar, vika, nu }) {
+export function spjallGogn({ midar, kandidatar, vika, nu, opnirAlls }) {
   const L = ['<gogn>'];
-  const opnir = (Array.isArray(midar) ? midar : []).slice(0, 30);
-  L.push('Opnar beiðnir (' + opnir.length + '):');
+  const allir = Array.isArray(midar) ? midar : [];
+  const opnir = allir.slice(0, 30);
+  // Heildartalan kemur úr COUNT, ekki listanum: listinn er sneiddur (rýnin sá „Opnar beiðnir (30)" við 45 opna)
+  const alls = Number.isFinite(Number(opnirAlls)) ? Number(opnirAlls) : allir.length;
+  L.push('Opnar beiðnir: ' + alls + (alls > opnir.length ? ' alls, ' + opnir.length + ' elstu sýndar' : '') + '.');
   for (const m of opnir) {
     L.push('#' + Number(m.id) + ' · ' + hreint(m.stada, 12) + ' · ' + hreint(m.tegund || 'óflokkað', 12)
       + ' · barst ' + fyrir(dagarSidan(m.created, nu))
@@ -167,8 +185,14 @@ export function thattaSpjall(text, kandidatar, fixJson) {
   const ids = j && Array.isArray(j.loka) ? [...new Set(j.loka.map(Number))].filter((n) => leyfd.has(n)) : [];
   return {
     svar: svar.slice(0, 1500),
-    tillaga: ids.length ? { adgerd: 'loka', midar: ids.map((n) => ({ id: n, efni: leyfd.get(n).efni, astaeda: leyfd.get(n).astaeda })) } : null,
+    tillaga: ids.length ? { adgerd: 'loka', midar: ids.map((n) => tillagaLid(leyfd.get(n))) } : null,
   };
+}
+
+/** Einn liður tillögu: aðeins það sem birtist, úr gögnum þjónsins — aldrei úr líkaninu. */
+export function tillagaLid(c) {
+  return Object.assign({ id: Number(c.id), efni: String(c.efni || ''), astaeda: String(c.astaeda || '') },
+    c.tilvitnun ? { tilvitnun: String(c.tilvitnun) } : {}, c.ohakad ? { ohakad: true } : {});
 }
 
 /** Lokun margra: aðeins miðar sem eru til OG eru í lokanlegri stöðu. Skilar hvað lokast og hvað ekki. */

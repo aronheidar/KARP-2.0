@@ -58,3 +58,22 @@ test('vikutexti: styttingarpunktur verður ekki tvöfaldur (3 klst. en ekki 3 kl
   assert.ok(vikutexti({ barust: 4, svartimiKlst: 60 }).includes('Miðgildi svartíma var 3 sólarhringar.'));
   assert.ok(vikutexti({ barust: 4, svartimiKlst: 0.3 }).includes('Miðgildi svartíma var undir klukkustund.'));
 });
+
+test('vikutexti: rýnin 21.9 — sögnin stendur einu sinni, og „var" þegar engu var lokað', () => {
+  assert.ok(vikutexti({ barust: 5, lokad: 6, hafnad: 1 }).includes('6 var lokað og 1 hafnað.'));
+  assert.ok(vikutexti({ barust: 5, lokad: 0, hafnad: 3 }).includes('3 var hafnað.'), 'ekki „3 hafnað."');
+  assert.ok(vikutexti({ barust: 5, lokad: 4 }).includes('4 var lokað.'));
+});
+
+test('vikutexti: lengst beðið — í 21 dag, í 22 daga', () => {
+  assert.ok(vikutexti({ barust: 1, lengstOpinn: { id: 9, dagar: 21 } }).includes('Lengst hefur #9 beðið, í 21 dag.'));
+  assert.ok(vikutexti({ barust: 1, lengstOpinn: { id: 9, dagar: 22 } }).includes('Lengst hefur #9 beðið, í 22 daga.'));
+});
+
+test('vikutexti: áætlaðar tölur eru sagðar áætlaðar, ekki sýndar sem staðreynd', () => {
+  const t = vikutexti({ barust: 5, svaradHenni: 3, tilHrafns: 1, lokad: 6, hafnad: 1, aaetlad: true });
+  assert.ok(t.includes('Um það bil 6 var lokað og 1 hafnað.'));
+  assert.ok(t.some((x) => x.includes('um það bil 1 fór áfram til Hrafns')));
+  const n = vikutexti({ barust: 5, lokad: 6, aaetlad: false });
+  assert.ok(!n.join(' ').toLowerCase().includes('um það bil'));
+});

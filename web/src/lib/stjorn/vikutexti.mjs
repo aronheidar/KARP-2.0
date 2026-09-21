@@ -25,7 +25,8 @@ export function svartimi(klst) {
 /**
  * @param {object} t tölur vikunnar
  *   barust, svaradHenni, svaradAroni, tilHrafns, lokad, hafnad, opnir, svartimiKlst (miðgildi),
- *   algengastFlokkur ({ heiti, hlutfall 0..1 }), lengstOpinn ({ id, dagar })
+ *   algengastFlokkur ({ heiti, hlutfall 0..1 }), lengstOpinn ({ id, dagar }),
+ *   aaetlad (lokanir/afhendingar áætlaðar — vikan var á undan atburðaskránni)
  * @returns {string[]} setningar — kallandinn ræður hvernig þær eru settar fram
  */
 export function vikutexti(t) {
@@ -39,15 +40,17 @@ export function vikutexti(t) {
     const hlutar = [];
     if (hun) hlutar.push('ég svaraði ' + tala(hun));
     if (hann) hlutar.push('þú tókst ' + tala(hann) + ' sjálfur');
-    if (hr) hlutar.push(tala(hr) + ' ' + b(hr, 'fór', 'fóru') + ' áfram til Hrafns');
+    if (hr) hlutar.push((t.aaetlad ? 'um það bil ' : '') + tala(hr) + ' ' + b(hr, 'fór', 'fóru') + ' áfram til Hrafns');
     if (hlutar.length) s.push(fyrstiStor(saman(hlutar)) + '.');
   }
   const l = Number(t && t.lokad) || 0, h = Number(t && t.hafnad) || 0;
   if (l || h) {
     const lh = [];
-    if (l) lh.push(tala(l) + ' ' + b(l, 'var lokað', 'var lokað'));      // „loka" tekur þágufall: 7 var lokað
-    if (h) lh.push(tala(h) + ' ' + b(h, 'hafnað', 'hafnað'));
-    s.push(fyrstiStor(saman(lh)) + '.');
+    // „loka"/„hafna" taka þágufall og ópersónulega sögn: 7 var lokað. Sögnin stendur einu sinni:
+    // „6 var lokað og 1 hafnað", en „3 var hafnað" þegar engu var lokað (rýnin 21.9: „3 hafnað.").
+    if (l) lh.push(tala(l) + ' var lokað');
+    if (h) lh.push(tala(h) + (l ? ' hafnað' : ' var hafnað'));
+    s.push(fyrstiStor((t.aaetlad ? 'um það bil ' : '') + saman(lh)) + '.');
   }
   const st = svartimi(t && t.svartimiKlst);
   // '3 klst.' ber þegar styttingarpunkt; annar punktur yrði '3 klst..' (sást í vafra 21.9)
@@ -55,7 +58,7 @@ export function vikutexti(t) {
   // EIN athugasemd, valin eftir reglu — tilbreyting án þess að líkan giski
   const f = t && t.algengastFlokkur, lo = t && t.lengstOpinn;
   if (f && f.heiti && Number(f.hlutfall) >= 0.4 && n >= 3) s.push('Flestar snerust um ' + String(f.heiti) + '.');
-  else if (lo && lo.id && Number(lo.dagar) >= 3) s.push('Lengst hefur #' + tala(lo.id) + ' beðið, í ' + tala(lo.dagar) + ' daga.');
+  else if (lo && lo.id && Number(lo.dagar) >= 3) s.push('Lengst hefur #' + tala(lo.id) + ' beðið, í ' + tala(lo.dagar) + ' ' + b(lo.dagar, 'dag', 'daga') + '.');
   const o = Number(t && t.opnir) || 0;
   s.push(o === 0 ? 'Engin er opin núna.' : tala(o) + ' ' + b(o, 'er enn opin', 'eru enn opnar') + '.');
   return s;

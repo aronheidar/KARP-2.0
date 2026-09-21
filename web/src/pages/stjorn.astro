@@ -376,7 +376,6 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     .stj-av-smellur.v-veifa .av-munnur { animation: stj-av-bros 1.55s ease-in-out; }
     @keyframes stj-av-bros { 0%, 100% { transform: scaleY(1); } 45% { transform: scaleY(1.85) translateY(-.15px); } }
     .stj-av-smellur.v-veifa .av-lok { animation: stj-av-blikk .5s ease-in-out .12s; }
-    @keyframes stj-av-blikk-eitt { 0%, 100% { transform: scaleY(0); } 45% { transform: scaleY(1.06); } }
 
     /* 🙋 VIÐBRÖGÐ VIÐ RAUNVERULEGUM ATBURÐUM. Hvert viðbragð er EIN hreyfing sem klárast —
        ekkert lykkjast. Kveikt í `vidbragd()` eftir að aðgerð skilar ok, og spilað EFTIR boot()
@@ -412,7 +411,7 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     .stj-av-smellur.v-hugsar .av-lithimna { transform: translate(-.9px, -1.1px); }
     .stj-av-smellur.v-hugsar .av-brun-v, .stj-av-smellur.v-hugsar .av-brun-h { transform: translateY(-.5px); }
     /* talar meðan svarið hennar birtist — klasinn fer af eftir tímamörk sem ráðast af lengd svarsins */
-    .stj-av-smellur.v-talar .av-munnur { animation: stj-av-tal .3s steps(2, end) infinite; }
+    .stj-av-smellur.v-talar .av-munnur { animation: stj-av-tal .3s steps(2, end) 11; }   /* endanlegt: CSS tryggir stöðvun (3,3 s) þótt JS bregðist */
     @keyframes stj-av-tal { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(2.2); } }
     @keyframes stj-av-blikk { 0%, 100% { transform: scaleY(0); } 45% { transform: scaleY(1.06); } }
     @media (prefers-reduced-motion: reduce) { .stj-moot-seat--komin, .stj-moot-innlegg, .stj-moot-nidurstada, .stj-moot-gavel, .stj-moot-seat--talar svg, .stj-moot-seat--bidur .stj-moot-aron-stoll,
@@ -424,10 +423,11 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     .stj-andlit { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; text-decoration: none; color: inherit; background: var(--card); transition: border-color .15s, transform .15s; }
     .stj-andlit:hover { border-color: var(--gold); transform: translateY(-2px); }
     .stj-andlit--virkt { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
-    .stj-andlit svg { transition: transform .22s cubic-bezier(.22,1,.36,1); }
     .stj-andlit--virkt svg { transform: scale(1.18); }
-    .stj-rond:has(.stj-andlit--virkt) .stj-andlit:not(.stj-andlit--virkt) { opacity: .55; }
-    .stj-rond:has(.stj-andlit--virkt) .stj-andlit:not(.stj-andlit--virkt):hover { opacity: 1; }
+    /* dofnar MYNDIN, ekki nafnið — 0,55 á öllu spjaldinu lækkaði birtuskil nafnanna (rýnin 21.9) */
+    .stj-andlit svg { transition: transform .22s cubic-bezier(.22,1,.36,1), opacity .22s; }
+    .stj-rond:has(.stj-andlit--virkt) .stj-andlit:not(.stj-andlit--virkt) svg { opacity: .5; }
+    .stj-rond:has(.stj-andlit--virkt) .stj-andlit:not(.stj-andlit--virkt):hover svg { opacity: 1; }
     .stj-andlit-nafn { font-weight: 600; font-size: 14px; }
     .stj-andlit-hlutverk { font-size: 11px; color: var(--faint); }
     .stj-andlit-tala { position: absolute; top: 6px; right: 8px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: #c0392b; color: #fff; font-size: 12px; font-weight: 700; display: grid; place-items: center; }
@@ -440,8 +440,7 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     .stj-bidur-bid { text-align: right; white-space: nowrap; }
     .stj-spjald-haus { display: flex; align-items: center; gap: 22px; margin-bottom: 22px; }
     .stj-spjald-haus > svg, .stj-spjald-haus > .stj-av-smellur { flex: none; }
-    .stj-spjald-nafn h2 { font-size: 26px; letter-spacing: -.01em; }
-    .stj-spjald-nafn h2 { margin: 0; }
+    .stj-spjald-nafn h2 { margin: 0; font-size: 26px; letter-spacing: -.01em; }
     .stj-spjald-nafn h2 span { font-weight: 400; font-size: 14px; color: var(--faint); }
     .stj-spjald-stada, .stj-spjald-sidast { margin: 2px 0 0; font-size: 13px; color: var(--faint); }
     .stj-hola { margin: 0 0 22px; }
@@ -468,6 +467,7 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     .stj-tillaga { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
     .stj-tillaga ul { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 4px; }
     .stj-tillaga li span { color: var(--faint); font-size: 13px; }
+    .stj-tillaga li q { display: block; margin: 2px 0 0 24px; color: var(--muted); font-size: 13px; font-style: italic; }
     .stj-tillaga button + button { margin-left: 6px; }
     .stj-tilbaka:hover { color: var(--gold); }
   </style>
@@ -1025,6 +1025,9 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     // vafrageymslu. Efni miðanna eru persónuupplýsingar viðskiptavina og eiga ekki að sitja víðar
     // en nauðsyn krefur. Endurhleðsla hreinsar samtalið; miðarnir sjálfir standa.
     let samtalSaga = [];
+    // ⚠ Í gangi-flagg í MINNI, ekki `disabled` á hnappi: boot() teiknar hnappana upp á nýtt sem virka
+    //   á meðan beiðni er í gangi, og Ctrl+Enter spurði aldrei um hnappinn (rýnin 21.9).
+    let _samtalIGangi = false, _lokunIGangi = false;
     const endurteiknaSamtal = () => { const sm = $('stj-samtal'); if (!sm) return; sm.innerHTML = samtalHtml(samtalSaga); sm.scrollTop = sm.scrollHeight; };
     // Hún „talar" meðan svarið birtist — hreyfing sem hættir sjálf, lengd eftir lengd svarsins.
     const talar = (texti) => {
@@ -1049,26 +1052,29 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       if (!t || !b) return;
       const senda = async () => {
         const texti = t.value.trim();
-        if (texti.length < 2) return;
+        if (texti.length < 2 || _samtalIGangi) return;
+        _samtalIGangi = true;
         const sagaUndan = samtalSaga;
         samtalSaga = hreinsaSogu([...samtalSaga, { hver: 'aron', texti }]);
         t.value = ''; endurteiknaSamtal();
         b.disabled = true;
         try { await spyrja({ action: 'sigrun_spjall', texti, saga: sagaUndan }); }
-        finally { const b2 = $('stj-samtal-senda'); if (b2) b2.disabled = false; }
+        finally { _samtalIGangi = false; const b2 = $('stj-samtal-senda'); if (b2) b2.disabled = false; }
       };
       b.onclick = senda;
       t.onkeydown = (e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); senda(); } };
       const tt = $('stj-taka-til');
       if (tt) tt.onclick = async () => {
+        if (_samtalIGangi) return;
+        _samtalIGangi = true;
         tt.disabled = true;
         samtalSaga = hreinsaSogu([...samtalSaga, { hver: 'aron', texti: 'Geturðu tekið til í miðunum?' }]);
         endurteiknaSamtal();
         try { await spyrja({ action: 'sigrun_tillaga' }); }
-        finally { const t2 = $('stj-taka-til'); if (t2) t2.disabled = false; }
+        finally { _samtalIGangi = false; const t2 = $('stj-taka-til'); if (t2) t2.disabled = false; }
       };
-      // Tillaga: „Loka völdum" keyrir FYRIRLIGGJANDI lokun miða fyrir miða — sama aðgerð og hnappurinn
-      // á hverjum miða, svo hegðunin (og allt sem hún gerir) er nákvæmlega sú sama. Aron smellir; hún ekki.
+      // Tillaga: „Loka völdum" kallar loka_margt EINU SINNI. Þjónninn metur regluna AFTUR á þeirri
+      // stundu og sleppir því sem hefur breyst (t.d. notandi skrifaði aftur). Aron smellir; hún ekki.
       $('stj-samtal').onclick = async (e) => {
         const kassi = e.target.closest('.stj-tillaga'); if (!kassi) return;
         const i = Number(kassi.dataset.lykill);
@@ -1079,31 +1085,36 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         }
         if (!e.target.closest('.stj-tillaga-ja')) return;
         const ids = [...kassi.querySelectorAll('input[type=checkbox]:checked')].map((x) => Number(x.dataset.id)).filter((n) => Number.isInteger(n) && n > 0);
-        if (!ids.length) return;
-        kassi.querySelectorAll('button').forEach((x) => { x.disabled = true; });
+        if (!ids.length || _lokunIGangi) return;
+        _lokunIGangi = true;
+        // úr sögunni STRAX: boot() á meðan gæti annars teiknað virka hnappa og annar smellur sent aftur
+        if (samtalSaga[i]) delete samtalSaga[i].tillaga;
+        endurteiknaSamtal();
         // EITT kall. `stada` skilar alltaf ok (setTicket gleypir villur), svo lykkja á því gæti sagt
         // „ég lokaði" um mið sem stendur enn opinn. loka_margt les aftur og telur aðeins það sem lokaðist.
-        const r = await tixPost({ action: 'loka_margt', ids });
+        let r = null;
+        try { r = await tixPost({ action: 'loka_margt', ids }); } finally { _lokunIGangi = false; }
         const lokad = (r && r.ok && Array.isArray(r.lokad)) ? r.lokad : [];
         const mistokst = (r && r.ok && Array.isArray(r.sleppt)) ? r.sleppt : (r && r.ok ? [] : ids);
-        if (samtalSaga[i]) delete samtalSaga[i].tillaga;
         const nr = (a) => { const x = a.map((n) => '#' + n); return x.length < 2 ? x.join('') : x.slice(0, -1).join(', ') + ' og ' + x[x.length - 1]; };   // #35 og #44, ekki #35, #44
         samtalSaga = hreinsaSogu([...samtalSaga, { hver: 'sigrun', texti:
-          (lokad.length ? 'Ég lokaði ' + nr(lokad) + '.' : '') + (mistokst.length ? (lokad.length ? ' ' : '') + 'Ég náði ekki að loka ' + nr(mistokst) + '.' : '') }]);
+          (lokad.length ? 'Ég lokaði ' + nr(lokad) + '.' : '')
+          + (mistokst.length ? (lokad.length ? ' ' : '') + (r && r.ok ? 'Ég sleppti ' + nr(mistokst) + ', þar hafði eitthvað breyst síðan.' : 'Ég náði ekki að loka ' + nr(mistokst) + '.') : '') }]);
         vidbragdEftirBoot(mistokst.length ? 'dapur' : 'kinka brosa');
         boot();
       };
     }
     // VIKAN — síðasta FULLNAÐA vika, svo samantektin er föst frá mánudegi til sunnudags. Geymd
     // í minni per viku: boot() keyrir eftir hverja aðgerð og hún á ekki að sækja D1 aftur fyrir það.
-    let vikuGeymsla = null;
+    let vikuGeymsla = null, vikuVilla = '';   // villa munuð per viku og síðu: boot() á ekki að reyna aftur við hverja aðgerð
     async function teiknaViku() {
       const hola = $('stj-sigrun-vika'); if (!hola) return;
       const v = sidastaFullaVika(Math.floor(Date.now() / 1000));
       const lykill = v.ar + '-' + v.vika;
+      if (vikuVilla === lykill) { const h0 = $('stj-sigrun-vika'); if (h0) h0.querySelector('.stj-note').textContent = 'Náði ekki í tölur vikunnar.'; return; }
       if (!vikuGeymsla || vikuGeymsla.lykill !== lykill) {
         const r = await tixPost({ action: 'sigrun_vika', fra: v.fra, til: v.til });
-        if (!r || !r.ok) { const h2 = $('stj-sigrun-vika'); if (h2) h2.querySelector('.stj-note').textContent = 'Náði ekki í tölur vikunnar.'; return; }
+        if (!r || !r.ok) { vikuVilla = lykill; const h2 = $('stj-sigrun-vika'); if (h2) h2.querySelector('.stj-note').textContent = 'Náði ekki í tölur vikunnar.'; return; }
         vikuGeymsla = { lykill, tolur: r.tolur || {} };
       }
       const h = $('stj-sigrun-vika'); if (!h) return;   // spjaldið gæti hafa verið endurteiknað á meðan
@@ -1112,9 +1123,12 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       // eftir notanda (svarad) eða Hrafni (cto…).
       const tk = (sidastaSvar && sidastaSvar.tickets) || {};
       const nuS = Math.floor(Date.now() / 1000);
+      // Frá SÍÐUSTU hreyfingu (`updated`), ekki stofnun: mið sem notandi svaraði í gær eftir 20 daga hefur
+      // beðið í einn dag, ekki tuttugu (rýnin 21.9). `updated` færist líka við nótu — skekkjan er í rétta átt.
+      const bidTimi = (m) => Number(m.updated) || Number(m.created) || 0;
       const elst = (Array.isArray(tk.list) ? tk.list : []).filter((m) => m && (m.stada === 'nytt' || m.stada === 'stadfest'))
-        .reduce((a, m) => (!a || Number(m.created) < Number(a.created) ? m : a), null);
-      const lifandi = { opnir: Number(tk.open) || 0, lengstOpinn: elst ? { id: elst.id, dagar: Math.floor((nuS - Number(elst.created)) / 86400) } : null };
+        .reduce((a, m) => (!a || bidTimi(m) < bidTimi(a) ? m : a), null);
+      const lifandi = { opnir: Number(tk.open) || 0, lengstOpinn: elst ? { id: elst.id, dagar: Math.floor((nuS - bidTimi(elst)) / 86400) } : null };
       h.innerHTML = '<h3>Vikan hjá mér <span class="stj-vikan-bil">vika ' + v.vika + ' · ' + esc(vikuBil(v)) + '</span></h3>'
         + '<p>' + esc(vikutexti(Object.assign({}, vikuGeymsla.tolur, lifandi)).join(' ')) + '</p>';   // ein málsgrein í hennar rödd, ekki listi
     }
