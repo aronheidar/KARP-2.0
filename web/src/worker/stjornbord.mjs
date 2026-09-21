@@ -4,7 +4,7 @@
 import { _monthStr, _sendVerifyEmail, readSession } from './auth.mjs';
 import { _ajson, _emailOvSet, _emailTpl, _tokenHex, sendGmail } from './felag.mjs';
 import { EMAIL_TYPES, renderEmail, resolveEmail, validateEmail } from '../lib/emails.mjs';
-import { ticketsOverview } from './hjalp_agent.mjs';   // 🎫 hjálparbeiðnir (þjónustufulltrúa-flæðið)
+import { adminCsrfVilla, ticketsOverview } from './hjalp_agent.mjs';   // 🎫 hjálparbeiðnir (þjónustufulltrúa-flæðið) + CSRF-gát kökulotu-POSTa
 // ⚠⚠ EIN UPPSPRETTA verðanna. Töflurnar voru áður líka fall-staðbundnar hér að neðan, og þótt gildin
 //    stemmdu var ekkert sem HÉLT þeim saman: prófið sem á að verja þær neglir Elínar-hliðina við
 //    bókstaflegar tölur, svo verðbreyting hér hefði staðið græn meðan Elín mældi gamla verðið — og
@@ -254,9 +254,11 @@ export async function adminSendHandler(request, env) {
 
 export async function adminSyncHandler(request, env) {
   const key = request.headers.get('X-Admin-Key');
-  const okAuth = (key && env.ADMIN_API_KEY && key === env.ADMIN_API_KEY) || (await _isAdmin(env, request));
-  if (!okAuth) return _ajson({ ok: false, error: 'admin' });
+  const byKey = !!(key && env.ADMIN_API_KEY && key === env.ADMIN_API_KEY);
+  if (!byKey && !(await _isAdmin(env, request))) return _ajson({ ok: false, error: 'admin' });
   if (request.method === 'POST') {
+    // Kökulotu-leið: same-origin + JSON. Skrifar HVAÐA stjorn_sync-lykil sem er, líka rofa starfsmanna.
+    if (!byKey) { const csrf = adminCsrfVilla(request); if (csrf) return _ajson({ ok: false, error: csrf }); }
     const b = (await request.json().catch(() => null)) || {};
     const k = String(b.k || '').slice(0, 40); const v = String(b.v || '');
     if (!k || v.length > 200000) return _ajson({ ok: false, error: 'input' });
