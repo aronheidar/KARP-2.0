@@ -26,12 +26,16 @@ Claude. Nýja samhengið heitir því `bakgrunnur` og býr inni í `facts` svo �
 
 | Hópur | Tegundir | Bakgrunnur |
 |---|---|---|
-| Útboð | `urslit` | sigurvegari: fyrri útboð unnin (fjöldi, samtals kr, síðast), ríkisgreiðslur 12 mán, ársreikningur (ár, sala, hagnaður) ef til · kaupandi: fjöldi útboða síðustu 12 mán |
-| Markaðir | `mark` | viðskiptadagar í röð, hæsta og lægsta gengi í röðinni, breyting frá upphafi raðar (%), stærsta dagshreyfing í röðinni og hvort hreyfing dagsins sé stærri, breyting úrvalsvísitölu sama dag |
+| Útboð | `urslit` | sigurvegari: fyrri útboð unnin (fjöldi, samtals kr, síðast, með heimild og gagnaglugga), ríkisgreiðslur 12 mán · kaupandi: fjöldi annarra útboða síðustu 12 mán |
+| Markaðir | `mark` | lokagengi síðustu N viðskiptadaga í gagnasafni Karp: hæsta og lægsta gengi, breyting yfir tímabilið (%), stærsta fyrri dagshreyfing og hvort hreyfing dagsins sé stærri, breyting úrvalsvísitölu sama dag (sjálflýsandi sviðaheiti, t.d. `haesta_i_gagnarod_karp`) |
 | Hagtölur | `verdbolga`, `vextir`, `vika` | verðbólga 12 mán fyrr, 12 mán hámark/lágmark, verðbólgumarkmið 2,5 og frávik, raunstýrivextir, dagsetning síðustu vaxtabreytingar, atvinnuleysi 12 mán fyrr |
 | Lyf | `lyf` | önnur lyf á skrá með sama ATC-kóða og þar af í skorti, lyf í skorti alls, dagsetning sem skortur sást fyrst (nýtt state-svið `lyfFyrst`) |
 | Fyrirtæki | `styrkur`, `vorumerki` | eins og sigurvegari í útboðum + fyrri styrkir sama þega |
-| Gjaldþrot | `gjaldthrot` | eins og sigurvegari í útboðum, á kennitölu úr Lögbirtingablaðinu (síðasti ársreikningur o.fl.) |
+| Gjaldþrot | `gjaldthrot` | eins og sigurvegari í útboðum, á kennitölu úr Lögbirtingablaðinu |
+
+**Breyting eftir heildaryfirferð (22.9):** ársreikningatölur eru EKKI í bakgrunni. Þær eru kjarni greiddu 990 kr
+skýrslunnar (ákvörðun Arons 14.9: fara ekki einu sinni í spjallið) og forbyggðu gögnin reyndust óáreiðanleg (neikvæð
+sala, rangur kvarði, 24% með sölu 0).
 
 **Breyting frá kynningu (22.9, við áætlanagerð):** dómar fá EKKI bakgrunn. `domar_ai.json` geymir aðeins 78 dóma,
 brot af dómum ársins, svo „dómar Hæstaréttar á árinu" væri villandi og bryti regluna „ekkert giskað". Dómar njóta
@@ -82,8 +86,8 @@ samhengið alveg, líka nafnaleit.
 ### 5. Birting
 
 - `malsgreinar(texti)` í `web/src/lib/frettavel.mjs` (skipt á auðum línum).
-- `frettavel/[id].astro`: hver málsgrein í `<p class="fv-body">`. `frettavel.astro`: aðalfrétt sýnir tvær fyrstu,
-  kort þá fyrstu. RSS: málsgreinar sameinaðar með bili. Eldri textar án auðra lína = ein málsgrein (óbreytt).
+- `frettavel/[id].astro`: hver málsgrein í `<p class="fv-body">`. `frettavel.astro`: aðalfrétt og kort sýna
+  fyrstu málsgrein (Aron: „allra síst mikill texti MEÐ mynd"). RSS: málsgreinar sameinaðar með bili. Eldri textar án auðra lína = ein málsgrein (óbreytt).
 
 ## Villumeðhöndlun
 
