@@ -5,7 +5,7 @@ import { THREP, EIGINDIR, SERLAUSNIR } from '../data/lausnir.js';
 ---
 <h3 class="vt-h">Karp+ þrep</h3>
 <p class="vt-sub">Fyrir þau sem vinna með fyrirtækjagögn — fyrirtækjaskýrslur, endanlega eigendur og áreiðanleikamat. Eitt þrep á notanda.</p>
-<div class="vt-wrap">
+<div class="vt-wrap tw">
   <table class="vt">
     <thead>
       <tr>
@@ -60,6 +60,17 @@ import { THREP, EIGINDIR, SERLAUSNIR } from '../data/lausnir.js';
   /* Sérlausna-spjöld */
   .vt-svcgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
   @media (max-width:760px) { .vt-svcgrid { grid-template-columns:1fr; } }
+  /* Á síma (22.9.2026) lenti þriðja og dýrasta þrepið utan skjás á 375px. Þéttara letur og bil láta alla
+     fjóra dálkana passa (335px í 335px, mælt); .tw skrunar og dofnar á mjórri skjám. */
+  @media (max-width:520px) {
+    .vt { font-size:12.5px; }
+    .vt th, .vt td { padding:8px 4px; }
+    .vt .tier-nm { font-size:13px; }
+    .vt .tier-pr { font-size:16px; }
+    .vt .tier-pr small { font-size:9.5px; }
+    .vt-cta { padding:7px 6px; font-size:12px; white-space:normal; }
+    .tier-badge { font-size:9px; padding:2px 5px; letter-spacing:0; }
+  }
   .vt-svc { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.1); border-radius:14px; padding:16px; display:flex; flex-direction:column; }
   .vt-svc-top { display:flex; align-items:flex-start; gap:10px; }
   .vt-svc-nm { font-weight:800; color:var(--ink); font-size:16px; }
