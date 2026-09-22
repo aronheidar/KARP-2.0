@@ -134,6 +134,8 @@ export async function adminOverviewHandler(request, env) {
 
 export async function adminUserHandler(request, env, ctx) {
   if (request.method !== 'POST') return _ajson({ ok: false, error: 'post' });
+  // Kökulotu-leið eingöngu: same-origin + JSON (22.9). worker.js hefur sama hlið, þetta er seinni veggurinn.
+  const csrf = adminCsrfVilla(request); if (csrf) return _ajson({ ok: false, error: csrf });
   const byUid = await _isAdmin(env, request);
   if (!byUid) return _ajson({ ok: false, error: 'admin' });
   const b = (await request.json().catch(() => null)) || {};
@@ -201,6 +203,7 @@ export async function adminUserHandler(request, env, ctx) {
 
 export async function adminEmailHandler(request, env, ctx) {
   if (request.method !== 'POST') return _ajson({ ok: false, error: 'post' });
+  const csrf = adminCsrfVilla(request); if (csrf) return _ajson({ ok: false, error: csrf });   // kökulota: same-origin + JSON
   const byUid = await _isAdmin(env, request);
   if (!byUid) return _ajson({ ok: false, error: 'admin' });
   const b = (await request.json().catch(() => null)) || {};
@@ -225,6 +228,7 @@ export async function adminEmailHandler(request, env, ctx) {
 
 export async function adminRefreshHandler(request, env, ctx) {
   if (request.method !== 'POST') return _ajson({ ok: false, error: 'post' });
+  const csrf = adminCsrfVilla(request); if (csrf) return _ajson({ ok: false, error: csrf });   // kökulota: same-origin + JSON
   const byUid = await _isAdmin(env, request);
   if (!byUid) return _ajson({ ok: false, error: 'admin' });
   if (!env.GITHUB_DISPATCH_TOKEN) return _ajson({ ok: false, error: 'unconfigured' });
@@ -242,7 +246,10 @@ export async function adminRefreshHandler(request, env, ctx) {
 export async function adminSendHandler(request, env) {
   if (request.method !== 'POST') return _ajson({ ok: false, error: 'post' });
   const key = request.headers.get('X-Admin-Key');
-  const okAuth = (key && env.ADMIN_API_KEY && key === env.ADMIN_API_KEY) || (await _isAdmin(env, request));
+  const byKey = !!(key && env.ADMIN_API_KEY && key === env.ADMIN_API_KEY);
+  // Kökulotu-leiðin sendir póst í nafni Karp á hvaða netfang sem er: same-origin + JSON (22.9).
+  if (!byKey) { const csrf = adminCsrfVilla(request); if (csrf) return _ajson({ ok: false, error: csrf }); }
+  const okAuth = byKey || (await _isAdmin(env, request));
   if (!okAuth) return _ajson({ ok: false, error: 'admin' });
   const b = (await request.json().catch(() => null)) || {};
   const to = String(b.to || '').trim();
@@ -277,6 +284,10 @@ export async function adminSyncHandler(request, env) {
 }
 
 export async function adminSetTypeHandler(request, env) {
+  // ⚠⚠ 22.9: engin aðferðar- né uppruna-gát var hér, og þetta gerir notanda að admin. Kökulota eingöngu:
+  //    POST, same-origin + JSON.
+  if (request.method !== 'POST') return _ajson({ ok: false, error: 'post' });
+  const csrf = adminCsrfVilla(request); if (csrf) return _ajson({ ok: false, error: csrf });
   const uid = await _isAdmin(env, request);           // panel gate = is_admin only
   if (!uid) return _ajson({ ok: false, error: 'admin' }, 403);
   const b = await request.json().catch(() => ({}));

@@ -24,7 +24,7 @@ import { askellSessionHandler, askellWebhookHandler, payCallbackHandler, payChec
 import { RSK_ROT, _isStem, _kycAfterEvents, _kycRunDiff, _lobbyGate, atvinnugreinHandler, computeGreinRank, greinRankHandler, hladLeit, kycHandler, leiHandler, leyfiHandler, lobbyvaktHandler, loftforHandler, newsSince, roadsSectorsHandler, rskErFyrirtaeki, rskHandler, rskProxyHandler, sanctionsHandler, tengslStatsHandler, tengslanetHandler, topplistarHandler, vanskilHandler } from './src/worker/veitur.mjs';
 import { FRETTA_TYPES, _mentions, _rssItems, digestRun, eftirlitCriticalCron, fetchNews, kycCriticalCron, kycDiffCron, leikurPruneCron, logbirtingCriticalCron, newsIngest, newsSearch } from './src/worker/cron.mjs';
 import { adminEmailHandler, adminOverviewHandler, adminRefreshHandler, adminSendHandler, adminSetTypeHandler, adminSyncHandler, adminUserHandler } from './src/worker/stjornbord.mjs';
-import { adminTicketHandler, createTicket, processNewTicket, ticketsOverview } from './src/worker/hjalp_agent.mjs';   // 🎫 þjónustufulltrúi: ticket → greining → svar/tillaga
+import { adminHlidVilla, adminTicketHandler, createTicket, processNewTicket, ticketsOverview } from './src/worker/hjalp_agent.mjs';   // 🎫 þjónustufulltrúi: ticket → greining → svar/tillaga
 import { sigrunVikupostur, endurreynaNu } from './src/worker/sigrun_vinna.mjs';   // 🙋 vikupóstur Sigrúnar á mánudagsmorgni
 import { adminMootHandler, mootVerkbeidni } from './src/worker/moot.mjs';   // 🏛️ Moot: ráðsfundur persónanna um eitt ticket — tillaga sem Aron greiðir atkvæði um
 import { ctoHandler } from './src/worker/cto_lykill.mjs';   // 🛠️ CTO-keyrslan sækir beiðnina og skilar drögum með lykli sem gildir fyrir eina beiðni
@@ -3027,6 +3027,11 @@ export default {
       return Response.redirect(url.toString(), 301);
     }
     if (/^\/hagvisir\/?$/.test(url.pathname)) return Response.redirect('https://karp.is/', 301);
+    // ⚠⚠ CSRF-hlið (22.9): allt sem breytir einhverju á /api/admin/* og ber ekki gildan X-Admin-Key verður
+    //    að koma af karp.is sjálfu sem JSON. SameSite=Lax á lotukökunni ver EKKI gegn wp.karp.is (sama
+    //    „site"), og fimm admin-leiðir athuguðu þetta ekki sjálfar (set-type gerði hvern sem er að admin).
+    //    Stendur á undan ÖLLUM leiðum, svo ný admin-leið fái hliðið sjálfkrafa. Próf: admin_csrf.test.mjs.
+    if (url.pathname.startsWith('/api/admin/')) { const v = adminHlidVilla(request, env); if (v) return _ajson({ ok: false, error: v }); }
     // ── Cloudflare-native auðkenning (F2) — leysir wp.karp.is /me + innskráningu af hólmi ──
     if (url.pathname === '/api/auth/me') return authMeHandler(request, env);
     if (url.pathname === '/api/auth/register') return authRegisterHandler(request, env);

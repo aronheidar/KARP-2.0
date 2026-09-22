@@ -773,7 +773,8 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         btn.addEventListener('click', async () => {
           if (!confirm('Ræsa gagna-uppfærslu núna? Keyrslan tekur ~60–80 mín og ALLAR breytingar birtast Í EINU þegar hún klárast (pípan committar í lokin + Cloudflare endurbyggir).')) return;
           const orig = btn.textContent; btn.disabled = true; btn.textContent = 'Ræsi…';
-          const r = await fetch('/api/admin/refresh', { method: 'POST', credentials: 'include' }).then((x) => x.json()).catch(() => null);
+          // JSON-haus er SKILYRÐI síðan 22.9: admin-POST án hans hafnar CSRF-hliðið (content_type).
+          const r = await fetch('/api/admin/refresh', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: '{}' }).then((x) => x.json()).catch(() => null);
           if (r && r.ok) { btn.textContent = '✓ Keyrsla hafin'; setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 10000); }
           else { btn.textContent = (r && r.error === 'unconfigured') ? 'Vantar GitHub-token' : 'Villa — reyndu aftur'; setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 4000); }
         });

@@ -44,6 +44,17 @@ export function adminCsrfVilla(request) {
   if (!ct.startsWith('application/json')) return 'content_type';
   return null;
 }
+
+/** Hlið leiðavalsins fyrir ALLAR /api/admin/*-leiðir (22.9): lestur (GET/HEAD) og beiðnir með gildan
+ *  X-Admin-Key fara óbreyttar, allt annað verður að standast adminCsrfVilla. Fimm admin-leiðir athuguðu
+ *  þetta ekki sjálfar, þar á meðal set-type sem gerir notanda að admin. worker.js keyrir þetta á undan öllum
+ *  leiðum, svo ný admin-leið fái hliðið án þess að nokkur muni eftir því. Skilar villukóða eða null. */
+export function adminHlidVilla(request, env) {
+  if (request.method === 'GET' || request.method === 'HEAD') return null;
+  const key = request.headers.get('X-Admin-Key');
+  if (key && env && env.ADMIN_API_KEY && key === env.ADMIN_API_KEY) return null;
+  return adminCsrfVilla(request);
+}
 async function _rofiOff(env) {
   const r = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='hjalp_agent_off'").first().catch(() => null);
   return !!(r && String(r.v) === '1');
