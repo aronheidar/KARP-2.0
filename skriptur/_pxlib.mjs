@@ -5,6 +5,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { leidrettaTop, hefurTop } from './lib/px_top.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PX = 'https://px.hagstofa.is/pxis/api/v1/is/';
@@ -14,7 +15,11 @@ export const sel = (code, filter, values) => ({ code, selection: { filter, value
 export const num = (v) => { if (v == null) return null; const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
 
 // PxWeb POST með einni endurtekt — samhliða byggingarsóknir geta klikkað tímabundið.
+// ⚠ 'top' á breytu sem er ekki tímamerkt velur ELSTU gildin (sjá lib/px_top.mjs) → lýsigögn sótt og lagfært.
 export async function px(p, query) {
+  if (hefurTop(query)) {
+    try { query = leidrettaTop(query, await getJson(PX + p, { headers: HDRS })); } catch { /* lýsigögn náðust ekki: óbreytt fyrirspurn */ }
+  }
   const call = async () => {
     const r = await fetch(PX + p, { method: 'POST', headers: HDRS, body: JSON.stringify({ query, response: { format: 'json' } }) });
     if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + p + ' :: ' + (await r.text()).slice(0, 160));
