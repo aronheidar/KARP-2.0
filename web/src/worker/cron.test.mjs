@@ -120,3 +120,29 @@ test('slóðlaus færsla fellur á miðil|fyrirsögn|dagsetningu', () => {
   assert.equal(dedup([x, { ...x }]).length, 1);
   assert.equal(dedup([x, { ...x, date: '2026-01-14' }]).length, 2, 'annar dagur = önnur færsla');
 });
+
+// ── /firma: tónn hverrar fréttar (22.9.2026) ─────────────────────────────────────────────────
+// ⚠ firmaHandler reiknaði tón hverrar fréttar (_t, AI-mat þar sem það er til) en sleppti honum í
+//   svarinu, svo bakaða sentiment.json (markaðssíðan) gat ekki litað fréttirnar eftir tóni.
+import { _firmaFrett } from './cron.mjs';
+
+test('/firma-frétt ber tóninn (s) og aldrei meginmálið', () => {
+  const n = { title: 'Fyrirsögn', url: 'https://x.is/a', source: 'RÚV', date: '2026-09-17', ts: 1, body: 'langt meginmál', _t: -1 };
+  assert.deepEqual(_firmaFrett(n), { title: 'Fyrirsögn', link: 'https://x.is/a', source: 'RÚV', date: '2026-09-17', s: -1 });
+});
+
+// ── _firmaSia: EIN vinnsla fyrir /api/firma og bakaða sentiment.json (22.9.2026) ─────────────
+// ⚠ Tvö tónkerfi sýndu ólíkar tölur á sömu síðu. Nú fara bæði um sama fall eftir SQL-lesturinn.
+import { _firmaSia } from './cron.mjs';
+
+test('_firmaSia: orðamörk, tvítekning á slóð og AI-tónn á undan lexíkon-tóni', () => {
+  const radir = [
+    { title: 'Arion banki hagnast', url: 'https://a.is/1', body: 'arion banki hagnast vel', ts: 3, sent_ai: 1, sent: -1 },
+    { title: 'Arion banki hagnast', url: 'https://a.is/1', body: 'arion banki hagnast vel', ts: 2, sent_ai: 1, sent: -1 },
+    { title: 'Marion syngur', url: 'https://a.is/2', body: 'marion syngur í hörpu', ts: 1, sent_ai: null, sent: 1 },
+    { title: 'Arion lækkar', url: 'https://a.is/3', body: 'hlutur í arion lækkar', ts: 0, sent_ai: null, sent: -1 },
+  ];
+  const k = _firmaSia(radir, ['Arion banki', 'Arion']);
+  assert.deepEqual(k.map((x) => x.url), ['https://a.is/1', 'https://a.is/3']);
+  assert.deepEqual(k.map((x) => x._t), [1, -1]);
+});

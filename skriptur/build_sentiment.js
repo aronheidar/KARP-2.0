@@ -8,6 +8,14 @@
 // SKYNDIMINNI: gogn/sentiment_cache.json (lykill = hash fyrirsagnar) → aðeins NÝjar fyrirsagnir
 //   kalla API. Þannig kostar endurnýjun nær ekkert (Haiku ~nokkrar kr/keyrslu) og eldra heldur sér.
 // MODEL: claude-haiku-4-5 (ódýrt, nóg fyrir flokkun). set KARP_SENTIMENT_MODEL=... til að skipta.
+//
+// ⛔ LEYST AF HÓLMI 22.9.2026 af build_sentiment_samantekt.mjs (daglega, sama tónmat og /api/firma).
+//   Þessi skripta skrifar í SÖMU skrá með annarri aðferð og myndi skrifa yfir hana. Keyrist aðeins með
+//   --gamla, t.d. til samanburðar.
+if (require.main === module && !process.argv.includes('--gamla')) {
+  console.error('build_sentiment.js er leyst af hólmi af build_sentiment_samantekt.mjs. Notaðu --gamla ef þú ætlar í alvöru að keyra hana.');
+  process.exit(1);
+}
 
 const fs = require('fs');
 const path = require('path');

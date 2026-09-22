@@ -706,6 +706,36 @@ const _SENT_POS = ['vöxt', 'hagnað', 'aukning', 'aukn', 'sterk', 'jákvæð', 
 const _SENT_NEG = ['tap', 'gjaldþrot', 'uppsögn', 'uppsagn', 'samdrátt', 'lækk', 'veik', 'neikvæð', 'vandræð', 'sekt', 'deila', 'rannsókn', 'kæra', 'svik', 'lokun', 'rift', 'vanskil', 'tjón', 'mistök', 'gagnrýn', 'afskrá'];
 
 function _tone(title) { const t = String(title).toLowerCase(); let p = 0, n = 0; for (const w of _SENT_POS) if (t.includes(w)) p++; for (const w of _SENT_NEG) if (t.includes(w)) n++; return p - n; }
+/**
+ * Ein frétt í /api/firma-svarinu. `s` = tónn fréttarinnar (AI-mat þar sem það er til, annars geymdur
+ * lexíkon-tónn), sem markaðssíðan litar eftir. ⚠ Meginmálið fer aldrei út í svarið.
+ */
+export const _firmaFrett = (n) => ({ title: n.title, link: n.url, source: n.source, date: n.date, s: n._t });
+
+/**
+ * Nákvæmnis-sía á fréttalínum sem nefna félag: orðamörk (_mentions), tvítekning á slóð/titli
+ * (_greinLyklar) og tónn (_t). EIN vinnsla fyrir /api/firma og skriptur/build_sentiment_samantekt.mjs,
+ * svo bakaða sentiment.json og lifandi svarið geti aldrei reiknað tón á tvo vegu.
+ */
+export function _firmaSia(radir, terms) {
+  const al = terms.map((t) => String(t).toLowerCase().trim()).filter((t) => t.length >= 3);
+  const sed = new Set();
+  const items = radir.filter((it) => {
+    if (!_mentions(String(it.body || it.title).toLowerCase(), al)) return false;
+    const lyklar = _greinLyklar(it);
+    if (lyklar.some((k) => sed.has(k))) return false;
+    for (const k of lyklar) sed.add(k);
+    return true;
+  });
+  // ⚠ Áður: `_tone(it.title)` reiknað UPP Á NÝTT við hverja fyrirspurn — og AÐEINS úr fyrirsögn,
+  //   sem er lakara en geymda gildið (lexíkon á titil+lýsingu) og hunsaði AI-matið alveg.
+  //   Nú: AI-mat ef til (sent_ai), annars geymdur lexíkon-tónn, annars reiknað í neyð.
+  for (const it of items) {
+    it._t = (it.sent_ai != null) ? it.sent_ai : (it.sent != null ? it.sent : _tone(it.body || it.title));
+  }
+  return items;
+}
+
 // /api/firma?q=nafn[,samheiti]&days= → { ready, total, items, timeline:[{d,n,idx}], sentiment:{idx,scored,pos,neg} }
 export async function firmaHandler(request, env) {
   const url = new URL(request.url);
@@ -720,21 +750,7 @@ export async function firmaHandler(request, env) {
   //   `_mentions` krefst orðamarka og sker þær burt. Sama grein getur líka borist tvisvar úr
   //   safninu (sama slóð, tveir innlestrar) → dedup á slóð svo talning og tónn tvítelji ekki.
   const fundid = await newsSearch(env, terms, days, LIMIT);   // SQL-leit í öllu safninu
-  const al = terms.map((t) => String(t).toLowerCase().trim()).filter((t) => t.length >= 3);
-  const sed = new Set();
-  const items = fundid.filter((it) => {
-    if (!_mentions(String(it.body || it.title).toLowerCase(), al)) return false;
-    const lyklar = _greinLyklar(it);
-    if (lyklar.some((k) => sed.has(k))) return false;
-    for (const k of lyklar) sed.add(k);
-    return true;
-  });
-  // ⚠ Áður: `_tone(it.title)` reiknað UPP Á NÝTT við hverja fyrirspurn — og AÐEINS úr fyrirsögn,
-  //   sem er lakara en geymda gildið (lexíkon á titil+lýsingu) og hunsaði AI-matið alveg.
-  //   Nú: AI-mat ef til (sent_ai), annars geymdur lexíkon-tónn, annars reiknað í neyð.
-  for (const it of items) {
-    it._t = (it.sent_ai != null) ? it.sent_ai : (it.sent != null ? it.sent : _tone(it.body || it.title));
-  }
+  const items = _firmaSia(fundid, terms);
   // ⚠ `total` var áður items.length = AFSKORIN lengd → sýndi „800" þótt raunfjöldi væri 1142.
   //   Sækjum RAUNTÖLUNA sér þegar þakið næst svo KPI-talan sé sönn.
   // ⚠ `capped` mælist á HRÁA SQL-svarinu (þakið er þar), en `heild` er talan EFTIR síun — það er
@@ -755,7 +771,7 @@ export async function firmaHandler(request, env) {
     ready: true,
     total: heild,                 // RAUNFJÖLDI (ekki afskorinn); `capped` segir hvort sýnið var takmarkað
     capped, sample: items.length, // sýnið sem tónn/miðla-dreifing byggir á
-    items: items.slice(0, 20).map((n) => ({ title: n.title, link: n.url, source: n.source, date: n.date })),
+    items: items.slice(0, 20).map(_firmaFrett),
     timeline, sentiment, stats,   // sentiment: {idx,scored,pos,neg,bySource} · stats: {sources,perDay,days,sourceCount}
     ordspor,                      // {score 0-100|null, tone, trend, n, conf, label} — sjá lib/ordspor.mjs
   }, 300);
