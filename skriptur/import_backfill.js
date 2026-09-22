@@ -8,6 +8,15 @@
 //   $env:KARP_IMPORT_KEY='<lykill>'; node skriptur/import_backfill.js
 //   (valfrjálst) $env:KARP_WP_URL='https://karp.is'   ·   $env:KARP_IMPORT_CHUNK='500'
 // Lyklaorðið er AÐEINS lesið úr umhverfisbreytu — aldrei vistað í skrá.
+//
+// ⛔ DAUÐ LEIÐ. /wp-json/karp/v1/newsimport var aðeins til í WP-viðbótinni og hvarf við flutninginn til
+//   Cloudflare; fréttasafnið býr nú í D1. Notaðu skriptur/import_backfill_d1.mjs (22.9.2026).
+if (require.main === module) {
+  console.error('⛔ import_backfill.js sendir á WP-endapunkt sem er ekki lengur til. Notaðu:\n'
+    + '   node skriptur/import_backfill_d1.mjs gogn/backfill_<miðill>.json --fra YYYY-MM-DD\n'
+    + '   cd web && npx wrangler d1 execute tengsl --remote --file ../gogn/backfill.sql');
+  process.exit(1);
+}
 
 const fs = require('fs');
 const path = require('path');

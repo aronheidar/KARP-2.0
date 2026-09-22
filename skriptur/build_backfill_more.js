@@ -1,9 +1,11 @@
-// Söguleg bakvistun FLEIRI miðla úr Wayback (RÚV, Vísir, Viðskiptablaðið, Mannlíf) — EINN miðill per keyrslu.
+// Söguleg bakvistun FLEIRI miðla úr Wayback (RÚV, Vísir, Viðskiptablaðið, Fiskifréttir, Mannlíf) — EINN miðill per keyrslu.
 // Dagsetning: úr slóð ef til (RÚV), annars article:published_time úr HTML, annars Wayback-capture-tími.
-//   node skriptur/build_backfill_more.js ruv|visir|vb|mannlif   [--titles]
+//   node skriptur/build_backfill_more.js ruv|visir|vb|fiskifrettir|mannlif   [--titles] [--fra YYYYMMDD]
 //   Fasi 1 (alltaf): CDX → grein-slóðir.  Fasi 2 (--titles): sækir titil+lýsingu+dagsetningu (raun-sókn).
+//   --fra þrengir CDX-gluggann (sjálfgefið 20260101). Stór forskeyti (vb.is/frettir/) skila annars 504.
 // → gogn/backfill_<src>.json {ts,source,title,url,desc}. Skyndiminni gogn/backfill_<src>_meta.json → ENDURRÆSANLEGT.
-// Síðan: node skriptur/import_backfill.js gogn/backfill_<src>.json   (upsert í wp_karp_news).
+// Síðan: node skriptur/import_backfill_d1.mjs gogn/backfill_<src>.json → SQL-skrá, keyrð með wrangler.
+//   ⚠ import_backfill.js sendi á WP-endapunkt sem hvarf við flutninginn til Cloudflare (dauð leið síðan þá).
 const fs = require('fs');
 const path = require('path');
 const DIR = path.join(__dirname, '..', 'gogn') + path.sep;
@@ -11,6 +13,8 @@ const UA = 'Mozilla/5.0 (KARP dashboard backfill; +karp.is)';
 const CONC = 6;
 const WANT = process.argv.includes('--titles');
 const SEL = (process.argv[2] && process.argv[2][0] !== '-') ? process.argv[2] : '';
+const _fraI = process.argv.indexOf('--fra');
+const FRA = (_fraI > 0 && /^\d{8}$/.test(process.argv[_fraI + 1] || '')) ? process.argv[_fraI + 1] : '20260101';
 const SINCE = Math.floor(Date.UTC(2026, 0, 1) / 1000);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const dec = s => String(s || '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
@@ -28,9 +32,18 @@ const SRC = {
     isArt: u => { const m = u.match(/\/g\/2026\w+\/([^/?#]+)/); return !!(m && m[1] && m[1] !== 'f' && (m[1].length >= 8 || m[1].indexOf('-') > -1)); },
     urlDate: u => 0
   },
+  // ⚠ 22.9.2026: hlutarnir eru þeir sem lifandi straumurinn skilaði í D1 (frettir 830, skodun 162, eftir-vinnu 91,
+  //   folk 57, frjals-verslun 34). Áður aðeins frettir/markadir/skodun, og mynstrið hafnaði hlutaheitum með
+  //   bandstriki, svo eftir-vinnu og frjals-verslun hefðu aldrei náðst.
   vb: {
-    name: 'Viðskiptablaðið', prefixes: ['vb.is/frettir/', 'vb.is/markadir/', 'vb.is/skodun/'],
-    isArt: u => /vb\.is\/[a-zà-þ]+\/[^/?#]{6,}\/?$/i.test(u) && !/\.(jpg|png|webp|css|js|svg|pdf)/i.test(u),
+    name: 'Viðskiptablaðið', prefixes: ['vb.is/frettir/', 'vb.is/skodun/', 'vb.is/eftir-vinnu/', 'vb.is/folk/', 'vb.is/frjals-verslun/', 'vb.is/markadir/'],
+    isArt: u => /vb\.is\/[a-zà-þ-]+\/[^/?#]{6,}\/?$/i.test(u) && !/\.(jpg|png|webp|css|js|svg|pdf)/i.test(u),
+    urlDate: u => 0
+  },
+  // Sérhæfða sjávarútvegsblaðið, á eigin undirléni án hlutaheitis (fiskifrettir.vb.is/<grein>/).
+  fiskifrettir: {
+    name: 'Fiskifréttir', prefixes: ['fiskifrettir.vb.is/'],
+    isArt: u => /fiskifrettir\.vb\.is\/[^/?#]{6,}\/?$/i.test(u) && !/\.(jpg|png|webp|css|js|svg|pdf)/i.test(u),
     urlDate: u => 0
   },
   mannlif: {
@@ -45,7 +58,7 @@ function extractTitle(html) {
     || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]*(?:property|name)=["']og:title["']/i)
     || html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
   if (!m) return '';
-  return dec(m[1]).replace(/\s*[-–—|]\s*(mbl\.is|DV(?:\.is)?|V[íi]sir(?:\.is)?|R[ÚU]V(?:\.is)?|Vi[ðd]skiptabla[ðd]i[ðd](?:\.is)?|Mannl[íi]f(?:\.is)?|Heimildin|Eyjan)\s*$/i, '').trim();
+  return dec(m[1]).replace(/\s*[-–—|]\s*(mbl\.is|DV(?:\.is)?|V[íi]sir(?:\.is)?|R[ÚU]V(?:\.is)?|Vi[ðd]skiptabla[ðd]i[ðd](?:\.is)?|Fiskifr[ée]ttir|Mannl[íi]f(?:\.is)?|Heimildin|Eyjan)\s*$/i, '').trim();
 }
 function extractDesc(html) {
   let m = html.match(/<meta[^>]+(?:property|name)=["']og:description["'][^>]*content=["']([^"']*)["']/i)
@@ -65,15 +78,28 @@ function extractPub(html) {
 }
 function capToTs(cap) { const m = String(cap).match(/^(\d{4})(\d{2})(\d{2})/); return m ? Math.floor(Date.UTC(+m[1], +m[2] - 1, +m[3], 12) / 1000) : 0; }
 
+// ⚠ 22.9.2026: 5xx (Wayback skilar 504 á stór forskeyti) var `break`, sem skilaði HÁLFUM lista eins og hann
+//   væri heill, og keyrslan skrifaði bakvistunarskrá sem virtist ná yfir allt. Nú er reynt aftur með vaxandi
+//   bið og kastað ef það tekst ekki, svo ófullnægjandi skrá verði aldrei til.
 async function cdx(prefix) {
   const out = []; let resumeKey = '';
   for (let page = 0; page < 60; page++) {
     let url = 'https://web.archive.org/cdx/search/cdx?url=' + encodeURIComponent(prefix)
-      + '&matchType=prefix&from=20260101&to=20261231&collapse=urlkey&filter=statuscode:200&fl=original,timestamp&output=json&limit=20000&showResumeKey=true';
+      + '&matchType=prefix&from=' + FRA + '&to=20261231&collapse=urlkey&filter=statuscode:200&fl=original,timestamp&output=json&limit=20000&showResumeKey=true';
     if (resumeKey) url += '&resumeKey=' + encodeURIComponent(resumeKey);
-    let rows;
-    try { const r = await fetch(url, { headers: { 'User-Agent': UA } }); if (!r.ok) { console.log('  CDX HTTP', r.status); break; } rows = await r.json(); }
-    catch (e) { console.log('  CDX villa', e.message); await sleep(2000); continue; }
+    let rows = null;
+    for (let a = 0; a < 5 && rows === null; a++) {
+      try {
+        const r = await fetch(url, { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(120000) });
+        if (r.ok) rows = await r.json();
+        else if (r.status >= 500 || r.status === 429) { console.log('  CDX HTTP', r.status, '— reyni aftur'); await sleep(4000 * (a + 1)); }
+        else throw new Error('CDX HTTP ' + r.status);
+      } catch (e) {
+        if (/^CDX HTTP/.test(e.message)) throw e;
+        console.log('  CDX villa', e.message, '— reyni aftur'); await sleep(4000 * (a + 1));
+      }
+    }
+    if (rows === null) throw new Error('CDX náðist ekki fyrir ' + prefix + ' eftir 5 tilraunir — engin hálf skrá skrifuð');
     if (!Array.isArray(rows) || !rows.length) break;
     if (rows[0] && rows[0][0] === 'original') rows.shift();
     resumeKey = '';
@@ -87,8 +113,8 @@ async function cdx(prefix) {
 
 async function main() {
   const cfg = SRC[SEL];
-  if (!cfg) { console.error('Veldu miðil: node build_backfill_more.js <ruv|visir|vb|mannlif> [--titles]'); process.exit(1); }
-  console.log('Miðill:', cfg.name, '(' + SEL + ')', WANT ? '— sæki titla' : '— bara CDX');
+  if (!cfg) { console.error('Veldu miðil: node build_backfill_more.js <' + Object.keys(SRC).join('|') + '> [--titles] [--fra YYYYMMDD]'); process.exit(1); }
+  console.log('Miðill:', cfg.name, '(' + SEL + ')', WANT ? '— sæki titla' : '— bara CDX', '· CDX frá', FRA);
 
   const recs = []; const seen = {};
   for (const pre of cfg.prefixes) {

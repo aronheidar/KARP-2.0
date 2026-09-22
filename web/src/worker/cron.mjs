@@ -267,7 +267,8 @@ const _STRAUMUR_TIMAMORK = 20000;
 // VB-straumurinn ber alltaf nýjustu greinarnar hefðu nær allar nýjar Fiskifréttir lent á VB.
 const _HYSILL_MIDILL = { 'fiskifrettir.vb.is': 'Fiskifréttir' };
 
-function _midillEftirHysli(url, src) {
+// Útflutt svo bakvistunin (skriptur/import_backfill_d1.mjs) merki EINS og lifandi innlesturinn.
+export function _midillEftirHysli(url, src) {
   try { return _HYSILL_MIDILL[new URL(url).host] || src; } catch (e) { return src; }
 }
 
@@ -705,7 +706,8 @@ const _SENT_POS = ['vöxt', 'hagnað', 'aukning', 'aukn', 'sterk', 'jákvæð', 
 
 const _SENT_NEG = ['tap', 'gjaldþrot', 'uppsögn', 'uppsagn', 'samdrátt', 'lækk', 'veik', 'neikvæð', 'vandræð', 'sekt', 'deila', 'rannsókn', 'kæra', 'svik', 'lokun', 'rift', 'vanskil', 'tjón', 'mistök', 'gagnrýn', 'afskrá'];
 
-function _tone(title) { const t = String(title).toLowerCase(); let p = 0, n = 0; for (const w of _SENT_POS) if (t.includes(w)) p++; for (const w of _SENT_NEG) if (t.includes(w)) n++; return p - n; }
+// Útflutt svo bakvistaðar raðir fái sama tón (dálkinn `sent`) og innlesnar.
+export function _tone(title) { const t = String(title).toLowerCase(); let p = 0, n = 0; for (const w of _SENT_POS) if (t.includes(w)) p++; for (const w of _SENT_NEG) if (t.includes(w)) n++; return p - n; }
 /**
  * Ein frétt í /api/firma-svarinu. `s` = tónn fréttarinnar (AI-mat þar sem það er til, annars geymdur
  * lexíkon-tónn), sem markaðssíðan litar eftir. ⚠ Meginmálið fer aldrei út í svarið.
