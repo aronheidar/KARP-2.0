@@ -143,7 +143,9 @@ jobs:
           " || true
           # Aðeins web/ og skriptur/ fara í patchinn. utan.txt er AÐEINS vísbending (það verður til á þessari
           # ótraustu vél): skila-jobbið hendir öllu ef það er ekki tómt, en það sem ræður er sían sjálf.
-          git add -A -- web skriptur ':(exclude)web/.astro'
+          # ⚠ Útilokun á web/.astro má AÐEINS standa í diff: git add fellur (útgangur 1) þegar pathspec nefnir
+          # hunsaða slóð, og það felldi fyrstu raunkeyrsluna 22.9.
+          git add -A -- web skriptur
           git diff --cached --binary HEAD -- web skriptur ':(exclude)web/.astro' > "$U/cto.patch"
           git status --porcelain --untracked-files=all | awk '{print $NF}' | grep -vE '^(web/|skriptur/|cto_summary\.md$|cto_svar\.md$)' > "$U/utan.txt" || true
           ls -la "$U"

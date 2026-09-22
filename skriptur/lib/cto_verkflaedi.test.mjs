@@ -22,6 +22,9 @@ test('cto.yml stenst öryggismörkin', () => {
   assert.ok(JSON.stringify(wf.jobs.laga).includes('GITHUB_EVENT_PATH'));
   // athugasemd skila-jobbsins getur nefnt skráarnöfn sem líkanið valdi: hún fer um skrá, ekki skrefaúttak í env
   assert.ok(!JSON.stringify(wf.jobs.skila).includes('outputs.note'), 'athugasemdin fer ekki um env');
+  // fyrsta raunkeyrslan 22.9 féll á þessu: git add fellur (útgangur 1) þegar pathspec nefnir hunsaða slóð
+  const linur = Object.values(wf.jobs).flatMap((j) => (j.steps || []).flatMap((s) => String(s.run || '').split('\n')));
+  assert.ok(!linur.some((l) => /\bgit add\b.*:\(exclude\)/.test(l)), 'útilokun á aðeins heima í git diff, ekki git add');
 });
 
 // Hönnunin sem var í notkun 21.9: eitt job, skrifaðgangur á workflow-stigi, vistuð skilríki, og admin-
