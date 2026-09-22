@@ -66,3 +66,14 @@ test('einstök brot greinast hvert fyrir sig', () => {
   const f = grunnur(); delete f.permissions;
   assert.match(ctoBrot(f).join(), /engin permissions á workflow-stigi/);
 });
+
+test('rýnin 22.9: líkanið greinist í öllum myndum, og pakkastjórar aðrir en npm líka', () => {
+  const med = (run) => ({ permissions: {}, jobs: { j: { permissions: { contents: 'write' }, steps: [{ uses: 'actions/checkout@v7', with: { 'persist-credentials': false } }, { run }] } } });
+  for (const run of ['claude  --print "x"', 'claude --permission-mode bypassPermissions -p x', 'npx @anthropic-ai/claude-code -p x'])
+    assert.match(ctoBrot(med(run)).join(), /líkanið keyrir í job með skrifaðgang/, run);
+  for (const run of ['pnpm test', 'yarn build', 'bun run x', 'node skriptur/build.mjs'])
+    assert.match(ctoBrot(med(run)).join(), /kóði úr repo-inu keyrir í job með skrifaðgang/, run);
+  // án checkout er ekkert repo: node keyrir aðeins það sem skrefið skrifaði sjálft (eins og saekja)
+  const saekja = { permissions: {}, jobs: { s: { permissions: {}, env: { K: '${{ secrets.KARP_ADMIN_KEY }}' }, steps: [{ run: 'cat > p.cjs <<EOF\nEOF\nnode p.cjs' }] } } };
+  assert.deepEqual(ctoBrot(saekja), []);
+});

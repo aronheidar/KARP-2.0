@@ -13,11 +13,17 @@
 const SIA = 'skriptur/lib/cto_sia.mjs';
 const skref = (job) => (Array.isArray(job && job.steps) ? job.steps : []).filter(Boolean);
 const runStrengir = (job) => skref(job).map((s) => String(s.run || ''));
-const keyrirLikan = (job) => runStrengir(job).some((r) => /(^|\s)claude -p\b/.test(r));
-const keyrirPakka = (job) => runStrengir(job).some((r) => /(^|\s)(npm (ci|test|run|install|i)\b|npx\s)/.test(r.replace(/npm i -g @anthropic-ai\/claude-code/g, '')));
+// ⚠ Rýnin 22.9: „claude -p" eitt og sér missti af `claude --print`, tvöföldu bili og umbúðum. Hvert
+//   merki um líkanið telst: skipunin, uppsetning pakkans eða heimildarhamurinn.
+const keyrirLikan = (job) => runStrengir(job).some((r) => /(^|\s)claude\s[^\n]*?(-p\b|--print\b)|bypassPermissions|@anthropic-ai\/claude-code/.test(r));
 const leyndarmal = (job) => [...new Set((JSON.stringify(job || {}).match(/secrets\.[A-Z0-9_]+/g) || []).map((s) => s.slice(8)))];
 const checkoutSkref = (job) => skref(job).filter((s) => /^actions\/checkout@/.test(String(s.uses || '')));
 const nodeSkriptur = (job) => runStrengir(job).flatMap((r) => [...r.matchAll(/(^|[\s;&|(])node\s+(?!-[ep]\b)(\S+)/g)].map((m) => m[2].replace(/^["']|["']$/g, '')));
+// Kóði úr repo-inu keyrir: pakkastjóri (npm/npx/pnpm/yarn/bun), eða node-skripta — nema grunnútgáfa
+// síunnar. Án checkout er ekkert repo á vélinni, og þá getur node aðeins keyrt það sem skrefið skrifaði.
+const keyrirRepoKoda = (job) => checkoutSkref(job).length > 0 && (
+  runStrengir(job).some((r) => /(^|[\s;&|(])(npm|npx|pnpm|yarn|bun|bunx)\s/.test(r.replace(/npm i -g @anthropic-ai\/claude-code/g, '')))
+  || nodeSkriptur(job).some((f) => f !== SIA));
 
 /** Réttindi jobs; `permissions` á job-stigi ræður, annars workflow-stigið. */
 function rettindi(wf, job) {
@@ -36,7 +42,7 @@ export function ctoBrot(wf) {
   if (wr.sjalfgefid) brot.push('workflow: engin permissions á workflow-stigi (sjálfgefin réttindi erfast)');
   else if (skrifar(wr)) brot.push('workflow: skrifaðgangur á workflow-stigi erfist til allra job-a');
   for (const [nafn, job] of Object.entries(jobs)) {
-    const r = rettindi(wf, job), leyn = leyndarmal(job), likan = keyrirLikan(job), pakkar = keyrirPakka(job);
+    const r = rettindi(wf, job), leyn = leyndarmal(job), likan = keyrirLikan(job), pakkar = keyrirRepoKoda(job);
     for (const s of runStrengir(job)) if (/\$\{\{/.test(s)) { brot.push(nafn + ': ${{ }} inni í run — gildi eiga að fara um env'); break; }
     if (likan) {
       const onnur = leyn.filter((x) => x !== 'ANTHROPIC_API_KEY');

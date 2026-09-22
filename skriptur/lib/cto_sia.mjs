@@ -15,18 +15,39 @@ const LEYFT = /^(web|skriptur)\//;
 // Hver regla: [mynstur, ástæða]. Fyrsta regla sem passar ræður.
 const BANNAD = [
   [/^web\/migrations\//, 'gagnagrunnsflutningur (keyrður handvirkt, aldrei úr keyrslu)'],
-  [/^web\/wrangler\.toml$/, 'wrangler.toml (bindingar og leyndarmál)'],
-  [/(^|\/)package(-lock)?\.json$/, 'pakkaskrá (ný háð keyrir í byggingu Cloudflare eftir merge)'],
-  [/(^|\/)\.npmrc$/, '.npmrc'],
-  [/(greidslur|askell|teya)/i, 'greiðslukóði'],
+  // ⚠ Rýnin 22.9: .json og .jsonc eru líka gild Wrangler-stilling, og forgangurinn fer eftir útgáfu
+  [/^web\/wrangler\.(toml|json|jsonc)$/, 'wrangler-stilling (bindingar og leyndarmál)'],
+  [/(^|\/)(package(-lock)?\.json|npm-shrinkwrap\.json|pnpm-lock\.yaml|yarn\.lock|bun\.lockb?)$/, 'pakkaskrá (ný háð keyrir í byggingu Cloudflare eftir merge)'],
+  [/(^|\/)\.(npmrc|yarnrc(\.yml)?)$/, 'pakkastilling'],
+  [/(greidsl|askell|teya|stripe|paypal|valitor|borgun|rapyd)/i, 'greiðslukóði'],
   [/^web\/\.astro\//, 'byggingarskrá'],
-  [/^skriptur\/lib\/cto_sia(\.test)?\.mjs$/, 'sían sjálf'],
+  // Hliðin sjálf: sían, reglurnar um verkflæðið og CI-athuganirnar. Veikti patch þau næði það til
+  // allra síðari keyrslna, jafnvel þótt þessi keyrsla noti grunnútgáfuna.
+  [/^skriptur\/lib\/cto_(sia|verkflaedi)(\.test)?\.mjs$/, 'sían sjálf'],
+  [/^skriptur\/(ci_worker_bindings\.mjs|check_links\.js)$/, 'CI-hlið'],
 ];
+
+// Leyfðar skrár sem Aron á að lesa SÉRSTAKLEGA: auðkenning, admin-leiðir, póstur, og allt sem keyrir í
+// byggingu Cloudflare eftir merge (stillingaskrár). Patchinum er beitt, en PR-ið og samantektin segja frá.
+const VIDVORUN = [
+  [/^web\/worker\.js$/, 'leiðaval workersins'],
+  [/^web\/src\/worker\/(auth|felag|hjalp_agent|stjornbord|gmail_intake|moot|sigrun_vinna)\.mjs$/, 'auðkenning, admin-leiðir eða póstur'],
+  [/(^|\/)[^/]*\.config\.[cm]?[jt]s$/, 'keyrir í byggingu eftir merge'],
+  [/^web\/src\/middleware/, 'millilag sem sér hverja beiðni'],
+];
+
+/** Ástæða til að lesa skrána sérstaklega, eða null. */
+export function vidvorun(slod) {
+  for (const [m, a] of VIDVORUN) if (m.test(String(slod || ''))) return a;
+  return null;
+}
 
 /** null ef slóðin er leyfð, annars ástæða. */
 export function bannAstaeda(slod) {
   const s = String(slod || '');
-  if (!s || s.includes('\\') || s.split('/').includes('..') || s.startsWith('/')) return 'ógild slóð';
+  // Stýristafir: með `-z` koma slóðir óbreyttar, og skráarnafn með línuskilum gæti annars laumað línu
+  // inn í $GITHUB_OUTPUT þar sem slóðin er nefnd.
+  if (!s || /[\x00-\x1f\x7f]/.test(s) || s.includes('\\') || s.split('/').includes('..') || s.startsWith('/')) return 'ógild slóð';
   for (const [m, a] of BANNAD) if (m.test(s)) return a;
   if (!LEYFT.test(s)) return 'utan web/ og skriptur/';
   return null;
@@ -59,15 +80,20 @@ export function hattulegurHamur(summary) {
   return null;
 }
 
-/** Heildarmat: { ok, slodir, hafnad: [{slod, astaeda}] }. Tómur patch er EKKI leyfður (ekkert að gera). */
+/** Heildarmat: { ok, slodir, hafnad: [{slod, astaeda}], vidvaranir: [{slod, astaeda}] }.
+ *  Tómur patch er EKKI leyfður (ekkert að gera). */
 export function metaPatch({ numstat, summary }) {
   const slodir = [...new Set(slodirUrNumstat(numstat))];
-  const hafnad = [];
+  const hafnad = [], vidvaranir = [];
   const hamur = hattulegurHamur(summary);
   if (hamur) hafnad.push({ slod: '*', astaeda: hamur });
-  for (const s of slodir) { const a = bannAstaeda(s); if (a) hafnad.push({ slod: s, astaeda: a }); }
+  for (const s of slodir) {
+    const a = bannAstaeda(s);
+    if (a) hafnad.push({ slod: s, astaeda: a });
+    else { const v = vidvorun(s); if (v) vidvaranir.push({ slod: s, astaeda: v }); }
+  }
   if (!slodir.length) hafnad.push({ slod: '*', astaeda: 'tómur patch' });
-  return { ok: !hafnad.length, slodir, hafnad };
+  return { ok: !hafnad.length, slodir, hafnad, vidvaranir };
 }
 
 // ── Keyrt beint úr cto.yml ─────────────────────────────────────────────────────────────────────
@@ -82,7 +108,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   } catch (e) {
     villa = String((e && e.stderr) || (e && e.message) || e).slice(0, 400);
   }
-  const r = villa ? { ok: false, slodir: [], hafnad: [{ slod: '*', astaeda: 'patch á ekki við grunninn: ' + villa }] } : metaPatch({ numstat, summary });
+  const r = villa ? { ok: false, slodir: [], hafnad: [{ slod: '*', astaeda: 'patch á ekki við grunninn: ' + villa }], vidvaranir: [] } : metaPatch({ numstat, summary });
   console.log(JSON.stringify(r));
   process.exit(r.ok ? 0 : 1);
 }

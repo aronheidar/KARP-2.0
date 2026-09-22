@@ -21,8 +21,10 @@ name: CTO (lagfæring úr hjálparbeiðni → PR)
 #                aðeins git og gh. Stofnar grein cto/ticket-N + PR og skilar cto_result.
 #    Girðingar (sían): aðeins web/ og skriptur/; aldrei migrations/, wrangler.toml, pakkaskrár,
 #    greiðslukóði, tenglar eða sían sjálf. Ein óleyfileg skrá fellir allan patchinn.
-# ⚠ Repo-ið er OPINBERT: keyrsluskrár og artifact sjást. Engin persónuupplýsing er prentuð, samantektin
-#   í PR-inu er hreinsuð af netföngum, og artifact er eytt um leið og skila-jobbið hefur lesið það.
+# ⚠ Repo-ið er OPINBERT: keyrsluskrár og artifact getur hver sem er séð og sótt. Því prentar ekkert skref
+#   persónuupplýsingar; artifact ber aðeins patchinn og samantekt sem er hreinsuð af netföngum, kennitölum
+#   og símanúmerum (nöfn bannar promptið); tillagan að svari og hali loggsins fara um job-úttak beint til
+#   skila-jobsins og þaðan á karp.is; og artifact er eytt um leið og skila-jobbið hefur lesið það.
 
 on:
   repository_dispatch:
@@ -130,6 +132,11 @@ jobs:
     # Les-aðgangur og ENGIN vistuð skilríki: Claude getur hvorki ýtt á main né neina aðra grein.
     permissions:
       contents: read
+    # Tillagan að svari og hali loggsins fara sem job-úttak (sést ekki utan keyrslunnar), ALDREI í
+    # artifact: artifact í opnu repo getur hver sem er sótt meðan það lifir (rýnin 22.9).
+    outputs:
+      svar: ${{ steps.pakk.outputs.svar }}
+      hali: ${{ steps.pakk.outputs.hali }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -153,16 +160,20 @@ jobs:
           # ⚠ Ekkert úr loggi Claude í opinberu skrána: það getur vitnað í texta notanda. Halinn fer í
           #   artifact-ið og þaðan AÐEINS til Arons á karp.is (skila-jobbið), og artifact-inu er svo eytt.
           echo "claude lauk · $(wc -c < "$RUNNER_TEMP/cto_run.log") bæti í loggi · samantekt: $([ -f cto_summary.md ] && echo já || echo nei)"
-      - name: Pakka breytingunni (patch + samantekt — aðeins gögn fara út af vélinni)
+      - name: Pakka breytingunni (patch + hreinsuð samantekt — aðeins gögn fara út af vélinni)
+        id: pakk
         run: |
           U="$RUNNER_TEMP/cto_ut"; mkdir -p "$U"
+          # Netföng, kennitölur og símanúmer út, ÁÐUR en samantektin fer í artifact eða PR (opið repo).
+          # Nöfn verða ekki hreinsuð með mynstri — þess vegna bannar promptið þau og svarið fer ekki hingað.
+          hreinsa() { sed -E -e 's/[[:alnum:]._%+-]+@[[:alnum:].-]+\.[[:alpha:]]{2,}/[netfang]/g' -e 's/\b[0-9]{6}-?[0-9]{4}\b/[kennitala]/g' -e 's/(\+354[ -]?)?\b[0-9]{3}[ -]?[0-9]{4}\b/[sími]/g'; }
           # Skili Claude engri samantekt er hún smíðuð úr breyttum skrám — PR-lýsingin má ekki verða innantóm.
-          if [ -f cto_summary.md ]; then cp cto_summary.md "$U/samantekt.md"; else
+          if [ -f cto_summary.md ]; then hreinsa < cto_summary.md > "$U/samantekt.md"; else
             { printf '## Samantekt CTO\nClaude skilaði engri samantekt.\n\n## Breyttar skrár\n'; git add -N -- web skriptur 2>/dev/null; git --no-pager diff --stat -- web skriptur | tail -20; } > "$U/samantekt.md"; fi
-          [ -f cto_svar.md ] && cp cto_svar.md "$U/svar.md" || true
-          tail -c 1500 "$RUNNER_TEMP/cto_run.log" > "$U/log_hali.txt" 2>/dev/null || true
-          # Aðeins web/ og skriptur/ fara í patchinn. Allt annað sem líkanið snerti er skráð svo skila-jobbið
-          # geti hent ÖLLU (ein óleyfileg breyting er merki um að eitthvað fór út af sporinu).
+          echo "svar=$([ -f cto_svar.md ] && head -c 900 cto_svar.md | base64 -w0)" >> "$GITHUB_OUTPUT"
+          echo "hali=$(tail -c 1500 "$RUNNER_TEMP/cto_run.log" 2>/dev/null | base64 -w0)" >> "$GITHUB_OUTPUT"
+          # Aðeins web/ og skriptur/ fara í patchinn. utan.txt er AÐEINS vísbending (það verður til á þessari
+          # ótraustu vél): skila-jobbið hendir öllu ef það er ekki tómt, en það sem ræður er sían sjálf.
           git add -A -- web skriptur ':(exclude)web/.astro'
           git diff --cached --binary HEAD -- web skriptur ':(exclude)web/.astro' > "$U/cto.patch"
           git status --porcelain --untracked-files=all | awk '{print $NF}' | grep -vE '^(web/|skriptur/|cto_summary\.md$|cto_svar\.md$)' > "$U/utan.txt" || true
@@ -257,10 +268,12 @@ jobs:
         id: pr
         run: |
           U="$RUNNER_TEMP/cto_ut"; P="$U/cto.patch"
-          # Samantektin er skrifuð af líkaninu: hún fer í OPINBERA PR-lýsingu, svo netföng eru tekin út
+          # Samantektin er skrifuð af líkaninu og fer í OPINBERA PR-lýsingu og git-sögu. laga-jobbið hreinsaði
+          # hana, en sú vél er ótraust: sama hreinsun aftur hér, á traustri vél.
+          hreinsa() { sed -E -e 's/[[:alnum:]._%+-]+@[[:alnum:].-]+\.[[:alpha:]]{2,}/[netfang]/g' -e 's/\b[0-9]{6}-?[0-9]{4}\b/[kennitala]/g' -e 's/(\+354[ -]?)?\b[0-9]{3}[ -]?[0-9]{4}\b/[sími]/g'; }
           HREINT="$RUNNER_TEMP/samantekt_hrein.md"
-          { [ -f "$U/samantekt.md" ] && sed -E 's/[[:alnum:]._%+-]+@[[:alnum:].-]+\.[[:alpha:]]{2,}/[netfang]/g' "$U/samantekt.md" || echo "Engin samantekt."; } | head -c 6000 > "$HREINT"
-          utan() { [ -s "$U/utan.txt" ] && tr '\n' ' ' < "$U/utan.txt" | head -c 300; }
+          { [ -f "$U/samantekt.md" ] && hreinsa < "$U/samantekt.md" || echo "Engin samantekt."; } | head -c 6000 > "$HREINT"
+          utan() { [ -s "$U/utan.txt" ] && tr '\n\r\t' '   ' < "$U/utan.txt" | tr -d '\000-\037' | head -c 300; }
           lok() { echo "note=$1" >> "$GITHUB_OUTPUT"; echo "pr=" >> "$GITHUB_OUTPUT"; exit 0; }
           [ "$SAEKJA" = "success" ] || lok "Náði ekki í beiðnina — engin keyrsla (run $GITHUB_RUN_ID)"
           [ "$LAGA" = "success" ] && [ -f "$P" ] || lok "Keyrsla Claude mistókst áður en breyting varð til (run $GITHUB_RUN_ID)"
@@ -268,6 +281,9 @@ jobs:
           [ -s "$P" ] || lok "Engin kóðabreyting"
           SIA=$(node skriptur/lib/cto_sia.mjs "$P") || lok "Sían hafnaði patchinum: $(printf '%s' "$SIA" | head -c 400)"
           [ "$PROFA" = "success" ] || lok "Prófin eða byggingin féllu á breytingunni — engin PR stofnuð (run $GITHUB_RUN_ID)"
+          # Leyfðar skrár sem Aron á að lesa sérstaklega (auðkenning, póstur, byggingarstillingar) — efst í PR-inu
+          VID=$(printf '%s' "$SIA" | node -e "let s='';process.stdin.on('data',(d)=>s+=d).on('end',()=>{let j={};try{j=JSON.parse(s)}catch(e){};const v=(j.vidvaranir||[]).map((x)=>x.slod+' ('+x.astaeda+')');console.log(v.length?('⚠ Lestu sérstaklega: '+v.join(', ')).replace(/[\x00-\x1f\x7f]/g,' ').slice(0,600):'')})")
+          [ -n "$VID" ] && printf '%s\n\n%s' "$VID" "$(cat "$HREINT")" > "$HREINT.2" && mv "$HREINT.2" "$HREINT"
           git config user.name "karp-cto"
           git config user.email "hjalp@karp.is"
           BR="${TICKET:+cto/ticket-$TICKET}"; BR="${BR:-cto/verk-$GITHUB_RUN_ID}"
@@ -279,7 +295,7 @@ jobs:
           # PR: villur SÝNILEGAR; ef stofnun bregst skilar skrefið samt compare-hlekk svo Aron fái greinina.
           URL=$(gh pr create --title "CTO: $TITILL" --body "$(cat "$HREINT")"$'\n\n'"Ticket: https://karp.is/stjorn/#ticket-$TICKET · Samþykki Arons = merge (deploy sjálfvirkt)." --base main --head "$BR" 2>&1 | tee "$RUNNER_TEMP/pr.log" | grep -oE 'https://github.com/[^ ]+/pull/[0-9]+' | head -1 || true)
           if [ -z "$URL" ]; then URL=$(gh pr view "$BR" --json url -q .url 2>/dev/null || true); fi
-          if [ -z "$URL" ]; then cat "$RUNNER_TEMP/pr.log"; URL="https://github.com/$REPO/compare/main...$BR?expand=1"; echo "note=PR var ekki stofnaður sjálfkrafa — opna compare-hlekkinn og stofna handvirkt" >> "$GITHUB_OUTPUT"; else echo "note=" >> "$GITHUB_OUTPUT"; fi
+          if [ -z "$URL" ]; then cat "$RUNNER_TEMP/pr.log"; URL="https://github.com/$REPO/compare/main...$BR?expand=1"; echo "note=PR var ekki stofnaður sjálfkrafa — opna compare-hlekkinn og stofna handvirkt. $VID" >> "$GITHUB_OUTPUT"; else echo "note=$VID" >> "$GITHUB_OUTPUT"; fi
           echo "pr=$URL" >> "$GITHUB_OUTPUT"
           echo "branch=$BR" >> "$GITHUB_OUTPUT"
       - name: Skila niðurstöðu á karp.is
@@ -289,14 +305,18 @@ jobs:
           PR: ${{ steps.pr.outputs.pr }}
           BRANCH: ${{ steps.pr.outputs.branch }}
           NOTE: ${{ steps.pr.outputs.note }}
-        # Keyrt úr $RUNNER_TEMP, utan checkout-sins. Fulla samantektin og tillagan að svari fara AÐEINS hingað.
+          # Úttak laga-jobsins: gögn frá ótraustri vél, lesin hér AÐEINS sem texti (base64 → strengur).
+          SVAR_B64: ${{ needs.laga.outputs.svar }}
+          HALI_B64: ${{ needs.laga.outputs.hali }}
+        # Keyrt úr $RUNNER_TEMP, utan checkout-sins. Tillagan að svari og hali loggsins fara AÐEINS hingað.
         working-directory: ${{ runner.temp }}
         run: |
           node -e "
             const fs = require('fs'), lesa = (f) => { try { return fs.readFileSync(f, 'utf8'); } catch (e) { return ''; } };
-            const sam = lesa('cto_ut/samantekt.md').slice(0, 2600), svar = lesa('cto_ut/svar.md').slice(0, 800);
+            const b64 = (s) => { try { return Buffer.from(String(s || ''), 'base64').toString('utf8'); } catch (e) { return ''; } };
+            const sam = lesa('cto_ut/samantekt.md').slice(0, 2600), svar = b64(process.env.SVAR_B64).slice(0, 800);
             // Skilaði Claude engri samantekt er hali loggsins eina vísbendingin um hvað gerðist — hann fer hingað, aldrei í opinbera skrá.
-            const hali = /skilaði engri samantekt/.test(sam) || !sam ? lesa('cto_ut/log_hali.txt').replace(/\x1b\[[0-9;]*m/g, '').slice(-600) : '';
+            const hali = /skilaði engri samantekt/.test(sam) || !sam ? b64(process.env.HALI_B64).replace(/\x1b\[[0-9;]*m/g, '').slice(-600) : '';
             const samantekt = (process.env.NOTE ? process.env.NOTE + '\n\n' : '') + (sam || 'Engin samantekt — sjá keyrslu ' + process.env.GITHUB_RUN_ID)
               + (svar ? '\n\n## Tillaga að svari\n' + svar : '') + (hali ? '\n\n## Lok keyrslunnar\n' + hali : '');
             const body = { action: 'cto_result', id: Number(process.env.TICKET), pr: process.env.PR || '', branch: process.env.PR ? (process.env.BRANCH || '') : '', samantekt: samantekt.slice(0, 3900) };
