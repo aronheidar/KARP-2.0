@@ -59,6 +59,18 @@ const manIS = (ym) => { const m = String(ym).match(/(\d{4})-(\d{2})/); return m 
 // Smágraf: síðustu n tölugildi úr röð (fyrir sparkline á fréttakorti). Skilar [] ef of stutt.
 const downsample = (arr, n = 24) => { const a = (arr || []).filter((x) => typeof x === 'number'); return a.length <= n ? a : a.slice(-n); };
 
+// Hvenær skortur sást FYRST (bakgrunnur lyfjafréttar). Fyrsta keyrsla merkir núverandi skort 'ohekkt', annars stæði að
+// skortur á lyfi sem hefur vantað í marga mánuði hefði „hafist" daginn sem þessi kóði fór í loftið. Enginn skortur í
+// skránni þegar fyrri mynd er ekki tóm er líklega gagnabilun (tóm eða hálf lyf.json): fyrri mynd helst, annars fengju öll
+// lyf nýjan upphafsdag daginn sem skráin kæmi aftur.
+function naestaLyfFyrst(fyrri, slugs, idag) {
+  const nFyrri = fyrri ? Object.keys(fyrri).length : 0;
+  if (!slugs.length && nFyrri) return { mynd: fyrri, vidvorun: 'lyf.json: enginn skortur skráður en ' + nFyrri + ' lyf voru í skorti síðast; líkleg gagnabilun, lyfFyrst óbreytt' };
+  const mynd = {};
+  for (const s of slugs) mynd[s] = fyrri ? (fyrri[s] || idag) : 'ohekkt';
+  return { mynd, vidvorun: null };
+}
+
 // ── Detectorar ────────────────────────────────────────────────
 // state = frettavel_state.json: snapshot-samanburður milli keyrslna (diff-fréttir)
 // og viku/mánaðar-taktar. FYRSTA keyrsla hvers hluta er HLJÓÐ (initialiserar bara).
@@ -553,11 +565,9 @@ function detect(state) {
       });
     }
     state.lyfSeen = inShort.map((x) => x.slug).slice(0, 4000);
-    // Hvenær skortur sást FYRST (bakgrunnur fréttar). Fyrsta keyrsla merkir núverandi skort 'ohekkt', annars stæði
-    // að skortur á lyfi sem hefur vantað í marga mánuði hefði „hafist" daginn sem þessi kóði fór í loftið.
-    const _fyrst = state.lyfFyrst || null, _lf = {};
-    for (const x of inShort) _lf[x.slug] = _fyrst ? (_fyrst[x.slug] || TODAY) : 'ohekkt';
-    state.lyfFyrst = _lf;
+    const lf = naestaLyfFyrst(state.lyfFyrst || null, inShort.map((x) => x.slug), TODAY);
+    if (lf.vidvorun) console.log('⚠ ' + lf.vidvorun);
+    state.lyfFyrst = lf.mynd;
   }
 
   // ── Ný vörumerki íslenskra aðila (Hugverkastofan) ──
@@ -1107,4 +1117,4 @@ async function main() {
 }
 // Keyrt beint => byggja. Flutt inn (próf) => aðeins föllin: main() keyrir EKKI og ekkert er skrifað.
 if (require.main === module) main().catch((e) => { console.error(e); process.exit(1); });
-module.exports = { synishornUrSafni, vorumerkjaKt, prufukeyrsla };
+module.exports = { synishornUrSafni, vorumerkjaKt, prufukeyrsla, naestaLyfFyrst };

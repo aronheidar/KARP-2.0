@@ -13,7 +13,7 @@ const updated = (FV.updated || '').slice(0, 10);
 
 // Aðalfrétt + helstu: mikilvægi (vog) − nýleika-refsing (index; items eru nýjast-fyrst).
 const ranked = items.map((it, i) => ({ it, s: weightOf(it.type) - i * 0.4 })).sort((a, b) => b.s - a.s).map((x) => x.it);
-const hero = ranked[0] || null;
+const hero = ranked[0] || null;   // sýnir aðeins FYRSTU málsgrein (Aron: „allra síst mikill texti MEÐ mynd"); allt á fréttasíðunni
 const helstu = ranked.slice(1, 4);
 const usedIds = new Set([hero, ...helstu].filter(Boolean).map((x) => x.id));
 
@@ -37,7 +37,7 @@ const desc = `Fréttavél Karp — sjálfvirkar fréttir úr opinberum gögnum: 
         <div class="fp-hero-body">
           <span class="fp-kick">{c.label}</span>
           <h2>{hero.title}</h2>
-          {malsgreinar(hero.text).slice(0, 2).map((m) => <p>{m}</p>)}
+          {malsgreinar(hero.text).slice(0, 1).map((m) => <p>{m}</p>)}
           {hero.samhengi && <p class="fp-samhengi"><span>{hero.samhengi}</span></p>}
           <span class="fp-time">{dIS(hero.date)}</span>
         </div>
