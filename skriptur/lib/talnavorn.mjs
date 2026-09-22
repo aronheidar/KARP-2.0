@@ -7,16 +7,27 @@
 const RE_NUMER = /\d+(?:[/-]\d+)+/g;                             // 28/2026 · 649909-2026 · 80/400 · 2026-09-21
 const RE_TALA = /\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+(?:,\d+)?/g;   // 1.024.188.084 · 17,7 · 42
 
+// einingar — AÐEINS sem HEIL orð (sjá yfirferð 22.9.2026): forskeytis-samsvörun las „milljarðamæringar" sem
+// milljarður-eining. Samsett orð eiga aldrei að passa, því orðið sem er dregið út hér að neðan er ALLT
+// samfellda stafarunan (t.d. „milljónamæringur" í heilu lagi), ekki bara byrjunin.
+const EININGAR_MA = new Set(['milljarður', 'milljarð', 'milljarði', 'milljarðs', 'milljarðar', 'milljarða', 'milljörðum']);
+const EININGAR_M = new Set(['milljón', 'milljónir', 'milljóna', 'milljónum', 'milljónar']);
+const EININGAR_TH = new Set(['þúsund', 'þúsundir', 'þúsunda', 'þúsundum']);
+
 function margfaldari(eftir) {
   const s = eftir.toLowerCase();
-  if (/^\s*(milljar[ðd]|milljör[ðd])/.test(s) || /^\s*m[aö]\.\s?kr/.test(s)) return 1e9;
-  if (/^\s*millj[óo]n/.test(s) || /^\s*m\.\s?kr/.test(s)) return 1e6;
-  if (/^\s*(þúsund|þús\.|þ\.\s?kr)/.test(s)) return 1e3;
+  if (/^\s*m[aö]\.\s?kr/.test(s)) return 1e9;
+  if (/^\s*m\.\s?kr/.test(s)) return 1e6;
+  if (/^\s*(þús\.|þ\.\s?kr)/.test(s)) return 1e3;
+  const ord = (/^\s*([a-záðéíóúýþæö]+)/.exec(s) || [])[1] || '';
+  if (EININGAR_MA.has(ord)) return 1e9;
+  if (EININGAR_M.has(ord)) return 1e6;
+  if (EININGAR_TH.has(ord)) return 1e3;
   return 1;
 }
 const erHlutfall = (eftir) => /^\s*(%|prósent)/i.test(eftir);
 const stadlaStrik = (s) => String(s).replace(/[‐‑‒–—]/g, '-');
-const hreinsa = (s) => s.replace(/[.,:;!?\'"»«]/g, '');
+const hreinsa = (s) => s.replace(/[.,:;!?'"»«„“”]+$/, '');   // AÐEINS í enda strengs — hratt-birting, ekki úrskurður
 
 /** Tölur í texta: { hratt, tegund: 'numer'|'tala'|'hlutfall', gildi?, nakvaemni? } */
 export function talnaTokar(texti) {
@@ -27,7 +38,7 @@ export function talnaTokar(texti) {
     const a = m.index, b = a + m[0].length;
     if (numerSvid.some(([x, y]) => a >= x && b <= y)) continue;   // hluti af númeri, þegar talið
     const [heil, brot = ''] = m[0].split(',');
-    const eftir = s.slice(b, b + 16);
+    const eftir = s.slice(b, b + 24);
     const marg = margfaldari(eftir), hlutfall = erHlutfall(eftir);
     const unit = marg > 1 ? hreinsa(eftir.trim().split(/\s+/)[0]) : '';
     tokar.push({
@@ -70,10 +81,9 @@ export function athugaTolur(texti, facts) {
   for (const t of talnaTokar(texti)) {
     if (t.tegund === 'numer') { if (!fstr.includes(t.hratt)) rangar.push(t.hratt); continue; }
     const g = Math.abs(t.gildi), tol = t.nakvaemni / 2 + 1e-9;
-    const passar = gildi.some((v) => {
-      const a = Math.abs(v);
-      return Math.abs(g - a) <= tol || (t.tegund === 'hlutfall' && Math.abs(g - a * 100) <= tol);
-    });
+    // hlutfall (%) verður að passa BEINT við gildi úr facts — ekki ×100, annars slyppi uppspunnið hlutfall
+    // (t.d. 50%) í gegn á móti óskyldu broti í bakgrunni (0,5). Bakgrunnsgögnin bera hlutföll milliliðalaust.
+    const passar = gildi.some((v) => Math.abs(g - Math.abs(v)) <= tol);
     if (!passar) rangar.push(t.hratt);
   }
   return { ok: rangar.length === 0, rangar: [...new Set(rangar)] };

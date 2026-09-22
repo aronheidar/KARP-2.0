@@ -42,3 +42,20 @@ test('táknun: númer, hlutföll og einingar greinast rétt', () => {
   assert.equal(t[3].gildi, 1024188084);
   assert.ok(leyfd({ d: '2026-09-21' }).gildi.includes(21));
 });
+
+test('samsett orð er ekki eining', () => {
+  assert.equal(athugaTolur('Á svæðinu voru 5 milljarðamæringar.', { fjoldi: 5 }).ok, true);
+  assert.deepEqual(athugaTolur('Talan var 5 milljarðamæringar.', { x: 5000000000 }).rangar, ['5']);
+});
+
+test('einingar þekkjast í öllum beygingarmyndum sem heil orð', () => {
+  assert.equal(athugaTolur('3 milljónum', { a: 3e6 }).ok, true);
+  assert.equal(athugaTolur('2 þúsund', { a: 2000 }).ok, true);
+  assert.equal(athugaTolur('um 1,3 milljarða', { a: 1334522008 }).ok, true);
+  assert.equal(athugaTolur('4 milljarðar', { a: 4e9 }).ok, true);
+});
+
+test('hlutfall verður að passa beint, ekki ×100', () => {
+  assert.equal(athugaTolur('hlutfallið var 50%', { hlutfall: 0.5 }).ok, false);
+  assert.equal(athugaTolur('hlutfallið var 50%', { hlutfall: 50 }).ok, true);
+});
