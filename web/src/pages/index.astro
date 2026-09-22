@@ -88,7 +88,9 @@ try {
   if (g.latest != null) TALA['/hagvoxtur/'] = { v: (g.latest >= 0 ? '▲' : '▼') + isNum(Math.abs(g.latest)) + '%', l: (g.latest >= 0 ? 'hagvöxtur ' : 'samdráttur VLF ') + (g.latestQ || '') };
 } catch (e) {}
 
-const updated = '2026-07-01';
+// Byggingardagur: síðan er forþjónuð við hvert push, þ.m.t. daglegu gagnauppfærsluna.
+// ⚠ Var harðkóðað '2026-07-01' og sagði í þrjá mánuði að forsíðan hefði síðast verið byggð þá.
+const updated = new Date().toISOString().slice(0, 10);
 ---
 
 <Layout
