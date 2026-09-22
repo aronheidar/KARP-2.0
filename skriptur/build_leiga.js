@@ -133,8 +133,10 @@ const median = (arr) => { if (!arr.length) return null; const a = [...arr].sort(
     fs.writeFileSync(path.join(PUB, 'hms', 'leiguverd.json'), JSON.stringify(LV));
     console.log('leiguverd.json:', Object.keys(LV.byZone).length, 'svæði,', Object.keys(LV.byPn).length, 'pn,', Object.keys(LV.bySv).length, 'sveitarfélög | land:', JSON.stringify(LV.land));
     // byMuni: framreiknað miðgildi líka (varaleið skýrslunnar)
+    // ➕ 22.9.2026: medRentNu = dæmigerð HEILDARleiga á sama grunni (medLeiga úr stat). Sveitarfélagasíðurnar sýndu
+    //   framreiknað kr/m² sem aðaltölu en hráa heildarleigu frá muniYear (2023) í undirtexta sömu flísar.
     const bySv2 = grp('sv');
-    for (const sv of Object.keys(byMuni)) { if (bySv2[sv]) { byMuni[sv].medM2Nu = bySv2[sv].med; byMuni[sv].nNu = bySv2[sv].n; } }
+    for (const sv of Object.keys(byMuni)) { if (bySv2[sv]) { byMuni[sv].medM2Nu = bySv2[sv].med; byMuni[sv].medRentNu = bySv2[sv].medLeiga; byMuni[sv].nNu = bySv2[sv].n; } }
   }
   const nu = (stigNu && saga.length >= 30) ? { m: viTil, stig: stigNu, medM2: Math.round(median(saga.map((x) => x.ppm))), n: saga.length, fra: SAGA_FRA } : null;
   const vm = Object.keys(VI).sort();

@@ -136,6 +136,11 @@ const LEI = (LEIGA.byMuni || {})[p.name] || null;
 //   og var vanmetin um þriðjung eða meira (Ísafjarðarbær 59%). medM2Nu er framreiknað með vísitölu
 //   leiguverðs HMS í build_leiga.js. Hráa talan er aðeins varaleið ef framreiknaða vantar.
 const LEI_M2 = LEI ? (LEI.medM2Nu ?? LEI.medM2) : null;
+// Dæmigerð heildarleiga á sama grunni (medRentNu, 22.9). ⚠ Ártalið fylgir GILDINU sem er notað: leiga.json sem
+//   var smíðuð fyrir 22.9 ber ekki medRentNu, og þá er hráa talan sýnd MEÐ ártali í stað þess að standa undir
+//   framreikningi sem hún er ekki.
+const LEI_LEIGA = LEI ? (LEI.medRentNu ?? LEI.medRent) : null;
+const LEI_LEIGA_AR = LEI && LEI.medRentNu == null ? LEIGA.muniYear : null;
 const leiguAvoxtun = FST && LEI_M2 && FST.m2 ? Math.round(((LEI_M2 * 12) / (FST.m2 * 1000)) * 1000) / 10 : null;
 
 const desc = FST
@@ -202,7 +207,7 @@ const jsonLd = {
         <h2 id="fasteignaverd">Fasteignaverð — {groupThousands(FST.n)} þinglýst kaup sl. 12 mánuði</h2>
         <div class="fvv-grid">
           <div class="fvv-c"><div class="fvv-v">{groupThousands(FST.m2)}</div><div class="fvv-l">þús.kr/m² · miðgildi</div><div class="fvv-s">fjórðungabil {groupThousands(FST.p25)}–{groupThousands(FST.p75)}</div></div>
-          {LEI && LEI_M2 && <div class="fvv-c"><div class="fvv-v">{groupThousands(LEI_M2)}</div><div class="fvv-l">kr/m² · leiga á mánuði</div><div class="fvv-s">dæmigerð leiga {groupThousands(LEI.medRent)} kr ({LEIGA.muniYear})</div></div>}
+          {LEI && LEI_M2 && <div class="fvv-c"><div class="fvv-v">{groupThousands(LEI_M2)}</div><div class="fvv-l">kr/m² · leiga á mánuði</div><div class="fvv-s">dæmigerð leiga {groupThousands(LEI_LEIGA)} kr{LEI_LEIGA_AR ? ` (${LEI_LEIGA_AR})` : ''}</div></div>}
           {leiguAvoxtun && <div class="fvv-c"><div class="fvv-v gull">{String(leiguAvoxtun).replace('.', ',')}%</div><div class="fvv-l">brúttó leiguávöxtun</div><div class="fvv-s">ársleiga ÷ kaupverð á m²</div></div>}
         </div>
         {FST.types && Object.keys(FST.types).length > 0 && (
@@ -213,7 +218,7 @@ const jsonLd = {
           </div>
         )}
         <p class="fvv-cta"><a href="/fasteignavakt/">Verðmeta eign — ókeypis skýrsla með sölugrafi, korti og sambærilegum sölum →</a> · <a href="/fasteignir/">Verðþróun alls landsins →</a></p>
-        <p class="fvv-note">ⓘ Miðgildi úr þinglýstum kaupum íbúðarhúsnæðis (kaupskrá HMS, 12 mánuðir){LEI ? ' · leiga úr leiguskrá HMS' : ''} · brúttó ávöxtun er fyrir rekstrarkostnað.</p>
+        <p class="fvv-note">ⓘ Miðgildi úr þinglýstum kaupum íbúðarhúsnæðis (kaupskrá HMS, 12 mánuðir){LEI ? (LEI.medM2Nu != null ? ' · leiga úr leiguskrá HMS, framreiknuð með vísitölu leiguverðs' : ' · leiga úr leiguskrá HMS') : ''} · brúttó ávöxtun er fyrir rekstrarkostnað.</p>
       </>
     )}
 

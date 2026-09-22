@@ -27,6 +27,25 @@ test('bilanir sem eru ekki HÁAR birtast samt á spjaldinu', () => {
   assert.ok(g.vinnsla.some((v) => /karp2/.test(v.texti)), 'miðlungs bilun sést hér þótt hún trufli ekki forstofuna');
 });
 
+test('fimm efstu eru valdar EFTIR alvarleika — viðvörun um þagnaðan straum felst ekki aftan við vægari færslur', () => {
+  // Upprunaröð bilanalistans er CI, bygging, CTO, vaktir, straumar, PR. Spjaldið sýnir fimm efstu, svo án röðunar
+  // hvarf miðlungs straumviðvörun aftan við fimm aðrar færslur (yfirferð 21.9).
+  const b = (uppspretta, alvarleiki, lysing) => ({ uppspretta, alvarleiki, lysing, sidan: NU - 100, slod: 'u' });
+  const g = hrafnGogn({ now: NU, tickets: { list: [], by: {} } }, { ok: true, bilanir: [
+    b('Bygging', 'midlungs', 'bygging 1'), b('Bygging', 'midlungs', 'bygging 2'), b('CTO', 'lagt', 'cto'),
+    b('Bygging', 'midlungs', 'bygging 3'), b('Vakt', 'hatt', 'vakt'), b('Straumur', 'midlungs', 'VB þagnaður'),
+    b('PR', 'midlungs', 'pr'),
+  ] }, [], NU);
+  assert.deepEqual(g.vinnsla.map((v) => v.texti), ['vakt', 'bygging 1', 'bygging 2', 'bygging 3', 'VB þagnaður'],
+    'hátt fyrst, síðan miðlungs í upprunaröð, og lágt víkur');
+});
+
+test('röðunin breytir ekki listanum sem kemur inn', () => {
+  const inn = [{ uppspretta: 'CTO', alvarleiki: 'lagt', lysing: 'a', sidan: 1 }, { uppspretta: 'CI', alvarleiki: 'hatt', lysing: 'b', sidan: 2 }];
+  hrafnGogn({ now: NU, tickets: { list: [], by: {} } }, { ok: true, bilanir: inn }, [], NU);
+  assert.deepEqual(inn.map((x) => x.lysing), ['a', 'b']);
+});
+
 test('úrelt gögn eru merkt í stað þess að þykjast fersk', () => {
   const g = hrafnGogn(OV, { ok: true, villa: 'github', bilanir: [], sott: NU - 7200 }, [], NU);
   assert.match(g.stada, /GitHub svarar ekki/);

@@ -5,6 +5,9 @@
 //   er talið eftir `cto_pr` á beiðninni.
 import { bidurFyrir } from './bidur_thin.mjs';
 
+// Röð alvarleika á spjaldinu. Óþekkt stig fara aftast.
+const ALVARLEIKI = { hatt: 0, midlungs: 1, lagt: 2 };
+
 function dagsTexti(ts) {
   if (!ts) return '';
   const d = new Date(Number(ts) * 1000);
@@ -42,7 +45,11 @@ export function hrafnGogn(overview = {}, bilanirSvar = {}, bidurListi = [], now 
     sidast: dagsTexti(sidast),
     bidur: bidurFyrir(bidurListi, 'hrafn'),
     // Allar bilanir sjást hér — líka þær sem eru of vægar til að trufla forstofuna.
-    vinnsla: bilanir.map((b) => ({ texti: b.lysing, hvenaer: dagsTexti(b.sidan) }))
+    // ⚠ Raðað eftir alvarleika áður en fimm efstu eru valdar (22.9). Í upprunaröð (CI, bygging, CTO, vaktir,
+    //   straumar, PR) gat miðlungs viðvörun um þagnaðan fréttastraum horfið aftan við fimm aðrar færslur.
+    //   sort er stöðug, svo upprunaröð heldur sér innan hvers stigs.
+    vinnsla: [...bilanir].sort((a, b) => (ALVARLEIKI[a.alvarleiki] ?? 3) - (ALVARLEIKI[b.alvarleiki] ?? 3))
+      .map((b) => ({ texti: b.lysing, hvenaer: dagsTexti(b.sidan) }))
       .concat(listi.filter((t) => t.cto_pr).slice(0, 3).map((t) => ({ texti: '#' + t.id + ' ' + (t.efni || '') + ' — PR tilbúinn', hvenaer: dagsTexti(t.updated) })))
       .slice(0, 5),
     tolur: [
