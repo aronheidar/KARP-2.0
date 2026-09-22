@@ -1,0 +1,135 @@
+---
+// ─────────────────────────────────────────────────────────────
+// /gjaldthrot/ — gjaldþrot og nýskráningar fyrirtækja (Hagstofa FYR03001 + FYR03010).
+// Gögn: daglegt snapshot úr skriptur/build_gjaldthrot.mjs → gogn/gjaldthrot.json. ALLIR útreikningar
+// eru í skriptur/lib/gjaldthrot.mjs (prófaðir); síðan birtir aðeins tölurnar.
+// Fóturinn segir til hvaða mánaðar tölurnar ná (Hagstofan birtir ársfjórðungslega), ekki byggingardag.
+// Litir úr þemabreytum (--panel, --line, --ok, --slaemt, --gold) svo ljósa þemað virki.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+import SiduHaus from '../components/SiduHaus.astro';
+import { fmtNum, groupThousands, monthLabel } from '@lib/format.mjs';
+import DATA from '@gogn/gjaldthrot.json';
+
+const { ytd, hlutfall, r12, balkar, nyjasti, nyjastiHeiti, updated } = DATA;
+const tala = (v) => (v == null ? '–' : groupThousands(v));
+const einn = (v) => (v == null ? '–' : fmtNum(v, 1));
+const breyting = (b) => (b == null ? '' : `${b > 0 ? '▲' : b < 0 ? '▼' : ''}${Math.abs(b)}% frá ${ytd.heitiFyrra}`);
+// Velta er í milljónum króna → milljarðar með einum aukastaf; undir 50 m.kr. sýnist sem „<0,1“.
+const ma = (v) => (v == null ? '–' : v === 0 ? '0' : v < 50 ? '<0,1' : fmtNum(v / 1000, 1));
+const isatTitill = (r) => (r.isat ? `ÍSAT2008: ${r.isat}` : undefined);
+const inngangur = ytd.man === 12 ? `Árið ${ytd.ar}` : `Frá áramótum til loka ${nyjastiHeiti}`;
+const desc = `Gjaldþrot fyrirtækja á Íslandi ${ytd.heiti}: ${tala(ytd.nu.skrad)} skráð gjaldþrot, þar af ${tala(ytd.nu.virk)} félög með starfsemi árið áður, og ${tala(ytd.nu.nyskr)} nýskráningar. Þróun frá 2008 og skipting eftir atvinnugreinum.`;
+const jsonLd = {
+  '@context': 'https://schema.org', '@type': 'Dataset', name: 'Gjaldþrot og nýskráningar fyrirtækja á Íslandi', description: desc,
+  creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland',
+  temporalCoverage: `2008-01/${nyjasti.slice(0, 4)}-${nyjasti.slice(5)}`,
+  variableMeasured: ['Skráð gjaldþrot', 'Gjaldþrot fyrirtækja með starfsemi árið áður', 'Nýskráningar fyrirtækja'],
+};
+const R12 = { man: r12.man.map(monthLabel), nyskr: r12.nyskr, skrad: r12.skrad, virk: r12.virk };
+---
+
+<Layout title={`Gjaldþrot fyrirtækja ${ytd.ar} | Karp`} description={desc} canonical="https://karp.is/gjaldthrot/" jsonLd={jsonLd} ogTitle="Gjaldþrot og nýskráningar fyrirtækja">
+  <main data-pg="gjaldthrot">
+    <SiduHaus kicker="Hagvísir Íslands · Efnahagur" titill="Gjaldþrot og nýskráningar fyrirtækja" heimild="Hagstofa Íslands"
+      tip="Skráð gjaldþrot telja öll félög sem tekin eru til gjaldþrotaskipta, líka þau sem voru hætt starfsemi. Hagstofan greinir sérstaklega þau sem höfðu starfsemi árið áður, með launafólki og veltu þeirra.">
+      <p>{inngangur} voru {tala(ytd.nu.skrad)} fyrirtæki tekin til gjaldþrotaskipta og {tala(ytd.nu.nyskr)} ný skráð.{ytd.anStarfsemiPct != null && ` Af gjaldþrota félögunum höfðu ${ytd.anStarfsemiPct}% enga starfsemi árið áður.`}</p>
+    </SiduHaus>
+
+    <div class="kpis">
+      <div class="kpi"><div class="k-l">Skráð gjaldþrot</div><div class="k-v">{tala(ytd.nu.skrad)}</div><div class="k-s">{breyting(ytd.breyting.skrad)}</div></div>
+      <div class="kpi"><div class="k-l">Með starfsemi árið áður</div><div class="k-v">{tala(ytd.nu.virk)}</div><div class="k-s">{breyting(ytd.breyting.virk)}</div></div>
+      <div class="kpi"><div class="k-l">Launafólk hjá þeim</div><div class="k-v">{tala(ytd.nu.launafolk)}</div><div class="k-s">{breyting(ytd.breyting.launafolk)}</div></div>
+      <div class="kpi"><div class="k-l">Nýskráningar</div><div class="k-v">{tala(ytd.nu.nyskr)}</div><div class="k-s">{breyting(ytd.breyting.nyskr)}</div></div>
+      {hlutfall.nu != null && (
+        <div class="kpi"><div class="k-l">Nýskráningar á hvert gjaldþrot</div><div class="k-v">{einn(hlutfall.nu)}</div>
+          <div class="k-s">síðustu 12 mánuði{hlutfall.lagmark && hlutfall.hamark && ` · lægst ${einn(hlutfall.lagmark.v)} (${hlutfall.lagmark.ar}), hæst ${einn(hlutfall.hamark.v)} (${hlutfall.hamark.ar})`}</div></div>
+      )}
+    </div>
+
+    <h2>Þróun frá 2008</h2>
+    <div id="chart-gj"></div>
+    <p class="cap">12 mánaða summa. Mánaðartölur sveiflast mikið eftir árstíma.</p>
+
+    <h2>Eftir atvinnugreinum</h2>
+    <p class="cap">Gjaldþrot félaga með starfsemi árið áður, {balkar.heiti}, borin saman við 12 mánuðina þar á undan.</p>
+    <div class="tw">
+      <table class="gt">
+        <thead><tr><th>Atvinnugrein</th><th>Gjaldþrot</th><th>Ári fyrr</th><th>Launafólk</th><th>Velta, ma.kr</th></tr></thead>
+        <tbody>
+          {balkar.rodir.map((r) => (
+            <tr><td title={isatTitill(r)}>{r.nafn}</td><td>{tala(r.virk)}</td><td>{tala(r.virkFyrra)}</td><td>{tala(r.launafolk)}</td><td>{ma(r.velta)}</td></tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr><td>Alls</td><td>{tala(balkar.alls.virk)}</td><td>{tala(balkar.alls.virkFyrra)}</td><td>{tala(balkar.alls.launafolk)}</td><td>{ma(balkar.alls.velta)}</td></tr>
+          {balkar.thversnid.map((r) => (
+            <tr class="thv"><td title={isatTitill(r)}>{r.nafn}</td><td>{tala(r.virk)}</td><td>{tala(r.virkFyrra)}</td><td>{tala(r.launafolk)}</td><td>{ma(r.velta)}</td></tr>
+          ))}
+        </tfoot>
+      </table>
+    </div>
+    <p class="cap">Ferðaþjónusta og iðnaður ná þvert á greinarnar að ofan og eru ekki í summunni.</p>
+
+    <p class="tengill">Einstök gjaldþrotamál og innkallanir birtast á <a href="/logbirting/">gjaldþrota- og félagavaktinni</a>.</p>
+    <p class="foot">Tölur til og með {nyjastiHeiti}. Hagstofan birtir þær ársfjórðungslega. Heimild: <a href="https://hagstofa.is/talnaefni/atvinnuvegir/fyrirtaeki/gjaldthrot/" target="_blank" rel="noopener">Hagstofa Íslands</a> (FYR03001, FYR03010).</p>
+  </main>
+
+  <style>
+    main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
+    p { color: var(--ink); }
+    h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+    .kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+    .k-l { font-size: 12px; color: var(--muted); }
+    .k-v { font-size: 25px; font-weight: 800; color: var(--gold); margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-s { font-size: 11px; color: var(--faint); }
+    #chart-gj { width: 100%; height: 300px; }
+    .cap { font-size: 12.5px; color: var(--muted); margin: 4px 0 10px; }
+    .tw { overflow-x: auto; }
+    .gt { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+    .gt th { text-align: right; font-size: 11.5px; font-weight: 600; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    .gt td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line); color: var(--ink); }
+    .gt th:first-child, .gt td:first-child { text-align: left; }
+    .gt tfoot td { font-weight: 700; }
+    .gt tfoot tr.thv td { font-weight: 400; color: var(--muted); }
+    .tengill { font-size: 14px; margin-top: 22px; }
+    .tengill a, .foot a { color: var(--gold); }
+    .foot { font-size: 12px; color: var(--faint); margin-top: 28px; border-top: 1px solid var(--line); padding-top: 14px; }
+  </style>
+
+  <!-- Eyja: 12 mánaða summur frá 2008. Litir lesnir úr þemabreytum við upphaf. astro:page-load. -->
+  <script define:vars={{ R12 }}>
+    function initGj() {
+      const el = document.getElementById('chart-gj');
+      if (!el) return;
+      const go = () => {
+        if (window.echarts.getInstanceByDom(el)) return;
+        const css = getComputedStyle(document.documentElement);
+        const lit = (n, v) => css.getPropertyValue(n).trim() || v;
+        const fj = (v) => (v == null ? '–' : String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.'));
+        const lina = (name, data, color, width) => ({ name, type: 'line', data, symbol: 'none', lineStyle: { width, color }, itemStyle: { color } });
+        const c = window.echarts.init(el);
+        c.setOption({
+          backgroundColor: 'transparent',
+          legend: { top: 0, textStyle: { color: lit('--muted', '#9fb0c8'), fontSize: 11 } },
+          grid: { left: 48, right: 14, top: 34, bottom: 26 },
+          xAxis: { type: 'category', data: R12.man, axisLabel: { color: lit('--faint', '#7e8ca6'), fontSize: 10 }, axisLine: { lineStyle: { color: lit('--line', 'rgba(255,255,255,.14)') } } },
+          yAxis: { type: 'value', axisLabel: { color: lit('--faint', '#7e8ca6'), formatter: fj }, splitLine: { lineStyle: { color: lit('--line', 'rgba(255,255,255,.06)') } } },
+          tooltip: { trigger: 'axis', valueFormatter: fj },
+          series: [
+            lina('Nýskráningar', R12.nyskr, lit('--ok', '#42d086'), 2),
+            lina('Skráð gjaldþrot', R12.skrad, lit('--slaemt', '#ef6a6a'), 2),
+            lina('Með starfsemi árið áður', R12.virk, lit('--gold', '#f6b13b'), 2.5),
+          ],
+        });
+        window.addEventListener('resize', () => c.resize());
+      };
+      if (window.echarts) { go(); return; }
+      let s = document.getElementById('echarts-cdn');
+      if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+      s.addEventListener('load', go, { once: true });
+    }
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="gjaldthrot"]')) initGj(); });
+  </script>
+</Layout>
