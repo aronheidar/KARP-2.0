@@ -3,15 +3,18 @@
 // Keyra: node skriptur/build_glaepir.js  (síðan build_embed.js).
 const XLSX = require('xlsx');
 const fs = require('fs');
+const { artalsdalkar } = require('./lib/glaepir_hausar.cjs');
 // __dirname-afstætt á rót repos (kóðinn bætir sjálfur við 'gogn/'). ⚠ Þetta skript les STAÐBUNDIÐ
-// FJOLDI_BROTA-xlsx sem er EKKI í repoinu → keyrist aðeins handvirkt þegar nýtt skjal er sett í gogn/.
+// FJOLDI_BROTA-xlsx í gogn/ (Ríkislögreglustjóri birtir nýtt skjal árlega í febrúar).
 const DIR = require('path').join(__dirname, '..') + '/';
 const fname = fs.readdirSync(DIR + 'gogn').find(x => /FJOLDI_BROTA/i.test(x) && !/^~\$/.test(x));
 const wb = XLSX.readFile(DIR + 'gogn/' + fname);
 const rows = XLSX.utils.sheet_to_json(wb.Sheets['Landid_brotá íbúa_P.inhab'], { header: 1, blankrows: false });
 const hdr = rows[0];
-const yearCols = hdr.map((h, i) => ({ y: h, i })).filter(x => typeof x.y === 'number' && x.y > 2000);
-const lastYr = yearCols[yearCols.length - 1].y, lastI = yearCols[yearCols.length - 1].i;
+// ⚠ Síðasta árið er strengurinn „2025*" (bráðabirgðatölur); sjá lib/glaepir_hausar.cjs.
+const yearCols = artalsdalkar(hdr);
+const lastCol = yearCols[yearCols.length - 1];
+const lastYr = lastCol.y, lastI = lastCol.i;
 const norm = s => String(s || '').replace(/\s+/g, ' ').trim();
 
 const REGIONS = ['Höfuðborgarsvæðið', 'Suðurnes', 'Vesturland', 'Vestfirðir', 'Norðurland vestra', 'Norðurland eystra', 'Austurland', 'Suðurland', 'Vestmannaeyjar', 'Öll embætti'];
@@ -42,9 +45,9 @@ REGIONS.forEach(reg => {
 });
 
 const out = {
-  source: 'Ríkislögreglustjóri', sourceUrl: 'https://www.logreglan.is/log-og-tolfraedi/tolfraedi/',
+  source: 'Ríkislögreglustjóri', sourceUrl: 'https://island.is/s/logreglan/rannsoknir-og-uttektir',
   note: 'Staðfest afbrot á 10.000 íbúa eftir lögregluumdæmi. Hegningarlagabrot = brot gegn hegningarlögum (án umferðarlagabrota).',
-  unit: 'brot á 10.000 íbúa', year: lastYr,
+  unit: 'brot á 10.000 íbúa', year: lastYr, bradabirgda: lastCol.bradabirgda,
   national: byRegion['Öll embætti'] || null,
   byRegion
 };
