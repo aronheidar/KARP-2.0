@@ -153,9 +153,21 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: node skriptur/export_tengsl_fonix.mjs || true   # sleppir sjálft ef leyndarlyklar vantar; skrifar aðeins heildartölur
       - name: Fréttavélin (gagnaatburðir → fréttir; AI-skrif ef lykill)
+        # Ný ritun kveikt 22.9.2026 (Aron samþykkti sýnishorn úr frettavel_prufa.yml): bakgrunnur úr gögnum Karp,
+        # talnavörn og ein frétt í hverju kalli. Ritunin hefur 12 mín tímaþak innan skriftunnar; 25 mín á skrefið
+        # grípur hangandi ferli, og continue-on-error svo tímafall hér stöðvi ekki commit og deploy hinna gagnanna.
+        id: frettavel
+        timeout-minutes: 25
+        continue-on-error: true
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          KARP_FRETTAVEL_NYTT: '1'
         run: node skriptur/build_frettavel.js || true
+      # `|| true` gerir tímafall að eina fallinu. State er skrifað Á UNDAN rituninni, svo hálfkláruð keyrsla myndi
+      # committa state án fréttanna og skynjarar sem diffa við state (lyf, tónn, markaðir) týndu atburðum dagsins.
+      - name: Fréttavélin féll á tíma → skrár hennar óbreyttar (næsta keyrsla tekur atburðina)
+        if: steps.frettavel.outcome != 'success'
+        run: git checkout -- 'gogn/frettavel*' 'web/public/gogn/frettavel*' web/public/frettavel.xml
       - name: Ræðuvakt — nýlegar ræður af Alþingi (opinberar umritanir; tómt í þinghléi)
         run: KARP_RAEDUR_DAGAR=30 node skriptur/build_raedur_nylegar.mjs || true
       - name: ffmpeg fyrir hlaðvarpsvaktina (runner-myndin hefur það ekki)

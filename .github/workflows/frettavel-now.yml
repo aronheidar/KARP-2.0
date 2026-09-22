@@ -33,8 +33,12 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: node skriptur/export_tengsl_fonix.mjs || true
       - name: Fréttavélin (gagnaatburðir → fréttir; AI-skrif)
+        # Ný ritun kveikt 22.9.2026, sama og í refresh-data.yml. Hér ENGIN continue-on-error: falli skrefið á tíma er
+        # betra að committa ekkert en hálfskrifað state (skynjarar sem diffa við state myndu þá týna atburðum).
+        timeout-minutes: 25
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          KARP_FRETTAVEL_NYTT: '1'
         run: node skriptur/build_frettavel.js || true
       - name: Commit + push fréttavél
         run: |
