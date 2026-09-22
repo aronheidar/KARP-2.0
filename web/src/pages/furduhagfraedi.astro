@@ -79,6 +79,7 @@ const KOFFIN = [
 ].sort((a, b) => b.kr - a.kr);
 const KMAX = KOFFIN[0].kr;
 const KOFFIN_MARGF = Math.floor(koffinKrona(nocco.verd, nocco.mg) / koffinKrona(KB, UNGT.koffin.kaffi.mgBolli));
+const ISL_MARGF = ISL.verd != null ? Math.floor(koffinKrona(ISL.verd, ISL.skot * ISL.mgSkot) / koffinKrona(KB, UNGT.koffin.kaffi.mgBolli)) : null;
 
 // 3. Íslattar í útborgun: 12 heilir mánuðir á undan byggingarmánuði.
 const SALA = midgildiSolu(SOLUR230, { teg: UNGT.utborgun.teg, nu: new Date().toISOString().slice(0, 7) });
@@ -172,7 +173,7 @@ const OSK = oskilad(DOS.ar2024);
 
     <section class="fu" id="koffinkrona">
       <h3>Koffínkrónan</h3>
-      <p>Hvað kosta 100 mg af koffíni? Í Nocco er koffínið rúmlega {KOFFIN_MARGF} sinnum dýrara en í uppáhelltu kaffi heima.</p>
+      <p>Hvað kosta 100 mg af koffíni? Í Nocco er koffínið rúmlega {KOFFIN_MARGF} sinnum dýrara en í uppáhelltu kaffi heima{ISL_MARGF != null ? `, og í íslatte á kaffihúsi rúmlega ${ISL_MARGF} sinnum dýrara` : ''}.</p>
       <div class="fu-sulur">
         {KOFFIN.map((k) => (
           <div class="fu-rod">
@@ -191,7 +192,7 @@ const OSK = oskilad(DOS.ar2024);
         <h3>Íslattar í útborgun</h3>
         <p>Miðgildi kaupverðs fjölbýlis í {UNGT.utborgun.pn} {UNGT.utborgun.stadur} frá {manudur(SALA.fra)} til {manudur(SALA.til)} var {groupThousands(SALA.midgildi)} kr ({SALA.n} sölur). Fyrstu kaupendur mega fá 90% lán, svo útborgunin er 10%: {groupThousands(ISLATTAR.utborgun)} kr.</p>
         <div class="fu-lykill"><b>{groupThousands(ISLATTAR.fjoldi)} íslattar.</b> Einn á dag í {fmtNum(ISLATTAR.arMedEinumADag, 1)} ár.</div>
-        <p class="fu-heimild">Íslatte: {ISL.heiti}, {groupThousands(ISL.verd)} kr ({ISL.heimild}, {dagsIs(ISL.dags)}). Kaupverð: HMS kaupskrá, síðasta þinglýsta sala hverrar eignar. {UNGT.utborgun.heimild}.</p>
+        <p class="fu-heimild">Verð: {ISL.heiti}, {groupThousands(ISL.verd)} kr ({ISL.heimild}, {dagsIs(ISL.dags)}). Kaupverð: HMS kaupskrá, síðasta þinglýsta sala hverrar eignar. {UNGT.utborgun.heimild}.</p>
       </section>
     )}
 

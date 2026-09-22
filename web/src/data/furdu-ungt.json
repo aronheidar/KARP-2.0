@@ -14,7 +14,7 @@
       { "id": "monster", "heiti": "Monster Ultra 500 ml", "verd": 249, "mg": 150, "dags": "2026-09-13", "athugasemd": "30 mg í 100 ml samkvæmt evrópskum umbúðum" }
     ],
     "kaffi": { "heiti": "Uppáhellt kaffi", "vara": "Merrild 103, 500 g", "pakkiVerd": 1298, "pakkiG": 500, "dags": "2026-09-09", "gBolli": 8, "mgBolli": 90, "athugasemd": "8 g í bolla; 90 mg koffín í 200 ml bolla er viðmið EFSA" },
-    "islatte": { "heiti": "Íslatte, Te & Kaffi", "verd": null, "dags": null, "heimild": null, "skot": 2, "mgSkot": 63, "athugasemd": "tvö espressóskot, 63 mg í skoti (USDA)" }
+    "islatte": { "heiti": "Íslatte, Te & Kaffi", "verd": 1095, "dags": "2026-09-22", "heimild": "verð á Wolt; í verslun getur það verið annað", "skot": 2, "mgSkot": 63, "athugasemd": "tvö espressóskot, 63 mg í skoti (USDA)" }
   },
   "laun": {
     "heimild": "kjarasamnings VR og SA, afgreiðslufólk í verslunum",
