@@ -14,6 +14,7 @@ import { OPNAR_STODUR, TICKET_STODUR, ackVars, drogUrGrein, efniUrLysingu, flokk
 import { hreinsaDrogUt } from '../lib/stjorn/laerdomur.mjs';   // setningar sem Aron tekur alltaf út fara úr drögunum hjá ÞJÓNINUM
 import { persona, rofiLykill, veljaFundarmenn } from '../lib/personur.mjs';   // 🛟 Sigrún skrifar undir öll póst-samskipti við notendur; fundarmenn f. Moot-forsýn
 import { thurfHjalp } from '../lib/stjorn/hjalparbeidni.mjs';   // 🙋 „ég þarf þig á þessari" — reiknað hér, þar sem lýsingin er
+import { ctoLykill, ctoDrogTaka } from './cto_lykill.mjs';   // 🛠️ lykill CTO-keyrslunnar: ein beiðni, 2 klst, aldrei um opinbera skrá
 import { skraAtburd, sigrunVika, sigrunTillaga, sigrunSpjall, lokaMargt, sigrunThekking, sigrunLaerdomur, sigrunKbLeita, sigrunGreinDrog, sigrunGreinVista, sigrunGreinHafna, sigrunGreinEyda, sigrunVikupostur } from './sigrun_vinna.mjs';   // Sigrún sem starfsmaður
 
 const MODEL = 'claude-haiku-4-5-20251001';
@@ -316,7 +317,9 @@ export async function adminTicketHandler(request, env, ctx) {
     return _ajson({ ok: true });
   }
   if (action === 'cto') {
-    const r = await _ghDispatch(env, 'cto', { ticket: t.id });
+    // Lykillinn gildir fyrir ÞESSA beiðni í 2 klst: vél líkansins sækir beiðnina með honum (cto_lykill.mjs),
+    // svo textinn fari aldrei um opinbera keyrsluskrá. Farmurinn prentast hvergi.
+    const r = await _ghDispatch(env, 'cto', { ticket: t.id, lykill: await ctoLykill(env, t.id) });
     if (r.ok) { await setTicket(env, id, { stada: 'cto' }); if (t.stada !== 'cto') await skraAtburd(env, 'cto', id); }
     return _ajson(r);
   }
@@ -334,8 +337,13 @@ export async function adminTicketHandler(request, env, ctx) {
   }
   if (action === 'cto_result') {
     // Frá CTO-workflow (X-Admin-Key): PR-slóð + samantekt → staða 'tillaga' og Aron fær póst.
-    await setTicket(env, id, { stada: 'tillaga', cto_pr: String(b.pr || '').slice(0, 300), cto_branch: String(b.branch || '').slice(0, 120), cto_samantekt: String(b.samantekt || '').slice(0, 4000) });
-    ctx.waitUntil(sendGmail(env, { to: ADMIN_TO(env), subject: '[Hjálp #' + id + '] CTO-tillaga tilbúin', html: '<p>Tillaga að lagfæringu fyrir ticket #' + id + ' (' + _esc(t.efni || '') + '):</p><p style="white-space:pre-wrap">' + _esc(String(b.samantekt || '')) + '</p><p><a href="' + _esc(String(b.pr || '')) + '">Skoða PR</a> · <a href="https://karp.is/stjorn/#ticket-' + id + '">Samþykkja á /stjorn/</a></p>' }));
+    // Tillagan að svari og hali loggsins komu BEINT frá keyrslunni (/api/cto/drog), ekki um opinbera skrá.
+    const drog = await ctoDrogTaka(env, id);
+    const grunnur = String(b.samantekt || '');
+    const samantekt = (grunnur + (drog && drog.svar ? '\n\n## Tillaga að svari\n' + String(drog.svar) : '')
+      + (drog && drog.hali && /skilaði engri samantekt|Engin samantekt/.test(grunnur) ? '\n\n## Lok keyrslunnar\n' + String(drog.hali).slice(-600) : '')).slice(0, 4000);
+    await setTicket(env, id, { stada: 'tillaga', cto_pr: String(b.pr || '').slice(0, 300), cto_branch: String(b.branch || '').slice(0, 120), cto_samantekt: samantekt });
+    ctx.waitUntil(sendGmail(env, { to: ADMIN_TO(env), subject: '[Hjálp #' + id + '] CTO-tillaga tilbúin', html: '<p>Tillaga að lagfæringu fyrir ticket #' + id + ' (' + _esc(t.efni || '') + '):</p><p style="white-space:pre-wrap">' + _esc(samantekt) + '</p><p><a href="' + _esc(String(b.pr || '')) + '">Skoða PR</a> · <a href="https://karp.is/stjorn/#ticket-' + id + '">Samþykkja á /stjorn/</a></p>' }));
     return _ajson({ ok: true });
   }
   if (action === 'lagad') {

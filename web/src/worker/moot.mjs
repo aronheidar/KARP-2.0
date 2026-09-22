@@ -141,6 +141,14 @@ async function _mootLesa(env, mtTicketId) {
   return mtOut;
 }
 
+/** Verkbeiðni Hrafns úr nýjasta Moot, fyrir CTO-keyrsluna: AÐEINS þegar niðurstaðan ber cto_brief og Aron
+ *  sagði Já. Annars tómur strengur. Sama regla og cto.yml beitti áður á /api/admin/moot-svarið. */
+export async function mootVerkbeidni(env, mtId) {
+  const mtL = await _mootLesa(env, mtId);
+  const mtB = mtL && mtL.nidurstada && typeof mtL.nidurstada.cto_brief === 'string' ? mtL.nidurstada.cto_brief.trim() : '';
+  return mtB && mtL.atkvaedi_arons && mtL.atkvaedi_arons.val === 'ja' ? mtB.slice(0, 4000) : '';
+}
+
 /** Svar-snið GET og 'halda' (sama form): nýjasti Moot + bið-staða + hnappamerkimiðar. */
 function _mootSvar(env, mtId, mtL, mtTicket) {
   return {

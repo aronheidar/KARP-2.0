@@ -26,7 +26,8 @@ import { FRETTA_TYPES, _mentions, _rssItems, digestRun, eftirlitCriticalCron, fe
 import { adminEmailHandler, adminOverviewHandler, adminRefreshHandler, adminSendHandler, adminSetTypeHandler, adminSyncHandler, adminUserHandler } from './src/worker/stjornbord.mjs';
 import { adminTicketHandler, createTicket, processNewTicket, ticketsOverview } from './src/worker/hjalp_agent.mjs';   // 🎫 þjónustufulltrúi: ticket → greining → svar/tillaga
 import { sigrunVikupostur, endurreynaNu } from './src/worker/sigrun_vinna.mjs';   // 🙋 vikupóstur Sigrúnar á mánudagsmorgni
-import { adminMootHandler } from './src/worker/moot.mjs';   // 🏛️ Moot: ráðsfundur persónanna um eitt ticket — tillaga sem Aron greiðir atkvæði um
+import { adminMootHandler, mootVerkbeidni } from './src/worker/moot.mjs';   // 🏛️ Moot: ráðsfundur persónanna um eitt ticket — tillaga sem Aron greiðir atkvæði um
+import { ctoHandler } from './src/worker/cto_lykill.mjs';   // 🛠️ CTO-keyrslan sækir beiðnina og skilar drögum með lykli sem gildir fyrir eina beiðni
 import { adminGmailHandler, gmailIntakeCron } from './src/worker/gmail_intake.mjs';   // 📥 póstur beint á hjalp@ → ticket (3-tíma cron + hnappur á /stjorn/)
 import { adminBilanirHandler } from './src/worker/bilanir.mjs';   // 🛠️ bilanalisti Hrafns: CI, byggingar, gleymdir PR-ar
 import { adminMarkadsefniHandler } from './src/worker/markadsefni.mjs';   // 📣 markaðsfulltrúi: Postiz-dagatal, efnissafn, tillögur
@@ -3066,6 +3067,7 @@ export default {
     if (url.pathname === '/api/admin/email') return adminEmailHandler(request, env, ctx);   // stjórnborð: vista/endurstilla póst-sniðmát
     if (url.pathname === '/api/admin/ticket') return adminTicketHandler(request, env, ctx);   // 🎫 hjálparbeiðnir: listi/þráður/svara/CTO/rofi
     if (url.pathname === '/api/admin/moot') return adminMootHandler(request, env, ctx);   // 🏛️ Moot: GET nýjasti fundur · POST halda/atkvaedi (breytir aldrei stöðu, sendir aldrei póst)
+    if (url.pathname === '/api/cto/beidni' || url.pathname === '/api/cto/drog') return ctoHandler(request, env, mootVerkbeidni);   // 🛠️ lykill CTO-keyrslunnar, sjá cto_lykill.mjs
     if (url.pathname === '/api/admin/gmail') return adminGmailHandler(request, env, ctx);   // 📥 innlestur pósts á hjalp@: GET síðasta keyrsla · POST sækja núna
     if (url.pathname === '/api/admin/bilanir') return adminBilanirHandler(request, env, ctx);   // 🛠️ GET listinn · POST {verk} ræsir Hrafn
     if (url.pathname === '/api/admin/markadsefni') return adminMarkadsefniHandler(request, env, ctx);   // 📣 GET dagatal+safn+tillögur · POST samstilla/merkja/framleida

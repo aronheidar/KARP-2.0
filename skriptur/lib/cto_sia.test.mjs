@@ -5,7 +5,7 @@ import { mkdtempSync, writeFileSync, mkdirSync, symlinkSync, rmSync } from 'node
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { bannAstaeda, slodirUrNumstat, hattulegurHamur, metaPatch, vidvorun } from './cto_sia.mjs';
+import { bannAstaeda, slodirUrNumstat, hattulegurHamur, metaPatch, vidvorun, vidkvaemarSlodir } from './cto_sia.mjs';
 
 const SIA = fileURLToPath(new URL('./cto_sia.mjs', import.meta.url));
 
@@ -56,6 +56,17 @@ test('vidvorun: auðkenning, póstur og stillingar sem keyra í byggingu eru ley
   const r = metaPatch({ numstat: '2\t1\tweb/src/worker/hjalp_agent.mjs\0' + '1\t0\tweb/src/lib/a.mjs\0', summary: '' });
   assert.equal(r.ok, true);
   assert.deepEqual(r.vidvaranir, [{ slod: 'web/src/worker/hjalp_agent.mjs', astaeda: 'auðkenning, admin-leiðir eða póstur' }]);
+});
+
+test('vidkvaemarSlodir: rýnin 22.9 — innihald ræður, ekki aðeins nafnið (bilanir.mjs athugar lykilinn)', () => {
+  const patch = 'diff --git a/web/src/worker/bilanir.mjs b/web/src/worker/bilanir.mjs\n@@ -1 +1 @@\n-const a = 1;\n+const a = 2;\n'
+    + 'diff --git a/web/src/lib/x.mjs b/web/src/lib/x.mjs\n@@ -1 +1 @@\n-// gamalt\n+if (req.headers.get("X-Admin-Key")) ok();\n'
+    + 'diff --git a/web/src/lib/y.mjs b/web/src/lib/y.mjs\n@@ -1 +1 @@\n-a\n+b\n';
+  const grunnar = { 'web/src/worker/bilanir.mjs': 'const k = env.KARP_ADMIN_KEY;', 'web/src/lib/y.mjs': 'export const y = 1;' };
+  assert.deepEqual([...vidkvaemarSlodir(patch, (s) => grunnar[s] || '')].sort(), ['web/src/lib/x.mjs', 'web/src/worker/bilanir.mjs'],
+    'bilanir.mjs af grunninum, x.mjs af breytingunni, y.mjs hvorugt');
+  const r = metaPatch({ numstat: '1\t1\tweb/src/worker/bilanir.mjs\0', summary: '', vidkvaemar: new Set(['web/src/worker/bilanir.mjs']) });
+  assert.deepEqual(r.vidvaranir, [{ slod: 'web/src/worker/bilanir.mjs', astaeda: 'snertir auðkenningu, lykla eða póst' }]);
 });
 
 // Raunverulegt git-repo: sían er keyrð nákvæmlega eins og cto.yml keyrir hana.

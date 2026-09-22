@@ -9,6 +9,7 @@
 // Notkun í cto.yml:  node skriptur/lib/cto_sia.mjs <patch>   → JSON á stdout, útgangskóði 0 = leyft.
 
 import { execFileSync } from 'node:child_process';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const LEYFT = /^(web|skriptur)\//;
@@ -40,6 +41,27 @@ const VIDVORUN = [
 export function vidvorun(slod) {
   for (const [m, a] of VIDVORUN) if (m.test(String(slod || ''))) return a;
   return null;
+}
+
+// ⚠ Rýnin 22.9: nafnalistinn einn missti af fjórum af tíu skrám sem athuga admin-lykil eða lotu
+//   (bilanir.mjs ræsir sjálft CTO-keyrsluna). Því er líka leitað í INNIHALDI: breytingunni sjálfri og
+//   grunnútgáfu skrárinnar.
+const VIDKVAEMT = /X-Admin-Key|X-CTO-Lykill|readSession\(|KARP_ADMIN_KEY|ADMIN_API_KEY|adminCsrfVilla|SESSION_SECRET|_hmac\(|sendGmail|is_admin/;
+
+/** Slóðir sem breytingin eða grunnútgáfa þeirra tengir auðkenningu, lyklum eða pósti.
+ *  `lesaGrunn(slod)` skilar innihaldi skrárinnar fyrir breytingu, eða '' ef hún er ný. */
+export function vidkvaemarSlodir(patchTexti, lesaGrunn = () => '') {
+  const ut = new Set();
+  const bitar = String(patchTexti || '').split(/^(?=diff --git )/m);
+  for (const b of bitar) {
+    const m = /^diff --git a\/(\S+) b\/(\S+)/.exec(b);
+    if (!m) continue;
+    for (const s of new Set([m[1], m[2]])) {
+      let grunnur = ''; try { grunnur = String(lesaGrunn(s) || ''); } catch { grunnur = ''; }
+      if (VIDKVAEMT.test(b) || VIDKVAEMT.test(grunnur)) ut.add(s);
+    }
+  }
+  return ut;
 }
 
 /** null ef slóðin er leyfð, annars ástæða. */
@@ -82,7 +104,7 @@ export function hattulegurHamur(summary) {
 
 /** Heildarmat: { ok, slodir, hafnad: [{slod, astaeda}], vidvaranir: [{slod, astaeda}] }.
  *  Tómur patch er EKKI leyfður (ekkert að gera). */
-export function metaPatch({ numstat, summary }) {
+export function metaPatch({ numstat, summary, vidkvaemar = new Set() }) {
   const slodir = [...new Set(slodirUrNumstat(numstat))];
   const hafnad = [], vidvaranir = [];
   const hamur = hattulegurHamur(summary);
@@ -90,7 +112,10 @@ export function metaPatch({ numstat, summary }) {
   for (const s of slodir) {
     const a = bannAstaeda(s);
     if (a) hafnad.push({ slod: s, astaeda: a });
-    else { const v = vidvorun(s); if (v) vidvaranir.push({ slod: s, astaeda: v }); }
+    else {
+      const v = vidvorun(s) || (vidkvaemar.has(s) ? 'snertir auðkenningu, lykla eða póst' : null);
+      if (v) vidvaranir.push({ slod: s, astaeda: v });
+    }
   }
   if (!slodir.length) hafnad.push({ slod: '*', astaeda: 'tómur patch' });
   return { ok: !hafnad.length, slodir, hafnad, vidvaranir };
@@ -108,7 +133,11 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   } catch (e) {
     villa = String((e && e.stderr) || (e && e.message) || e).slice(0, 400);
   }
-  const r = villa ? { ok: false, slodir: [], hafnad: [{ slod: '*', astaeda: 'patch á ekki við grunninn: ' + villa }], vidvaranir: [] } : metaPatch({ numstat, summary });
+  // Grunnútgáfan er lesin af diski ÁÐUR en patchinu er beitt (cto.yml keyrir síuna fyrst), og aðeins
+  // fyrir slóðir sem hafa þegar staðist bannAstaeda í metaPatch — hér er bara lesið, aldrei keyrt.
+  const lesaGrunn = (s) => (!bannAstaeda(s) && existsSync(s) ? readFileSync(s, 'utf8') : '');
+  const vidkvaemar = villa ? new Set() : vidkvaemarSlodir(readFileSync(patch, 'utf8'), lesaGrunn);
+  const r = villa ? { ok: false, slodir: [], hafnad: [{ slod: '*', astaeda: 'patch á ekki við grunninn: ' + villa }], vidvaranir: [] } : metaPatch({ numstat, summary, vidkvaemar });
   console.log(JSON.stringify(r));
   process.exit(r.ok ? 0 : 1);
 }

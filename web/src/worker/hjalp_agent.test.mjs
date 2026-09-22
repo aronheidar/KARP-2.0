@@ -135,10 +135,15 @@ test('samthykkja: CSRF-gátin gildir um kökulotu-leiðina (Origin annars staða
   assert.equal(state.tickets[1].stada, 'tillaga');
 });
 
-test('cto: dispatch ber event_type cto {ticket} (óbreytt eftir _ghDispatch-samruna) og staða → cto', async (t) => {
+test('cto: dispatch ber event_type cto {ticket, lykill} og staða → cto', async (t) => {
   const state = mkState({ stada: 'stadfest' }); const env = mkEnv(state); const log = stubFetch(t);
   assert.deepEqual(await js(await adminTicketHandler(req({ action: 'cto', id: 1 }, { 'X-Admin-Key': 'adm-key' }), env, {})), { ok: true, status: 204 });
-  assert.deepEqual(dispatches(log), [{ event_type: 'cto', client_payload: { ticket: 1 } }]);
+  // 22.9: lykillinn sem vél líkansins sækir beiðnina með (cto_lykill.mjs) — gildi hans er prófað þar
+  const d = dispatches(log);
+  assert.equal(d.length, 1);
+  assert.equal(d[0].event_type, 'cto');
+  assert.equal(d[0].client_payload.ticket, 1);
+  assert.match(d[0].client_payload.lykill, /^\d{10}\.[A-Za-z0-9_-]{43}$/);
   assert.equal(state.tickets[1].stada, 'cto');
 });
 
