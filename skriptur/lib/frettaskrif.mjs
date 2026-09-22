@@ -21,7 +21,7 @@ export const KERFI = [
   'SNIÐ: ef snid er "tolur" skaltu skrifa 2–4 setningar í einni málsgrein. Ef snid er "efni" skaltu skrifa 2–3 málsgreinar ef staðreyndir leyfa, annars færri, aðskildar með auðri línu: fyrst hvað gerðist, síðan samhengi úr bakgrunni ef hann er til, loks önnur atriði úr facts. Séu staðreyndirnar fáar skaltu skrifa stutt. ALDREI teygja textann með endurtekningu eða almennum orðum.',
   'STRANGT BANN: engar tölur, nöfn, dagsetningar eða fullyrðingar sem ekki standa í facts. Ekki reikna nýjar tölur (hvorki mismun, hlutföll né samtölur) nema þær standi í facts. Engar orsakaskýringar eða spádómar. Engin gildishlaðin orð og engin upphrópunarmerki. Ekki nefna facts, bakgrunn eða heiti sviða. Nöfn einstaklinga sem eru nafnlaus í facts (t.d. X) haldast nafnlaus.',
   // talnavörnin sér aðeins hvort tala sé til í facts, ekki hvað hún merkir (yfirferð 22.9); þetta bann ber merkinguna
-  'EFSTASTIG OG TÍMABIL: engar efstastigs- eða tímabilsfullyrðingar sem facts segja ekki berum orðum, t.d. „í röð“, „frá upphafi“, „í fyrsta sinn“, „mesta/hæsta/lægsta … síðan“ eða „á árinu“. Tímabil skal nefna eins og facts lýsa þeim (t.d. „í gagnaröð Karp“).',
+  'EFSTASTIG OG TÍMABIL: engar efstastigs- eða tímabilsfullyrðingar sem facts segja ekki berum orðum, t.d. „í röð“, „frá upphafi“, „í fyrsta sinn“, „mesta/hæsta/lægsta … síðan“ eða „á árinu“. Tímabil skal nefna eins og facts lýsa þeim (t.d. „síðustu 40 viðskiptadaga“).',
   'Tölur á íslensku sniði: 1.024.188.084 kr., 7,3%, 17,7 milljarðar króna.',
   'Skilaðu AÐEINS JSON-hlut: {"title":"...","text":"..."}. title hámark 90 stafir, text hámark 2000 stafir, málsgreinar aðskildar með \\n\\n. Engin markdown.',
 ].join('\n');
@@ -183,15 +183,19 @@ export async function skrifaFrettir(events, { client, model = SJALFGEFID_LIKAN, 
   return t;
 }
 
-/** Ein lína á hverja höfnun: id · ástæða · rangar tölur (ef til). */
+/** Ein lína á hverja höfnun: id · ástæða · rangar tölur (ef til). 'titill' er EKKI höfnun á fréttinni sjálfri — hún var
+ *  skrifuð (telst með í skrifadar), en styttur titill féll á talnavörninni og sniðmátstitillinn hélst því; það orðalag
+ *  fær því annan formála en raunveruleg höfnun. */
 export const hafnadarLinur = (hafnadar) => (hafnadar || [])
-  .map((h) => '• hafnað: ' + h.id + ' · ' + h.astaeda + (h.rangar && h.rangar.length ? ' · ' + h.rangar.join(', ') : ''));
+  .map((h) => '• ' + (h.astaeda === 'titill' ? 'sniðmátstitill hélst' : 'hafnað') + ': ' + h.id + ' · ' + h.astaeda + (h.rangar && h.rangar.length ? ' · ' + h.rangar.join(', ') : ''));
 
-/** Ein frétt prufukeyrslu (markdown): áður/nýtt, bakgrunnur og höfnun (h = færsla úr hafnadar, ef hún varð). */
-export function efnisgreinMd(e, h = null) {
+/** Ein frétt prufukeyrslu (markdown): áður/nýtt, bakgrunnur og höfnun (h = færsla úr hafnadar, ef hún varð). `merki`
+ *  yfirskrifar sjálfgefna sniðmáts-merkið, t.d. 'utan tímaþaks' fyrir fréttir sem tímaþak ritunar skildi eftir
+ *  (það er ekki það sama og að hafa aldrei átt að fara í kall, sbr. noai eða enginn lykill). */
+export function efnisgreinMd(e, h = null, merki = null) {
   const l = ['### ' + e.type + ' · ' + e.id];
   if (e.gamall) l.push('**Áður:** ' + e.gamall.title, '', e.gamall.text || '', '');
-  l.push('**' + (e.ai ? 'Nýtt' : 'Sniðmát (ekki vélskrifað)') + ':** ' + e.title, '', e.text || '', '');
+  l.push('**' + (merki || (e.ai ? 'Nýtt' : 'Sniðmát (ekki vélskrifað)')) + ':** ' + e.title, '', e.text || '', '');
   const bg = e.facts && e.facts.bakgrunnur;
   l.push('_Bakgrunnur:_ ' + (bg ? '`' + JSON.stringify(bg) + '`' : 'enginn'));
   if (h) l.push('_Hafnað:_ ' + h.astaeda + (h.rangar && h.rangar.length ? ' · ' + h.rangar.join(', ') : ''));

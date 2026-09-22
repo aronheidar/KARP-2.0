@@ -143,7 +143,7 @@ test('samþykkt hreinsar gamalt talnavörn-merki af fyrri keyrslu', async () => 
 
 // Talnavörnin athugar að tala SÉ til, ekki hvað hún merkir; fyrirmælin verða að banna merkingarvillurnar sjálf.
 test('fyrirmælin banna efstastig og tímabilsfullyrðingar sem facts segja ekki berum orðum', () => {
-  for (const s of ['í röð', 'frá upphafi', 'í fyrsta sinn', 'síðan', 'á árinu', 'í gagnaröð Karp']) assert.ok(KERFI.includes(s), s);
+  for (const s of ['í röð', 'frá upphafi', 'í fyrsta sinn', 'síðan', 'á árinu', 'síðustu 40 viðskiptadaga']) assert.ok(KERFI.includes(s), s);
 });
 
 test('fyrirmælin: færri málsgreinar ef staðreyndir leyfa ekki, önnur atriði úr facts, nafnleysi og engin markdown', () => {
@@ -295,6 +295,13 @@ test('tölfræðin skráir hverja höfnun: id, ástæðu og röngu tölurnar; l�
   assert.equal(t.hafnad, 2);
   assert.equal(t.villur, 1);
   assert.deepEqual(hafnadarLinur(t.hafnadar), ['• hafnað: mark-x · tolur · 7,5%', '• hafnað: mark-y · json', '• hafnað: mark-z · villa']);
+});
+
+// astaeda 'titill' þýðir að fréttin VAR skrifuð (telst með í skrifadar) en styttur titill féll á talnavörninni, svo
+// sniðmátstitillinn helst — það er ekki höfnun á fréttinni sjálfri og á ekki að heita „hafnað" í logginu.
+test('hafnadarLinur: titill-ástæða fær annað orðalag en raunveruleg höfnun (fréttin var skrifuð, aðeins titillinn hélst)', () => {
+  assert.deepEqual(hafnadarLinur([{ id: 'mark-x', astaeda: 'titill', rangar: ['17,7'] }]), ['• sniðmátstitill hélst: mark-x · titill · 17,7']);
+  assert.deepEqual(hafnadarLinur([{ id: 'mark-y', astaeda: 'tolur', rangar: ['7,5%'] }]), ['• hafnað: mark-y · tolur · 7,5%']);
 });
 
 test('tímaþak: eftir þakið byrjar engin ný frétt og afgangurinn heldur sniðmáti (sleppt)', async () => {

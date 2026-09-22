@@ -29,14 +29,27 @@ const erHlutfall = (eftir) => /^\s*(%|prósent)/i.test(eftir);
 const stadlaStrik = (s) => String(s).replace(/[‐‑‒–—]/g, '-');
 const hreinsa = (s) => s.replace(/[.,:;!?'"»«„“”]+$/, '');   // AÐEINS í enda strengs — hratt-birting, ekki úrskurður
 
-// Sviðaheiti (yfirferð 22.9): vörnin hafnaði réttum texta af því að talan sat í HEITINU, ekki gildinu.
-// `ny_utbod_30d` = „síðustu 30 daga", `kosningar2024`, `verdbolga_12man_fyrr` = „fyrir 12 mánuðum": fréttin má nefna þær.
-const lykilTolur = (k) => (String(k).match(/\d+/g) || []).map(Number);
+// Sviðaheiti (yfirferð 22.9): vörnin hafnaði réttum texta af því að talan sat í HEITINU, ekki gildinu. AÐEINS tímabil
+// (skiptitala + man/d/ar/ara, t.d. `ny_utbod_30d`, `verdbolga_12man_fyrr`) eða fjögurra stafa ártal (`kosningar2024`)
+// teljast — ekki hvaða tölustafur sem er í heitinu. Áður las lykilTolur ALLA tölustafi hráð (t.d. `verd_m2` hleypti „2"
+// í gegn sem gilda tölu); yfirferð 22.9 (síðari lota) þrengdi þetta að einingum sem fréttin má raunverulega nefna.
+const lykilTolur = (k) => {
+  const tolur = [];
+  for (const hluti of String(k).split('_')) {
+    const timabil = /^(\d+)(?:man|d|ar|ara)$/.exec(hluti);
+    if (timabil) tolur.push(Number(timabil[1]));
+    const artal = /(19|20)\d{2}/.exec(hluti);
+    if (artal) tolur.push(Number(artal[0]));
+  }
+  return tolur;
+};
 // `_thus` = gildið er í þúsundum (fermetraverd_thus: 824 → „824 þúsund krónur"). Líka sem hluti heitis: midgildi_thus_m2.
 const erThusLykill = (k) => /(^|_)thus(_|$)/.test(k);
-// ×100 AÐEINS fyrir brot á sviðum sem heita breyting/hlutfall (breyting12: 0,162 → 16,2%), svo óskylt brot í bakgrunni
-// (0,5) hleypi ekki uppspunnu hlutfalli (50%) í gegn. `_pct` ber prósentu nú þegar og fær aldrei ×100.
-const erBrotLykill = (k) => /breyting|hlutfall/.test(k) && !/_pct$/.test(k);
+// ×100 AÐEINS á allowlista sviða sem geyma raunverulegt BROT (0–1): breytingN (svæðaskynjarinn, t.d. breyting12) og
+// hms_breyting_ÁÁÁÁ (HMS-spá, t.d. hms_breyting_2027). Yfirferð 22.9 (síðari lota): laustengd samsvörun á „breyting"
+// eða „hlutfall" hvar sem er í heitinu hleypti óskyldu PRÓSENTUSTIGI í gegn sem prósentu — vaxtabreytingin úr
+// vextir-skynjaranum (`breyting: 0,25`, þ.e. 0,25 prósentustig) stóðst ranglega á móti uppspunninni „25%".
+const erBrotLykill = (k) => /^breyting\d+$/.test(k) || /^hms_breyting_\d{4}$/.test(k);
 const hreint = (x) => Number(x.toPrecision(12));   // fleytitölusuð: 0,29 × 100 = 28,999999999999996 → 29
 
 /** Tölur í texta: { hratt, tegund: 'numer'|'tala'|'hlutfall', gildi?, nakvaemni?, hrein? } */
@@ -62,8 +75,8 @@ export function talnaTokar(texti) {
   return tokar;
 }
 
-/** Leyfileg gildi úr facts: allar tölur (líka inni í strengjum) + dagur, mánuður og ár úr dagsetningum, tölur í
- *  sviðaheitum, ×1000 á `_thus`-sviðum og ×100 á brotum í breyting/hlutfall-sviðum. */
+/** Leyfileg gildi úr facts: allar tölur (líka inni í strengjum) + dagur, mánuður og ár úr dagsetningum, tímabil/ártal í
+ *  sviðaheitum, ×1000 á `_thus`-sviðum og ×100 á brotum á breytingN/hms_breyting_ÁÁÁÁ-sviðum. */
 export function leyfd(facts) {
   const gildi = [], strengir = [];
   const ganga = (v, lykill = '') => {

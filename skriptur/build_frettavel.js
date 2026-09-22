@@ -67,7 +67,9 @@ function naestaLyfFyrst(fyrri, slugs, idag) {
   const nFyrri = fyrri ? Object.keys(fyrri).length : 0;
   if (!slugs.length && nFyrri) return { mynd: fyrri, vidvorun: 'lyf.json: enginn skortur skráður en ' + nFyrri + ' lyf voru í skorti síðast; líkleg gagnabilun, lyfFyrst óbreytt' };
   const mynd = {};
-  for (const s of slugs) mynd[s] = fyrri ? (fyrri[s] || idag) : 'ohekkt';
+  // nFyrri (ekki hrátt fyrri): tóm mynd ({}) er sömu merkingar og engin mynd (null) — engin ÁLITIN fyrri gögn, svo
+  // núverandi skortur fær fyrsta-keyrslu gildið 'ohekkt' en ekki daginn í dag (fyrri var truthy sem tómur hlutur).
+  for (const s of slugs) mynd[s] = nFyrri ? (fyrri[s] || idag) : 'ohekkt';
   return { mynd, vidvorun: null };
 }
 
@@ -953,8 +955,9 @@ function gognBakgrunns() {
 }
 function nyrClient() {
   if (!process.env.ANTHROPIC_API_KEY) return null;
-  // 60 s á kall og eitt endurkall (sjálfgefið í SDK: 10 mín og 2): eitt hangandi kall má ekki éta tímaþak ritunarinnar
-  try { const p = require('@anthropic-ai/sdk'); const A = p.Anthropic || p.default || p; return new A({ timeout: 60_000, maxRetries: 1 }); }
+  // 120 s á kall (verstu tilvik ~100 s fyrir 4096 tóka svar, sjá MAX_TOKENS) og eitt endurkall (sjálfgefið í SDK:
+  // 10 mín og 2): eitt hangandi kall má ekki éta tímaþak ritunarinnar, en 60 s var of naumt fyrir lengsta svarið.
+  try { const p = require('@anthropic-ai/sdk'); const A = p.Anthropic || p.default || p; return new A({ timeout: 120_000, maxRetries: 1 }); }
   catch (e) { console.log('• @anthropic-ai/sdk ekki til — sniðmátstextar notaðir.'); return null; }
 }
 // Safnið geymir ekki kt, en persónuverndarvörnin hvílir á henni (5 af 7 vörumerkjasýnishornum 22.9 voru einstaklingar):
@@ -991,9 +994,11 @@ function synishornUrSafni(items, n, { studdar, markMork, vmKt }) {
   }
   return ut;
 }
-// ⚠ Prufuhamur skrifar EKKERT. Hann skrifar fréttir dagsins og N nýlegar úr safninu (áður vs nýtt), án fjöldaþaks, og
+// ⚠ Prufuhamur skrifar EKKERT. Hann skrifar sýnishorn úr safninu og fréttir dagsins (áður vs nýtt), án fjöldaþaks, og
 //   prentar HVERJA frétt um leið og hún er tilbúin (líka í $GITHUB_STEP_SUMMARY), svo sýnishorn glatist ekki þótt
-//   vinnuflæðið nái tímamörkum; tölfræðin kemur í lokin. Tímaþak ritunar (12 mín) gildir áfram, innan 20 mín vinnuflæðisins.
+//   vinnuflæðið nái tímamörkum; tölfræðin kemur í lokin. Tímaþak ritunar (12 mín) gildir áfram, innan 25 mín vinnuflæðisins.
+//   Sýnishornin eru FYRST í röðinni (22.9, síðari lota): lendi tímaþakið á einhverjum eiga það að vera fréttir dagsins,
+//   ekki sýnishornin sem áður/nýtt-samanburðurinn — sem eigandinn dæmir efnið á — hvílir á.
 //   Markaðsfréttum eldri en 2 daga er sleppt (verðsagan hefur hreyfst). `client` er inndælanlegur (próf).
 async function prufukeyrsla(published, state, { client = nyrClient() } = {}) {
   const { baetaVidBakgrunni, STUDDAR_TEGUNDIR } = await import('./lib/frettasamhengi.mjs');
@@ -1006,7 +1011,7 @@ async function prufukeyrsla(published, state, { client = nyrClient() } = {}) {
     const gogn = gognBakgrunns();
     for (const s of synishorn) baetaVidBakgrunni([s], gogn, { idag: s.birt || TODAY, state });
   }
-  const allt = published.concat(synishorn);
+  const allt = synishorn.concat(published);
   const skrifa = (md) => {
     console.log(md);
     if (!process.env.GITHUB_STEP_SUMMARY) return;
@@ -1015,9 +1020,13 @@ async function prufukeyrsla(published, state, { client = nyrClient() } = {}) {
   console.log('\n===== PRUFUKEYRSLA — ekkert skrifað =====');
   skrifa('## Prufukeyrsla fréttavélar ' + TODAY + (client ? '' : ' (enginn lykill: aðeins bakgrunnur)') + '\n');
   const prentud = new Set();
-  const prenta = (e, h) => { prentud.add(e); skrifa(efnisgreinMd(e, h)); };
+  const prenta = (e, h, merki) => { prentud.add(e); skrifa(efnisgreinMd(e, h, merki)); };
   const t = client ? await skrifaFrettir(allt, { client, model: process.env.KARP_FRETTAVEL_MODEL || undefined, hamark: Infinity, eftirHverja: prenta }) : null;
-  for (const e of allt) if (!prentud.has(e)) prenta(e, null);   // ekki sendar: noai, utan tímaþaks eða enginn lykill
+  // Þau sem féllu af TÍMAÞAKI (síðustu t.sleppt í hópnum sem mátti fara í kall) fá sér-merki í útskriftinni — ekki sama
+  // sniðmáts-merki og greinar sem aldrei áttu að fara í kall (noai eða enginn lykill).
+  const hopur = allt.filter((e) => e && !e.noai);
+  const timaThakSett = new Set(t && t.sleppt ? hopur.slice(hopur.length - t.sleppt) : []);
+  for (const e of allt) if (!prentud.has(e)) prenta(e, null, timaThakSett.has(e) ? 'utan tímaþaks' : undefined);   // ekki sendar: noai, utan tímaþaks eða enginn lykill
   if (t) {
     const { hafnadar, ...tolur } = t;
     skrifa('### Samantekt\n\nTölfræði: ' + JSON.stringify(tolur) + (hafnadar.length ? '\n\n' + hafnadarLinur(hafnadar).join('\n') : '') + '\n');

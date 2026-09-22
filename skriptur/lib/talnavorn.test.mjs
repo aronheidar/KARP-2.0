@@ -56,23 +56,36 @@ test('einingar þekkjast í öllum beygingarmyndum sem heil orð', () => {
   assert.equal(athugaTolur('4 milljarðar', { a: 4e9 }).ok, true);
 });
 
-// Yfirferð 22.9: brot á sviðum sem heita breyting/hlutfall eru ×100 (breyting12: 0,162 → 16,2%). Áður var ×100 alveg
-// bannað, svo `{ hlutfall: 0.5 }` hleypti 50% EKKI í gegn; nú gerir það það. Það sem bannið varði helst: óskylt brot
-// (annað sviðaheiti) hleypir uppspunnu hlutfalli ekki í gegn.
-test('×100 aðeins fyrir brot á sviðum sem heita breyting eða hlutfall', () => {
-  assert.equal(athugaTolur('hlutfallið var 50%', { hlutfall: 0.5 }).ok, true);
-  assert.equal(athugaTolur('hlutfallið var 50%', { hlutfall: 50 }).ok, true);
-  assert.equal(athugaTolur('hækkun um 16,2%', { breyting12: 0.162 }).ok, true);
+// Yfirferð 22.9 (síðari lota): ×100 er nú BUNDIÐ við sviðaheiti sem passa nákvæmlega breytingN eða hms_breyting_ÁÁÁÁ —
+// þau einu sem geyma raunverulegt BROT (0,162 = 16,2%) í gögnunum (svæðaskynjarinn breyting12, HMS-spá
+// hms_breyting_2027). Laustengd samsvörun á „breyting"/„hlutfall" hvar sem er í heitinu (eldra far) hleypti óskyldu
+// PRÓSENTUSTIGI í gegn sem prósentu: vaxtabreytingin `breyting: 0,25` (0,25 prósentustig úr vextir-skynjaranum) stóðst
+// ranglega á móti uppspunninni „25%".
+test('×100 er BUNDIÐ við breytingN og hms_breyting_ÁÁÁÁ — vaxtabreyting í prósentustigum er ekki prósenta', () => {
+  assert.deepEqual(athugaTolur('Seðlabankinn hækkaði vexti um 25%', { breyting: 0.25, nyir: 8, fyrri: 7.75 }).rangar, ['25%'], '0,25 prósentustig ≠ 25%');
+  assert.equal(athugaTolur('hækkaði um 16,2%', { breyting12: 0.162 }).ok, true);
+  assert.equal(athugaTolur('hækkaði um 3,1%', { hms_breyting_2027: 0.031 }).ok, true);
   assert.equal(athugaTolur('áætluð breyting fyrir 2027 er 5,5%', { hms_breyting_2027: 0.055 }).ok, true);
+  assert.deepEqual(athugaTolur('hlutfallið var 50%', { hlutfall: 0.5 }).rangar, ['50%'], 'hlutfall er ekki á allowlistanum lengur');
+  assert.equal(athugaTolur('hlutfallið var 50%', { hlutfall: 50 }).ok, true, 'nákvæm samsvörun þarf enga ×100');
   assert.deepEqual(athugaTolur('hlutfallið var 50%', { onnur_tala: 0.5 }).rangar, ['50%'], 'óskylt brot');
-  assert.deepEqual(athugaTolur('breytingin var 150%', { breyting: 1.5 }).rangar, ['150%'], 'ekki brot');
-  assert.deepEqual(athugaTolur('úrvalsvísitalan hækkaði um 40%', { urvalsvisitala_breyting_pct: 0.4 }).rangar, ['40%'], '_pct ber prósentu nú þegar');
+  assert.deepEqual(athugaTolur('breytingin var 150%', { breyting: 1.5 }).rangar, ['150%'], 'yfir 1 hvort eð er');
+  assert.deepEqual(athugaTolur('úrvalsvísitalan hækkaði um 40%', { urvalsvisitala_breyting_pct: 0.4 }).rangar, ['40%'], '_pct ber prósentu nú þegar, og er ekki á allowlistanum');
 });
 
 test('tölustafir í sviðaheitum teljast leyfð gildi (raundæmi sem vörnin hafnaði áður)', () => {
   assert.equal(athugaTolur('Í kosningunum 2024 fékk flokkurinn 19,36% fylgi.', { flokkur: 'Sjálfstæðisflokkurinn', kosningar2024: 19.36 }).ok, true);
   assert.equal(athugaTolur('Verðbólga var 4% fyrir 12 mánuðum.', { verdbolga_12man_fyrr: 4 }).ok, true);
   assert.deepEqual(athugaTolur('Á síðustu 31 degi voru 42 ný útboð birt.', { ny_utbod_30d: 42 }).rangar, ['31'], 'aðeins talan í heitinu');
+});
+
+// Yfirferð 22.9 (síðari lota): lykiltölur AÐEINS úr tímabilshluta (skiptitala + man/d/ar/ara) eða fjögurra stafa ártali —
+// ekki hvaða tala sem stendur í heitinu. Áður las lykilTolur ALLA tölustafi í heitinu, svo t.d. `verd_m2` hleypti „2"
+// í gegn sem gilda tölu (raundæmi sem vörnin hefði átt að hafna).
+test('lykilTolur: aðeins tímabil (man/d/ar/ara) eða ártal úr sviðaheiti, ekki hvaða tala sem er (t.d. m2)', () => {
+  assert.deepEqual(athugaTolur('2 kaup', { verd_m2: 350 }).rangar, ['2'], 'm2 lekur ekki lengur lykilstafnum sínum');
+  assert.equal(athugaTolur('síðustu 12 mánuði', { verdbolga_12man_fyrr: 4 }).ok, true);
+  assert.equal(athugaTolur('2024', { kosningar2024: 5 }).ok, true);
 });
 
 test('gildi á sviðum í þúsundum (_thus) teljast líka ×1000', () => {

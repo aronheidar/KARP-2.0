@@ -41,6 +41,9 @@ test('lyfFyrst: enginn skortur í skránni en fyrri mynd ekki tóm → fyrri myn
   assert.deepEqual(naestaLyfFyrst(fyrri, ['a', 'c'], '2026-09-22'), { mynd: { a: '2026-09-01', c: '2026-09-22' }, vidvorun: null });
   assert.deepEqual(naestaLyfFyrst(null, ['a'], '2026-09-22'), { mynd: { a: 'ohekkt' }, vidvorun: null }, 'fyrsta keyrsla: upphaf óþekkt');
   assert.deepEqual(naestaLyfFyrst({}, [], '2026-09-22'), { mynd: {}, vidvorun: null }, 'enginn skortur, hvorki nú né síðast');
+  // Tóm mynd ({}) er í reynd sömu merkingar og engin mynd (null): engin ÁLITIN fyrri gögn. Núverandi skortur á þá að fá
+  // 'ohekkt' (fyrsta-keyrslu merking), ekki daginn í dag — annars liti út fyrir að áralangur skortur hæfist einmitt núna.
+  assert.deepEqual(naestaLyfFyrst({}, ['a'], '2026-09-22'), { mynd: { a: 'ohekkt' }, vidvorun: null }, 'tóm mynd er sömu merkingar og engin mynd: ohekkt, ekki dagsetning dagsins');
 });
 
 // Safnið geymir ekki kt, en persónuverndarvörnin hvílir á henni (5 af 7 vörumerkjasýnishornum 22.9 voru einstaklingar).
