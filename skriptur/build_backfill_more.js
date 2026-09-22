@@ -4,8 +4,7 @@
 //   Fasi 1 (alltaf): CDX → grein-slóðir.  Fasi 2 (--titles): sækir titil+lýsingu+dagsetningu (raun-sókn).
 //   --fra þrengir CDX-gluggann (sjálfgefið 20260101). Stór forskeyti (vb.is/frettir/) skila annars 504.
 // → gogn/backfill_<src>.json {ts,source,title,url,desc}. Skyndiminni gogn/backfill_<src>_meta.json → ENDURRÆSANLEGT.
-// Síðan: node skriptur/import_backfill_d1.mjs gogn/backfill_<src>.json → SQL-skrá, keyrð með wrangler.
-//   ⚠ import_backfill.js sendi á WP-endapunkt sem hvarf við flutninginn til Cloudflare (dauð leið síðan þá).
+// Síðan: node skriptur/import_backfill_d1.mjs gogn/backfill_<src>.json — skrifar BEINT í D1 (ein skipun).
 const fs = require('fs');
 const path = require('path');
 const DIR = path.join(__dirname, '..', 'gogn') + path.sep;

@@ -3,7 +3,8 @@
 // Fasi 2 (--titles): sækir RAUNVERULEGA titilinn (með íslenskum stöfum, úr og:title) fyrir hverja grein
 //   af archive.org — slóða-slug er ASCII-foldaður svo þetta þarf til að fá rétta titla.
 //   Skyndiminni gogn/backfill_titles.json → ENDURRÆSANLEGT (ef stöðvast/rate-limit, keyrðu aftur).
-// → gogn/backfill.json ({ts,source,title,url}). Síðan: flytja inn gegnum POST /wp-json/karp/v1/newsimport.
+// → gogn/backfill.json ({ts,source,title,url}). Síðan: node skriptur/import_backfill_d1.mjs gogn/backfill.json
+//   — skrifar BEINT í D1 (ein skipun). Eldri leiðin fór á WP-endapunkt sem hvarf við flutninginn til Cloudflare.
 //
 // KEYRA:  node skriptur/build_backfill.js            (bara CDX, foldaðir titlar, fljótt)
 //         node skriptur/build_backfill.js --titles   (sækir raun-titla — ~45–75 mín, endurræsanlegt)
