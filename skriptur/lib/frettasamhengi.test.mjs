@@ -1,7 +1,7 @@
 // Bakgrunnur fréttar úr gögnum Karp. Gögnin hér eru á RAUNSNIÐI skránna (staðfest 22.9.2026).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { baetaVidBakgrunni, fyrirtaeki, stadlaNafn, erLogadili, STUDDAR_TEGUNDIR } from './frettasamhengi.mjs';
+import { baetaVidBakgrunni, fyrirtaeki, stadlaNafn, erLogadili, nafnaskra, ktFraNafni, STUDDAR_TEGUNDIR } from './frettasamhengi.mjs';
 
 const IDAG = '2026-09-22';
 export const GOGN = () => ({
@@ -32,13 +32,28 @@ test('stöðlun nafna og lögaðilapróf', () => {
   assert.equal(erLogadili('0101801234'), false, 'einstaklingur');
 });
 
-test('fyrirtæki: útboð (utan fréttarinnar sjálfrar), ríkisgreiðslur og styrkir', () => {
-  const f = fyrirtaeki('Dagar hf.', GOGN(), { utanUtbods: 'NU', idag: IDAG });
+test('fyrirtæki: útboð (utan fréttarinnar sjálfrar), ríkisgreiðslur og styrkir, hvert með heimild', () => {
+  const f = fyrirtaeki('Dagar hf.', GOGN(), { utanUtbods: 'NU', dags: IDAG });
   assert.deepEqual(f, {
-    utbod_unnin: { fjoldi: 2, samtals_kr: 1300000, sidast: '2026-06-01' },
-    rikisgreidslur_12man: { samtals_kr: 250000000, fra: '2025-09', til: '2026-08' },
-    styrkir_fyrri: { fjoldi: 2, samtals_kr: 50000000 },
+    utbod_unnin: { fjoldi: 2, samtals_kr: 1300000, sidast: '2026-06-01', gogn_fra: '2025-01-01', heimild: 'samningstilkynningar í TED' },
+    rikisgreidslur_12man: { samtals_kr: 250000000, fra: '2025-09', til: '2026-08', heimild: 'opnir reikningar ríkisins' },
+    styrkir_fyrri: { fjoldi: 2, samtals_kr: 50000000, heimild: 'úthlutunarskrár styrkjasjóða í gagnasafni Karp' },
   });
+});
+
+test('útboð dagsett eftir fréttinni teljast ekki með (sýnishorn úr safninu fá ekki framtíðargögn)', () => {
+  const e = { id: 'urslit-X', type: 'urslit', facts: { kaupandi: 'Isavia ohf', sigurvegarar: ['Dagar hf.'], dags: '2026-05-01', tedNr: 'X' } };
+  baetaVidBakgrunni([e], GOGN(), { idag: IDAG });
+  assert.equal(e.facts.bakgrunnur.sigurvegari.utbod_unnin.fjoldi, 1, 'A1 (1.3.) en ekki A2 (1.6.) né NU (21.9.)');
+  assert.equal(e.facts.bakgrunnur.sigurvegari.utbod_unnin.sidast, '2026-03-01');
+});
+
+test('fyrri styrkir: aðeins úthlutunarár ≤ fréttarár og án styrksins sjálfs', () => {
+  const g = GOGN();
+  g.styrkir.styrkir.push({ nafn: 'Dagar hf.', kt: null, sjodur: 'Kvikmyndasjóður', upphaed: 90000000, ar: 2027, vilyrdi: true });
+  const e = { id: 'styrkur-dagar-2026', type: 'styrkur', facts: { thegi: 'Dagar hf.', sjodur: 'Tækniþróunarsjóður', upphaed: 30000000, ar: 2026 } };
+  baetaVidBakgrunni([e], g, { idag: IDAG });
+  assert.deepEqual(e.facts.bakgrunnur.thegi.styrkir_fyrri, { fjoldi: 1, samtals_kr: 20000000, heimild: 'úthlutunarskrár styrkjasjóða í gagnasafni Karp' });
 });
 
 test('bakgrunnur inniheldur aldrei ársreikning — ver greiddu 990 kr mörkin', () => {
@@ -57,9 +72,65 @@ test('bakgrunnur inniheldur aldrei ársreikning — ver greiddu 990 kr mörkin',
   for (const e of ev) assert.doesNotMatch(JSON.stringify(e.facts.bakgrunnur), /arsreikn|sala_kr|hagnadur/);
 });
 
+// I6 (yfirferð 22.9): nákvæmt nafn MEÐ félagaformi ræður fyrst, svo „Tvínefni ehf." er nú ótvírætt. Tvírætt er nafn
+// sem aðeins staðlaða samsvörunin nær og hún gefur tvær kt — þá fæst ekkert, jafnvel þótt gögn finnist undir nafninu.
 test('tvíræð eða óþekkt nafn gefur EKKERT, frekar en að giska', () => {
-  assert.equal(fyrirtaeki('Tvínefni ehf.', GOGN(), { idag: IDAG }), null);
-  assert.equal(fyrirtaeki('Óþekkt Erlent B.V.', GOGN(), { idag: IDAG }), null);
+  const g = GOGN();
+  g.utbod_urslit.awards.push({ nr: 'T1', buyer: 'Vegagerðin', winners: ['Tvínefni'], value: 7000000, cur: 'ISK', d: '2026-02-01' });
+  assert.equal(fyrirtaeki('Tvínefni', g, { dags: IDAG }), null);
+  assert.equal(fyrirtaeki('Óþekkt Erlent B.V.', g, { dags: IDAG }), null);
+  assert.equal(fyrirtaeki('Tvínefni ehf.', g, { dags: IDAG }), null, 'ótvírætt nafn, en útboðið „Tvínefni" gæti átt við hvort félagið sem er');
+});
+
+test('nafn → kt: fyrst nákvæm samsvörun með félagaformi, síðan stöðluð sem gefur eina kt', () => {
+  const skra = nafnaskra(GOGN().felagaskra);
+  assert.equal(ktFraNafni('Tvínefni ehf.', skra), '6001001001');
+  assert.equal(ktFraNafni('Tvínefni hf', skra), '6001001002');
+  assert.equal(ktFraNafni('Tvínefni', skra), null, 'staðlað nafn á tvær kt');
+  assert.equal(ktFraNafni('Aðalstræti 4', skra), '4101690299', 'staðlað nafn á eina kt');
+});
+
+// Félag með sama grunnnafn og annað félagaform („Dagar ehf.") má hvorki fá né gefa útboð nafna síns.
+const MED_DOGUM_EHF = () => {
+  const g = GOGN();
+  g.felagaskra.felog.push({ kt: '6001001009', nafn: 'Dagar ehf.' });
+  g.utbod_urslit.awards.push({ nr: 'E1', buyer: 'Vegagerðin', winners: ['Dagar ehf.'], value: 4000000, cur: 'ISK', d: '2026-04-01' });
+  return g;
+};
+
+test('„Dagar hf." leysist nákvæmt þótt „Dagar ehf." sé líka til, og fær aðeins sín eigin útboð', () => {
+  const f = fyrirtaeki('Dagar hf.', MED_DOGUM_EHF(), { dags: IDAG });
+  assert.equal(f.utbod_unnin.fjoldi, 3, 'A1, A2 og NU, ekki E1');
+  const d = fyrirtaeki('Dagar ehf.', MED_DOGUM_EHF(), { kt: '6001001009', dags: IDAG });
+  assert.equal(d.utbod_unnin.fjoldi, 1, 'aðeins E1');
+  assert.equal(d.rikisgreidslur_12man, undefined, 'birgirinn „Dagar hf." er hitt félagið');
+  assert.equal(d.styrkir_fyrri, undefined, 'styrkirnir eru skráðir á „Dagar hf."');
+});
+
+test('kt-leið: nafn sem vísar á aðra kt fær EKKI útboð, greiðslur né styrki nafna síns', () => {
+  assert.equal(fyrirtaeki('Dagar ehf', GOGN(), { kt: '6001001009', dags: IDAG }), null);
+  // nafnabundnar uppsprettur aðeins ef NAFNIÐ vísar ótvírætt á einmitt þessa kt
+  assert.equal(fyrirtaeki('Allt annað nafn ehf.', GOGN(), { kt: '5501692829', dags: IDAG }), null);
+});
+
+test('kt-leið: styrkur skráður á kt félagsins telst alltaf, þótt nafnið vísi annað', () => {
+  const g = GOGN();
+  g.styrkir.styrkir.push({ nafn: 'Dagar rannsóknir', kt: '6001001009', sjodur: 'Rannsóknasjóður', upphaed: 8000000, ar: 2025 });
+  assert.deepEqual(fyrirtaeki('Dagar ehf', g, { kt: '6001001009', dags: IDAG }), {
+    styrkir_fyrri: { fjoldi: 1, samtals_kr: 8000000, heimild: 'úthlutunarskrár styrkjasjóða í gagnasafni Karp' },
+  });
+});
+
+test('vörumerki og gjaldþrot án kennitölu fá engan bakgrunn (nafnaleit gæti hitt félag nafna einstaklings)', () => {
+  const vm = { id: 'vorumerki-x', type: 'vorumerki', facts: { merki: 'DAGAR', eigandi: 'Dagar hf.' } };
+  const gj = { id: 'gjaldthrot-x', type: 'gjaldthrot', facts: { felag: 'Dagar hf.' } };
+  assert.equal(baetaVidBakgrunni([vm, gj], GOGN(), { idag: IDAG }), 0);
+});
+
+test('kaupandi: „Isavia ohf" og „Isavia ohf." teljast einn kaupandi', () => {
+  const e = { id: 'urslit-NU', type: 'urslit', facts: { kaupandi: 'Isavia ohf.', sigurvegarar: ['Dagar hf.'], dags: '2026-09-21', tedNr: 'NU' } };
+  baetaVidBakgrunni([e], GOGN(), { idag: IDAG });
+  assert.equal(e.facts.bakgrunnur.kaupandi_onnur_utbod_12man, 2);
 });
 
 test('kennitala einstaklings stöðvar samhengið, líka þótt nafnið finnist sem félag', () => {
@@ -76,7 +147,7 @@ test('útboð: sigurvegari + önnur útboð kaupandans síðustu 12 mánuði', (
 test('styrkur: fyrri styrkir án styrksins sem fréttin fjallar um', () => {
   const e = { id: 'styrkur-dagar-2026', type: 'styrkur', facts: { thegi: 'Dagar hf.', sjodur: 'Tækniþróunarsjóður', upphaed: 30000000, ar: 2026 } };
   baetaVidBakgrunni([e], GOGN(), { idag: IDAG });
-  assert.deepEqual(e.facts.bakgrunnur.thegi.styrkir_fyrri, { fjoldi: 1, samtals_kr: 20000000 });
+  assert.deepEqual(e.facts.bakgrunnur.thegi.styrkir_fyrri, { fjoldi: 1, samtals_kr: 20000000, heimild: 'úthlutunarskrár styrkjasjóða í gagnasafni Karp' });
 });
 
 test('vörumerki og gjaldþrot nota kennitölu atburðarins', () => {
@@ -119,13 +190,15 @@ const LYF = { shortageCount: 241, lyf: [
 ] };
 const GOGN2 = () => ({ ...GOGN(), markadir: MARKADIR, sedlabanki: SEDLABANKI, atvinnuleysi: ATVINNULEYSI, lyf: LYF });
 
-test('markaðir: röðin, stærsta FYRRI dagshreyfing (án dagsins) og úrvalsvísitalan', () => {
+// Sviðaheitin lýsa sér sjálf (yfirferð 22.9): „hæsta" er hæsta í gagnaröð Karp, ekki sögulegt hámark.
+test('markaðir: röðin, stærsta FYRRI dagshreyfing (án dagsins) og úrvalsvísitalan, með sjálflýsandi heitum', () => {
   const e = { id: 'mark-x', type: 'mark', facts: { felag: 'Siminn hf', breyting: -7.3, verd: 10.2 } };
   baetaVidBakgrunni([e], GOGN2(), { idag: IDAG });
   assert.deepEqual(e.facts.bakgrunnur, {
-    vidskiptadagar_i_rod: 8, haesta_i_rod: 11.2, laegsta_i_rod: 10,
-    breyting_fra_upphafi_rodar_pct: 2, staersta_fyrri_dagshreyfing_pct: 5,
-    hreyfing_dagsins_su_staersta: true, urvalsvisitala_breyting_pct: 2,
+    gagnarod: 'lokagengi síðustu 8 viðskiptadaga í gagnasafni Karp',
+    vidskiptadagar_i_gagnarod_karp: 8, haesta_i_gagnarod_karp: 11.2, laegsta_i_gagnarod_karp: 10,
+    breyting_yfir_gagnarod_karp_pct: 2, staersta_fyrri_dagshreyfing_i_gagnarod_karp_pct: 5,
+    hreyfing_dagsins_su_staersta_i_gagnarod_karp: true, urvalsvisitala_breyting_pct: 2,
   });
 });
 
@@ -154,7 +227,7 @@ test('vikan: atvinnuleysi og verðbólga 12 mánuðum fyrr', () => {
 test('lyf: önnur lyf með sama virka efni (ATC), þar af í skorti, og hvenær skortur sást fyrst', () => {
   const e = { id: 'lyfskortur-cotrim-1', type: 'lyf', facts: { lyf: 'Cotrim' } };
   baetaVidBakgrunni([e], GOGN2(), { idag: IDAG, state: { lyfFyrst: { 'cotrim-1': '2026-09-10' } } });
-  assert.deepEqual(e.facts.bakgrunnur, { atc_kodi: 'J01EE01', onnur_lyf_sama_efni: 2, thar_af_i_skorti: 1, lyf_i_skorti_alls: 241, skortur_skradur_fra: '2026-09-10' });
+  assert.deepEqual(e.facts.bakgrunnur, { atc_kodi: 'J01EE01', onnur_lyf_sama_efni: 2, thar_af_i_skorti: 1, lyf_i_skorti_a_serlyfjaskra: 241, skortur_skradur_fra: '2026-09-10' });
   const ohekkt = { id: 'lyfskortur-cotrim-1', type: 'lyf', facts: { lyf: 'Cotrim' } };
   baetaVidBakgrunni([ohekkt], GOGN2(), { idag: IDAG, state: { lyfFyrst: { 'cotrim-1': 'ohekkt' } } });
   assert.equal(ohekkt.facts.bakgrunnur.skortur_skradur_fra, undefined, 'óþekkt upphaf er EKKI dagsetning');

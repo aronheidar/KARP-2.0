@@ -31,79 +31,108 @@ export const stadlaNafn = (n) => String(n || '').toLowerCase()
   .replace(/[.,;:„“"'()]/g, ' ')
   .replace(/(^|\s)(ehf|hf|ohf|slf|sf|bs|ses|svf)(?=\s|$)/g, ' ')
   .replace(/\s+/g, ' ').trim();
-// Sama stöðlun og build_urslit.js notar á byWinner-lykla, með sérkennum sínum, svo samsvörun útboða sé sú sama.
-const normUtbod = (s) => String(s).toLowerCase().replace(/\b(ehf|hf|ohf|slf|sf)\.?\b/g, '').replace(/[^a-za-ö0-9]+/gi, ' ').trim();
+// Nákvæmt nafn (yfirferð 22.9): lágstafir og snyrt en MEÐ félagaformi, svo „Dagar hf." og „Dagar ehf." eru tvö ólík
+// nöfn. Greinarmerki verða bil eins og í stadlaNafn, svo „Dagar hf" og „Dagar hf." eru sama nafnið.
+export const nakvaemtNafn = (n) => String(n || '').toLowerCase().replace(/[.,;:„“"'()]/g, ' ').replace(/\s+/g, ' ').trim();
 export const erLogadili = (kt) => /^[4-7]\d{9}$/.test(String(kt || ''));
 
 export function nafnaskra(felagaskra) {
-  const m = new Map();
+  const nakvaemt = new Map(), stadlad = new Map();
+  const baeta = (m, k, kt) => { if (!k) return; if (!m.has(k)) m.set(k, new Set()); m.get(k).add(kt); };
   for (const f of ((felagaskra && felagaskra.felog) || [])) {
-    const k = stadlaNafn(f.nafn);
-    if (!k) continue;
-    if (!m.has(k)) m.set(k, new Set());
-    m.get(k).add(String(f.kt));
+    baeta(nakvaemt, nakvaemtNafn(f.nafn), String(f.kt));
+    baeta(stadlad, stadlaNafn(f.nafn), String(f.kt));
   }
-  return m;
+  return { nakvaemt, stadlad };
 }
+/** kt nafns: fyrst nákvæm samsvörun (með félagaformi) sem gefur EINA kt, annars stöðluð (án félagaforms) sem gefur
+ *  EINA kt, annars null. Staðlaða samsvörunin ein og sér lét „Dagar ehf." og „Dagar hf." rekast á (3,96% nafna). */
 export function ktFraNafni(nafn, skra) {
-  const s = skra && skra.get(stadlaNafn(nafn));
-  return s && s.size === 1 ? [...s][0] : null;
+  if (!skra) return null;
+  const a = skra.nakvaemt.get(nakvaemtNafn(nafn));
+  if (a && a.size === 1) return [...a][0];
+  const b = skra.stadlad.get(stadlaNafn(nafn));
+  return b && b.size === 1 ? [...b][0] : null;
 }
 
-/** Samhengi um lögaðila, eða null ef hann finnst ekki ótvírætt. Aldrei ársreikningatölur (sjá haus). */
-export function fyrirtaeki(nafn, gogn, { kt = null, utanUtbods = null, utanStyrks = null } = {}) {
+/** Samhengi um lögaðila, eða null ef hann finnst ekki ótvírætt. Aldrei ársreikningatölur (sjá haus).
+ *  `dags` = dagsetning fréttarinnar (sjálfgefið í dag): útboð og styrkir sem komu síðar teljast ekki, svo endurskrifuð
+ *  frétt úr safninu fái ekki gögn sem voru ekki til þegar hún gerðist. */
+export function fyrirtaeki(nafn, gogn, { kt = null, utanUtbods = null, utanStyrks = null, dags = null } = {}) {
   if (!nafn) return null;
-  let k;
+  const skra = gogn._nafnaskra || (gogn._nafnaskra = nafnaskra(gogn.felagaskra));
+  let k, eftirNafni = true;
   if (kt != null && String(kt) !== '') {
     if (!erLogadili(kt)) return null;   // kt einstaklings: ekki falla á nafnaleit
     k = String(kt);
+    // kt ræður. Uppsprettur sem finnast eftir NAFNI (útboð, birgjar, styrkir) aðeins ef nafnið vísar ótvírætt á
+    // einmitt þessa kt; annars fengi „Dagar ehf." með sína kt útboð nafna síns „Dagar hf.".
+    eftirNafni = ktFraNafni(nafn, skra) === k;
   } else {
-    const skra = gogn._nafnaskra || (gogn._nafnaskra = nafnaskra(gogn.felagaskra));
     k = ktFraNafni(nafn, skra);
   }
   if (!k) return null;
-  const s = stadlaNafn(nafn), u = normUtbod(nafn);
-  const aw = ((gogn.utbod_urslit && gogn.utbod_urslit.awards) || [])
-    .filter((a) => a.nr !== utanUtbods && (a.winners || []).some((w) => normUtbod(w) === u));
+  // Hver færsla sem fundin er eftir nafni verður SJÁLF að vísa á k: sama grunnnafn með öðru félagaformi telst ekki,
+  // og nafn sem aðeins staðlaða samsvörunin nær og á tvær kt telst hjá hvorugu.
+  const aK = (n) => eftirNafni && ktFraNafni(n, skra) === k;
+  const d = String(dags || new Date().toISOString().slice(0, 10));
+  const allt = (gogn.utbod_urslit && gogn.utbod_urslit.awards) || [];
+  const aw = allt.filter((a) => a.nr !== utanUtbods && a.d && a.d < d && (a.winners || []).some(aK));
   const utbod = aw.length ? {
     fjoldi: aw.length,
     samtals_kr: Math.round(aw.reduce((t, a) => t + (a.cur === 'ISK' && a.value ? a.value / a.winners.length : 0), 0)) || null,
     sidast: aw.map((a) => a.d).filter(Boolean).sort().pop() || null,
+    gogn_fra: allt.map((a) => a.d).filter(Boolean).sort()[0] || null,   // „fjöldi" gildir frá þessum degi, ekki frá upphafi
+    heimild: 'samningstilkynningar í TED',
   } : null;
   const b = gogn.birgjar;
-  const v = b && (b.vendors || []).find((x) => stadlaNafn(x.n) === s);
-  const rikis = v ? { samtals_kr: v.t, fra: b.fra || null, til: b.til ? String(b.til).slice(0, 7) : null } : null;
+  const v = b && (b.vendors || []).find((x) => aK(x.n));
+  const rikis = v ? { samtals_kr: v.t, fra: b.fra || null, til: b.til ? String(b.til).slice(0, 7) : null, heimild: 'opnir reikningar ríkisins' } : null;
+  // Styrkjaskráin ber vilyrði fram í tímann (ár 2027 í sept. 2026) sem eru ekki „fyrri" styrkir. Styrkur sem ber kt
+  // ræðst af henni einni (alltaf leyfður ef hún er þessi kt); annars af nafninu.
+  const arFrettar = Number(d.slice(0, 4));
   const st = ((gogn.styrkir && gogn.styrkir.styrkir) || [])
-    .filter((x) => ((x.kt && x.kt === k) || stadlaNafn(x.nafn) === s) && !(utanStyrks && utanStyrks(x)));
-  const styrkir = st.length ? { fjoldi: st.length, samtals_kr: st.reduce((t, x) => t + (x.upphaed || 0), 0) } : null;
+    .filter((x) => (x.kt ? String(x.kt) === k : aK(x.nafn)) && Number(x.ar) <= arFrettar && !(utanStyrks && utanStyrks(x)));
+  const styrkir = st.length ? { fjoldi: st.length, samtals_kr: st.reduce((t, x) => t + (x.upphaed || 0), 0), heimild: 'úthlutunarskrár styrkjasjóða í gagnasafni Karp' } : null;
   return hreinsa({ utbod_unnin: utbod, rikisgreidslur_12man: rikis, styrkir_fyrri: styrkir });
 }
 
 function urslit(e, gogn, o) {
   const f = e.facts || {};
+  const dags = f.dags || o.idag;
   if (Array.isArray(f.sigurvegarar) && f.sigurvegarar.length) {
-    const mork = dagarAftur(o.idag, 365);
-    const kaupandi = f.kaupandi ? ((gogn.utbod_urslit && gogn.utbod_urslit.awards) || [])
-      .filter((a) => a.buyer === f.kaupandi && a.nr !== f.tedNr && a.d && a.d >= mork).length : 0;
-    return hreinsa({ sigurvegari: fyrirtaeki(f.sigurvegarar[0], gogn, { utanUtbods: f.tedNr }), kaupandi_onnur_utbod_12man: kaupandi || null });
+    const idag = o.idag || new Date().toISOString().slice(0, 10), mork = dagarAftur(idag, 365);
+    // kaupandinn staðlaður: „Isavia ohf" og „Isavia ohf." eru sami kaupandinn. Efri mörkin (idag) skipta engu í daglegri
+    // keyrslu en halda síðari útboðum utan við sýnishorn úr safninu, sem fá idag = birtingardag fréttarinnar.
+    const kaup = f.kaupandi ? stadlaNafn(f.kaupandi) : '';
+    const kaupandi = kaup ? ((gogn.utbod_urslit && gogn.utbod_urslit.awards) || [])
+      .filter((a) => stadlaNafn(a.buyer) === kaup && a.nr !== f.tedNr && a.d && a.d >= mork && a.d <= idag).length : 0;
+    return hreinsa({ sigurvegari: fyrirtaeki(f.sigurvegarar[0], gogn, { utanUtbods: f.tedNr, dags }), kaupandi_onnur_utbod_12man: kaupandi || null });
   }
-  if (f.laegst) return hreinsa({ laegstbjodandi: fyrirtaeki(f.laegst, gogn) });   // tilboðsopnun Landsvirkjunar
+  if (f.laegst) return hreinsa({ laegstbjodandi: fyrirtaeki(f.laegst, gogn, { dags }) });   // tilboðsopnun Landsvirkjunar
   return null;
 }
-function styrkur(e, gogn) {
+function styrkur(e, gogn, o) {
   const f = e.facts || {};
   const sama = (x) => stadlaNafn(x.nafn) === stadlaNafn(f.thegi) && x.ar === f.ar && x.upphaed === f.upphaed;
-  return hreinsa({ thegi: fyrirtaeki(f.thegi, gogn, { utanStyrks: sama }) });
+  return hreinsa({ thegi: fyrirtaeki(f.thegi, gogn, { utanStyrks: sama, dags: f.dags || o.idag }) });
 }
-function vorumerki(e, gogn) {
-  return hreinsa({ eigandi: fyrirtaeki((e.facts || {}).eigandi, gogn, { kt: e.kt ?? null }) });
+// Vörumerki og gjaldþrot eru alltaf lykluð á kt í skynjaranum. Án kt fæst enginn bakgrunnur: nafnaleit gæti hitt félag
+// sem ber sama nafn og einstaklingur (persónuvernd), t.d. í sýnishorni úr safninu ef kt finnst ekki.
+function vorumerki(e, gogn, o) {
+  if (!e.kt) return null;
+  const f = e.facts || {};
+  return hreinsa({ eigandi: fyrirtaeki(f.eigandi, gogn, { kt: e.kt, dags: f.dags || o.idag }) });
 }
-function gjaldthrot(e, gogn) {
-  return hreinsa({ felagid: fyrirtaeki((e.facts || {}).felag, gogn, { kt: e.kt ?? null }) });
+function gjaldthrot(e, gogn, o) {
+  if (!e.kt) return null;
+  const f = e.facts || {};
+  return hreinsa({ felagid: fyrirtaeki(f.felag, gogn, { kt: e.kt, dags: f.dags || o.idag }) });
 }
 
 // ── Markaðir ──────────────────────────────────────────────────────────────────
 // ⚠ Verðsagan (hist) nær 40 viðskiptadaga aftur. „52 vikna bil" er því EKKI til og kemur ekki fram.
+// ⚠ Sviðaheitin segja „í gagnaröð Karp" (yfirferð 22.9): hæsta gildi raðarinnar má ekki verða „sögulegt hámark".
 function mark(e, gogn) {
   const f = e.facts || {}, m = gogn.markadir;
   const s = m && (m.stocks || []).find((x) => x.name === f.felag);
@@ -115,13 +144,15 @@ function mark(e, gogn) {
   let staersta = 0;
   for (let i = 1; i < rod.length - 1; i++) staersta = Math.max(staersta, Math.abs(rod[i] / rod[i - 1] - 1) * 100);   // án dagsins
   const idx = (m.indices || []).find((x) => /OMXI15/.test(x.sym || ''));
+  const n = rod.length;
   return hreinsa({
-    vidskiptadagar_i_rod: rod.length,
-    haesta_i_rod: Math.max(...rod),
-    laegsta_i_rod: Math.min(...rod),
-    breyting_fra_upphafi_rodar_pct: r1((rod[rod.length - 1] / rod[0] - 1) * 100),
-    staersta_fyrri_dagshreyfing_pct: r1(staersta),
-    hreyfing_dagsins_su_staersta: typeof f.breyting === 'number' ? Math.abs(f.breyting) > r1(staersta) : null,
+    gagnarod: 'lokagengi síðustu ' + n + ' viðskiptadaga í gagnasafni Karp',
+    vidskiptadagar_i_gagnarod_karp: n,
+    haesta_i_gagnarod_karp: Math.max(...rod),
+    laegsta_i_gagnarod_karp: Math.min(...rod),
+    breyting_yfir_gagnarod_karp_pct: r1((rod[n - 1] / rod[0] - 1) * 100),
+    staersta_fyrri_dagshreyfing_i_gagnarod_karp_pct: r1(staersta),
+    hreyfing_dagsins_su_staersta_i_gagnarod_karp: typeof f.breyting === 'number' ? Math.abs(f.breyting) > r1(staersta) : null,
     urvalsvisitala_breyting_pct: idx && typeof idx.chgPct === 'number' ? r1(idx.chgPct) : null,
   });
 }
@@ -199,7 +230,7 @@ function lyf(e, gogn, o) {
     atc_kodi: kodi || null,
     onnur_lyf_sama_efni: kodi ? onnur.length : null,
     thar_af_i_skorti: kodi ? onnur.filter((y) => y.shortage).length : null,
-    lyf_i_skorti_alls: typeof L.shortageCount === 'number' ? L.shortageCount : null,
+    lyf_i_skorti_a_serlyfjaskra: typeof L.shortageCount === 'number' ? L.shortageCount : null,   // ekki „á landinu"
     skortur_skradur_fra: /^\d{4}-\d{2}-\d{2}$/.test(String(fyrst || '')) ? fyrst : null,
   });
 }
