@@ -13,7 +13,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { metaNott } from './nott_heilsa.mjs';
+import { metaNott, metaStadbundid } from './nott_heilsa.mjs';
 
 const GRUNNUR = { ok: 0, errs: 0, discovered: 0, sweepFound: 0, villur: {}, proxyDautt: false, scrapeStop: false };
 
@@ -76,4 +76,40 @@ test('skilaboðin bera tölurnar svo logg dugi til greiningar', () => {
   const r = metaNott({ ...GRUNNUR, villur: { 'proxy:200-ognothaeft': 3 }, proxyDautt: true });
   assert.ok(/proxy:200-ognothaeft/.test(r.skilabod));
   assert.ok(/0/.test(r.skilabod));
+});
+
+// ── Staðbundna sweepið (22.9.2026) ───────────────────────────────────────────────────────────────
+// Grunnurinn hætti að stækka 25.7: snjóboltinn lokaðist og eftir það kemur hvert nýtt félag úr
+// nafnaleitar-sweepinu á vél Arons. Verkið þar ræstist ekki eftir 13.9 (vinnumöppunni var eytt), og
+// hver nótt GitHub var „róleg" í tvo mánuði. Þessi athugun spyr hvort sweepið lifi, óháð nóttinni.
+
+test('staðbundið: sweep sem skilaði nýlega er í lagi, líka á mörkunum', () => {
+  assert.equal(metaStadbundid({ eftir: 40, sidast: '2026-09-22T04:03:11Z', idag: '2026-09-22' }).thagnad, false);
+  assert.equal(metaStadbundid({ eftir: 40, sidast: '2026-09-19', idag: '2026-09-22' }).thagnad, false, '3 dagar = mörkin');
+});
+
+test('staðbundið: þögn lengur en 3 daga meðan forskeyti eru eftir fellur, og nefnir verkið og dagsetninguna', () => {
+  const r = metaStadbundid({ eftir: 40, sidast: '2026-09-12T04:00:00Z', idag: '2026-09-22' });
+  assert.equal(r.thagnad, true);
+  assert.match(r.skilabod, /2026-09-12 \(10 dagar\)/);
+  assert.match(r.skilabod, /40 forskeyti/);
+  assert.match(r.skilabod, /KARP-tengsl-scrape/);
+  assert.match(r.skilabod, /web\/\.dev\.vars/);
+});
+
+test('staðbundið: sweep sem aldrei skilaði fellur líka', () => {
+  const r = metaStadbundid({ eftir: 12, sidast: null, idag: '2026-09-22' });
+  assert.equal(r.thagnad, true);
+  assert.match(r.skilabod, /hefur aldrei skilað/);
+});
+
+test('staðbundið: sweepinu lokið → ekkert meira að uppgötva, þögn er eðlileg', () => {
+  assert.equal(metaStadbundid({ eftir: 0, sidast: '2026-07-01', idag: '2026-09-22' }).thagnad, false);
+});
+
+test('staðbundið: rusl í inntaki kallar ALDREI falskt á bilun', () => {
+  for (const t of [undefined, null, {}, 'x', 7, { eftir: 5 }, { eftir: 5, sidast: '2026-09-01', idag: 'rusl' }]) {
+    assert.equal(metaStadbundid(t).thagnad, false, JSON.stringify(t));
+  }
+  assert.equal(metaStadbundid({ eftir: 5, sidast: '2026-09-01', idag: '2026-09-22', dagar: 30 }).thagnad, false, 'þröskuldinn má stilla');
 });

@@ -39,7 +39,14 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       TENGSL_BUDGET: ${{ github.event.inputs.budget || vars.TENGSL_BUDGET || '1500' }}
-      PROXY_BASE: 'https://karp.is'   # beina www.skatturinn.is-skrapinu gegnum RSK-proxy (worker-egress ekki throttlað)
+      PROXY_BASE: 'https://karp.is'   # API-köllin fara gegnum workerinn (lykillinn bætist við þar)
+      # ⚠⚠ ENGIN www.skatturinn.is-skröpun héðan (22.9.2026). Hún hefur ekki skilað einu treffi síðan 20.7:
+      #    RSK lokar gagnaverum, GitHub OG Cloudflare-egress (proxy-inu) jafnt. Hver nótt reyndi samt 40
+      #    forskeyti + eigenda-skröp, sprengdi báða varnarrofa, og frá 18.9 var nóttin rauð út af því, á
+      #    meðan raunverulega orsökin (tóm biðröð, staðbundna sweepið dautt) sást ekki. Skrapið keyrir á
+      #    vél Arons (skriptur/scrape_local.mjs, verkið KARP-tengsl-scrape); nóttin hér athugar að það lifi.
+      SWEEP_BUDGET: '0'
+      EIGENDUR_BUDGET: '0'
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5

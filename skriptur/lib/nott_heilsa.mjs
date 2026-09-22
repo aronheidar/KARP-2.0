@@ -55,3 +55,38 @@ export function metaNott(t) {
     + 'Grunnurinn stækkaði ekki í nótt. Athugaðu fyrst hvort RSK svari: karp.is/api/rsk?kt=<kt> (403 = áskriftin).';
   return { thogul: true, astaeda, skilabod };
 }
+
+// ⚠⚠ 22.9.2026: RÉTTA ORSÖKIN VAR ÖNNUR. Grunnurinn hætti að stækka 25.7, ekki 17.9: snjóboltinn
+// lokaðist (1500 → 193 → 23 → 5 → 1 → 0 félög á nótt), og eftir það er nafnaleitar-sweepið EINA
+// uppspretta nýrra félaga. Gagnaver ná ekki www.skatturinn.is (hvorki GitHub né Cloudflare-proxy, sjá
+// 20.7), svo sweepið keyrir á vél Arons (scrape_local.mjs, Windows-verkið KARP-tengsl-scrape). Vinnumappa
+// þess var worktree sem var eytt 13.9, og síðan hefur það ekki ræst. Nætur GitHub voru „rólegar" (tóm
+// biðröð) í tvo mánuði, og rauðu næturnar frá 18.9 kenndu proxy-rofanum um, sem var aukaatriði.
+// Þessi athugun spyr því EKKI hvað nóttin skilaði, heldur hvort staðbundna sweepið lifi. Hún á líka við
+// afkastamiklar nætur (endurnýjun eftir 90 daga), annars hyrfi þögnin aftur um leið og þær byrja.
+
+/**
+ * @param {object} t  { eftir: forskeyti sem sweepið á eftir, sidast: 'YYYY-MM-DD…' síðasta skil þess, idag: 'YYYY-MM-DD', dagar? }
+ * @returns {{thagnad:boolean, skilabod:string}}
+ */
+export function metaStadbundid(t) {
+  const T = t && typeof t === 'object' ? t : null;
+  if (!T) return { thagnad: false, skilabod: '' };   // ófullnægjandi inntak fellur ALDREI, eins og metaNott
+  const eftir = Number.isFinite(+T.eftir) ? +T.eftir : 0;
+  if (eftir <= 0) return { thagnad: false, skilabod: '' };   // sweepinu lokið: ekkert meira að uppgötva
+  const dagur = (s) => { const m = /^(\d{4}-\d{2}-\d{2})/.exec(String(s || '')); return m ? Date.parse(m[1] + 'T00:00:00Z') : NaN; };
+  const idag = dagur(T.idag);
+  if (!Number.isFinite(idag)) return { thagnad: false, skilabod: '' };
+  const dagar = Number.isFinite(+T.dagar) && +T.dagar > 0 ? +T.dagar : 3;
+  const sidast = dagur(T.sidast);
+  const lidnir = Number.isFinite(sidast) ? Math.round((idag - sidast) / 86400000) : null;
+  if (lidnir !== null && lidnir <= dagar) return { thagnad: false, skilabod: '' };
+  const hvenaer = lidnir === null ? 'hefur aldrei skilað' : 'hefur ekki skilað síðan ' + String(T.sidast).slice(0, 10) + ' (' + lidnir + ' dagar)';
+  return {
+    thagnad: true,
+    skilabod: 'Staðbundna sweepið ' + hvenaer + ', og ' + eftir + ' forskeyti eru eftir. '
+      + 'Það er eina uppspretta nýrra félaga síðan snjóboltinn lokaðist, svo grunnurinn stækkar ekki fyrr en það keyrir. '
+      + 'Athugaðu Windows-verkið KARP-tengsl-scrape á vél Arons: að vinnumappan sé til, að D1-lykill sé í web/.dev.vars, '
+      + 'og í logginum (%TEMP%\\karp-scrape.log) hvort www.skatturinn.is throttli, því þá merkir sweepið ekkert þótt það keyri.',
+  };
+}

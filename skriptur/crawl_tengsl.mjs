@@ -11,7 +11,7 @@ import { buildNightSql, buildSeenLastSql } from './lib/tengsl_sql.mjs';
 import { extractKts, nextPrefixes } from './lib/sweep.mjs';
 import { makeD1 } from './lib/d1_rest.mjs';
 import { buildScrapeFetcher } from './lib/rsk_fetch.mjs';
-import { metaNott } from './lib/nott_heilsa.mjs';   // þögul nótt (allt féll) á móti rólegri nótt (ekkert á dagskrá)
+import { metaNott, metaStadbundid } from './lib/nott_heilsa.mjs';   // þögul nótt (allt féll) á móti rólegri nótt (ekkert á dagskrá) + staðbundna sweepið
 import { buildApiFetcher, stoppLina } from './lib/rsk_api.mjs';
 
 const DRY = process.argv.includes('--dry-run');
@@ -178,6 +178,21 @@ if (Object.keys(skrapStats.villur).length) {
   console.error(`Skrap-sundurliðun: ${JSON.stringify(skrapStats.villur)}${skrapStats.proxyDautt ? ' · RSK-proxy SLÖKKT þessa nótt (sótti beint)' : ''}`);
 }
 
+// ⚠⚠ STAÐBUNDNA SWEEPIÐ (22.9.2026): eina uppspretta nýrra félaga síðan snjóboltinn lokaðist 25.7, og það
+// keyrir á vél Arons, ekki hér. Það ræstist ekki í 9 daga (vinnumöppunni var eytt) og tvo mánuði voru
+// nætur hér „rólegar". Því er spurt á HVERRI nótt, líka afkastamikilli, og á EFTIR ritun hennar, svo
+// skilaboðin kosti aldrei unnin gögn. Bilun í sjálfri fyrirspurninni fellir ekki nóttina (falskt rautt er
+// verra en ekkert). Sjá metaStadbundid í lib/nott_heilsa.mjs.
+async function stadbundidThagnad() {
+  let s = {};
+  try { s = (await d1.query('SELECT SUM(CASE WHEN done=0 THEN 1 ELSE 0 END) AS eftir, MAX(updated_at) AS sidast FROM sweep_state'))[0] || {}; } catch (e) { return false; }
+  const r = metaStadbundid({ eftir: s.eftir, sidast: s.sidast, idag: today });
+  if (!r.thagnad) return false;
+  console.error('⛔ ' + r.skilabod);
+  if (process.env.GITHUB_STEP_SUMMARY) { try { fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## ⛔ Staðbundna sweepið hefur þagnað\n\n${r.skilabod}\n`); } catch (e) { /* samantektin má ekki fella nóttina */ } }
+  return true;
+}
+
 // ⚠⚠ ÞÖGUL NÓTT MÁ EKKI VERA GRÆN. 17.9.2026 skrifaði þessi skripta núll, slökkti á sér sjálf þegar
 // báðir varnarrofar sprungu, prentaði sundurliðunina — og skilaði útgangskóða 0. Enginn hefði séð að
 // grunnurinn hætti að stækka. Hún VISSI af biluninni og sagði engum. Sjá lib/nott_heilsa.mjs.
@@ -190,9 +205,10 @@ if (heilsa.thogul) {
 ${heilsa.skilabod}
 `);
   }
+  await stadbundidThagnad();   // nefnt líka hér: rauð nótt á ekki að fela hina bilunina
   process.exit(1);
 }
-if (!body) { console.error('Ekkert SQL að skrifa (róleg nótt — ekkert á dagskrá, engin bilunarmerki).'); process.exit(0); }
+if (!body) { console.error('Ekkert SQL að skrifa (róleg nótt — ekkert á dagskrá, engin bilunarmerki).'); process.exit((await stadbundidThagnad()) ? 1 : 0); }
 // N1 (topplistar): viðhalda felog.isat_primary fyrir NÝ félög (fyrsti ÍSAT-kóði úr isat-JSON) — annars
 // birtast þau hvorki í topplistum né sækir ársreikninga-trickle þau (SELECT hans krefst isat_primary).
 const isatPrimarySql = "UPDATE felog SET isat_primary = json_extract(isat, '$[0].id') WHERE isat IS NOT NULL AND isat <> '[]' AND isat_primary IS NULL;";
@@ -234,3 +250,6 @@ if (process.env.GITHUB_STEP_SUMMARY) {
     : '';
   fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## Tengslagrunnur — nótt ${today}\n\n- API-köll: **${used}** / ${BUDGET}\n- Þáttað: ${ok} ok · ${notfound} ekki-til · ${errs} villur\n- Uppgötvuð ný félög: ${discovered} (crawl) + ${sweepFound} (sweep)\n- Sweep-forskeyti: ${prefixes.length}${skrapLina}\n`);
 }
+
+// Síðast, á eftir ritun næturinnar: staðbundna sweepið (sjá stadbundidThagnad). Rautt, en engin gögn töpuð.
+if (await stadbundidThagnad()) process.exit(1);
