@@ -49,7 +49,17 @@ export function thattaSvar(raw) {
   return null;
 }
 
+/** Styttir titil við orðaskil sé hann lengri en hamark stafir (sjálfgefið 90) — sker aldrei í miðju orði, engir þrípunktar. */
+export function styttaTitil(titill, hamark = 90) {
+  const s = String(titill || '');
+  if (s.length <= hamark) return s;
+  const skor = s.lastIndexOf(' ', hamark);
+  const skorid = skor > 0 ? s.slice(0, skor) : s.slice(0, hamark);
+  return skorid.replace(/[\s.,:;!?'"»«„“”–—-]+$/, '');
+}
+
 async function kalla(client, model, messages) {
+  // skyndiminni (cache_control) virkjast aðeins þegar KERFI fer yfir lágmarkslengd líkansins fyrir skyndiminni — meinlaust í dag en sparar ekki endilega kostnað.
   const msg = await client.messages.create({ model, max_tokens: 1500, system: [{ type: 'text', text: KERFI, cache_control: { type: 'ephemeral' } }], messages });
   return (msg.content || []).map((c) => c.text || '').join('');
 }
@@ -66,18 +76,35 @@ export async function skrifaFrettir(events, { client, model = SJALFGEFID_LIKAN, 
       let raw = await kalla(client, model, skilabod);
       let ut = thattaSvar(raw);
       let vorn = ut ? athugaTolur(ut.title + '\n' + ut.text, facts) : null;
-      if (!ut || !vorn.ok) {
+      const titillLangur = !!(ut && ut.title.length > 90);
+      if (!ut || !vorn.ok || titillLangur) {
         t.endurskrifadar++;
-        const athugasemd = ut
+        // röng tala er verri en langur titill — nefnist EITT vandamál í endurskrifinu, aldrei bæði
+        const athugasemd = !ut
+          ? 'Svarið var ekki gildur JSON-hlutur. Skilaðu AÐEINS {"title":"...","text":"..."}.'
+          : !vorn.ok
           ? 'Þessar tölur standa ekki í facts: ' + vorn.rangar.join(', ') + '. Skrifaðu fréttina aftur án þeirra eða með réttum gildum úr facts. Skilaðu AÐEINS JSON-hlutnum.'
-          : 'Svarið var ekki gildur JSON-hlutur. Skilaðu AÐEINS {"title":"...","text":"..."}.';
+          : 'Titillinn er ' + ut.title.length + ' stafir en má vera 90 að hámarki. Styttu hann án þess að breyta staðreyndum. Skilaðu AÐEINS JSON-hlutnum.';
         skilabod.push({ role: 'assistant', content: raw || '(tómt)' }, { role: 'user', content: athugasemd });
-        raw = await kalla(client, model, skilabod);
+        try {
+          raw = await kalla(client, model, skilabod);
+        } catch (err) {
+          // endurskrifið sjálft brást (t.d. 529) — teljum sem villu en björgum fyrri talnavörn ef það var höfnunarástæðan
+          t.villur++;
+          if (vorn && !vorn.ok) e.talnavorn = vorn.rangar;
+          skra('• ritun brást fyrir ' + e.id + ': ' + String(err).slice(0, 100));
+          continue;
+        }
         ut = thattaSvar(raw);
         vorn = ut ? athugaTolur(ut.title + '\n' + ut.text, facts) : null;
       }
-      if (ut && vorn && vorn.ok) { e.title = ut.title.slice(0, 120); e.text = ut.text.slice(0, 2200); e.ai = true; t.skrifadar++; }
-      else { t.hafnad++; if (vorn && !vorn.ok) e.talnavorn = vorn.rangar; }
+      if (ut && vorn && vorn.ok) {
+        e.title = styttaTitil(ut.title);
+        e.text = ut.text.slice(0, 2200);
+        e.ai = true;
+        delete e.talnavorn;   // hreinsa stakt merki frá fyrri keyrslu — má ekki lifa við hlið ferska ai:true textans
+        t.skrifadar++;
+      } else { t.hafnad++; if (vorn && !vorn.ok) e.talnavorn = vorn.rangar; }
     } catch (err) { t.villur++; skra('• ritun brást fyrir ' + e.id + ': ' + String(err).slice(0, 100)); }
   }
   return t;

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { skrifaFrettir, thattaSvar, samantektMd, snidFyrir, SJALFGEFID_LIKAN } from './frettaskrif.mjs';
+import { skrifaFrettir, thattaSvar, samantektMd, snidFyrir, styttaTitil, SJALFGEFID_LIKAN } from './frettaskrif.mjs';
 
 /** Gervi-client: hvert kall tekur næsta svar (strengur, fall af beiðni, eða Error sem kastast). */
 function gervi(svor) {
@@ -83,4 +83,51 @@ test('efnismál fá efnissnið; samantekt sýnir áður/nýtt, bakgrunn og höfn
   assert.match(md, /Áður/);
   assert.match(md, /"x":1/);
   assert.match(md, /Talnavörn hafnaði.*7,5%/);
+});
+
+test('titill lengri en 90 stafir kallar á endurskrif sem nefnir mörkin (90)', async () => {
+  const langurTitill = 'orð '.repeat(25); // 100 stafir — tölurnar réttar strax
+  const FYRSTA = J(langurTitill, 'Hlutabréf í Símanum lækkuðu um 7,3% og stóð gengið í 10,2.');
+  const c = gervi([FYRSTA, GOTT]); const e = SIMINN();
+  const t = await skrifaFrettir([e], { client: c });
+  assert.equal(e.ai, true);
+  assert.equal(c.kol.length, 2);
+  assert.equal(t.endurskrifadar, 1);
+  const sidast = c.kol[1].messages[c.kol[1].messages.length - 1].content;
+  assert.match(sidast, /90/);
+});
+
+test('titill enn of langur eftir endurskrif → samþykktur og styttur við orðaskil', async () => {
+  const langurTitill = 'orð '.repeat(30); // 120 stafir, tölurnar réttar í bæði skiptin
+  const SVAR = J(langurTitill, 'Hlutabréf í Símanum lækkuðu um 7,3% og stóð gengið í 10,2.');
+  const c = gervi([SVAR, SVAR]); const e = SIMINN();
+  const t = await skrifaFrettir([e], { client: c });
+  assert.equal(e.ai, true);
+  assert.ok(e.title.length <= 90);
+  assert.equal(langurTitill[e.title.length], ' ', 'sker við orðaskil, ekki í miðju orði');
+});
+
+test('styttaTitil: óbreytt undir mörkum, sker við orðaskil annars, fer aldrei yfir hámarki', () => {
+  assert.equal(styttaTitil('Stuttur titill'), 'Stuttur titill');
+  const langur = 'orð '.repeat(30);
+  const stytt = styttaTitil(langur);
+  assert.ok(stytt.length <= 90);
+  assert.equal(langur[stytt.length], ' ');
+  assert.equal(styttaTitil('x'.repeat(200), 90).length, 90);
+});
+
+test('endurskrifskall bregst eftir talnavarnarhöfnun → villur teljast, talnavörn geymist, sniðmát helst', async () => {
+  const c = gervi([RANGT, new Error('529 overloaded')]); const e = SIMINN();
+  const t = await skrifaFrettir([e], { client: c, skra: () => {} });
+  assert.equal(t.villur, 1);
+  assert.deepEqual(e.talnavorn, ['7,5%']);
+  assert.equal(e.text, 'gamall texti');
+  assert.equal(e.ai, undefined);
+});
+
+test('samþykkt hreinsar gamalt talnavörn-merki af fyrri keyrslu', async () => {
+  const c = gervi([GOTT]); const e = SIMINN(); e.talnavorn = ['gamalt'];
+  const t = await skrifaFrettir([e], { client: c });
+  assert.equal(e.ai, true);
+  assert.equal(e.talnavorn, undefined);
 });
