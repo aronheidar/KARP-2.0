@@ -163,6 +163,25 @@ test('facts.ras fer hvorki til Claude né í talnavörnina, en helst á fréttin
   assert.deepEqual(e.facts.ras, RAS);
 });
 
+// Prufukeyrsla 22.9: „Skortur á lyfinu Cotrim" varð „Cotrim 80/400 mg töflur skráðar á sérlyfjaskrá". facts lyfjafréttar
+// nefna ekki skortinn; gamla ritunin fékk hann úr id-inu („lyfskortur-…"), sú nýja fékk hvorki id né sniðmát.
+test('sniðmát skynjarans fer með í kallið svo efni fréttarinnar haldist', async () => {
+  const c = gervi([GOTT]); const e = SIMINN();
+  await skrifaFrettir([e], { client: c });
+  assert.deepEqual(JSON.parse(c.kol[0].messages[0].content).snidmat, { titill: 'gamall titill', texti: 'gamall texti' });
+  assert.ok(KERFI.includes('snidmat'), 'fyrirmælin skýra sniðmátið');
+});
+
+test('tala sem stendur aðeins í sniðmáti opnar ekki talnavörnina', async () => {
+  const MED = J('Síminn lækkar um 7,3%', 'Hlutabréf í Símanum lækkuðu um 7,3% á 42 dögum.');
+  const c = gervi([MED, MED]);
+  const e = { ...SIMINN(), title: 'Síminn lækkar á 42 dögum', text: 'Lækkun á 42 dögum.' };
+  const t = await skrifaFrettir([e], { client: c });
+  assert.equal(t.hafnad, 1);
+  assert.deepEqual(e.talnavorn, ['42']);
+  assert.equal(e.title, 'Síminn lækkar á 42 dögum', 'sniðmátið helst');
+});
+
 // ── Lengd og stytting: talnavörnin keyrir aftur á LOKAtitil og LOKAtexta ─────────────────────────
 const FYLL = 'Hlutabréf í Símanum lækkuðu um 7,3%. ';   // 37 stafir, allar tölur úr facts
 const LANGT = J('Síminn lækkar um 7,3%', FYLL.repeat(70).trim());   // 2.589 stafir

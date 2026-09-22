@@ -22,6 +22,7 @@ const path = require('path');
 const { pickThrotlok } = require('./throtlok_detect.js');
 const { pickVikan } = require('./vikan_detect.js');
 const { pickSvaedi } = require('./svaedi_detect.js');   // fasteignaverð per matssvæði HMS (19.8.2026)
+const { pickSent } = require('./sent_detect.js');   // tónsveifla; grunnur með dagsetningu (22.9.2026)
 let slugifyIS = null;   // @lib/format.mjs slugify (ESM) — hlaðið í main() svo svæðis-slóðir séu þær sömu og /fasteignaverd/[slug]
 const G = (f) => path.join(__dirname, '..', 'gogn', f);
 const J = (f) => { try { return JSON.parse(fs.readFileSync(G(f), 'utf8')); } catch (e) { return null; } };
@@ -303,23 +304,16 @@ function detect(state) {
   }
 
   // ── Umfjöllunarviðsnúningur (diff á sentiment-vísitölu) ──────
+  // Hreinn skynjari í sent_detect.js (próf): ber aðeins saman við grunn sem er ≤ 3 dögum eldri en skráin.
   const se = J('sentiment.json');
   if (se && se.companies) {
-    if (state.sent) {
-      const cand = [];
-      for (const [nafn, d] of Object.entries(se.companies)) {
-        const prev = state.sent[nafn];
-        if (typeof prev !== 'number' || typeof d.idx !== 'number' || (d.n || 0) < 5) continue;
-        const delta = d.idx - prev;
-        if (Math.abs(delta) >= 40) cand.push({ w: Math.abs(delta), nafn, fra: prev, i: d.idx, n: d.n });
-      }
-      cand.sort((a, b) => b.w - a.w).slice(0, 3).forEach((c) => {
-        ev.push({ id: `sent-${TODAY}-${slug(c.nafn)}`, type: 'sent', facts: { fyrirtaeki: c.nafn, fra: c.fra, i: c.i, frettir: c.n, kvardi: '-100 til +100' }, url: '/frettir/',
-          title: `Tónn umfjöllunar um ${c.nafn} ${c.i > c.fra ? 'batnar' : 'versnar'} skarpt`,
-          text: `Tónvísitala Karp fyrir ${c.nafn} fór úr ${String(c.fra).replace('.', ',')} í ${String(c.i).replace('.', ',')} (kvarði -100 til +100) miðað við ${c.n} nýlegar fréttir í fjölmiðlavöktun Karp.` });
-      });
-    }
-    state.sent = {}; Object.entries(se.companies).forEach(([n, d]) => { if (typeof d.idx === 'number') state.sent[n] = d.idx; });
+    const { cand, grunnur } = pickSent(se, state.sent);
+    cand.forEach((c) => {
+      ev.push({ id: `sent-${TODAY}-${slug(c.nafn)}`, type: 'sent', facts: { fyrirtaeki: c.nafn, fra: c.fra, i: c.i, frettir: c.n, kvardi: '-100 til +100' }, url: '/frettir/',
+        title: `Tónn umfjöllunar um ${c.nafn} ${c.i > c.fra ? 'batnar' : 'versnar'} skarpt`,
+        text: `Tónvísitala Karp fyrir ${c.nafn} fór úr ${String(c.fra).replace('.', ',')} í ${String(c.i).replace('.', ',')} (kvarði -100 til +100) miðað við ${c.n} nýlegar fréttir í fjölmiðlavöktun Karp.` });
+    });
+    state.sent = grunnur;
   }
 
   // ── Glæpir: árssveiflur landshluta ≥15% ──────────────────────
@@ -999,14 +993,15 @@ function synishornUrSafni(items, n, { studdar, markMork, vmKt }) {
 //   vinnuflæðið nái tímamörkum; tölfræðin kemur í lokin. Tímaþak ritunar (12 mín) gildir áfram, innan 25 mín vinnuflæðisins.
 //   Sýnishornin eru FYRST í röðinni (22.9, síðari lota): lendi tímaþakið á einhverjum eiga það að vera fréttir dagsins,
 //   ekki sýnishornin sem áður/nýtt-samanburðurinn — sem eigandinn dæmir efnið á — hvílir á.
-//   Markaðsfréttum eldri en 2 daga er sleppt (verðsagan hefur hreyfst). `client` er inndælanlegur (próf).
+//   Markaðsfréttir aðeins frá deginum í dag: bakgrunnur markaða er reiknaður úr gögnum dagsins, svo eldri frétt fengi
+//   vísitölu og verðbil annars dags (22.9: Síminn 21.9 fékk vísitölu 22.9). `client` er inndælanlegur (próf).
 async function prufukeyrsla(published, state, { client = nyrClient() } = {}) {
   const { baetaVidBakgrunni, STUDDAR_TEGUNDIR } = await import('./lib/frettasamhengi.mjs');
   const { skrifaFrettir, efnisgreinMd, hafnadarLinur } = await import('./lib/frettaskrif.mjs');
   let synishorn = [];
   if (ENDURSKRIFA) {
     synishorn = synishornUrSafni((J('frettavel_archive.json') || {}).items, ENDURSKRIFA, {
-      studdar: STUDDAR_TEGUNDIR, markMork: new Date(Date.now() - 2 * 86400000).toISOString().slice(0, 10), vmKt: vorumerkjaKt(J('vorumerki_nyskrad.json')),
+      studdar: STUDDAR_TEGUNDIR, markMork: TODAY, vmKt: vorumerkjaKt(J('vorumerki_nyskrad.json')),
     });
     const gogn = gognBakgrunns();
     for (const s of synishorn) baetaVidBakgrunni([s], gogn, { idag: s.birt || TODAY, state });

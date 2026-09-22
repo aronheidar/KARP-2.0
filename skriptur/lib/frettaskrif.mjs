@@ -15,11 +15,12 @@ export const TOLUFRETTIR = new Set(['mark', 'vextir', 'verdbolga', 'vika', 'fylg
 export const snidFyrir = (type) => (TOLUFRETTIR.has(type) ? 'tolur' : 'efni');
 
 export const KERFI = [
-  'Þú ert fréttavél Karp (karp.is). Þú skrifar EINA hlutlausa frétt á íslensku EINGÖNGU úr staðreyndunum í facts.',
+  'Þú ert fréttavél Karp (karp.is). Þú skrifar EINA hlutlausa frétt á íslensku EINGÖNGU úr staðreyndunum í facts og snidmat.',
   'facts.bakgrunnur er samhengi úr gögnum Karp. Notaðu það til að setja fréttina í samhengi, en aðeins það sem stendur þar.',
+  'snidmat er sjálfvirkur texti skynjarans úr sömu gögnum og segir hvað fréttin er um. Fréttin þín segir frá sama atburði (t.d. að skortur sé á lyfi) og gerir hann ekki að öðru efni. Tölur skulu standa í facts.',
   // „loks annað sem máli skiptir" var opið boð um efni utan facts; og bakgrunnsmálsgrein má ekki knýja fram án bakgrunns
   'SNIÐ: ef snid er "tolur" skaltu skrifa 2–4 setningar í einni málsgrein. Ef snid er "efni" skaltu skrifa 2–3 málsgreinar ef staðreyndir leyfa, annars færri, aðskildar með auðri línu: fyrst hvað gerðist, síðan samhengi úr bakgrunni ef hann er til, loks önnur atriði úr facts. Séu staðreyndirnar fáar skaltu skrifa stutt. ALDREI teygja textann með endurtekningu eða almennum orðum.',
-  'STRANGT BANN: engar tölur, nöfn, dagsetningar eða fullyrðingar sem ekki standa í facts. Ekki reikna nýjar tölur (hvorki mismun, hlutföll né samtölur) nema þær standi í facts. Engar orsakaskýringar eða spádómar. Engin gildishlaðin orð og engin upphrópunarmerki. Ekki nefna facts, bakgrunn eða heiti sviða. Nöfn einstaklinga sem eru nafnlaus í facts (t.d. X) haldast nafnlaus.',
+  'STRANGT BANN: engar tölur, nöfn, dagsetningar eða fullyrðingar sem ekki standa í facts eða snidmat. Ekki reikna nýjar tölur (hvorki mismun, hlutföll né samtölur) nema þær standi í facts. Engar orsakaskýringar eða spádómar. Engin gildishlaðin orð og engin upphrópunarmerki. Ekki nefna facts, bakgrunn eða heiti sviða. Nöfn einstaklinga sem eru nafnlaus í facts (t.d. X) haldast nafnlaus.',
   // talnavörnin sér aðeins hvort tala sé til í facts, ekki hvað hún merkir (yfirferð 22.9); þetta bann ber merkinguna
   'EFSTASTIG OG TÍMABIL: engar efstastigs- eða tímabilsfullyrðingar sem facts segja ekki berum orðum, t.d. „í röð“, „frá upphafi“, „í fyrsta sinn“, „mesta/hæsta/lægsta … síðan“ eða „á árinu“. Tímabil skal nefna eins og facts lýsa þeim (t.d. „síðustu 40 viðskiptadaga“).',
   'Tölur á íslensku sniði: 1.024.188.084 kr., 7,3%, 17,7 milljarðar króna.',
@@ -114,7 +115,11 @@ async function skrifaEina(e, client, model, skra) {
   // (RÁS-kassinn á fréttasíðunni) en fer hvorki til Claude né í vörnina.
   const facts = { ...(e.facts || {}) };
   delete facts.ras;
-  const skilabod = [{ role: 'user', content: JSON.stringify({ type: e.type, snid: snidFyrir(e.type), facts }) }];
+  // Sniðmát skynjarans segir hvað fréttin ER. facts lyfjafréttar nefna ekki skortinn, og án sniðmáts varð „Skortur á
+  // lyfinu Cotrim" að „Cotrim skráð á sérlyfjaskrá" (prufukeyrsla 22.9; gamla ritunin fékk skortinn úr id-inu). Tölur
+  // sniðmátsins eru EKKI leyfð gildi: talnavörnin athugar aðeins facts.
+  const snidmat = { titill: e.title || '', texti: e.text || '' };
+  const skilabod = [{ role: 'user', content: JSON.stringify({ type: e.type, snid: snidFyrir(e.type), snidmat, facts }) }];
   let endurskrifad = false, vorn = null;
   try {
     let svar = await kalla(client, model, skilabod);
