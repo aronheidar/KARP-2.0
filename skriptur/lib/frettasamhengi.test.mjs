@@ -23,9 +23,6 @@ export const GOGN = () => ({
     { nafn: 'Dagar hf.', kt: null, sjodur: 'Tækniþróunarsjóður', upphaed: 20000000, ar: 2025, slug: 'dagar' },
     { nafn: 'Dagar hf.', kt: null, sjodur: 'Tækniþróunarsjóður', upphaed: 30000000, ar: 2026, slug: 'dagar' },
   ] },
-  arsreikningur: (kt) => (kt === '5501692829'
-    ? { kt, ar: { 2023: { kvardi: 1000, rekstur: { sala: 4000000, hagnadur: 90000 } }, 2024: { kvardi: 1000, rekstur: { sala: 5000000, hagnadur: 120000 } } } }
-    : null),
 });
 
 test('stöðlun nafna og lögaðilapróf', () => {
@@ -35,14 +32,29 @@ test('stöðlun nafna og lögaðilapróf', () => {
   assert.equal(erLogadili('0101801234'), false, 'einstaklingur');
 });
 
-test('fyrirtæki: útboð (utan fréttarinnar sjálfrar), ríkisgreiðslur, styrkir og ársreikningur með kvarða', () => {
+test('fyrirtæki: útboð (utan fréttarinnar sjálfrar), ríkisgreiðslur og styrkir', () => {
   const f = fyrirtaeki('Dagar hf.', GOGN(), { utanUtbods: 'NU', idag: IDAG });
   assert.deepEqual(f, {
     utbod_unnin: { fjoldi: 2, samtals_kr: 1300000, sidast: '2026-06-01' },
     rikisgreidslur_12man: { samtals_kr: 250000000, fra: '2025-09', til: '2026-08' },
     styrkir_fyrri: { fjoldi: 2, samtals_kr: 50000000 },
-    arsreikningur: { ar: 2024, sala_kr: 5000000000, hagnadur_kr: 120000000 },
   });
+});
+
+test('bakgrunnur inniheldur aldrei ársreikning — ver greiddu 990 kr mörkin', () => {
+  // Jafnvel þótt gagnasafnið bjóði ársreikningsaðgang (eins og gognBakgrunns gerði áður) má hann hvorki lesast né birtast.
+  const g = GOGN();
+  let lesid = 0;
+  g.arsreikningur = (kt) => { lesid++; return { kt, ar: { 2024: { kvardi: 1000, rekstur: { sala: 5000000, hagnadur: 120000 } } } }; };
+  const ev = [
+    { id: 'urslit-NU', type: 'urslit', facts: { kaupandi: 'Isavia ohf', sigurvegarar: ['Dagar hf.'], dags: '2026-09-21', tedNr: 'NU' } },
+    { id: 'styrkur-dagar-2026', type: 'styrkur', facts: { thegi: 'Dagar hf.', sjodur: 'Tækniþróunarsjóður', upphaed: 30000000, ar: 2026 } },
+    { id: 'vorumerki-1', type: 'vorumerki', kt: '5501692829', facts: { merki: 'DAGAR', eigandi: 'Dagar hf.' } },
+    { id: 'gjaldthrot-1', type: 'gjaldthrot', kt: '5501692829', facts: { felag: 'Dagar hf.', tegund: 'Gjaldþrotaskiptabeiðni' } },
+  ];
+  assert.equal(baetaVidBakgrunni(ev, g, { idag: IDAG }), 4, 'allir fá bakgrunn, svo prófið er ekki tómt');
+  assert.equal(lesid, 0, 'ársreikningsaðgangurinn er aldrei kallaður');
+  for (const e of ev) assert.doesNotMatch(JSON.stringify(e.facts.bakgrunnur), /arsreikn|sala_kr|hagnadur/);
 });
 
 test('tvíræð eða óþekkt nafn gefur EKKERT, frekar en að giska', () => {
@@ -72,14 +84,14 @@ test('vörumerki og gjaldþrot nota kennitölu atburðarins', () => {
   const vmEinst = { id: 'vorumerki-2', type: 'vorumerki', kt: '0101801234', facts: { merki: 'JÓN', eigandi: 'Jón Jónsson' } };
   const gj = { id: 'gjaldthrot-1', type: 'gjaldthrot', kt: '5501692829', facts: { felag: 'Dagar hf.', tegund: 'Gjaldþrotaskiptabeiðni' } };
   assert.equal(baetaVidBakgrunni([vm, vmEinst, gj], GOGN(), { idag: IDAG }), 2);
-  assert.ok(vm.facts.bakgrunnur.eigandi.arsreikningur);
+  assert.equal(vm.facts.bakgrunnur.eigandi.utbod_unnin.fjoldi, 3);
   assert.equal(vmEinst.facts.bakgrunnur, undefined, 'einstaklingur fær ekkert');
-  assert.equal(gj.facts.bakgrunnur.felagid.arsreikningur.ar, 2024);
+  assert.equal(gj.facts.bakgrunnur.felagid.rikisgreidslur_12man.samtals_kr, 250000000);
 });
 
 test('villa í einum atburði fellur ekki hina; óstuddar tegundir ósnertar', () => {
   const vondur = { id: 'urslit-x', type: 'urslit', facts: { sigurvegarar: ['Dagar hf.'], tedNr: 'X' } };
-  const gogn = GOGN(); gogn.arsreikningur = () => { throw new Error('bilað'); };
+  const gogn = GOGN(); Object.defineProperty(gogn, 'birgjar', { get() { throw new Error('bilað'); } });
   const domur = { id: 'domur-1', type: 'domur', facts: { domstoll: 'Hæstiréttur' } };
   const skilabod = [];
   assert.equal(baetaVidBakgrunni([vondur, domur], gogn, { idag: IDAG, skra: (m) => skilabod.push(m) }), 0);

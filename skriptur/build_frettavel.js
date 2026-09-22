@@ -933,12 +933,12 @@ ${it}
 }
 
 // ── Nýja ritunin: gögn bakgrunns, client og prufuhamur ────────
+// ⚠ Enginn ársreikningsaðgangur hér: ársreikningatölur eru greidda 990 kr varan og gögnin óáreiðanleg (sjá haus
+//   lib/frettasamhengi.mjs). Aðgangur hér myndi bjóða næsta manni að setja þær aftur í fréttir.
 function gognBakgrunns() {
-  const ARS = path.join(__dirname, '..', 'web', 'public', 'gogn', 'arsreikningar');
   return {
     felagaskra: J('felagaskra.json'), birgjar: J('birgjar.json'), utbod_urslit: J('utbod_urslit.json'), styrkir: J('styrkir.json'),
     markadir: J('markadir.json'), sedlabanki: J('sedlabanki.json'), atvinnuleysi: J('atvinnuleysi.json'), lyf: J('lyf.json'),
-    arsreikningur: (kt) => { if (!/^\d{10}$/.test(String(kt))) return null; try { return JSON.parse(fs.readFileSync(path.join(ARS, kt + '.json'), 'utf8')); } catch (e) { return null; } },
   };
 }
 function nyrClient() {

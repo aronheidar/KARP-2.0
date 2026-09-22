@@ -7,6 +7,9 @@
 // ⚠ Nafnið `samhengi` er frátekið: e.samhengi er útreiknuð LÍNA sem birtist í kassa á fréttasíðunni.
 // ⚠ Dómar fá EKKI bakgrunn: domar_ai.json er aðeins hluti dóma (78 færslur 22.9), svo „dómar á árinu" væri villandi.
 // ⚠ Persónuvernd: fyrirtækjasamhengi aðeins fyrir LÖGAÐILA. Gefin kt einstaklings stöðvar samhengið alveg.
+// ⚠ Ársreikningatölur fara ALDREI í bakgrunn (yfirferð 22.9): þær eru kjarni greiddu 990 kr skýrslunnar og fara
+//   samkvæmt ákvörðun Arons 14.9 ekki einu sinni í spjallið. Gögnin eru auk þess óáreiðanleg (Hekla hf.: sala
+//   −13.747.966 með kvarða 1; 247 af 1.014 skrám með sölu nákvæmlega 0). Próf ver mörkin.
 
 const r1 = (x) => Math.round(x * 10) / 10;
 const r2 = (x) => Math.round(x * 100) / 100;
@@ -47,20 +50,7 @@ export function ktFraNafni(nafn, skra) {
   return s && s.size === 1 ? [...s][0] : null;
 }
 
-function arsreikningurSamantekt(ars) {
-  const ar = ars && ars.ar;
-  if (!ar) return null;
-  const y = Object.keys(ar).filter((k) => ar[k] && ar[k].rekstur).sort().pop();
-  if (!y) return null;
-  const kv = Number(ar[y].kvardi) || 1, rek = ar[y].rekstur;
-  return hreinsa({
-    ar: Number(y),
-    sala_kr: typeof rek.sala === 'number' ? rek.sala * kv : null,
-    hagnadur_kr: typeof rek.hagnadur === 'number' ? rek.hagnadur * kv : null,
-  });
-}
-
-/** Samhengi um lögaðila, eða null ef hann finnst ekki ótvírætt. */
+/** Samhengi um lögaðila, eða null ef hann finnst ekki ótvírætt. Aldrei ársreikningatölur (sjá haus). */
 export function fyrirtaeki(nafn, gogn, { kt = null, utanUtbods = null, utanStyrks = null } = {}) {
   if (!nafn) return null;
   let k;
@@ -86,8 +76,7 @@ export function fyrirtaeki(nafn, gogn, { kt = null, utanUtbods = null, utanStyrk
   const st = ((gogn.styrkir && gogn.styrkir.styrkir) || [])
     .filter((x) => ((x.kt && x.kt === k) || stadlaNafn(x.nafn) === s) && !(utanStyrks && utanStyrks(x)));
   const styrkir = st.length ? { fjoldi: st.length, samtals_kr: st.reduce((t, x) => t + (x.upphaed || 0), 0) } : null;
-  const ars = typeof gogn.arsreikningur === 'function' ? arsreikningurSamantekt(gogn.arsreikningur(k)) : null;
-  return hreinsa({ utbod_unnin: utbod, rikisgreidslur_12man: rikis, styrkir_fyrri: styrkir, arsreikningur: ars });
+  return hreinsa({ utbod_unnin: utbod, rikisgreidslur_12man: rikis, styrkir_fyrri: styrkir });
 }
 
 function urslit(e, gogn, o) {
