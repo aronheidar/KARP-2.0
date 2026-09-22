@@ -11,6 +11,7 @@ import LAND from '@gogn/landbunadur.json';
 import STOR from '@gogn/storidja.json';
 import ORKA from '@gogn/orka.json';
 import HUGV from '@gogn/hugverk.json';
+import GJ from '@gogn/gjaldthrot.json';
 import SKPI from '../../../public/gogn/sector_kpi.json';
 import { sectorsFromMap } from '../../lib/atvinnugrein.mjs';
 
@@ -27,6 +28,7 @@ const subs = [
   ['/atvinnuvegir/storidja/', 'Stóriðja & orka', STOR.alL && groupThousands(Math.round(STOR.alL.al)), STOR.alL && `ma.kr. álútflutningur · ${STOR.alL.y}`],
   ['/orka/', 'Raforka', orkaL && groupThousands(orkaL.total), orkaL && `GWh framleidd · ${orkaL.y}`],
   ['/atvinnuvegir/hugverk/', 'Hugverk & tækni', HUGV.rdL && String(HUGV.rdL.v).replace('.', ',') + '%', HUGV.rdL && `af VLF í rannsóknir og þróun · ${HUGV.rdL.y}`],
+  ['/gjaldthrot/', 'Gjaldþrot fyrirtækja', GJ.ytd && GJ.ytd.nu.virk != null && groupThousands(GJ.ytd.nu.virk), GJ.ytd && `gjaldþrot félaga með starfsemi · ${GJ.ytd.heiti}`],
   ['/atvinnugreinar/', 'Fjárhagur per grein', nGreinar ? String(nGreinar) : null, nGreinar ? 'ÍSAT-greinar með viðmið og stærstu félög' : null],
 ];
 ---

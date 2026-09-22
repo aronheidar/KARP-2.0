@@ -22,6 +22,7 @@ export const VORUKORT = {
   'Landbúnaður': { vara: 'Atvinnugreina-skýrslur', slod: '/atvinnugreinar/', tala: 'velta og afkoma greinarinnar' },
   'Byggingariðnaður': { vara: 'Atvinnugreina-skýrslur', slod: '/atvinnugreinar/', tala: 'velta og afkoma greinarinnar' },
   'Fiskeldi': { vara: 'Atvinnugreina-skýrslur', slod: '/atvinnugreinar/', tala: 'velta og afkoma greinarinnar' },
+  'Gjaldþrot': { vara: 'Gjaldþrotasíðan', slod: '/gjaldthrot/', tala: 'gjaldþrot félaga með starfsemi eftir atvinnugreinum' },
 };
 export function pararVidVoru(nafn) {
   return (typeof nafn === 'string' && Object.prototype.hasOwnProperty.call(VORUKORT, nafn)) ? VORUKORT[nafn] : null;

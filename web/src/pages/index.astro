@@ -16,6 +16,7 @@ const pages = [
   { href: '/fasteignir/', title: 'Fasteignaverð', desc: 'Verð á fermetra höfuðborg vs landsbyggð — þróun úr þinglýstum kaupum.' },
   { href: '/orka/', title: 'Orka', desc: 'Raforkuframleiðsla og hlutfall endurnýjanlegrar orku frá 1969.' },
   { href: '/vinnumarkadur/', title: 'Vinnumarkaður', desc: 'Skráð atvinnuleysi — mánaðarþróun, landshlutar, kyn og ríkisfang.' },
+  { href: '/gjaldthrot/', title: 'Gjaldþrot fyrirtækja', desc: 'Gjaldþrot og nýskráningar eftir atvinnugreinum, borin saman við fyrra ár.' },
   { href: '/afbrot/', title: 'Afbrot', desc: 'Hegningarlagabrot á 10.000 íbúa — þróun, landshlutar og brotaflokkar.' },
   { href: '/nato/', title: 'NATO & sendiráð', desc: 'Varnarútgjöld NATO-ríkja og sendiráðanet Íslands.' },
   { href: '/hagvoxtur/', title: 'Hagvöxtur', desc: 'VLF ársfjórðungslega, samsetning landsframleiðslunnar og Norðurlanda-samanburður.' },
@@ -40,6 +41,7 @@ import MARKADIR from '@gogn/markadir.json';
 import VERDLAG from '@gogn/verdlag.json';
 import FASTEIGNIR from '@gogn/fasteignir.json';
 import HAGVOXTUR from '@gogn/hagvoxtur.json';
+import GJALDTHROT from '@gogn/gjaldthrot.json';
 import { partyName } from '@lib/parties.mjs';
 
 // Setningarnar bera ekkert tákn fremst (13.9.2026): hver þeirra nefnir svið sitt í fyrstu orðunum,
@@ -86,6 +88,11 @@ try {
   if (fm && fm.hbsv && fm.hbsv.m2) TALA['/fasteignir/'] = { v: String(fm.hbsv.m2) + ' þ.kr/m²', l: 'höfuðborgarsvæðið' };
   const g = HAGVOXTUR.GDP || {};
   if (g.latest != null) TALA['/hagvoxtur/'] = { v: (g.latest >= 0 ? '▲' : '▼') + isNum(Math.abs(g.latest)) + '%', l: (g.latest >= 0 ? 'hagvöxtur ' : 'samdráttur VLF ') + (g.latestQ || '') };
+  // Gjaldþrot félaga MEÐ STARFSEMI árið áður, ekki skráð gjaldþrot: skráða talan er að mestu hætt félög
+  // og hoppar þegar mörg eru gerð upp í einu (sjá skriptur/lib/gjaldthrot.mjs).
+  const gy = GJALDTHROT.ytd || {};
+  const gb = gy.breyting ? gy.breyting.virk : null;
+  if (gb != null) TALA['/gjaldthrot/'] = { v: (gb > 0 ? '▲' : gb < 0 ? '▼' : '') + isNum(Math.abs(gb)) + '%', l: 'gjaldþrot starfandi félaga, ' + gy.heiti };
 } catch (e) {}
 
 // Byggingardagur: síðan er forþjónuð við hvert push, þ.m.t. daglegu gagnauppfærsluna.
