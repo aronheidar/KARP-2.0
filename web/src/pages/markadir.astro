@@ -276,6 +276,16 @@ const jsonLd = {
     .cur { font-size: 10.5px; color: var(--faint); }
     .spark-c, .spark-h { width: 110px; }
     .st-spark { width: 96px; height: 26px; display: block; margin-left: auto; }
+    /* Á síma (22.9.2026) var hlutabréfataflan 472px á 335px skjá og 30 daga línuritið utan skjás. Nafnið fer
+       undir auðkennið, línuritið mjókkar og bilið minnkar svo fjórir dálkar passi (335 í 335, mælt). */
+    @media (max-width: 520px) {
+      #stk-table th, #stk-table td { padding: 7px 5px; }
+      #stk-table th { letter-spacing: 0; }
+      #stk-table td.l { white-space: normal; }
+      #stk-table .st-name { display: block; }
+      .spark-c, .spark-h { width: 64px; }
+      .st-spark { width: 60px; }
+    }
     .up { color: #46e08a; } .dn { color: #ff6d7a; }
     /* Arion-töflurnar (LOTA 39): gengistöflur + Stefnir-sjóðir — sama útlit og hlutabréfataflan */
     .ktable { width: 100%; border-collapse: collapse; font-size: 13.5px; }

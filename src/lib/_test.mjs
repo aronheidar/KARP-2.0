@@ -38,6 +38,7 @@ eq('brotheiti hreppur', brotheiti('Skeiða- og Gnúpverjahreppur'), 'Skeiða- og
 eq('brotheiti of stuttur stofn óbreyttur', brotheiti('Ásbær'), 'Ásbær');
 eq('brotheiti án viðskeytis óbreytt', brotheiti('Reykjavíkurborg'), 'Reykjavíkurborg');
 eq('brotheiti null', brotheiti(null), '');
+eq('brotheiti hlutfall', brotheiti('Eiginfjárhlutfall'), 'Eiginfjár­hlutfall');
 
 // seats — D'Hondt úthlutar nákvæmlega TOT sætum
 const polls = { parties: ['S','C','F','D','M','B'], polls: [{ v: { S:25, C:12, F:9, D:24, M:11, B:12 } }] };

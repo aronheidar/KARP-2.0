@@ -6,7 +6,7 @@
 // frankfurter í frontmatter á hverri byggingu → nú seigla + saga + spá).
 // Atvinnuleysi/Numbeo/Seðlabanki koma áfram úr bökuðum @gogn-snapshots. #2.
 // ─────────────────────────────────────────────────────────────
-import { monthLabel, fmtNum, MON_LONG } from '@lib/format.mjs';
+import { monthLabel, fmtNum, MON_LONG, brotheiti } from '@lib/format.mjs';
 import Layout from '../layouts/Layout.astro';
 import SiduHaus from '../components/SiduHaus.astro';
 import ATV from '@gogn/atvinnuleysi.json';
@@ -235,14 +235,14 @@ const jsonLd = {
 
     <h2>Verð á algengum vörum — Reykjavík vs <select id="pt-city">{CITYOPTS.map((c) => <option value={c.key} selected={c.key === 'Copenhagen'}>{c.label}</option>)}</select></h2>
     <div class="tw">
-      <table>
+      <table class="pt">
         <thead><tr><th class="l">Vara/þjónusta</th><th>Reykjavík</th><th id="pt-cityh">Kaupmannahöfn</th><th>Munur</th></tr></thead>
         <tbody>
           {PRICETABLE.map((r) => {
             const d = r.cph ? Math.round(((r.rvk - r.cph) / r.cph) * 100) : null;
             return (
               <tr class="pt-row" data-rvk={r.rvk} data-vals={JSON.stringify(r.vals)}>
-                <td class="l">{r.is}</td>
+                <td class="l">{brotheiti(r.is)}</td>
                 <td class="num">{kr(r.rvk)}</td>
                 <td class="num pt-city">{kr(r.cph)}</td>
                 <td class={`num pt-diff ${d > 0 ? 'dn' : 'up'}`}>{d == null ? '–' : (d > 0 ? '+' : '') + d + '%'}</td>
@@ -292,6 +292,13 @@ const jsonLd = {
     th, td { text-align: right; padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,.08); white-space: nowrap; }
     th { color: var(--faint); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
     td.l, th.l { text-align: left; white-space: normal; }
+    /* Á síma (22.9.2026) var verðsamanburðurinn 520px á 335px skjá (min-width hér að ofan) og „Munur“ utan skjás.
+       Án min-width, með fyrirsögnum sem mega brotna og brotstað við skástrik passa fjórir dálkar (mælt). */
+    @media (max-width: 520px) {
+      table { min-width: 0; }
+      .pt th, .pt td { padding: 6px 4px; }
+      .pt th { white-space: normal; font-size: 10px; letter-spacing: 0; }
+    }
     .num { font-variant-numeric: tabular-nums; }
     .up { color: #46e08a; } .dn { color: #ff6d7a; }
     .foot { font-size: 12px; color: var(--faint); margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }

@@ -11,6 +11,7 @@ import Layout from '../../layouts/Layout.astro';
 import SiduHaus from '../../components/SiduHaus.astro';
 import SK from '../../../public/gogn/sector_kpi.json';
 import { sectorsFromMap, vsHeild, RATIO_META, RATIO_ORDER, fmtPct, fmtRatio } from '../../lib/atvinnugrein.mjs';
+import { brotheiti } from '@lib/format.mjs';
 
 export function getStaticPaths() {
   return sectorsFromMap(SK.map).map((s) => ({ params: { slug: s.slug }, props: { sector: s, heild: SK.heild } }));
@@ -64,6 +65,8 @@ const rows = RATIO_ORDER.map((key) => {
     secTxt: fmtVal(meta.fmt, secVal),
     heildTxt: fmtVal(meta.fmt, heildVal),
     dirTxt: dir === 'jafnt' ? 'álíka og hagkerfið að jafnaði' : `${Math.abs(pct)}% ${dir} meðaltali hagkerfisins`,
+    // Á síma: stutta útgáfan, fyrirsögnin „Samanburður“ gefur samhengið (sjá .atv-stutt neðst).
+    dirStutt: dir === 'jafnt' ? 'álíka' : `${Math.abs(pct)}% ${dir}`,
     cls: ratioCls(dir, meta.betra),
   };
 });
@@ -79,14 +82,14 @@ const rows = RATIO_ORDER.map((key) => {
     <h2>8 lykilviðmið vs. hagkerfið</h2>
     <div class="atv-tbl-wrap tw">
       <table class="atv-tbl">
-        <thead><tr><th>Viðmið</th><th>{displayName}</th><th>Hagkerfið</th><th>Samanburður</th></tr></thead>
+        <thead><tr><th>Viðmið</th><th><span class="atv-langt">{displayName}</span><span class="atv-stutt">Greinin</span></th><th>Hagkerfið</th><th>Samanburður</th></tr></thead>
         <tbody>
           {rows.map((r) => (
             <tr>
-              <td class="atv-lab">{r.heiti}</td>
+              <td class="atv-lab">{brotheiti(r.heiti)}</td>
               <td class="atv-num">{r.secTxt}</td>
               <td class="atv-num atv-muted">{r.heildTxt}</td>
-              <td><span class={`atv-badge atv-${r.cls}`}>{r.dirTxt}</span></td>
+              <td><span class={`atv-badge atv-${r.cls}`} title={r.dirTxt}><span class="atv-langt">{r.dirTxt}</span><span class="atv-stutt">{r.dirStutt}</span></span></td>
             </tr>
           ))}
         </tbody>
@@ -151,8 +154,16 @@ const rows = RATIO_ORDER.map((key) => {
     .atv-cta { display: inline-block; margin-top: 4px; background: var(--gold); color: var(--surface); font-weight: 700; font-size: 13.5px; padding: 10px 18px; border-radius: 10px; text-decoration: none; }
     .atv-cta:hover { filter: brightness(1.06); }
 
+    .atv-stutt { display: none; }
+    /* Á síma (22.9.2026) var viðmiðataflan 564px á 335px skjá: heiti greinarinnar í hástöfum í fyrirsögn og
+       merkið „29% undir meðaltali hagkerfisins“ í einni línu. Á síma „Greinin“ (heitið er í h1) og stutt merki
+       („29% undir“, fullur texti í title); löng viðmið fá mjúkt bandstrik („Eiginfjár-hlutfall“). 335 í 335, mælt. */
     @media (max-width: 560px) {
-      .atv-tbl th, .atv-tbl td { padding: 7px 6px; font-size: 12.5px; }
+      .atv-tbl th, .atv-tbl td { padding: 7px 4px; font-size: 12.5px; }
+      .atv-tbl th { letter-spacing: 0; }
+      .atv-badge { padding: 3px 7px; }
+      .atv-langt { display: none; }
+      .atv-stutt { display: inline; }
     }
   </style>
 

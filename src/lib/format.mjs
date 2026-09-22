@@ -38,15 +38,15 @@ export const slugify = (s) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 
-// Brotstaðir í löngum heitum fyrir fasta heitadálka á síma (22.9.2026). Chrome brýtur hvorki við skástrik
-// („Árskógssandur/Hauganes“) né inni í löngum samsetningum („Bolungarvíkurkaupstaður“), svo lengsta heitið réð
-// breidd fasta dálksins (169–179px á 375px skjá). Grannbil (U+200B) á eftir skástriki og mjúkt bandstrik (U+00AD)
-// á undan algengum viðskeytum; hvorugt sést nema línan þurfi að brotna. Aðeins í birtan texta, aldrei í
-// data-eigindi eða slóðir sem leitað er í.
+// Brotstaðir í löngum heitum fyrir mjóa dálka á síma (22.9.2026). Chrome brýtur hvorki við skástrik
+// („Árskógssandur/Hauganes“) né inni í löngum samsetningum („Bolungarvíkurkaupstaður“, „Eiginfjárhlutfall“), svo
+// lengsta heitið réð breidd dálksins. Grannbil (U+200B) á eftir skástriki og mjúkt bandstrik (U+00AD) á undan
+// algengum viðskeytum; hvorugt sést nema línan þurfi að brotna. Aðeins í birtan texta, aldrei í data-eigindi eða
+// slóðir sem leitað er í.
 export const brotheiti = (s) =>
   String(s == null ? '' : s)
     .replace(/\//g, '/​')
-    .replace(/(\p{L}{4})(kaupstaður|hreppur|sveit|byggð|bær)$/u, '$1­$2');
+    .replace(/(\p{L}{4})(kaupstaður|hreppur|sveit|byggð|bær|hlutfall)$/u, '$1­$2');
 
 // SEO: '&' í lyf-slug fær Cloudflare til að 307-redirect-a (svigar eru í lagi). Fjarlægt fyrir /lyf/<slug>/ route + innri hlekki; ytri serlyfjaskra-hlekkir halda upprunaslug.
 export const lyfUrlSlug = (s) => String(s == null ? '' : s).replace(/&/g, '').replace(/-{2,}/g, '-');
