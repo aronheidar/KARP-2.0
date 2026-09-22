@@ -366,19 +366,18 @@ function detect(state) {
     }
     state.sendirad = cur;
   }
+  // Ívilnanir: skráin er RITSTÝRÐ og ber enga dagsetningu, svo grunnurinn er dagsettur eftir keyrsludegi. Ný færsla í
+  // skránni er ekki sama og ný ívilnun: færsla sem ritstjóri bætir við (eða endurnefnir) er aðeins frétt ef hún tók
+  // gildi á þessu ári eða því síðasta. Ódagsett færsla (`fra` vantar, fjórar í skránni) er aldrei frétt.
   const iv = J('ivilnanir.json');
   if (Array.isArray(iv)) {
-    const keys = iv.map((x) => slug(x.nafn) + '|' + x.fra);
-    if (Array.isArray(state.ivilnanir)) {
-      iv.forEach((x, i) => {
-        if (!state.ivilnanir.includes(keys[i])) {
-          ev.push({ id: `ivilnun-${keys[i].replace('|', '-')}`, type: 'ivilnun', facts: { nafn: x.nafn, lysing: x.lysing, umfang: x.umfang, raduneyti: x.raduneyti, fra: x.fra }, url: '/ivilnanir/',
-            title: `Ný ríkisívilnun: ${x.nafn}`,
-            text: `${x.nafn} hefur fengið ívilnun frá ríkinu (${x.raduneyti || 'ráðuneyti óskráð'}): ${String(x.lysing || '').slice(0, 140)}${x.umfang ? ` Umfang: ${x.umfang}.` : ''}` });
-        }
-      });
+    const { nyjar, grunnur } = pickNyjar(iv, state.ivilnanir, { dags: TODAY, lykill: (x) => slug(x.nafn) + '|' + x.fra, ar: (x) => x.fra });
+    for (const x of nyjar) {
+      ev.push({ id: `ivilnun-${slug(x.nafn)}-${x.fra}`, type: 'ivilnun', facts: { nafn: x.nafn, lysing: x.lysing, umfang: x.umfang, raduneyti: x.raduneyti, fra: x.fra }, url: '/ivilnanir/',
+        title: `Ný ríkisívilnun: ${x.nafn}`,
+        text: `${x.nafn} hefur fengið ívilnun frá ríkinu (${x.raduneyti || 'ráðuneyti óskráð'}): ${String(x.lysing || '').slice(0, 140)}${x.umfang ? ` Umfang: ${x.umfang}.` : ''}` });
     }
-    state.ivilnanir = keys;
+    state.ivilnanir = grunnur;
   }
 
   // ── Stjórnarmeirihlutinn undir + einn flokkur gegn öllum ─────

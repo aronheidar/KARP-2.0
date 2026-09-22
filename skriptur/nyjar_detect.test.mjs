@@ -98,6 +98,15 @@ test('færsla með eigið ár (`ar`) meira en ári á undan skránni er ekki fr�
   assert.deepEqual(nyjar.map((s) => s.k), ['b', 'c', 'd']);
 });
 
+test('ritstýrð skrá án dagsetningar: keyrsludagur er dagsetning grunnsins og gömul eða ódagsett færsla er ekki frétt', () => {
+  // ivilnanir.json er ritstýrð og ber enga dagsetningu: ritstjóri sem bætir við gamalli ívilnun á ekki að fá „Ný ríkisívilnun"
+  const I = (nafn, fra) => ({ nafn, fra });
+  const IV = { lykill: (x) => x.nafn + '|' + x.fra, ar: (x) => x.fra };
+  const { nyjar } = pickNyjar([I('gömul', 1999), I('ný', 2026), I('næsta ár', 2027), I('ódagsett', null)],
+    { dags: '2026-09-21', lyklar: ['a'] }, { dags: '2026-09-22', ...IV });
+  assert.deepEqual(nyjar.map((x) => x.nafn), ['ný', 'næsta ár']);
+});
+
 test('grunnur án hópa er ekki borinn saman þegar hópfall er gefið', () => {
   assert.deepEqual(pickNyjar([S('k2', 'A')], { dags: '2026-09-21', lyklar: [] }, { dags: '2026-09-22', ...ST }).nyjar, []);
 });
