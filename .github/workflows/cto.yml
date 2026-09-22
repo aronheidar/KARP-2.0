@@ -1,10 +1,28 @@
 name: CTO (lagfæring úr hjálparbeiðni → PR)
 
 # Fasi 2 í þjónustufulltrúa-flæðinu: worker sendir repository_dispatch { ticket } þegar Aron smellir
-# „Senda á CTO" á /stjorn/ (eða handvirkt hér). Claude Code keyrir í CI með skrifaðgang að repoinu,
-# finnur og lagar villuna í sér-grein, prófin verða að vera græn, og skilar PR + samantekt aftur á
-# /api/admin/ticket (cto_result) → Aron fær póst og samþykkir með einum smelli (merge = deploy).
-# Girðingar: aðeins web/ og skriptur/ mega breytast; ALDREI migrations/, wrangler.toml, .github/ eða leyndarmál.
+# „Senda á CTO" á /stjorn/ (eða handvirkt hér). Claude Code finnur og lagar villuna, prófin verða að
+# vera græn, og PR + samantekt fara aftur á /api/admin/ticket (cto_result) → Aron fær póst og samþykkir
+# með einum smelli (merge = deploy, cto_merge.yml).
+#
+# ⚠⚠ FJÖGUR JOB, OG ÞAÐ ER ÖRYGGISMÖRKIN (22.9.2026). Líkanið les texta sem hver sem er getur sent á
+#    hjalp@ og má keyra kóða (Bash(node:*) = full skel). Allt sem keyrir á SÖMU VÉL á eftir því er
+#    ótraust: skrár, PATH ($GITHUB_PATH), umhverfi ($GITHUB_ENV), node_modules, git-stillingar. Og
+#    leyndarmál á skrefastigi verja ekki innan sama job: keyrandinn heldur öllum leyndarmálum job-sins
+#    í minni, og skref með sudo getur lesið þau þaðan. Eini raunverulegi veggurinn er NÝ VÉL.
+#    Áður hafði Claude-skrefið skrifaðgang (contents: write + vistuð skilríki checkout) að óvarinni
+#    main, og hvert push á main fer í loftið: innskot í beiðni gat sett kóða í framleiðslu án prófa og
+#    án samþykkis Arons. Nú:
+#      saekja  — ber KARP_ADMIN_KEY, keyrir ENGAN kóða úr repo-inu (engin checkout), smíðar promptið.
+#      laga    — Claude. Aðeins ANTHROPIC_API_KEY, les-aðgangur, engin vistuð skilríki. Skilar patch.
+#      profa   — beitir patchinu og keyrir sama prófasett og ci.yml. ENGIN leyndarmál.
+#      skila   — ber skrifaðgang og KARP_ADMIN_KEY, keyrir ALDREI kóða úr patchinu: sían
+#                (skriptur/lib/cto_sia.mjs, grunnútgáfan) keyrir ÁÐUR en patchinu er beitt, og síðan
+#                aðeins git og gh. Stofnar grein cto/ticket-N + PR og skilar cto_result.
+#    Girðingar (sían): aðeins web/ og skriptur/; aldrei migrations/, wrangler.toml, pakkaskrár,
+#    greiðslukóði, tenglar eða sían sjálf. Ein óleyfileg skrá fellir allan patchinn.
+# ⚠ Repo-ið er OPINBERT: keyrsluskrár og artifact sjást. Engin persónuupplýsing er prentuð, samantektin
+#   í PR-inu er hreinsuð af netföngum, og artifact er eytt um leið og skila-jobbið hefur lesið það.
 
 on:
   repository_dispatch:
@@ -18,67 +36,57 @@ on:
         description: 'Frjálst verkefni (í stað beiðnar) — t.d. „karp2-byggingin fellur við hvert push"'
         required: false
 
-permissions:
-  contents: write
-  pull-requests: write
+# Engin réttindi sjálfgefið: hvert job tilgreinir sín eigin.
+permissions: {}
 
 concurrency:
   group: cto-${{ github.event.client_payload.ticket || inputs.ticket || github.run_id }}
   cancel-in-progress: false
 
+env:
+  TICKET: ${{ github.event.client_payload.ticket || inputs.ticket }}
+  VERK: ${{ github.event.client_payload.verk || inputs.verk }}
+
 jobs:
-  laga:
+  saekja:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
-    env:
-      TICKET: ${{ github.event.client_payload.ticket || inputs.ticket }}
-      VERK: ${{ github.event.client_payload.verk || inputs.verk }}
-      # ⚠ KARP_ADMIN_KEY er viljandi EKKI hér heldur aðeins á skrefunum sem kalla á /api/admin/* (ticket, moot, cto_result).
-      #   Claude-skrefið les texta notanda og má keyra node, svo lykill í umhverfi þess leyfði prompt-innspýtingu að senda
-      #   póst í nafni Karp (svara/create) eða breyta stöðu beiðna. Færðu hann ekki aftur upp á job-stig.
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    timeout-minutes: 5
+    permissions: {}
+    outputs:
+      prompt: ${{ steps.p.outputs.prompt }}
     steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-node@v6
-        with:
-          node-version: '22'
-      - name: Sækja ticket úr karp.is (sleppt þegar frjálst verk er sent)
+      - name: Staðfesta beiðnina
+        run: |
+          node -e "
+            const t = String(process.env.TICKET || ''), v = String(process.env.VERK || '').trim();
+            if (t && !/^[0-9]{1,9}$/.test(t)) throw new Error('ticket er ekki tala');
+            if (!t && v.length < 10) throw new Error('hvorki ticket né nothæft verk');
+            console.log(t ? 'ticket #' + t : 'frjálst verk');
+          "
+      - name: Sækja ticket og Moot úr karp.is (eina skrefið með lyklinum — enginn kóði úr repo-inu er hér)
         if: env.TICKET != ''
         env:
           KARP_ADMIN_KEY: ${{ secrets.KARP_ADMIN_KEY }}
         run: |
           curl -sf -H "X-Admin-Key: $KARP_ADMIN_KEY" "https://karp.is/api/admin/ticket?id=$TICKET" -o ticket.json
-          node -e "const t=require('./ticket.json'); if(!t.ok) throw new Error('ticket '+JSON.stringify(t)); console.log('#'+t.ticket.id, t.ticket.tegund, '—', t.ticket.efni)"
-      - name: Verkefni án beiðnar
+          # Nýjasti ráðsfundur um málið. Vanti hann eða svari veitan ekki → '{}' (promptið segir „(engin)").
+          curl -sf -H "X-Admin-Key: $KARP_ADMIN_KEY" "https://karp.is/api/admin/moot?id=$TICKET" -o moot.json || echo '{}' > moot.json
+          # ⚠ AÐEINS númer og tegund í skrána: efnislína og lýsing geta borið persónuupplýsingar og skráin er opinber
+          node -e "const t=require('./ticket.json'); if(!t.ok) throw new Error('ticket svaraði ekki ok'); console.log('#'+t.ticket.id, t.ticket.tegund)"
+      - name: Frjálst verk (engin beiðni)
         if: env.TICKET == ''
         run: |
           node -e "
-            const v = (process.env.VERK || '').trim();
-            if (v.length < 10) throw new Error('hvorki ticket né nothæft verk');
+            const v = String(process.env.VERK || '').trim();
             require('fs').writeFileSync('ticket.json', JSON.stringify({ ok: true, ticket: { id: 'verk', flokkur: 'Bilun', tegund: 'villa', lysing: v, ai_greining: '{}' } }));
-            console.log('frjálst verk:', v.slice(0, 120));
           "
-      - name: Sækja Moot (verkbeiðni Hrafns) úr karp.is
-        if: env.TICKET != ''
-        env:
-          KARP_ADMIN_KEY: ${{ secrets.KARP_ADMIN_KEY }}
-        # Nýjasti ráðsfundur um málið: /api/admin/moot?id=N → { nidurstada:{cto_brief,…}, atkvaedi_arons:{val,…} }.
-        # Vantar Moot eða veitan svarar ekki → '{}' (promptið segir „(engin)“). Aldrei fellur keyrslan á þessu skrefi.
+          echo '{}' > moot.json
+      - name: Smíða promptið
+        id: p
+        # Promptið er SNIÐMÁT í skrá (quoted heredoc → ENGIN skeljar-útskipting: bakstrik eins og `npm test` og $-tákn
+        # lifa óbreytt), og node fyllir staðgenglana úr ticket.json + moot.json. Það fer til laga-jobsins sem
+        # job-úttak á base64, ALDREI sem skrá í artifact: artifact í opnu repo getur hver sem er sótt.
         run: |
-          curl -sf -H "X-Admin-Key: $KARP_ADMIN_KEY" "https://karp.is/api/admin/moot?id=$TICKET" -o moot.json || echo '{}' > moot.json
-          node -e "let m={}; try{m=require('./moot.json')}catch(e){} console.log('moot:', m.ok ? ('nr '+(m.fyrri||'?')+' · adgerd '+(m.nidurstada&&m.nidurstada.adgerd)+' · Aron '+(m.atkvaedi_arons?m.atkvaedi_arons.val:'—')) : 'enginn')"
-      - name: Deps (web)
-        run: npm ci --no-audit --no-fund
-        working-directory: web
-      - name: Claude Code — greina og laga
-        # Promptið er SNIÐMÁT í skrá (quoted heredoc → ENGIN skeljar-útskipting: bakstrik eins og `npm test` og $-tákn lifa
-        # óbreytt) og sér node-skript fyllir staðgenglana úr ticket.json + moot.json. Áður var JS-ið inni í "…" í bash og
-        # `npm test` varð skipanaútskipting → „Expected ',', got '@'“ og keyrslan féll.
-        run: |
-          [ -f moot.json ] || echo '{}' > moot.json
-          npm i -g @anthropic-ai/claude-code
           cat > cto_prompt.tmpl <<'EOF'
           Þú ert Hrafn, forritari Karp (karp.is — Astro-vefur í web/ + Cloudflare Worker web/worker.js og web/src/worker/*.mjs, gögn í gogn/ byggð af skriptur/).
           Hjálparbeiðni #{{ID}} frá notanda ({{FLOKKUR}}, tegund {{TEGUND}}):
@@ -90,8 +98,10 @@ jobs:
           {{MOOT_BRIEF}}
           ---
           VERKEFNI: Finndu rót vandans í kóðanum og gerðu MINNSTU öruggu lagfæringu. Bættu við eða uppfærðu próf ef við á. Verkbeiðnin úr Moot (ef til) gengur framar CTO-briefi þjónustufulltrúans — hún er sú sem Aron samþykkti.
-          REGLUR: (1) Breyttu AÐEINS skrám undir web/ eða skriptur/ — aldrei web/migrations/, web/wrangler.toml, .github/, leyndarmálum eða greiðslukóða (askell/teya). (2) Keyrðu `npm test` í web/ og skilaðu ekki með rauðum prófum. (3) Ef þú finnur EKKI raunverulega villu í kóða (t.d. spurning, misskilningur, gagnavilla frá heimild) → breyttu ENGU og skrifaðu það í samantektina með rökum og tillögu um svar til notandans.
-          SKILA: skrifaðu skrána cto_summary.md í rót repo-sins á íslensku með köflunum: Hvað var að · Hvað var lagað (skrár) · Áhætta/afturkræfni · Tillaga að svari til notandans (2–4 línur). Ekkert annað í skránni.
+          REGLUR: (1) Breyttu AÐEINS skrám undir web/ eða skriptur/ — aldrei web/migrations/, web/wrangler.toml, package.json eða package-lock.json, .github/, leyndarmálum eða greiðslukóða (askell/teya/greidslur). Ein breyting utan þess og ÖLLU er hent. (2) Keyrðu `npm test` í web/ og skilaðu ekki með rauðum prófum. (3) Ef þú finnur EKKI raunverulega villu í kóða (t.d. spurning, misskilningur, gagnavilla frá heimild) → breyttu ENGU og skrifaðu það í samantektina með rökum. (4) Repo-ið og keyrsluskrár eru OPINBER: nefndu aldrei nafn, netfang, kennitölu eða aðrar persónuupplýsingar notandans, hvorki í skrám, kóða, prófum né lokasvari.
+          SKILA tveimur skrám í rót repo-sins, á íslensku:
+          cto_summary.md — með köflunum: Hvað var að · Hvað var lagað (skrár) · Áhætta/afturkræfni. Þetta fer í opinbera PR-lýsingu, svo engar persónuupplýsingar.
+          cto_svar.md — 2–4 línu tillaga að svari til notandans sem byrjar á „Sæl/Sæll {nafn}," (staðgengillinn stendur óbreyttur, Aron fyllir inn). Hún fer aðeins til Arons.
           EOF
           cat > cto_prompt.cjs <<'EOF'
           // Fyllir cto_prompt.tmpl úr ticket.json + moot.json → cto_prompt.txt. split/join (ekki String.replace) svo '$&'/'$1' í notendatexta séu ekki túlkuð.
@@ -111,55 +121,190 @@ jobs:
           console.log('prompt', p.length, 'stafir · moot-verkbeiðni:', mootBrief === '(engin)' ? 'engin' : mootBrief.length + ' stafir');
           EOF
           node cto_prompt.cjs
-          claude -p "$(cat cto_prompt.txt)" --permission-mode bypassPermissions --allowedTools "Read,Edit,Write,Glob,Grep,Bash(npm test:*),Bash(node:*),Bash(npx astro check:*)" --max-turns 80 > cto_run.log 2>&1 || true
-          tail -c 3000 cto_run.log
-          # Skili Claude ekki cto_summary.md (fyrsta raunkeyrsla: breyting gerð en engin samantekt) er hún smíðuð úr
-          # lokatexta keyrslunnar + breyttum skrám — PR-lýsingin má ekki verða innantómur varatexti.
-          if [ ! -f cto_summary.md ]; then
-            echo "engin cto_summary.md frá Claude — smíða úr keyrslu-log og git diff"
-            { printf '## Samantekt CTO (úr keyrslu-log)\n'; tail -c 1800 cto_run.log | sed 's/\x1b\[[0-9;]*m//g'; printf '\n\n## Breyttar skrár\n'; git --no-pager diff --stat | tail -20; printf '\n## Tillaga að svari\nSjá samantekt — Aron yfirfer.\n'; } > cto_summary.md
-          fi
-      - name: Próf verða að vera græn
+          echo "prompt=$(base64 -w0 cto_prompt.txt)" >> "$GITHUB_OUTPUT"
+
+  laga:
+    needs: saekja
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    # Les-aðgangur og ENGIN vistuð skilríki: Claude getur hvorki ýtt á main né neina aðra grein.
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Deps (web)
+        run: npm ci --no-audit --no-fund
+        working-directory: web
+      - name: Claude Code — greina og laga
+        # ANTHROPIC_API_KEY er EINA leyndarmálið á þessari vél, og það getur líkanið séð. Notaðu því
+        # sérstakan lykil með útgjaldaþaki fyrir CI.
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          PROMPT_B64: ${{ needs.saekja.outputs.prompt }}
+        run: |
+          npm i -g @anthropic-ai/claude-code
+          printf '%s' "$PROMPT_B64" | base64 -d > "$RUNNER_TEMP/cto_prompt.txt"
+          claude -p "$(cat "$RUNNER_TEMP/cto_prompt.txt")" --permission-mode bypassPermissions --allowedTools "Read,Edit,Write,Glob,Grep,Bash(npm test:*),Bash(node:*),Bash(npx astro check:*)" --max-turns 80 > "$RUNNER_TEMP/cto_run.log" 2>&1 || true
+          # ⚠ Ekkert úr loggi Claude í opinberu skrána: það getur vitnað í texta notanda. Halinn fer í
+          #   artifact-ið og þaðan AÐEINS til Arons á karp.is (skila-jobbið), og artifact-inu er svo eytt.
+          echo "claude lauk · $(wc -c < "$RUNNER_TEMP/cto_run.log") bæti í loggi · samantekt: $([ -f cto_summary.md ] && echo já || echo nei)"
+      - name: Pakka breytingunni (patch + samantekt — aðeins gögn fara út af vélinni)
+        run: |
+          U="$RUNNER_TEMP/cto_ut"; mkdir -p "$U"
+          # Skili Claude engri samantekt er hún smíðuð úr breyttum skrám — PR-lýsingin má ekki verða innantóm.
+          if [ -f cto_summary.md ]; then cp cto_summary.md "$U/samantekt.md"; else
+            { printf '## Samantekt CTO\nClaude skilaði engri samantekt.\n\n## Breyttar skrár\n'; git add -N -- web skriptur 2>/dev/null; git --no-pager diff --stat -- web skriptur | tail -20; } > "$U/samantekt.md"; fi
+          [ -f cto_svar.md ] && cp cto_svar.md "$U/svar.md" || true
+          tail -c 1500 "$RUNNER_TEMP/cto_run.log" > "$U/log_hali.txt" 2>/dev/null || true
+          # Aðeins web/ og skriptur/ fara í patchinn. Allt annað sem líkanið snerti er skráð svo skila-jobbið
+          # geti hent ÖLLU (ein óleyfileg breyting er merki um að eitthvað fór út af sporinu).
+          git add -A -- web skriptur ':(exclude)web/.astro'
+          git diff --cached --binary HEAD -- web skriptur ':(exclude)web/.astro' > "$U/cto.patch"
+          git status --porcelain --untracked-files=all | awk '{print $NF}' | grep -vE '^(web/|skriptur/|cto_summary\.md$|cto_svar\.md$)' > "$U/utan.txt" || true
+          ls -la "$U"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cto-${{ github.run_id }}
+          path: ${{ runner.temp }}/cto_ut/
+          retention-days: 1
+          if-no-files-found: error
+
+  profa:
+    needs: laga
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Keyrir kóða úr patchinu, og hefur því EKKERT leyndarmál og aðeins les-aðgang.
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: cto-${{ github.run_id }}
+          path: ${{ runner.temp }}/cto_ut
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Sía og beita patchinu (sían keyrir úr grunnútgáfunni, ÁÐUR en nokkru er beitt)
+        id: a
+        run: |
+          P="$RUNNER_TEMP/cto_ut/cto.patch"
+          if [ ! -s "$P" ]; then echo "engin kóðabreyting — ekkert að prófa"; echo "tomt=1" >> "$GITHUB_OUTPUT"; exit 0; fi
+          node skriptur/lib/cto_sia.mjs "$P"
+          git apply --index "$P"
+          git --no-pager diff --cached --stat
+      - name: Deps (vefur)
+        if: steps.a.outputs.tomt != '1'
+        run: npm ci --no-audit --no-fund
+        working-directory: web
+      - name: Einingapróf (web)
+        if: steps.a.outputs.tomt != '1'
         run: npm test
         working-directory: web
-      - name: Grein + PR (eða „engin breyting")
+      - name: Einingapróf (skriptur + skriptur/lib)
+        if: steps.a.outputs.tomt != '1'
+        run: node --test skriptur/*.test.mjs skriptur/lib/*.test.mjs
+      - name: Worker-tengingar heilar
+        if: steps.a.outputs.tomt != '1'
+        run: node skriptur/ci_worker_bindings.mjs
+      # Merge með GITHUB_TOKEN ræsir EKKI ci.yml (sjá cto_merge.yml), og Cloudflare deployar merge-commitið
+      # óháð því. Byggingin og hlekkjatékkið eru því keyrð HÉR, annars næði brotin bygging í loftið.
+      - name: Astro-bygging
+        if: steps.a.outputs.tomt != '1'
+        run: npx astro build
+        working-directory: web
+      - name: Worker-þurrbygging
+        if: steps.a.outputs.tomt != '1'
+        run: npx wrangler deploy --dry-run
+        working-directory: web
+      - name: Innri hlekkjatékk
+        if: steps.a.outputs.tomt != '1'
+        run: node skriptur/check_links.js
+
+  skila:
+    needs: [saekja, laga, profa]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Skrifaðgangur og admin-lykill — og því keyrir HÉR aldrei kóði úr patchinu. Aðeins grunnútgáfan af
+    # síunni (áður en nokkru er beitt), git og gh.
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write     # til að eyða artifact-inu þegar það hefur verið lesið
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      LAGA: ${{ needs.laga.result }}
+      PROFA: ${{ needs.profa.result }}
+      SAEKJA: ${{ needs.saekja.result }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v4
+        if: needs.laga.result == 'success'
+        continue-on-error: true
+        with:
+          name: cto-${{ github.run_id }}
+          path: ${{ runner.temp }}/cto_ut
+      - name: Grein + PR (aðeins ef prófin stóðust og sían leyfði)
         id: pr
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
+          U="$RUNNER_TEMP/cto_ut"; P="$U/cto.patch"
+          # Samantektin er skrifuð af líkaninu: hún fer í OPINBERA PR-lýsingu, svo netföng eru tekin út
+          HREINT="$RUNNER_TEMP/samantekt_hrein.md"
+          { [ -f "$U/samantekt.md" ] && sed -E 's/[[:alnum:]._%+-]+@[[:alnum:].-]+\.[[:alpha:]]{2,}/[netfang]/g' "$U/samantekt.md" || echo "Engin samantekt."; } | head -c 6000 > "$HREINT"
+          utan() { [ -s "$U/utan.txt" ] && tr '\n' ' ' < "$U/utan.txt" | head -c 300; }
+          lok() { echo "note=$1" >> "$GITHUB_OUTPUT"; echo "pr=" >> "$GITHUB_OUTPUT"; exit 0; }
+          [ "$SAEKJA" = "success" ] || lok "Náði ekki í beiðnina — engin keyrsla (run $GITHUB_RUN_ID)"
+          [ "$LAGA" = "success" ] && [ -f "$P" ] || lok "Keyrsla Claude mistókst áður en breyting varð til (run $GITHUB_RUN_ID)"
+          [ -z "$(utan)" ] || lok "Óleyfilegar skrár snertar ($(utan)) — öllum breytingum hent"
+          [ -s "$P" ] || lok "Engin kóðabreyting"
+          SIA=$(node skriptur/lib/cto_sia.mjs "$P") || lok "Sían hafnaði patchinum: $(printf '%s' "$SIA" | head -c 400)"
+          [ "$PROFA" = "success" ] || lok "Prófin eða byggingin féllu á breytingunni — engin PR stofnuð (run $GITHUB_RUN_ID)"
           git config user.name "karp-cto"
           git config user.email "hjalp@karp.is"
-          rm -f ticket.json moot.json cto_prompt.tmpl cto_prompt.cjs cto_prompt.txt cto_run.log
-          SUM=$(cat cto_summary.md)
-          rm -f cto_summary.md
-          # aðeins leyfðar slóðir mega hafa breyst
-          BAD=$(git status --porcelain | awk '{print $2}' | grep -vE '^(web/|skriptur/)' | grep -vE '^web/migrations/|^web/wrangler.toml' || true)
-          BAD2=$(git status --porcelain | awk '{print $2}' | grep -E '^web/migrations/|^web/wrangler.toml|^\.github/' || true)
-          if [ -n "$BAD$BAD2" ]; then echo "Óleyfilegar breytingar: $BAD $BAD2"; git checkout -- . ; git clean -fd; echo "pr=" >> $GITHUB_OUTPUT; echo "note=Óleyfilegar skrár snertar — breytingum hent" >> $GITHUB_OUTPUT; exit 0; fi
-          if git diff --quiet && [ -z "$(git status --porcelain)" ]; then echo "pr=" >> $GITHUB_OUTPUT; echo "note=Engin kóðabreyting" >> $GITHUB_OUTPUT; printf '%s' "$SUM" > /tmp/sum.md; exit 0; fi
           BR="${TICKET:+cto/ticket-$TICKET}"; BR="${BR:-cto/verk-$GITHUB_RUN_ID}"
           TITILL="${TICKET:+hjálparbeiðni #$TICKET}"; TITILL="${TITILL:-frjálst verk (run $GITHUB_RUN_ID)}"
-          printf '%s' "$SUM" > /tmp/sum.md
           git checkout -B "$BR"
-          git add -A web skriptur
-          git commit -q -m "CTO: lagfæring úr $TITILL" -m "$SUM"
+          git apply --index "$P"
+          git commit -q -m "CTO: lagfæring úr $TITILL" -m "$(cat "$HREINT")"
           git push -u origin "$BR" --force
-          # PR: villur SÝNILEGAR (2>/dev/null faldi „Actions má ekki stofna PR" í 2. keyrslu); ef stofnun bregst
-          # skilar skrefið samt (compare-hlekkur) svo ticket og Aron fái greinina — aldrei exit 1 hér.
-          URL=$(gh pr create --title "CTO: $TITILL" --body "$SUM"$'\n\n'"Ticket: https://karp.is/stjorn/#ticket-$TICKET · Samþykki Arons = merge (deploy sjálfvirkt)." --base main --head "$BR" 2>&1 | tee /tmp/pr.log | grep -oE 'https://github.com/[^ ]+/pull/[0-9]+' | head -1 || true)
+          # PR: villur SÝNILEGAR; ef stofnun bregst skilar skrefið samt compare-hlekk svo Aron fái greinina.
+          URL=$(gh pr create --title "CTO: $TITILL" --body "$(cat "$HREINT")"$'\n\n'"Ticket: https://karp.is/stjorn/#ticket-$TICKET · Samþykki Arons = merge (deploy sjálfvirkt)." --base main --head "$BR" 2>&1 | tee "$RUNNER_TEMP/pr.log" | grep -oE 'https://github.com/[^ ]+/pull/[0-9]+' | head -1 || true)
           if [ -z "$URL" ]; then URL=$(gh pr view "$BR" --json url -q .url 2>/dev/null || true); fi
-          if [ -z "$URL" ]; then echo "PR-stofnun mistókst:"; cat /tmp/pr.log; URL="https://github.com/aronheidar/KARP-2.0/compare/main...$BR?expand=1"; echo "note=PR var ekki stofnaður sjálfkrafa — opna compare-hlekkinn og stofna handvirkt" >> $GITHUB_OUTPUT; else echo "note=" >> $GITHUB_OUTPUT; fi
-          echo "pr=$URL" >> $GITHUB_OUTPUT
+          if [ -z "$URL" ]; then cat "$RUNNER_TEMP/pr.log"; URL="https://github.com/$REPO/compare/main...$BR?expand=1"; echo "note=PR var ekki stofnaður sjálfkrafa — opna compare-hlekkinn og stofna handvirkt" >> "$GITHUB_OUTPUT"; else echo "note=" >> "$GITHUB_OUTPUT"; fi
+          echo "pr=$URL" >> "$GITHUB_OUTPUT"
+          echo "branch=$BR" >> "$GITHUB_OUTPUT"
       - name: Skila niðurstöðu á karp.is
-        if: always()
-        run: |
-          if [ -z "$TICKET" ]; then echo "frjálst verk — engin beiðni að uppfæra"; exit 0; fi
-          [ -f /tmp/sum.md ] || echo "Keyrsla mistókst áður en samantekt varð til — sjá Actions-log (run $GITHUB_RUN_ID)" > /tmp/sum.md
-          node -e "
-            const body={action:'cto_result', id: Number(process.env.TICKET), pr: process.env.PR||'', branch: process.env.PR ? 'cto/ticket-'+process.env.TICKET : '', samantekt: (process.env.NOTE ? process.env.NOTE+'\n\n' : '') + require('fs').readFileSync('/tmp/sum.md','utf8').slice(0,3800)};
-            fetch('https://karp.is/api/admin/ticket',{method:'POST',headers:{'X-Admin-Key':process.env.KARP_ADMIN_KEY,'content-type':'application/json'},body:JSON.stringify(body)}).then(r=>r.text()).then(t=>console.log('cto_result →',t));
-          " || true
+        if: always() && env.TICKET != ''
         env:
           KARP_ADMIN_KEY: ${{ secrets.KARP_ADMIN_KEY }}
           PR: ${{ steps.pr.outputs.pr }}
+          BRANCH: ${{ steps.pr.outputs.branch }}
           NOTE: ${{ steps.pr.outputs.note }}
+        # Keyrt úr $RUNNER_TEMP, utan checkout-sins. Fulla samantektin og tillagan að svari fara AÐEINS hingað.
+        working-directory: ${{ runner.temp }}
+        run: |
+          node -e "
+            const fs = require('fs'), lesa = (f) => { try { return fs.readFileSync(f, 'utf8'); } catch (e) { return ''; } };
+            const sam = lesa('cto_ut/samantekt.md').slice(0, 2600), svar = lesa('cto_ut/svar.md').slice(0, 800);
+            // Skilaði Claude engri samantekt er hali loggsins eina vísbendingin um hvað gerðist — hann fer hingað, aldrei í opinbera skrá.
+            const hali = /skilaði engri samantekt/.test(sam) || !sam ? lesa('cto_ut/log_hali.txt').replace(/\x1b\[[0-9;]*m/g, '').slice(-600) : '';
+            const samantekt = (process.env.NOTE ? process.env.NOTE + '\n\n' : '') + (sam || 'Engin samantekt — sjá keyrslu ' + process.env.GITHUB_RUN_ID)
+              + (svar ? '\n\n## Tillaga að svari\n' + svar : '') + (hali ? '\n\n## Lok keyrslunnar\n' + hali : '');
+            const body = { action: 'cto_result', id: Number(process.env.TICKET), pr: process.env.PR || '', branch: process.env.PR ? (process.env.BRANCH || '') : '', samantekt: samantekt.slice(0, 3900) };
+            fetch('https://karp.is/api/admin/ticket', { method: 'POST', headers: { 'X-Admin-Key': process.env.KARP_ADMIN_KEY, 'content-type': 'application/json' }, body: JSON.stringify(body) })
+              .then((r) => r.text()).then((t) => console.log('cto_result →', t.slice(0, 200)));
+          " || true
+      - name: Eyða artifact-inu (opið repo — samantektin má ekki liggja þar)
+        if: always()
+        run: |
+          ID=$(gh api "repos/$REPO/actions/runs/$GITHUB_RUN_ID/artifacts" --jq '.artifacts[] | select(.name=="cto-'"$GITHUB_RUN_ID"'") | .id' 2>/dev/null || true)
+          if [ -n "$ID" ]; then gh api -X DELETE "repos/$REPO/actions/artifacts/$ID" && echo "artifact $ID eytt"; else echo "ekkert artifact að eyða"; fi
