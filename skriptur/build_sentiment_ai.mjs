@@ -2,8 +2,9 @@
 // =============================================================================
 //  build_sentiment_ai.mjs — AI-tónmat á ÖLLU fréttasafninu (Claude Haiku → D1 news.sent_ai)
 // -----------------------------------------------------------------------------
-//  ARFTAKI build_archive_sentiment.js, sem talaði við GAMLA WordPress-bakendann
-//  (/wp-json/karp/v1/newsunscored + /newsscore) og varð ÓVIRK við CF-flutninginn.
+//  ARFTAKI build_archive_sentiment.js (fjarlægð 22.9.2026), sem talaði við GAMLA
+//  WordPress-bakendann (/wp-json/karp/v1/newsunscored + /newsscore) og varð ÓVIRK
+//  við CF-flutninginn.
 //  ⚠ Gamla skriptan skrifaði 0 fyrir hverja frétt sem ekki tókst að skora
 //    (cache-fallback) → 46.874 af 58.298 sitja á 0. Þessi skrifar AÐEINS raun-mat
 //    og skilur mistök eftir sem NULL svo næsta keyrsla taki þau.
