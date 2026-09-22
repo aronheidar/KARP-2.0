@@ -105,3 +105,34 @@ test('hrein heiltala (enginn aukastafur, engin eining, ekki %) verður að passa
   assert.equal(athugaTolur('um 18 milljarðar', { a: 17698591083 }).ok, true);
   assert.equal(athugaTolur('atvinnuleysi 4%', { atvinnuleysi: 3.95 }).ok, true);
 });
+
+// Prufukeyrsla 22.9 (þriðja lota): „Ístak fær samning Isavia um flughlöð fyrir tæpa 1,6 milljarða" þegar samningurinn var
+// 1.619.182.758 kr., þ.e. RÚMLEGA 1,6 milljarðar. Talan stóðst námundun; orðið á undan sagði öfugt.
+test('„tæp-" og „rúm-" gefa stefnu: gildið verður að liggja undir eða yfir birtri tölu', () => {
+  const ISTAK = { verdmaeti: 1619182758 };
+  assert.deepEqual(athugaTolur('fyrir tæpa 1,6 milljarða', ISTAK), { ok: false, rangar: ['tæpa 1,6 milljarða'] });
+  assert.equal(athugaTolur('fyrir rúmlega 1,6 milljarða', ISTAK).ok, true);
+  assert.equal(athugaTolur('fyrir 1,6 milljarða', ISTAK).ok, true);
+  const UNDIR = { verdmaeti: 1598000000 };
+  assert.equal(athugaTolur('Tæplega 1,6 milljarðar króna', UNDIR).ok, true, 'hástafur í upphafi setningar');
+  assert.equal(athugaTolur('rúm 1,6 milljarðar', UNDIR).ok, false);
+  assert.equal(athugaTolur('ríflega 1,6 milljarðar', UNDIR).ok, false);
+  assert.equal(athugaTolur('hátt í 1,6 milljarða', UNDIR).ok, true);
+});
+
+test('stefnuorð á hreinni heiltölu: nákvæmt gildi er hvorki „tæplega" né „rúmlega" það sjálft', () => {
+  assert.equal(athugaTolur('29 útboð', { n: 29 }).ok, true);
+  assert.equal(athugaTolur('tæplega 29 útboð', { n: 29 }).ok, false);
+  assert.equal(athugaTolur('rúmlega 9,5 milljónir', { kr: 9500000 }).ok, false, 'nákvæmlega 9,5 milljónir er ekki rúmlega');
+});
+
+test('samanburðarorð vísa í viðmið og gefa ekki stefnu („meiri en 7,3%" þegar 7,3 er fyrri metdagur)', () => {
+  const M = { staersta_fyrri_dagshreyfing_i_gagnarod_karp_pct: 7.3 };
+  for (const s of ['Hreyfing dagsins var meiri en 7,3%', 'yfir 7,3%', 'undir 7,3%', 'lækkaði yfir 40 viðskiptadaga']) {
+    assert.equal(athugaTolur(s, { ...M, vidskiptadagar_i_gagnarod_karp: 40 }).ok, true, s);
+  }
+  assert.equal(talnaTokar('rúmlega 7,3%')[0].att, 'yfir');
+  assert.equal(talnaTokar('tæp 7,3%')[0].att, 'undir');
+  assert.equal(talnaTokar('um 7,3%')[0].att, undefined);
+  assert.equal(talnaTokar('rúmum 40 dögum')[0].att, 'yfir');
+});

@@ -26,6 +26,19 @@ function margfaldari(eftir) {
   return 1;
 }
 const erHlutfall = (eftir) => /^\s*(%|prósent)/i.test(eftir);
+// Stefnuorð (prufukeyrsla 22.9): „tæpa 1,6 milljarða" stóðst námundun þótt samningurinn væri 1.619 milljónir. Aðeins
+// ótvíræð NÁMUNDUNARorð gefa stefnu. Samanburðarorð („meiri en", „yfir", „undir") vísa oft í viðmið sem stendur sjálft í
+// facts („meiri en 7,3%" = fyrri metdagur, „yfir 40 viðskiptadaga" = tímabil) og gefa því enga stefnu.
+const STAFUR = 'a-záðéíóúýþæö';
+const RE_UNDIR = new RegExp(`(?:^|[^${STAFUR}])(tæp(?:lega|a|an|ar|ir|um|u|t|ri|rar|s|ur)?|nærri|næstum|hátt í)\\s+$`);
+const RE_YFIR = new RegExp(`(?:^|[^${STAFUR}])(rúm(?:lega|a|an|ar|ir|um|u|t|ri|rar|s|ur)?|ríflega|liðlega)\\s+$`);
+function stefna(fyrir) {
+  const s = fyrir.toLowerCase();
+  const u = RE_UNDIR.exec(s);
+  if (u) return { att: 'undir', ord: u[1] };
+  const y = RE_YFIR.exec(s);
+  return y ? { att: 'yfir', ord: y[1] } : null;
+}
 const stadlaStrik = (s) => String(s).replace(/[‐‑‒–—]/g, '-');
 const hreinsa = (s) => s.replace(/[.,:;!?'"»«„“”]+$/, '');   // AÐEINS í enda strengs — hratt-birting, ekki úrskurður
 
@@ -64,12 +77,14 @@ export function talnaTokar(texti) {
     const eftir = s.slice(b, b + 24);
     const marg = margfaldari(eftir), hlutfall = erHlutfall(eftir);
     const unit = marg > 1 ? hreinsa(eftir.trim().split(/\s+/)[0]) : '';
+    const st = stefna(s.slice(0, a));
     tokar.push({
-      hratt: m[0] + (hlutfall ? '%' : marg > 1 ? ' ' + unit : ''),
+      hratt: (st ? st.ord + ' ' : '') + m[0] + (hlutfall ? '%' : marg > 1 ? ' ' + unit : ''),
       tegund: hlutfall ? 'hlutfall' : 'tala',
       gildi: Number(heil.replace(/\./g, '') + (brot ? '.' + brot : '')) * marg,
       nakvaemni: Math.pow(10, -brot.length) * marg,
       hrein: !brot && marg === 1 && !hlutfall,   // hrein heiltala: enginn aukastafur, engin eining, ekki %
+      ...(st ? { att: st.att } : {}),            // 'undir' (tæplega …) eða 'yfir' (rúmlega …)
     });
   }
   return tokar;
@@ -114,8 +129,13 @@ export function athugaTolur(texti, facts) {
     // Hrein heiltala verður að passa NÁKVÆMLEGA (yfirferð 22.9): „3 útboð" má ekki standast á móti 2,6 í facts, það er
     // önnur tala en ekki námundun. Námundun gildir aðeins þar sem textinn sýnir nákvæmnina (17,7 · 18 milljarðar · 4%).
     // Hlutfall passar beint við gildi, eða ×100 við brot á breyting/hlutfall-sviði (sjá leyfd).
+    // Stefnuorð þrengja bilið að annarri hliðinni: „tæplega 1,6 milljarðar" krefst gildis UNDIR 1,6 milljörðum.
     const g = Math.abs(t.gildi), tol = t.hrein ? 1e-9 : t.nakvaemni / 2 + 1e-9;
-    const passar = gildi.some((v) => Math.abs(g - Math.abs(v)) <= tol);
+    const passar = gildi.some((v) => {
+      const d = g - Math.abs(v);   // jákvætt: gildið liggur undir birtri tölu
+      if (Math.abs(d) > tol) return false;
+      return t.att === 'undir' ? d > 1e-9 : t.att === 'yfir' ? d < -1e-9 : true;
+    });
     if (!passar) rangar.push(t.hratt);
   }
   return { ok: rangar.length === 0, rangar: [...new Set(rangar)] };
