@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { skrifaFrettir, thattaSvar, samantektMd, efnisgreinMd, snidFyrir, styttaTitil, hafnadarLinur, SJALFGEFID_LIKAN, KERFI } from './frettaskrif.mjs';
+import { skrifaFrettir, thattaSvar, samantektMd, efnisgreinMd, snidFyrir, styttaTitil, styttaTexta, hafnadarLinur, SJALFGEFID_LIKAN, KERFI } from './frettaskrif.mjs';
 
 /** Gervi-client: hvert kall tekur næsta svar — strengur, fall af beiðni, Error sem kastast, eða hlutur
  *  { text, stop_reason, hugsun } þar sem hugsun:true setur thinking-blokk (án .text) Á UNDAN text-blokkinni,
@@ -144,6 +144,95 @@ test('samþykkt hreinsar gamalt talnavörn-merki af fyrri keyrslu', async () => 
 // Talnavörnin athugar að tala SÉ til, ekki hvað hún merkir; fyrirmælin verða að banna merkingarvillurnar sjálf.
 test('fyrirmælin banna efstastig og tímabilsfullyrðingar sem facts segja ekki berum orðum', () => {
   for (const s of ['í röð', 'frá upphafi', 'í fyrsta sinn', 'síðan', 'á árinu', 'í gagnaröð Karp']) assert.ok(KERFI.includes(s), s);
+});
+
+test('fyrirmælin: færri málsgreinar ef staðreyndir leyfa ekki, önnur atriði úr facts, nafnleysi og engin markdown', () => {
+  for (const s of ['ef staðreyndir leyfa, annars færri', 'loks önnur atriði úr facts', 'Nöfn einstaklinga sem eru nafnlaus í facts (t.d. X) haldast nafnlaus.', 'Engin markdown.']) assert.ok(KERFI.includes(s), s);
+  assert.ok(!KERFI.includes('annað sem máli skiptir'), 'opið boð um efni utan facts');
+});
+
+// facts.ras er spá þjóðhagshermisins með orsakafullyrðingum; reglan bannar þær og tölur spárinnar mega ekki opna vörnina.
+test('facts.ras fer hvorki til Claude né í talnavörnina, en helst á fréttinni (RÁS-kassinn)', async () => {
+  const RAS = { mode: 'sim', inputKey: 'vextir', horizonQuarters: 12, topEffects: [{ key: 'vanskil', delta: 0.795 }], sentence: 'Vaxtahækkun um 0,25 prósentustig gæti hægt á verðbólgu á 1–2 árum.' };
+  const e = { id: 'vextir-2026-08-19', type: 'vextir', facts: { nyir: 8, fyrri: 7.75, breyting: 0.25, dags: '2026-08-19', ras: RAS }, title: 'gamall titill', text: 'gamall texti' };
+  const MED_RAS = J('Seðlabankinn hækkar meginvexti í 8,00%', 'Meginvextir hækkuðu úr 7,75% í 8,00%. Hækkunin gæti hægt á verðbólgu á 1–2 árum.');
+  const c = gervi([MED_RAS, MED_RAS]);
+  const t = await skrifaFrettir([e], { client: c });
+  assert.doesNotMatch(c.kol[0].messages[0].content, /"ras"|Vaxtahækkun|vanskil/);
+  assert.deepEqual(t.hafnadar, [{ id: 'vextir-2026-08-19', astaeda: 'tolur', rangar: ['1-2'] }]);
+  assert.deepEqual(e.facts.ras, RAS);
+});
+
+// ── Lengd og stytting: talnavörnin keyrir aftur á LOKAtitil og LOKAtexta ─────────────────────────
+const FYLL = 'Hlutabréf í Símanum lækkuðu um 7,3%. ';   // 37 stafir, allar tölur úr facts
+const LANGT = J('Síminn lækkar um 7,3%', FYLL.repeat(70).trim());   // 2.589 stafir
+
+test('styttaTexta: við síðustu setningarlok innan marka; punktur í tölu eða skammstöfun er ekki setningarlok', () => {
+  assert.equal(styttaTexta('Stutt frétt.'), 'Stutt frétt.');
+  const s = styttaTexta(FYLL.repeat(70).trim());
+  assert.ok(s.length <= 2200 && s.endsWith('7,3%.'));
+  assert.equal(styttaTexta('Fyrsta setning. Önnur 1.024.188.084 m.kr. setning', 30), 'Fyrsta setning.');
+  assert.equal(styttaTexta('orð '.repeat(600)), null, 'engin setningarlok: ekki klippt í miðri setningu');
+});
+
+test('texti lengri en 2200 stafir kallar á endurskrif sem nefnir mörkin', async () => {
+  const c = gervi([LANGT, GOTT]); const e = SIMINN();
+  const t = await skrifaFrettir([e], { client: c });
+  assert.equal(c.kol.length, 2);
+  assert.equal(t.endurskrifadar, 1);
+  assert.match(c.kol[1].messages[c.kol[1].messages.length - 1].content, /2000/);
+  assert.equal(e.text, 'Hlutabréf í Símanum lækkuðu um 7,3% og stóð gengið í 10,2.');
+});
+
+test('texti enn of langur eftir endurskrif → styttur við setningarlok ≤ 2200 og samþykktur eftir nýja athugun', async () => {
+  const c = gervi([LANGT, LANGT]); const e = SIMINN();
+  const t = await skrifaFrettir([e], { client: c });
+  assert.equal(e.ai, true);
+  assert.ok(e.text.length <= 2200);
+  assert.ok(e.text.endsWith('7,3%.'));
+  assert.deepEqual(t.hafnadar, []);
+});
+
+// „17,7 ma. kr." þar sem punkturinn á eftir „ma" lendir á stafsæti 2199: styttingin sker þar og skilur „17,7 ma." eftir
+// án „kr.", sem vörnin les sem 17,7 en ekki 17,7 milljarða. Óstyttur textinn stenst.
+function textiSemSlitnar() {
+  const upphaf = 'Veltan nam 17,7 ma';
+  let s = FYLL.repeat(58);
+  s += 'og '.repeat(Math.floor((2199 - upphaf.length - s.length) / 3));
+  s += 'x'.repeat(2199 - upphaf.length - s.length) + upphaf + '. kr. í fyrra og ' + 'meira '.repeat(20) + 'lok.';
+  assert.equal(s[2199], '.');
+  return s;
+}
+
+test('styttur texti sem fellur í talnavörn → sniðmát, hafnað með ástæðunni texti', async () => {
+  const facts = { felag: 'Siminn hf', breyting: -7.3, verd: 10.2, velta: 17700000000 };
+  const SLITNAR = J('Síminn lækkar um 7,3%', textiSemSlitnar());
+  const c = gervi([SLITNAR, SLITNAR]); const e = { ...SIMINN(), facts };
+  const t = await skrifaFrettir([e], { client: c });
+  assert.deepEqual(t.hafnadar, [{ id: 'mark-x', astaeda: 'texti', rangar: ['17,7'] }]);
+  assert.equal(e.ai, undefined);
+  assert.equal(e.text, 'gamall texti');
+});
+
+test('titill og texti athugast hvor fyrir sig: eining í upphafi texta festist ekki við tölu í lok titils', async () => {
+  const facts = { felag: 'Siminn hf', breyting: -7.3, verd: 10.2, velta: 17700000000 };
+  const SAMSKEYTT = J('Velta Símans 17,7', 'Milljarðar króna runnu um hendur félagsins. Hlutabréfin lækkuðu um 7,3%.');
+  const c = gervi([SAMSKEYTT, SAMSKEYTT]); const e = { ...SIMINN(), facts };
+  const t = await skrifaFrettir([e], { client: c });
+  assert.deepEqual(t.hafnadar, [{ id: 'mark-x', astaeda: 'tolur', rangar: ['17,7'] }]);
+});
+
+test('styttur titill sem fellur í talnavörn → upprunalegi titillinn helst, textinn er vélskrifaður', async () => {
+  const facts = { felag: 'Siminn hf', breyting: -7.3, verd: 10.2, velta: 17700000000 };
+  const titill = 'orð '.repeat(20) + 'um 17,7 milljarða';   // 97 stafir; stytting sker á undan „milljarða"
+  const SVAR = J(titill, 'Hlutabréf í Símanum lækkuðu um 7,3% og stóð gengið í 10,2.');
+  const c = gervi([SVAR, SVAR]); const e = { ...SIMINN(), facts };
+  const t = await skrifaFrettir([e], { client: c });
+  assert.equal(e.ai, true);
+  assert.equal(e.title, 'gamall titill');
+  assert.equal(e.text, 'Hlutabréf í Símanum lækkuðu um 7,3% og stóð gengið í 10,2.');
+  assert.equal(t.skrifadar, 1);
+  assert.deepEqual(t.hafnadar, [{ id: 'mark-x', astaeda: 'titill', rangar: ['17,7'] }]);
 });
 
 // ── Kallið sjálft (yfirferð 22.9): max_tokens, effort, stop_reason, hugsun, tímaþak ──────────────

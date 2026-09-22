@@ -17,12 +17,13 @@ export const snidFyrir = (type) => (TOLUFRETTIR.has(type) ? 'tolur' : 'efni');
 export const KERFI = [
   'Þú ert fréttavél Karp (karp.is). Þú skrifar EINA hlutlausa frétt á íslensku EINGÖNGU úr staðreyndunum í facts.',
   'facts.bakgrunnur er samhengi úr gögnum Karp. Notaðu það til að setja fréttina í samhengi, en aðeins það sem stendur þar.',
-  'SNIÐ: ef snid er "tolur" skaltu skrifa 2–4 setningar í einni málsgrein. Ef snid er "efni" skaltu skrifa 2–3 málsgreinar aðskildar með auðri línu: fyrst hvað gerðist, síðan samhengi úr bakgrunni, loks annað sem máli skiptir. Séu staðreyndirnar fáar skaltu skrifa stutt. ALDREI teygja textann með endurtekningu eða almennum orðum.',
-  'STRANGT BANN: engar tölur, nöfn, dagsetningar eða fullyrðingar sem ekki standa í facts. Ekki reikna nýjar tölur (hvorki mismun, hlutföll né samtölur) nema þær standi í facts. Engar orsakaskýringar eða spádómar. Engin gildishlaðin orð og engin upphrópunarmerki. Ekki nefna facts, bakgrunn eða heiti sviða. Einstaklingar sem heita X í facts haldast nafnlausir.',
+  // „loks annað sem máli skiptir" var opið boð um efni utan facts; og bakgrunnsmálsgrein má ekki knýja fram án bakgrunns
+  'SNIÐ: ef snid er "tolur" skaltu skrifa 2–4 setningar í einni málsgrein. Ef snid er "efni" skaltu skrifa 2–3 málsgreinar ef staðreyndir leyfa, annars færri, aðskildar með auðri línu: fyrst hvað gerðist, síðan samhengi úr bakgrunni ef hann er til, loks önnur atriði úr facts. Séu staðreyndirnar fáar skaltu skrifa stutt. ALDREI teygja textann með endurtekningu eða almennum orðum.',
+  'STRANGT BANN: engar tölur, nöfn, dagsetningar eða fullyrðingar sem ekki standa í facts. Ekki reikna nýjar tölur (hvorki mismun, hlutföll né samtölur) nema þær standi í facts. Engar orsakaskýringar eða spádómar. Engin gildishlaðin orð og engin upphrópunarmerki. Ekki nefna facts, bakgrunn eða heiti sviða. Nöfn einstaklinga sem eru nafnlaus í facts (t.d. X) haldast nafnlaus.',
   // talnavörnin sér aðeins hvort tala sé til í facts, ekki hvað hún merkir (yfirferð 22.9); þetta bann ber merkinguna
   'EFSTASTIG OG TÍMABIL: engar efstastigs- eða tímabilsfullyrðingar sem facts segja ekki berum orðum, t.d. „í röð“, „frá upphafi“, „í fyrsta sinn“, „mesta/hæsta/lægsta … síðan“ eða „á árinu“. Tímabil skal nefna eins og facts lýsa þeim (t.d. „í gagnaröð Karp“).',
   'Tölur á íslensku sniði: 1.024.188.084 kr., 7,3%, 17,7 milljarðar króna.',
-  'Skilaðu AÐEINS JSON-hlut: {"title":"...","text":"..."}. title hámark 90 stafir, text hámark 2000 stafir, málsgreinar aðskildar með \\n\\n.',
+  'Skilaðu AÐEINS JSON-hlut: {"title":"...","text":"..."}. title hámark 90 stafir, text hámark 2000 stafir, málsgreinar aðskildar með \\n\\n. Engin markdown.',
 ].join('\n');
 
 // Claude setur stundum hrá línuskil inni í JSON-streng (þekkt gildra úr hjálparfulltrúanum), sem JSON.parse hafnar.
@@ -64,6 +65,19 @@ export function styttaTitil(titill, hamark = 90) {
   return skorid.replace(/[\s.,:;!?'"»«„“”–—-]+$/, '');
 }
 
+export const TEXTI_HAMARK = 2200;
+/** Styttir texta við síðustu setningarlok innan hamarks (sjálfgefið 2200); null ef engin finnast (þá klippum við ekki í
+ *  miðri setningu). Setningarlok = . ! ? (e.t.v. með gæsalöppum eða sviga) sem HVÍTBIL fylgir, svo punktur inni í tölu
+ *  („1.024") eða skammstöfun („m.kr") teljist ekki. */
+export function styttaTexta(texti, hamark = TEXTI_HAMARK) {
+  const s = String(texti || '');
+  if (s.length <= hamark) return s;
+  const re = /[.!?][“”"»)]*(?=\s)/g;
+  let skor = -1, m;
+  while ((m = re.exec(s)) && m.index + m[0].length <= hamark) skor = m.index + m[0].length;
+  return skor > 0 ? s.slice(0, skor).trim() : null;
+}
+
 async function kalla(client, model, messages) {
   // effort 'low' en hugsun EKKI gerð óvirk: á claude-opus-5 er aðlögunarhæf hugsun sjálfgefin (effort high) og skjöl
   // vara við thinking:{type:'disabled'} því þá lekur hugsun inn í textann. Skyndiminni (cache_control) krefst a.m.k.
@@ -77,39 +91,58 @@ async function kalla(client, model, messages) {
   return { texti, stopp: msg.stop_reason || null };
 }
 
-// röng tala er verri en langur titill: nefnist EITT vandamál í endurskrifinu, aldrei bæði
+// Röng tala er verri en of langur titill eða texti: nefnist EITT vandamál í endurskrifinu, aldrei fleiri.
 function athugasemd(vandi, ut, vorn) {
   if (vandi === 'json') return 'Svarið var ekki gildur JSON-hlutur. Skilaðu AÐEINS {"title":"...","text":"..."}.';
   if (vandi === 'tolur') return 'Þessar tölur standa ekki í facts: ' + vorn.rangar.join(', ') + '. Skrifaðu fréttina aftur án þeirra eða með réttum gildum úr facts. Skilaðu AÐEINS JSON-hlutnum.';
+  if (vandi === 'texti') return 'Textinn er ' + ut.text.length + ' stafir en má vera 2000 að hámarki. Styttu hann án þess að breyta staðreyndum. Skilaðu AÐEINS JSON-hlutnum.';
   return 'Titillinn er ' + ut.title.length + ' stafir en má vera 90 að hámarki. Styttu hann án þess að breyta staðreyndum. Skilaðu AÐEINS JSON-hlutnum.';
 }
 
-/** Skrifar EINA frétt. { ok, endurskrifad, astaeda?, rangar? } — við höfnun helst sniðmátstextinn óbreyttur. */
+// Titill og texti athugaðir hvor fyrir sig: samskeytt gæti eining í fyrsta orði textans („milljörðum") fest sig við síðustu
+// tölu titilsins, og eftir styttingu þarf hvort um sig að standast eitt og sér.
+function vornFrettar(ut, facts) {
+  const a = athugaTolur(ut.title, facts), b = athugaTolur(ut.text, facts);
+  return { ok: a.ok && b.ok, rangar: [...new Set(a.rangar.concat(b.rangar))] };
+}
+
+/** Skrifar EINA frétt. { ok, endurskrifad, astaeda?, rangar? } — við höfnun helst sniðmátstextinn óbreyttur.
+ *  ok ásamt astaeda 'titill' = textinn er vélskrifaður en styttur titill féll, svo sniðmátstitillinn helst. */
 async function skrifaEina(e, client, model, skra) {
-  const facts = e.facts || {};
+  // facts.ras (RÁS-spá þjóðhagshermisins) ber orsakafullyrðingar líkans („vaxtahækkun gæti hægt á verðbólgu á 1–2
+  // árum"), sem reglan bannar, og tölur hennar mega ekki verða leyfð gildi í talnavörninni. Hún helst á e.facts
+  // (RÁS-kassinn á fréttasíðunni) en fer hvorki til Claude né í vörnina.
+  const facts = { ...(e.facts || {}) };
+  delete facts.ras;
   const skilabod = [{ role: 'user', content: JSON.stringify({ type: e.type, snid: snidFyrir(e.type), facts }) }];
   let endurskrifad = false, vorn = null;
   try {
     let svar = await kalla(client, model, skilabod);
     if (STOPP_AN_ENDURSKRIFS.has(svar.stopp)) return { ok: false, endurskrifad, astaeda: svar.stopp };
     let ut = thattaSvar(svar.texti);
-    vorn = ut ? athugaTolur(ut.title + '\n' + ut.text, facts) : null;
-    const vandi = !ut ? 'json' : !vorn.ok ? 'tolur' : ut.title.length > 90 ? 'titill' : null;
+    vorn = ut ? vornFrettar(ut, facts) : null;
+    const vandi = !ut ? 'json' : !vorn.ok ? 'tolur' : ut.title.length > 90 ? 'titill' : ut.text.length > TEXTI_HAMARK ? 'texti' : null;
     if (vandi) {
       endurskrifad = true;
       skilabod.push({ role: 'assistant', content: svar.texti || '(tómt)' }, { role: 'user', content: athugasemd(vandi, ut, vorn) });
       svar = await kalla(client, model, skilabod);
       if (STOPP_AN_ENDURSKRIFS.has(svar.stopp)) return { ok: false, endurskrifad, astaeda: svar.stopp };
       ut = thattaSvar(svar.texti);
-      vorn = ut ? athugaTolur(ut.title + '\n' + ut.text, facts) : null;
+      vorn = ut ? vornFrettar(ut, facts) : null;
     }
     if (!ut) return { ok: false, endurskrifad, astaeda: 'json' };
     if (!vorn.ok) return { ok: false, endurskrifad, astaeda: 'tolur', rangar: vorn.rangar };
-    e.title = styttaTitil(ut.title);
-    e.text = ut.text.slice(0, 2200);
+    // Stytting getur slitið tölu frá einingu sinni („17,7 ma." án „kr.", „um 17,7" án „milljarða"), svo talnavörnin keyrir
+    // AFTUR á lokatexta og lokatitil. Falli styttur texti helst sniðmátið allt; falli styttur titill helst sniðmátstitillinn.
+    const texti = styttaTexta(ut.text);
+    const vornTexta = texti === null ? null : athugaTolur(texti, facts);
+    if (!vornTexta || !vornTexta.ok) return { ok: false, endurskrifad, astaeda: 'texti', rangar: vornTexta ? vornTexta.rangar : undefined };
+    const titill = styttaTitil(ut.title), vornTitils = athugaTolur(titill, facts);
+    if (vornTitils.ok) e.title = titill;
+    e.text = texti;
     e.ai = true;
     delete e.talnavorn;   // hreinsa stakt merki frá fyrri keyrslu — má ekki lifa við hlið ferska ai:true textans
-    return { ok: true, endurskrifad };
+    return vornTitils.ok ? { ok: true, endurskrifad } : { ok: true, endurskrifad, astaeda: 'titill', rangar: vornTitils.rangar };
   } catch (err) {
     skra('• ritun brást fyrir ' + e.id + ': ' + String(err).slice(0, 100));
     // brást endurskrifið sjálft (t.d. 529) eftir talnavarnarhöfnun björgum við röngu tölunum úr fyrri atrennu
