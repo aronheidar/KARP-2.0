@@ -7,7 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
 import FV from '@gogn/frettavel.json';
-import { catOf, artHref, imgFor, spark, dIS, SECTIONS, sectionOf, weightOf } from '../lib/frettavel.mjs';
+import { catOf, artHref, imgFor, spark, dIS, SECTIONS, sectionOf, weightOf, malsgreinar } from '../lib/frettavel.mjs';
 const items = (FV.items || []);
 const updated = (FV.updated || '').slice(0, 10);
 
@@ -37,7 +37,7 @@ const desc = `Fréttavél Karp — sjálfvirkar fréttir úr opinberum gögnum: 
         <div class="fp-hero-body">
           <span class="fp-kick">{c.label}</span>
           <h2>{hero.title}</h2>
-          <p>{hero.text}</p>
+          {malsgreinar(hero.text).slice(0, 2).map((m) => <p>{m}</p>)}
           {hero.samhengi && <p class="fp-samhengi"><span>{hero.samhengi}</span></p>}
           <span class="fp-time">{dIS(hero.date)}</span>
         </div>
@@ -65,7 +65,7 @@ const desc = `Fréttavél Karp — sjálfvirkar fréttir úr opinberum gögnum: 
             {list.map((it, idx) => { const c = catOf(it.type); return idx === 0 ? (
               <a class="fp-feat" href={artHref(it.id)} style={`--c:${c.color}`}>
                 <div class="fp-img fp-feat-img"><img src={imgFor(it.type, it.id)} alt="" loading="lazy" onerror="this.remove()" /></div>
-                <div class="fp-feat-body"><span class="fp-kick sm">{c.label}</span><h3>{it.title}</h3><p>{it.text}</p><span class="fp-time">{dIS(it.date)}</span></div>
+                <div class="fp-feat-body"><span class="fp-kick sm">{c.label}</span><h3>{it.title}</h3><p>{malsgreinar(it.text)[0] || ''}</p><span class="fp-time">{dIS(it.date)}</span></div>
               </a>
             ) : (
               <a class="fp-item" href={artHref(it.id)}>

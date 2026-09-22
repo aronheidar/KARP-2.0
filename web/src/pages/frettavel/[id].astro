@@ -4,7 +4,7 @@
 // NewsArticle + Dataset JSON-LD, canonical, OG-mynd (flokka-mynd) → indexeranleg + tilvitnanleg.
 import Layout from '../../layouts/Layout.astro';
 import ARCH from '@gogn/frettavel_archive.json';
-import { catOf, asciiId, imgFor, artHref, dIS, spark } from '../../lib/frettavel.mjs';
+import { catOf, asciiId, imgFor, artHref, dIS, spark, malsgreinar } from '../../lib/frettavel.mjs';
 import { hasExport } from '../../lib/frettavel-export.mjs';
 import LOGB from '@gogn/logbirting.json';
 import { caseThread } from '../../lib/soguthraedir.mjs';
@@ -32,7 +32,7 @@ const leidr = leidrettFor(slug, LEIDR);
 const SITE = 'https://karp.is';
 const dags = dIS(it.date);
 const rasHtml = it.facts && it.facts.ras ? renderRasBox(it.facts.ras) : '';
-const desc = String(it.text || '').slice(0, 200);
+const desc = (malsgreinar(it.text)[0] || '').slice(0, 200);
 const jsonLd = [
   {
     '@context': 'https://schema.org', '@type': 'NewsArticle', headline: it.title, description: desc,
@@ -62,7 +62,7 @@ const jsonLd = [
       {leidr && (
         <a class="fv-leidr" href="/frettavel/leidrettingar/">Leiðrétt {leidr.dags}{leidr.hvad ? ' — ' + leidr.hvad : ''}</a>
       )}
-      <p class="fv-body">{it.text}</p>
+      {malsgreinar(it.text).map((m) => <p class="fv-body">{m}</p>)}
 
       {it.samhengi && (
         <div class="fv-samhengi" style={`--c:${cat.color}`}>

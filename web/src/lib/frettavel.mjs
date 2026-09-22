@@ -74,3 +74,6 @@ export const spark = (arr, w = 130, h = 32) => {
   const area = `${xs(0).toFixed(1)},${h - p} ${pts} ${xs(a.length - 1).toFixed(1)},${h - p}`;
   return { pts, area, w, h, ex: xs(a.length - 1).toFixed(1), ey: ys(a[a.length - 1]).toFixed(1) };
 };
+
+/** Málsgreinar vélskrifaðrar fréttar (auð lína skilur á milli). Eldri textar án auðra lína = ein málsgrein. */
+export const malsgreinar = (t) => String(t || '').split(/\n\s*\n/).map((s) => s.replace(/\s+/g, ' ').trim()).filter(Boolean);

@@ -40,3 +40,12 @@ test('chartSvg: labeled SVG for series, null without series', () => {
   assert.ok(svg.includes('Verðbólga'));             // category label
   assert.equal(chartSvg(TEXTONLY), null);
 });
+
+test('CSV flatar hreiðruð facts (bakgrunnur, RÁS) í stað „[object Object]"', async () => {
+  const { exportCsv } = await import('./frettavel-export.mjs');
+  const csv = exportCsv({ id: 'x', type: 'urslit', title: 'T', date: '2026-09-22', url: '/utbod/',
+    facts: { sigurvegarar: ['Dagar hf.', 'Annað ehf.'], bakgrunnur: { sigurvegari: { utbod_unnin: { fjoldi: 2 } } } } });
+  assert.ok(!csv.includes('[object Object]'));
+  assert.match(csv, /bakgrunnur\.sigurvegari\.utbod_unnin\.fjoldi;2/);
+  assert.match(csv, /sigurvegarar;Dagar hf\.,Annað ehf\./, 'fylki af gildum óbreytt');
+});

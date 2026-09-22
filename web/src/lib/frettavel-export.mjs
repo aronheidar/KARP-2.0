@@ -41,7 +41,17 @@ export function exportCsv(item) {
   const esc = (v) => { const s = String(v ?? ''); return /[;"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
   const cell = (v) => (typeof v === 'number' ? isk(v) : esc(v));
   const lines = ['reitur;gildi', 'titill;' + esc(j.titill), 'dagsetning;' + esc(j.dagsetning), 'flokkur;' + esc(j.flokkur), 'heimild;' + esc(j.heimild)];
-  if (j.facts) for (const [k, v] of Object.entries(j.facts)) lines.push(esc(k) + ';' + cell(v));
+  // Hreiðruð facts (bakgrunnur, RÁS, listar af hlutum) flöt í punkta-lykla; fylki af gildum eins og áður.
+  const flata = (o, fs = '', ut = []) => {
+    for (const [k, v] of Object.entries(o)) {
+      const lk = fs ? fs + '.' + k : k;
+      if (Array.isArray(v) && !v.some((x) => x && typeof x === 'object')) ut.push([lk, String(v)]);
+      else if (v && typeof v === 'object') flata(v, lk, ut);
+      else ut.push([lk, v]);
+    }
+    return ut;
+  };
+  if (j.facts) for (const [k, v] of flata(j.facts)) lines.push(esc(k) + ';' + cell(v));
   if (j.rod) { lines.push('', 'nr;gildi'); j.rod.gildi.forEach((v, i) => lines.push((i + 1) + ';' + isk(v))); }
   return lines.join('\n');
 }
