@@ -1,10 +1,11 @@
 // Skráð atvinnuleysi (Vinnumálastofnun) — les Talnagögn_atvinnuleysi.xlsm → gogn/atvinnuleysi.json.
 // Mánaðarleg gögn, miklu ferskari en vinnumarkaðsrannsókn Hagstofu (sem gröfin notuðu áður).
-// Keyra: node skriptur/build_atvinnuleysi.js  (síðan build_embed.js). Uppfæra þegar nýtt xlsm berst.
+// Keyra: node skriptur/saekja_vmst.mjs && node skriptur/build_atvinnuleysi.js  (síðan build_embed.js).
 const XLSX = require('xlsx');
 const fs = require('fs');
-// __dirname-afstætt á rót repos (kóðinn bætir sjálfur við 'gogn/'). ⚠ Þetta skript les STAÐBUNDIÐ
-// xlsm-skjal sem er EKKI í repoinu → keyrist aðeins handvirkt þegar nýtt Talnagögn-xlsm er sett í gogn/.
+// __dirname-afstætt á rót repos (kóðinn bætir sjálfur við 'gogn/'). Les gogn/Talnagogn_atvinnuleysi.xlsm,
+// sem saekja_vmst.mjs sækir daglega af island.is á undan þessari skriptu. ⚠ Án hennar stóð síðan í
+// maí 2026 í meira en þrjá mánuði: skráin hafði verið sett handvirkt í repo-ið og aldrei endurnýjuð.
 const DIR = require('path').join(__dirname, '..') + '/';
 const wb = XLSX.readFile(DIR + 'gogn/Talnagogn_atvinnuleysi.xlsm', { cellDates: true });
 const sheet = n => XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, blankrows: false });
@@ -78,7 +79,7 @@ if (partRatio) Object.keys(NAMEMAP).forEach(short => {
 });
 
 const out = {
-  source: 'Vinnumálastofnun', sourceUrl: 'https://vinnumalastofnun.is/um-okkur/tolulegar-upplysingar',
+  source: 'Vinnumálastofnun', sourceUrl: 'https://island.is/s/vinnumalastofnun/maelabord-og-toelulegar-upplysingar',
   note: 'Skráð atvinnuleysi (% af áætluðu vinnuafli) og fjöldi á atvinnuleysisskrá í lok mánaðar.',
   updated: latestT, latest: monthly[monthly.length - 1].v, totalRegistered: totalReg,
   annual, monthly, bySex, byCitizenship, byRegion, citSeries, industries, byMuni
