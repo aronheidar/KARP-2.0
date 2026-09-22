@@ -137,6 +137,20 @@ test('kennitala einstaklings stöðvar samhengið, líka þótt nafnið finnist 
   assert.equal(fyrirtaeki('Jón Jónsson', GOGN(), { kt: '0101801234', idag: IDAG }), null);
 });
 
+// Yfirferð 22.9 sannreyndi að þetta próf FELLUR án varnarinnar (`if (!erLogadili(kt)) return null;`) og stenst með henni:
+// án hennar birtist styrkur einstaklingsins (skráður á kt hans) sem bakgrunnur fréttar.
+test('kt einstaklings stöðvar samhengið þótt gögn finnist undir nafni hans og kt', () => {
+  const g = GOGN();
+  g.styrkir.styrkir.push({ nafn: 'Jón Jónsson', kt: '0101801234', sjodur: 'Rannsóknasjóður', upphaed: 5000000, ar: 2025 });
+  g.utbod_urslit.awards.push({ nr: 'J1', buyer: 'Vegagerðin', winners: ['Jón Jónsson'], value: 2000000, cur: 'ISK', d: '2026-05-01' });
+  g.birgjar.vendors.push({ n: 'Jón Jónsson', t: 3000000 });
+  assert.notEqual(fyrirtaeki('Jón Jónsson', g, { kt: '6101001003' }), null, 'jákvætt viðmið');
+  assert.equal(fyrirtaeki('Jón Jónsson', g, { kt: '0101801234' }), null);
+  const vm = { id: 'vm', type: 'vorumerki', kt: '0101801234', facts: { merki: 'JÓN', eigandi: 'Jón Jónsson' } };
+  assert.equal(baetaVidBakgrunni([vm], g, {}), 0);
+  assert.equal(vm.facts.bakgrunnur, undefined);
+});
+
 test('útboð: sigurvegari + önnur útboð kaupandans síðustu 12 mánuði', () => {
   const e = { id: 'urslit-NU', type: 'urslit', facts: { titill: 'Ræsting KEF', kaupandi: 'Isavia ohf', sigurvegarar: ['Dagar hf.'], verdmaeti: 1024188084, dags: '2026-09-21', tedNr: 'NU' } };
   assert.equal(baetaVidBakgrunni([e], GOGN(), { idag: IDAG }), 1);
