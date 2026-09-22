@@ -188,6 +188,9 @@ jobs:
           TEXTI=$(node -e "const m=JSON.parse(require('fs').readFileSync('markadsefni-out.json','utf8')); console.log(String(m.texti || m.titill || '').replace(/^[\s-]+/, '').slice(0,2900))")
           if [ -z "$TEXTI" ]; then echo "::error::lýsigögnin bera engan texta"; exit 1; fi
           DAGS=$(date -u -d 'tomorrow 08:30' +%Y-%m-%dT%H:%M:%SZ)
+          # ⚠ -s er SKYLDA í postiz@2.0.14 og ræður aðeins staðnum í dagatalinu. Birtingin ræðst af sér reit:
+          #   CLI-ið sendir `type: args.type || "schedule"` (dist/index.js:500), svo án `-t draft` yrði færslan
+          #   BIRT kl. 08:30. Staðfest í kóða pakkans 22.9; cto_verkflaedi.test.mjs krefst `-t draft`.
           # ⚠ Karp-rásirnar EINGÖNGU — reikningurinn ber líka EWB-rásir sem ALDREI mega fá efni héðan.
           SVAR=$(postiz posts:create -c "$TEXTI" -m "$VIDEO_URL" -s "$DAGS" -t draft -i "cmt92pcw000r9p20yv7b53018,cmt92q6mr00pbmp0ykfa92r3v")
           echo "posts:create svar: $SVAR"
