@@ -5,10 +5,17 @@
 //  Röksemd: ef gagna-pípa brotnar hættir `updated` að færast fram → veitan verður
 //  „stale" (rauð) → sést strax. Keyrt í refresh-data workflow EFTIR að veitur uppfærast
 //  (svo dagsetningar séu ferskar) — og má keyra staðbundið: node skriptur/build_heilsa.mjs
+//
+//  ⚠⚠ TVÆR ÓLÍKAR MÆLINGAR (22.9.2026):
+//   • `freshness` mælir hvenær skriptan KEYRÐI (`updated`) → nær pípum sem hrynja.
+//   • `timabil` mælir aldur NÝJASTA TÍMABILS gagnanna (lib/ferskleiki.mjs) → nær pípum sem keyra en lesa
+//     gömul gögn. Fimm söfn stóðu í allt að þrjá mánuði þannig (atvinnuleysi á forsíðu í maí) og
+//     `freshness` var græn allan tímann, því `updated` færðist fram á hverjum degi. Hrafn les `timabil`.
 // =============================================================================
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { GAGNASOFN, metaFerskleika } from './lib/ferskleiki.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -88,6 +95,19 @@ function coverage() {
   return out;
 }
 
-const heilsa = { builtAt: new Date().toISOString(), freshness, coverage: coverage() };
+// Tímabil: aldur nýjasta tímabils í tölfræðisöfnunum (les RÓT gogn/, uppsprettuna).
+function timabil() {
+  const lesa = (skra) => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, 'gogn', skra + '.json'), 'utf8')); } catch (e) { return null; } };
+  return metaFerskleika(GAGNASOFN.map((g) => ({ ...g, json: lesa(g.skra) })), new Date().toISOString().slice(0, 10));
+}
+
+const heilsa = { builtAt: new Date().toISOString(), freshness, coverage: coverage(), timabil: timabil() };
 fs.writeFileSync(path.join(GOGN, 'heilsa.json'), JSON.stringify(heilsa, null, 1));
 console.log(`heilsa.json → ${freshness.length} veitur · ársreikn ${JSON.stringify(heilsa.coverage.arsreikningar)} · eigendur ${JSON.stringify(heilsa.coverage.eigendur)}`);
+const MERKI = { ok: '✓', gamalt: '⚠ GAMALT', olesanlegt: '⚠ ÓLESANLEGT' };
+for (const r of heilsa.timabil) console.log(`  ${MERKI[r.stada].padEnd(13)} ${r.nafn}: ${r.timabil ?? '—'}${r.aldur != null ? ` (${r.aldur} d, hámark ${r.hamark})` : ''}`);
+if (process.env.GITHUB_STEP_SUMMARY) {
+  const linur = ['### Aldur nýjasta tímabils', '', '| staða | gagnasafn | nýjasta tímabil | aldur (dagar) | hámark |', '|---|---|---|---|---|',
+    ...heilsa.timabil.map((r) => `| ${MERKI[r.stada]} | ${r.nafn} | ${r.timabil ?? '—'} | ${r.aldur ?? '—'} | ${r.hamark} |`)];
+  fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, linur.join('\n') + '\n');
+}

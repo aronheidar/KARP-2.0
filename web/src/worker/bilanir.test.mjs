@@ -316,3 +316,46 @@ test('GitHub niðri með geymdum lista: gamla straumafærslan víkur fyrir fersk
   assert.equal(vb.length, 1, 'engin tvítalning');
   assert.match(vb[0].lysing, /svarar ekki/, 'ferska D1-myndin gildir, ekki sú geymda');
 });
+
+// ── Ferskleikavörn gagnasafna (22.9.2026) ────────────────────────────────────────────────────
+// ⚠⚠ Fimm gagnasöfn stóðu í allt að þrjá mánuði meðan dagleg keyrsla var græn (atvinnuleysi á
+// forsíðu í maí, kannanir í júní, afbrot og orka 2024). skriptur/build_heilsa.mjs skrifar aldur
+// nýjasta tímabils í web/public/gogn/heilsa.json (timabil); hér verður hann að færslum á spjaldi Hrafns.
+import { stadnadGogn } from './bilanir.mjs';
+
+const FERSK = (gogn, updated = '2026-09-22') => ({ updated, gogn });
+const GAMALT = { nafn: 'Atvinnuleysi', skra: 'atvinnuleysi', timabil: '2026M05', lok: '2026-05-31', aldur: 114, hamark: 50, takt: 'mánaðarlegt', stada: 'gamalt' };
+
+test('gamalt gagnasafn → færsla sem segir tímabil, aldur og hámark', () => {
+  const [b] = stadnadGogn(FERSK([GAMALT, { ...GAMALT, nafn: 'Kannanir', stada: 'ok' }]), '2026-09-22');
+  assert.equal(b.uppspretta, 'Gögn');
+  assert.match(b.lysing, /Atvinnuleysi.*2026M05.*114 daga.*50/);
+  assert.equal(b.alvarleiki, 'hatt', 'meira en tvöfalt hámarkið');
+  assert.equal(b.sidan, Date.parse('2026-05-31') / 1000 + 50 * 86400, 'stóð frá því að tímabilið varð of gamalt');
+});
+
+test('rétt yfir hámarki er miðlungs; ólesanlegt safn er líka tilkynnt', () => {
+  const b = stadnadGogn(FERSK([{ ...GAMALT, aldur: 60 }, { ...GAMALT, nafn: 'Orka', timabil: null, lok: null, aldur: null, stada: 'olesanlegt' }]), '2026-09-22');
+  assert.equal(b.length, 2);
+  assert.equal(b[0].alvarleiki, 'midlungs');
+  assert.match(b[1].lysing, /Orka.*ólesanlegt/);
+});
+
+test('frosin ferskleikaskrá er EIN færsla, aldrei úrelt allt-í-lagi mynd', () => {
+  const b = stadnadGogn(FERSK([GAMALT], '2026-09-10'), '2026-09-22');
+  assert.equal(b.length, 1);
+  assert.match(b[0].lysing, /Ferskleikavörnin hefur ekki keyrt síðan 2026-09-10/);
+});
+
+test('engin skrá eða skemmd → tómur listi (ekki villa)', () => {
+  assert.deepEqual(stadnadGogn(null, '2026-09-22'), []);
+  assert.deepEqual(stadnadGogn({ gogn: 'x' }, '2026-09-22'), []);
+});
+
+test('ferskleikafærslur rata á listann og þola að ASSETS vanti', async (t) => {
+  stubGh(t, GH_ALLT_GOTT);
+  // heilsa.json-snið: builtAt + timabil (skriptur/build_heilsa.mjs)
+  const ASSETS = { fetch: async () => ({ ok: true, json: async () => ({ builtAt: new Date().toISOString(), timabil: [GAMALT] }) }) };
+  const r = await saekjaBilanir(mkEnv(mkState(), { ASSETS }), { thvinga: true });
+  assert.ok(r.bilanir.some((b) => b.uppspretta === 'Gögn' && /Atvinnuleysi/.test(b.lysing)));
+});

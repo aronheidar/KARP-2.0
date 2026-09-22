@@ -47,7 +47,44 @@ export function fallnarVaktir(runs, nu) {
 const _BL_STRAUMUR_KLST = 24;       // straumur sem hefur ekkert skilað svona lengi fer á spjald Hrafns
 const _BL_STRAUMUR_HATT_DAGAR = 7;  // … og í forstofuna eftir viku
 const _BL_INNLESTUR_KLST = 12;      // cron keyrir á 3 klst fresti: eldri skrá = fjórar keyrslur skráðu ekkert
-const _BL_D1_UPPSPRETTUR = ['Straumur', 'Innlestur'];   // færslur sem koma úr D1, ekki GitHub
+// Færslur sem koma EKKI frá GitHub (D1 og ferskleikaskráin): reiknaðar ferskar í hvert sinn.
+const _BL_D1_UPPSPRETTUR = ['Straumur', 'Innlestur', 'Gögn'];
+const _BL_FERSKLEIKI_FROSIN_DAGAR = 3;   // refresh-data keyrir daglega: eldri skrá = vörnin hefur ekki keyrt
+
+/**
+ * Gagnasöfn sem hafa staðnað: nýjasta tímabil eldra en eðlilegt er m.v. útgáfutakt heimildarinnar.
+ * Skráin kemur úr skriptur/build_heilsa.mjs (web/public/gogn/heilsa.json, lykillinn timabil).
+ *
+ * ⚠⚠ AF HVERJU (22.9.2026): fimm gagnasöfn stóðu í allt að þrjá mánuði meðan dagleg keyrsla var
+ * græn. Atvinnuleysið á forsíðunni stóð í maí af því að skriptan las skrá sem enginn endurnýjaði.
+ * Útgangskóðinn mældi ekkert af því; aldur nýjasta tímabils gerir það.
+ * ⚠ Frosin skrá er verri en engin (sama regla og thagnadirStraumar): hafi vörnin ekki keyrt í
+ *   þrjá daga kemur EIN færsla um það og engin um einstök söfn.
+ */
+export function stadnadGogn(skra, nuIso) {
+  if (!skra || !Array.isArray(skra.gogn)) return [];
+  const nu = Date.parse(nuIso || new Date().toISOString().slice(0, 10));
+  const upp = Date.parse(skra.updated);
+  if (Number.isFinite(upp) && nu - upp > _BL_FERSKLEIKI_FROSIN_DAGAR * 864e5) {
+    return [{ uppspretta: 'Gögn', lysing: 'Ferskleikavörnin hefur ekki keyrt síðan ' + skra.updated, sidan: upp / 1000, alvarleiki: 'midlungs', slod: '' }];
+  }
+  const ut = [];
+  for (const g of skra.gogn) {
+    if (!g || g.stada === 'ok') continue;
+    if (g.stada === 'olesanlegt') {
+      ut.push({ uppspretta: 'Gögn', lysing: g.nafn + ': nýjasta tímabil ólesanlegt, skráin vantar eða sniðið breyttist', sidan: Number.isFinite(upp) ? upp / 1000 : 0, alvarleiki: 'midlungs', slod: '' });
+      continue;
+    }
+    ut.push({
+      uppspretta: 'Gögn',
+      lysing: g.nafn + ': nýjasta tímabil ' + g.timabil + ' er ' + g.aldur + ' daga gamalt (eðlilegt hámark ' + g.hamark + ', ' + g.takt + ')',
+      sidan: Date.parse(g.lok) / 1000 + g.hamark * 86400,
+      alvarleiki: g.aldur > 2 * g.hamark ? 'hatt' : 'midlungs',
+      slod: '',
+    });
+  }
+  return ut;
+}
 const _BL_STRAUMUR_ASTAEDA = {
   http: (s) => 'HTTP ' + s.status + (s.hindrun ? ', Cloudflare-lokun hjá miðlinum' : ''),
   net: () => 'tenging brást',
@@ -159,12 +196,27 @@ function _blSnyrta(bilanir) {
 }
 
 /** Sækir bilanalistann (eða skilar geymdum innan fyrningar). */
+/**
+ * Tímabilsmælingin úr gagnaheilsunni (web/public/gogn/heilsa.json → `timabil`, skriptur/build_heilsa.mjs).
+ * Vanti ASSETS eða skrána → engar færslur (aldrei villa).
+ */
+async function _blFerskleiki(env) {
+  if (!env.ASSETS) return [];
+  try {
+    const r = await env.ASSETS.fetch(new Request('https://karp.internal/gogn/heilsa.json'));
+    if (!r.ok) return [];
+    const h = await r.json();
+    return stadnadGogn({ updated: String(h.builtAt || '').slice(0, 10), gogn: h.timabil }, new Date(_blNow() * 1000).toISOString().slice(0, 10));
+  } catch (e) { return []; }
+}
+
 export async function saekjaBilanir(env, { thvinga = false } = {}) {
   if (!env.GITHUB_DISPATCH_TOKEN) return { ok: false, error: 'unconfigured' };
   const geymt = await _blGeymt(env);
   if (!thvinga && geymt && geymt.uppfaert > _blNow() - _BL_FYRNING) return Object.assign({ ok: true, sott: geymt.uppfaert }, geymt.gogn);
 
-  const straumar = await _blStraumar(env);
+  // Utan GitHub-blokkarinnar: útrunninn GitHub-lykill má ekki fela þessar færslur.
+  const straumar = (await _blStraumar(env)).concat(await _blFerskleiki(env));
   const bilanir = [];
   let vantar = [];
   try {

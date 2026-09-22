@@ -1,5 +1,5 @@
 {
- "builtAt": "2026-09-21T13:06:05.654Z",
+ "builtAt": "2026-09-22T08:42:40.216Z",
  "freshness": [
   {
    "label": "Fréttavélin",
@@ -118,7 +118,7 @@
   {
    "label": "Fjárhagur sveitarfélaga",
    "file": "sveitarfelog_fin.json",
-   "iso": "2026-09-21T11:45:10.573Z",
+   "iso": "2026-09-21T19:52:15.481Z",
    "maxAge": 3456000000
   }
  ],
@@ -134,5 +134,127 @@
    "total": 32,
    "engin": 4
   }
- }
+ },
+ "timabil": [
+  {
+   "nafn": "Atvinnuleysi (Vinnumálastofnun)",
+   "skra": "atvinnuleysi",
+   "timabil": "2026M08",
+   "lok": "2026-08-31",
+   "aldur": 22,
+   "hamark": 50,
+   "takt": "mánaðarlegt, birt um 10. næsta mánaðar",
+   "stada": "ok"
+  },
+  {
+   "nafn": "Fylgiskannanir",
+   "skra": "polls",
+   "timabil": "2026-08-31",
+   "lok": "2026-08-31",
+   "aldur": 22,
+   "hamark": 45,
+   "takt": "mánaðarlegt",
+   "stada": "ok"
+  },
+  {
+   "nafn": "Vísitala neysluverðs",
+   "skra": "verdlag",
+   "timabil": "2026M08",
+   "lok": "2026-08-31",
+   "aldur": 22,
+   "hamark": 45,
+   "takt": "mánaðarlegt, birt í lok mánaðar",
+   "stada": "ok"
+  },
+  {
+   "nafn": "Launavísitala",
+   "skra": "vinnumarkadur",
+   "timabil": "júl 2026",
+   "lok": "2026-07-31",
+   "aldur": 53,
+   "hamark": 75,
+   "takt": "mánaðarlegt, um mánuður í töf",
+   "stada": "ok"
+  },
+  {
+   "nafn": "Vöruviðskipti",
+   "skra": "vidskipti",
+   "timabil": "júl 2026",
+   "lok": "2026-07-31",
+   "aldur": 53,
+   "hamark": 75,
+   "takt": "mánaðarlegt, um mánuður í töf",
+   "stada": "ok"
+  },
+  {
+   "nafn": "Launakapphlaupið",
+   "skra": "furduhagfraedi",
+   "timabil": "2026M07",
+   "lok": "2026-07-31",
+   "aldur": 53,
+   "hamark": 90,
+   "takt": "mánaðarlegt",
+   "stada": "ok"
+  },
+  {
+   "nafn": "Mannfjöldi",
+   "skra": "mannfjoldi",
+   "timabil": "2026 F2",
+   "lok": "2026-06-30",
+   "aldur": 84,
+   "hamark": 140,
+   "takt": "ársfjórðungslegt",
+   "stada": "ok"
+  },
+  {
+   "nafn": "Landsframleiðsla",
+   "skra": "hagvoxtur",
+   "timabil": "2026 F2",
+   "lok": "2026-06-30",
+   "aldur": 84,
+   "hamark": 160,
+   "takt": "ársfjórðungslegt, um tveir mánuðir í töf",
+   "stada": "ok"
+  },
+  {
+   "nafn": "Afbrot (Ríkislögreglustjóri)",
+   "skra": "glaepir",
+   "timabil": "2025",
+   "lok": "2025-12-31",
+   "aldur": 265,
+   "hamark": 430,
+   "takt": "árlegt, birt í febrúar",
+   "stada": "ok"
+  },
+  {
+   "nafn": "Raforkuframleiðsla",
+   "skra": "orka",
+   "timabil": "2025",
+   "lok": "2025-12-31",
+   "aldur": 265,
+   "hamark": 490,
+   "takt": "árlegt, birt í apríl",
+   "stada": "ok"
+  },
+  {
+   "nafn": "Brautskráðir háskóla",
+   "skra": "menntun",
+   "timabil": "2024-2025",
+   "lok": "2025-06-30",
+   "aldur": 449,
+   "hamark": 560,
+   "takt": "árlegt",
+   "stada": "ok"
+  },
+  {
+   "nafn": "Tónn frétta",
+   "skra": "sentiment",
+   "timabil": "2026-06-28",
+   "lok": "2026-06-28",
+   "aldur": 86,
+   "hamark": 3,
+   "takt": "daglegt",
+   "stada": "gamalt"
+  }
+ ]
 }
