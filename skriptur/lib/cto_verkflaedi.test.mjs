@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { ctoBrot, skyndiminniBrot } from './cto_verkflaedi.mjs';
+import { ctoBrot, skyndiminniBrot, likanBrot } from './cto_verkflaedi.mjs';
 
 const rot = fileURLToPath(new URL('../../', import.meta.url));
 const yaml = createRequire(rot + 'web/package.json')('js-yaml');
@@ -141,4 +141,33 @@ test('rýnin 22.9: setup-node kveikir sjálft á skyndiminni ef package.json fæ
     const p = JSON.parse(readFileSync(rot + f, 'utf8'));
     assert.ok(!('packageManager' in p) && !('devEngines' in p), f + ' ber packageManager/devEngines');
   }
+});
+
+test('22.9: hvert job sem keyrir líkanið, í HVAÐA workflow sem er, hefur aðeins ANTHROPIC_API_KEY', () => {
+  const skrar = readdirSync(rot + '.github/workflows').filter((f) => /\.ya?ml$/.test(f));
+  assert.deepEqual(skrar.flatMap((f) => likanBrot(lesa('.github/workflows/' + f), f)), []);
+  // og markadsefni.yml hefur mörkin sem reglan byggir á: annars stæðist workflow án líkans prófið
+  const m = lesa('.github/workflows/markadsefni.yml');
+  assert.deepEqual(Object.keys(m.jobs).sort(), ['framleida', 'skila']);
+  assert.ok(JSON.stringify(m.jobs.framleida).includes('claude -p'), 'líkanið keyrir í framleida');
+  assert.equal(m.jobs.skila.needs, 'framleida');
+  assert.ok(!JSON.stringify(m.jobs.skila).includes('actions/checkout'), 'skila hefur engan kóða úr repo-inu');
+  assert.ok(JSON.stringify(m.jobs.skila).includes('POSTIZ_API_KEY') && JSON.stringify(m.jobs.skila).includes('KARP_ADMIN_KEY'));
+  assert.ok(JSON.stringify(m.jobs.skila).includes('-t draft'), 'aðeins drög');
+});
+
+test('likanBrot fellir markadsefni.yml eins og það var til 22.9 — og erfð leyndarmál workflow-stigsins', () => {
+  const gamla = { permissions: { contents: 'read' }, jobs: { framleida: { steps: [
+    { uses: 'actions/checkout@v7' },
+    { env: { ANTHROPIC_API_KEY: '${{ secrets.ANTHROPIC_API_KEY }}' }, run: 'claude -p "$(cat p.txt)" --permission-mode bypassPermissions' },
+    { env: { POSTIZ_API_KEY: '${{ secrets.POSTIZ_API_KEY }}' }, run: 'postiz upload markadsefni-out.mp4' },
+    { env: { KARP_ADMIN_KEY: '${{ secrets.KARP_ADMIN_KEY }}' }, run: 'node -e "fetch(...)"' },
+  ] } } };
+  assert.deepEqual(likanBrot(gamla, 'm.yml'), [
+    'm.yml: framleida: líkanið keyrir í job með leyndarmálinu POSTIZ_API_KEY, KARP_ADMIN_KEY',
+    'm.yml: framleida: checkout vistar git-skilríki þar sem líkanið keyrir',
+  ]);
+  const erft = { permissions: {}, env: { K: '${{ secrets.KARP_ADMIN_KEY }}' }, jobs: { j: { permissions: { contents: 'read' }, steps: [{ run: 'claude -p x' }] } } };
+  assert.deepEqual(likanBrot(erft, 'e.yml'), ['e.yml: j: líkanið keyrir í job með leyndarmálinu KARP_ADMIN_KEY']);
+  assert.deepEqual(likanBrot({ permissions: {}, jobs: { j: { env: { K: '${{ secrets.POSTIZ_API_KEY }}' }, steps: [{ run: 'postiz upload x' }] } } }), [], 'job án líkans er utan reglunnar');
 });

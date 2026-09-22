@@ -10,6 +10,8 @@
 //   · farmur atburðarins fer ALDREI í `env:`/`with:` nema númer beiðnarinnar: GitHub prentar env-gildi
 //     í opinbera keyrsluskrá, og farmurinn ber lykil og texta (rýnin 22.9);
 //   · engin réttindi á workflow-stigi (hvert job tilgreinir sín).
+// Tvær reglur ná til ALLRA workflow, ekki aðeins cto.yml: likanBrot (fyrsta reglan hér að ofan) og
+// skyndiminniBrot (ekkert job með réttindi endurheimtir skyndiminni).
 // Hrein eining: tekur hlutinn sem js-yaml skilar.
 
 const SIA = 'skriptur/lib/cto_sia.mjs';
@@ -79,6 +81,30 @@ export function skyndiminniBrot(wf, skra = 'workflow') {
   return brot;
 }
 
+/** Mörk job-s sem keyrir líkanið: ekkert leyndarmál nema ANTHROPIC_API_KEY (líka ekki erft af workflow-
+ *  stiginu), ekki skrifaðgangur, og engin vistuð git-skilríki. */
+function likanJobBrot(wf, nafn, job) {
+  const brot = [];
+  const onnur = [...new Set(leyndarmal(job).concat(leyndarmal({ env: wf && wf.env })))].filter((x) => x !== 'ANTHROPIC_API_KEY');
+  if (onnur.length) brot.push(nafn + ': líkanið keyrir í job með leyndarmálinu ' + onnur.join(', '));
+  if (skrifar(rettindi(wf, job))) brot.push(nafn + ': líkanið keyrir í job með skrifaðgang');
+  for (const c of checkoutSkref(job)) if (!(c.with && c.with['persist-credentials'] === false)) brot.push(nafn + ': checkout vistar git-skilríki þar sem líkanið keyrir');
+  return brot;
+}
+
+/**
+ * Líkanið í HVAÐA workflow sem er (22.9). markadsefni.yml keyrði Claude í sama job og POSTIZ_API_KEY og
+ * KARP_ADMIN_KEY, á skrefum á eftir líkaninu, sama mynstur og cto.yml var lagað frá. Þessi regla nær því
+ * til allra workflow, svo næsta workflow sem keyrir líkanið fái mörkin frá byrjun.
+ * @returns {string[]} brot — tómt ef hvert job sem keyrir líkanið stenst mörkin
+ */
+export function likanBrot(wf, skra = 'workflow') {
+  const brot = [];
+  for (const [nafn, job] of Object.entries((wf && wf.jobs) || {}))
+    if (keyrirLikan(job)) for (const b of likanJobBrot(wf, nafn, job)) brot.push(skra + ': ' + b);
+  return brot;
+}
+
 /** @returns {string[]} brot á reglunum — tómt ef allt stenst */
 export function ctoBrot(wf) {
   const brot = [];
@@ -93,10 +119,7 @@ export function ctoBrot(wf) {
     const envHlutar = [job && job.env, job && job.outputs].concat(skref(job).map((s) => [s.env, s.with]));
     for (const f of new Set(farmurIEnv(envHlutar))) brot.push(nafn + ': ' + f + ' í env/with/outputs prentast í opinbera keyrsluskrá');
     if (likan) {
-      const onnur = leyn.filter((x) => x !== 'ANTHROPIC_API_KEY');
-      if (onnur.length) brot.push(nafn + ': líkanið keyrir í job með leyndarmálinu ' + onnur.join(', '));
-      if (skrifar(r)) brot.push(nafn + ': líkanið keyrir í job með skrifaðgang');
-      for (const c of checkoutSkref(job)) if (!(c.with && c.with['persist-credentials'] === false)) brot.push(nafn + ': checkout vistar git-skilríki þar sem líkanið keyrir');
+      brot.push(...likanJobBrot(wf, nafn, job));
     } else if (repoKodi) {
       if (leyn.length) brot.push(nafn + ': kóði úr repo-inu keyrir í job með leyndarmálinu ' + leyn.join(', '));
       if (skrifar(r)) brot.push(nafn + ': kóði úr repo-inu keyrir í job með skrifaðgang');
