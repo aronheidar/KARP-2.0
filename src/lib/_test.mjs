@@ -1,6 +1,6 @@
 // Hrein eining fyrir src/lib — engar deps. Keyra:  node "src/lib/_test.mjs"
 import { PARTIES, partyName, partyColor, colorByName, codeByName } from './parties.mjs';
-import { esc, fmt, groupThousands, fmtNum, monthLabel, slugify, MON } from './format.mjs';
+import { esc, fmt, groupThousands, fmtNum, monthLabel, slugify, MON, brotheiti } from './format.mjs';
 import { projectSeats } from './seats.mjs';
 import { computeMuniIndex } from './muniIndex.mjs';
 import { makeMuniStats, svStab } from './muniStats.mjs';
@@ -30,6 +30,14 @@ eq('MON lengd', MON.length, 12);
 eq('slugify Múlaþing', slugify('Múlaþing'), 'mulathing');
 eq('slugify Reykjavíkurborg', slugify('Reykjavíkurborg'), 'reykjavikurborg');
 eq('slugify Ölfus-bil', slugify('Sveitarfélagið Ölfus'), 'sveitarfelagid-olfus');
+// Brotstaðir fyrir fasta heitadálka á síma (22.9.2026): lengsta heitið réð breidd dálksins.
+eq('brotheiti skástrik', brotheiti('Árskógssandur/Hauganes'), 'Árskógssandur/​Hauganes');
+eq('brotheiti kaupstaður', brotheiti('Bolungarvíkurkaupstaður'), 'Bolungarvíkur­kaupstaður');
+eq('brotheiti bær', brotheiti('Vestmannaeyjabær'), 'Vestmannaeyja­bær');
+eq('brotheiti hreppur', brotheiti('Skeiða- og Gnúpverjahreppur'), 'Skeiða- og Gnúpverja­hreppur');
+eq('brotheiti of stuttur stofn óbreyttur', brotheiti('Ásbær'), 'Ásbær');
+eq('brotheiti án viðskeytis óbreytt', brotheiti('Reykjavíkurborg'), 'Reykjavíkurborg');
+eq('brotheiti null', brotheiti(null), '');
 
 // seats — D'Hondt úthlutar nákvæmlega TOT sætum
 const polls = { parties: ['S','C','F','D','M','B'], polls: [{ v: { S:25, C:12, F:9, D:24, M:11, B:12 } }] };

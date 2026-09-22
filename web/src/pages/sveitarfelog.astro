@@ -8,7 +8,7 @@
 import { computeMuniIndex } from '@lib/muniIndex.mjs';
 import { makeMuniStats } from '@lib/muniStats.mjs';
 import { makeRegionOf, makeLifsQ } from '@lib/geo.mjs';
-import { fmtNum, groupThousands, esc, slugify } from '@lib/format.mjs';
+import { fmtNum, groupThousands, esc, slugify, brotheiti } from '@lib/format.mjs';
 import Layout from '../layouts/Layout.astro';
 import SiduHaus from '../components/SiduHaus.astro';
 
@@ -120,7 +120,7 @@ const jsonLd = {
         {REGIONS.map((rg) => <button class="chip" data-r={rg}>{rg}</button>)}
       </div>
     </div>
-    <div class="tw">
+    <div class="tw fastur-2">
       <table>
         <thead>
           <tr>
@@ -133,7 +133,7 @@ const jsonLd = {
           {rows.map((r, i) => (
             <tr data-region={r.region || ''} data-name={r.name.toLowerCase()}>
               <td class="rank">{i + 1}</td>
-              <td class="l"><a class="muni" href={`/sveitarfelog/${slugify(r.name)}/`}>{r.name}</a><span class="reg">{r.region || '—'}</span></td>
+              <td class="l"><a class="muni" href={`/sveitarfelog/${slugify(r.name)}/`}>{brotheiti(r.name)}</a><span class="reg">{r.region || '—'}</span></td>
               <td><span class="vis" style={`background:${idxColor(r.idx)}`}>{r.idx}</span></td>
               <td class="num fac"><i style={`width:${r.fjar ?? 0}%;background:${idxColor(r.fjar)}`}></i><span>{r.fjar ?? '–'}</span></td>
               <td class="num fac"><i style={`width:${r.vox ?? 0}%;background:${idxColor(r.vox)}`}></i><span>{r.vox ?? '–'}</span></td>

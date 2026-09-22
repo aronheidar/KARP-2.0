@@ -6,7 +6,7 @@ import SiduHaus from '../../components/SiduHaus.astro';
 import MS from '../../../public/gogn/hms/matssvaedi_2027.json';
 import ZS from '@gogn/matssvaedi_solur.json';
 import LV from '../../../public/gogn/hms/leiguverd.json';   // leiguverð per svæði (framreiknað)
-import { slugify, groupThousands } from '@lib/format.mjs';
+import { slugify, groupThousands, brotheiti } from '@lib/format.mjs';
 
 const Z = ZS.byZone || {};
 const LVZ = LV.byZone || {};
@@ -25,13 +25,13 @@ const desc = `Fasteignaverð í öllum ${rows.length} matssvæðum HMS: miðgild
       <Fragment slot="kicker"><p class="kicker"><a href="/fasteignir/">Fasteignaverð</a> · Matssvæði HMS</p></Fragment>
       <p>HMS skiptir landinu í <strong>{rows.length} matssvæði íbúðarhúsnæðis</strong> þar sem verðlag er talið einsleitt. Hér er hvert svæði með <strong>lifandi miðgildi</strong> verðs á fermetra úr þinglýstum kaupum síðustu 12 mánaða (kaupskrá HMS, {medSolum} svæði með sölur) og <strong>opinberu meðalverði og breytingu fasteignamats 2027</strong>. Smelltu á svæði fyrir nýjustu sölur.</p>
     </SiduHaus>
-    <div class="tw">
+    <div class="tw fastur">
       <table>
         <thead><tr><th class="l">Matssvæði</th><th>Karp fjölbýli<br><small>þús/m² · 12 mán</small></th><th>Karp sérbýli<br><small>þús/m² · 12 mán</small></th><th>Sölur<br><small>12 mán</small></th><th>HMS 2027<br><small>fjölb. / sérb. þús/m²</small></th><th>Mat 2027<br><small>fjölb. / sérb.</small></th><th>Leiga<br><small>kr/m² · mán</small></th><th>Ávöxtun<br><small>brúttó</small></th></tr></thead>
         <tbody>
           {rows.map((r) => (
             <tr>
-              <td class="l"><a href={`/fasteignaverd/${r.slug}/`}>{r.heiti}</a></td>
+              <td class="l"><a href={`/fasteignaverd/${r.slug}/`}>{brotheiti(r.heiti)}</a></td>
               <td class="num">{r.z && r.z.medFjol ? groupThousands(r.z.medFjol) : '–'}</td>
               <td class="num">{r.z && r.z.medSer ? groupThousands(r.z.medSer) : '–'}</td>
               <td class="num">{r.z ? groupThousands(r.z.n12) : 0}</td>

@@ -8,7 +8,7 @@
 import Layout from '../layouts/Layout.astro';
 import SiduHaus from '../components/SiduHaus.astro';
 import SH from '../../public/gogn/hms/sumarhus_2027.json';
-import { groupThousands } from '@lib/format.mjs';
+import { groupThousands, brotheiti } from '@lib/format.mjs';
 import { svaedaYfirlit, arsVisitala, bakprofSumarhus, landshluti, nothaef, tsOf } from '../lib/sumarhusamat.mjs';
 
 const solur = (SH.solur || []).filter(nothaef);
@@ -92,7 +92,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'WebApplication', na
 
     <h2>Verð sumarhúsa eftir matssvæðum <i class="tip" tabindex="0" data-tip={`Miðgildi m²-verðs úr þinglýstum sölum síðustu 5 ára í hverju svæði, fært til verðlags ${nyjasta} með árs-vísitölu sumarhúsa (landið allt). Birt aðeins þar sem ≥5 sölur eru í glugganum. HMS-dálkar: svæðisstuðull og breyting sumarhúsamats 2027 og meðalverð á m² úr útgáfu HMS.`}>?</i></h2>
     <p>Miðgildi verðs á fermetra (þús.kr, verðlag {nyjasta}) úr sölum síðustu 5 ára, {medPpm} svæði með nógu margar sölur til birtingar. Smelltu á „Meta" til að fylla svæðið inn í reiknivélina.</p>
-    <div class="tw">
+    <div class="tw fastur">
       <table class="sv">
         <thead><tr><th class="l">Matssvæði</th><th>Sölur<br><small>alls · sl. 3 ár</small></th><th>Miðgildi<br><small>þús.kr/m²</small></th><th>Miðgildi<br><small>kaupverð m.kr</small></th><th>Miðgildi<br><small>m²</small></th><th>HMS m²<br><small>þús.kr 2027</small></th><th>Mat 2027<br><small>breyting</small></th><th></th></tr></thead>
         <tbody>
@@ -101,7 +101,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'WebApplication', na
               <tr class="lh"><td class="l" colspan="8">{h.heiti}{h.rot && h.rot.ppm ? <span class="lh-s"> · miðgildi {thk(h.rot.ppm)} þús.kr/m² í rótarsvæðinu ({h.rot.nWin} sölur)</span> : ''}</td></tr>
               {h.born.map((z) => (
                 <tr>
-                  <td class="l">{z.heiti}</td>
+                  <td class="l">{brotheiti(z.heiti)}</td>
                   <td class="num">{groupThousands(z.n)} · {groupThousands(z.n3)}</td>
                   <td class="num">{thk(z.ppm)}</td>
                   <td class="num">{mkr(z.kv)}</td>
@@ -120,7 +120,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'WebApplication', na
 
     <h2>Verðþróun sumarhúsa {fyrsta}–{nyjasta}</h2>
     <p>Miðgildi verðs á fermetra í þinglýstum sumarhúsasölum á landinu öllu eftir söluári (árs-vísitalan sem reiknivélin notar til tímaleiðréttingar). Frá {fyrsta} til {nyjasta}: <strong>{pc1(breytAlls)}</strong>{nyjasta === 2026 ? ' (2026 = janúar–febrúar)' : ''}.</p>
-    <div class="tw">
+    <div class="tw fastur">
       <table class="vis">
         <thead><tr><th class="l">Ár</th>{arin.map((y) => <th>{y}</th>)}</tr></thead>
         <tbody>
