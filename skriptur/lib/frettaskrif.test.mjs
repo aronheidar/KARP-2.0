@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { skrifaFrettir, thattaSvar, samantektMd, snidFyrir, styttaTitil, hafnadarLinur, SJALFGEFID_LIKAN } from './frettaskrif.mjs';
+import { skrifaFrettir, thattaSvar, samantektMd, snidFyrir, styttaTitil, hafnadarLinur, SJALFGEFID_LIKAN, KERFI } from './frettaskrif.mjs';
 
 /** Gervi-client: hvert kall tekur næsta svar — strengur, fall af beiðni, Error sem kastast, eða hlutur
  *  { text, stop_reason, hugsun } þar sem hugsun:true setur thinking-blokk (án .text) Á UNDAN text-blokkinni,
@@ -139,6 +139,11 @@ test('samþykkt hreinsar gamalt talnavörn-merki af fyrri keyrslu', async () => 
   const t = await skrifaFrettir([e], { client: c });
   assert.equal(e.ai, true);
   assert.equal(e.talnavorn, undefined);
+});
+
+// Talnavörnin athugar að tala SÉ til, ekki hvað hún merkir; fyrirmælin verða að banna merkingarvillurnar sjálf.
+test('fyrirmælin banna efstastig og tímabilsfullyrðingar sem facts segja ekki berum orðum', () => {
+  for (const s of ['í röð', 'frá upphafi', 'í fyrsta sinn', 'síðan', 'á árinu', 'í gagnaröð Karp']) assert.ok(KERFI.includes(s), s);
 });
 
 // ── Kallið sjálft (yfirferð 22.9): max_tokens, effort, stop_reason, hugsun, tímaþak ──────────────

@@ -29,7 +29,17 @@ const erHlutfall = (eftir) => /^\s*(%|prósent)/i.test(eftir);
 const stadlaStrik = (s) => String(s).replace(/[‐‑‒–—]/g, '-');
 const hreinsa = (s) => s.replace(/[.,:;!?'"»«„“”]+$/, '');   // AÐEINS í enda strengs — hratt-birting, ekki úrskurður
 
-/** Tölur í texta: { hratt, tegund: 'numer'|'tala'|'hlutfall', gildi?, nakvaemni? } */
+// Sviðaheiti (yfirferð 22.9): vörnin hafnaði réttum texta af því að talan sat í HEITINU, ekki gildinu.
+// `ny_utbod_30d` = „síðustu 30 daga", `kosningar2024`, `verdbolga_12man_fyrr` = „fyrir 12 mánuðum": fréttin má nefna þær.
+const lykilTolur = (k) => (String(k).match(/\d+/g) || []).map(Number);
+// `_thus` = gildið er í þúsundum (fermetraverd_thus: 824 → „824 þúsund krónur"). Líka sem hluti heitis: midgildi_thus_m2.
+const erThusLykill = (k) => /(^|_)thus(_|$)/.test(k);
+// ×100 AÐEINS fyrir brot á sviðum sem heita breyting/hlutfall (breyting12: 0,162 → 16,2%), svo óskylt brot í bakgrunni
+// (0,5) hleypi ekki uppspunnu hlutfalli (50%) í gegn. `_pct` ber prósentu nú þegar og fær aldrei ×100.
+const erBrotLykill = (k) => /breyting|hlutfall/.test(k) && !/_pct$/.test(k);
+const hreint = (x) => Number(x.toPrecision(12));   // fleytitölusuð: 0,29 × 100 = 28,999999999999996 → 29
+
+/** Tölur í texta: { hratt, tegund: 'numer'|'tala'|'hlutfall', gildi?, nakvaemni?, hrein? } */
 export function talnaTokar(texti) {
   const s = stadlaStrik(texti || '');
   const tokar = [], numerSvid = [];
@@ -46,17 +56,25 @@ export function talnaTokar(texti) {
       tegund: hlutfall ? 'hlutfall' : 'tala',
       gildi: Number(heil.replace(/\./g, '') + (brot ? '.' + brot : '')) * marg,
       nakvaemni: Math.pow(10, -brot.length) * marg,
+      hrein: !brot && marg === 1 && !hlutfall,   // hrein heiltala: enginn aukastafur, engin eining, ekki %
     });
   }
   return tokar;
 }
 
-/** Leyfileg gildi úr facts: allar tölur (líka inni í strengjum) + dagur, mánuður og ár úr dagsetningum. */
+/** Leyfileg gildi úr facts: allar tölur (líka inni í strengjum) + dagur, mánuður og ár úr dagsetningum, tölur í
+ *  sviðaheitum, ×1000 á `_thus`-sviðum og ×100 á brotum í breyting/hlutfall-sviðum. */
 export function leyfd(facts) {
   const gildi = [], strengir = [];
-  const ganga = (v) => {
+  const ganga = (v, lykill = '') => {
     if (v == null || typeof v === 'boolean') return;
-    if (typeof v === 'number') { if (Number.isFinite(v)) gildi.push(v); return; }
+    if (typeof v === 'number') {
+      if (!Number.isFinite(v)) return;
+      gildi.push(v);
+      if (erThusLykill(lykill)) gildi.push(hreint(v * 1000));
+      if (Math.abs(v) <= 1 && erBrotLykill(lykill)) gildi.push(hreint(v * 100));
+      return;
+    }
     if (typeof v === 'string') {
       const s = stadlaStrik(v);
       strengir.push(s);
@@ -67,8 +85,8 @@ export function leyfd(facts) {
       }
       return;
     }
-    if (Array.isArray(v)) { v.forEach(ganga); return; }
-    if (typeof v === 'object') Object.values(v).forEach(ganga);
+    if (Array.isArray(v)) { v.forEach((x) => ganga(x, lykill)); return; }   // stök fylkis erfa heiti þess
+    if (typeof v === 'object') for (const [k, x] of Object.entries(v)) { gildi.push(...lykilTolur(k)); ganga(x, k); }
   };
   ganga(facts);
   return { gildi, texti: strengir.join('  ') };
@@ -80,9 +98,10 @@ export function athugaTolur(texti, facts) {
   const rangar = [];
   for (const t of talnaTokar(texti)) {
     if (t.tegund === 'numer') { if (!fstr.includes(t.hratt)) rangar.push(t.hratt); continue; }
-    const g = Math.abs(t.gildi), tol = t.nakvaemni / 2 + 1e-9;
-    // hlutfall (%) verður að passa BEINT við gildi úr facts — ekki ×100, annars slyppi uppspunnið hlutfall
-    // (t.d. 50%) í gegn á móti óskyldu broti í bakgrunni (0,5). Bakgrunnsgögnin bera hlutföll milliliðalaust.
+    // Hrein heiltala verður að passa NÁKVÆMLEGA (yfirferð 22.9): „3 útboð" má ekki standast á móti 2,6 í facts, það er
+    // önnur tala en ekki námundun. Námundun gildir aðeins þar sem textinn sýnir nákvæmnina (17,7 · 18 milljarðar · 4%).
+    // Hlutfall passar beint við gildi, eða ×100 við brot á breyting/hlutfall-sviði (sjá leyfd).
+    const g = Math.abs(t.gildi), tol = t.hrein ? 1e-9 : t.nakvaemni / 2 + 1e-9;
     const passar = gildi.some((v) => Math.abs(g - Math.abs(v)) <= tol);
     if (!passar) rangar.push(t.hratt);
   }

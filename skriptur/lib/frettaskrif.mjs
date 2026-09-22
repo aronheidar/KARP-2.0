@@ -19,6 +19,8 @@ export const KERFI = [
   'facts.bakgrunnur er samhengi úr gögnum Karp. Notaðu það til að setja fréttina í samhengi, en aðeins það sem stendur þar.',
   'SNIÐ: ef snid er "tolur" skaltu skrifa 2–4 setningar í einni málsgrein. Ef snid er "efni" skaltu skrifa 2–3 málsgreinar aðskildar með auðri línu: fyrst hvað gerðist, síðan samhengi úr bakgrunni, loks annað sem máli skiptir. Séu staðreyndirnar fáar skaltu skrifa stutt. ALDREI teygja textann með endurtekningu eða almennum orðum.',
   'STRANGT BANN: engar tölur, nöfn, dagsetningar eða fullyrðingar sem ekki standa í facts. Ekki reikna nýjar tölur (hvorki mismun, hlutföll né samtölur) nema þær standi í facts. Engar orsakaskýringar eða spádómar. Engin gildishlaðin orð og engin upphrópunarmerki. Ekki nefna facts, bakgrunn eða heiti sviða. Einstaklingar sem heita X í facts haldast nafnlausir.',
+  // talnavörnin sér aðeins hvort tala sé til í facts, ekki hvað hún merkir (yfirferð 22.9); þetta bann ber merkinguna
+  'EFSTASTIG OG TÍMABIL: engar efstastigs- eða tímabilsfullyrðingar sem facts segja ekki berum orðum, t.d. „í röð“, „frá upphafi“, „í fyrsta sinn“, „mesta/hæsta/lægsta … síðan“ eða „á árinu“. Tímabil skal nefna eins og facts lýsa þeim (t.d. „í gagnaröð Karp“).',
   'Tölur á íslensku sniði: 1.024.188.084 kr., 7,3%, 17,7 milljarðar króna.',
   'Skilaðu AÐEINS JSON-hlut: {"title":"...","text":"..."}. title hámark 90 stafir, text hámark 2000 stafir, málsgreinar aðskildar með \\n\\n.',
 ].join('\n');
