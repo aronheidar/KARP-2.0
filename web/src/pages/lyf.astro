@@ -211,7 +211,7 @@ const desc = `Uppfletting í sérlyfjaskrá Lyfjastofnunar: ${count} markaðsset
         const open = card.querySelector('.c-pk');
         if (open) { open.remove(); return; }
         const r = BYSLUG && BYSLUG[card.dataset.slug]; if (!r) return;
-        const div = document.createElement('div'); div.className = 'c-pk'; div.innerHTML = pkgTable(r);
+        const div = document.createElement('div'); div.className = 'c-pk tw'; div.innerHTML = pkgTable(r);
         card.appendChild(div);
       });
       // Frestuð hydrun (#3): SSG-spjöldin birtast strax; 1,9MB lyf.json sótt á LAUSUM tíma til auðgunar

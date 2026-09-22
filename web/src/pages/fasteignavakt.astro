@@ -1118,7 +1118,7 @@ const jsonLd = {
           bodyHtml = `<div class="fv-head" style="margin-top:14px">Verð á fermetra í póstnúmeri ${esc(pn)} — matslína, öryggisbil og raunsölur</div><div id="fvm-graf" class="fvm-graf"></div>`
             + `<div class="fv-head" style="margin-top:14px">Sambærilegar seldar eignir í póstnúmeri (${esc(pn)})</div>`
             + `<div class="comp-ctl"><span><label class="comp-cb"><input type="checkbox" id="comp-same" checked> Aðeins sama tegund (${esc(teg)})</label>${subjC ? ' <label class="comp-cb"><input type="checkbox" id="comp-near"> Innan 1 km</label>' : ''}</span><span class="comp-n" id="comp-n"></span></div>`
-            + `<div class="comp-wrap" id="comp-wrap">${compTblHtml(rows)}</div>`;
+            + `<div class="comp-wrap tw" id="comp-wrap">${compTblHtml(rows)}</div>`;
         } else {
           let svCtx = '';
           try {
@@ -1332,7 +1332,7 @@ const jsonLd = {
           + '<div class="fv-head" style="margin-top:14px">Leiga og ávöxtun — áætlað</div><div class="lei-grid"><div class="lei-c"><div class="lei-v">331.200 kr</div><div class="lei-l">áætluð leiga á mánuði</div></div><div class="lei-c"><div class="lei-v gold">5,2%</div><div class="lei-l">brúttó leiguávöxtun á ári</div></div><div class="lei-c"><div class="lei-v">19,2 ár</div><div class="lei-l">kaupverð ÷ ársleiga</div></div></div>'
           + '<div class="fvm-signal">Eignir í póstnúmeri 200 hafa selst að jafnaði <b>+5%</b> yfir gildandi fasteignamati síðustu 6 mánuði (41 þinglýst kaup).</div>'
           + '<div class="fv-head" style="margin-top:14px">Verð á fermetra í póstnúmeri 200 — matslína, öryggisbil og raunsölur</div><div id="fvm-graf" class="fvm-graf"></div>'
-          + '<div class="fv-head" style="margin-top:14px">Sambærilegar seldar eignir í póstnúmeri (200)</div><div class="comp-wrap" id="comp-wrap"></div>'
+          + '<div class="fv-head" style="margin-top:14px">Sambærilegar seldar eignir í póstnúmeri (200)</div><div class="comp-wrap tw" id="comp-wrap"></div>'
           + '<div class="fvm-note">Áætlað markaðsvirði og verðbil byggir venjulega á opinberri kaupskrá HMS (þinglýst kaup) með tölfræðilegri nálgun — ekki fasteignamat og ekki verðmat löggilts fasteignasala. <b>Í þessu sýnishorni eru tölurnar tilbúnar.</b> Ástand, hæð, útsýni, bílastæði og sérstaða eignar geta hliðrað verði verulega.</div></div>';
         out.querySelectorAll('.ec-tab').forEach((b) => b.addEventListener('click', () => {
           out.querySelectorAll('.ec-tab').forEach((x) => x.classList.toggle('on', x === b));

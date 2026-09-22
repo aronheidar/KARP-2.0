@@ -270,8 +270,16 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
          yfirskrifa það (t.d. .cos{display:grid} á Vöktun braut sýnileikastýringu). */
       [hidden] { display: none !important; }
       /* LOTA 23 (mobile-úttekt): breiðar töflur skruna innan síns ramma á síma
-         í stað þess að sprengja síðuna (fannst á /althingi/ og /verdlag/). */
-      @media (max-width: 760px) { main table { display: block; overflow-x: auto; } }
+         í stað þess að sprengja síðuna (fannst á /althingi/ og /verdlag/).
+         ⚠ 22.9.2026: reglan náði líka til taflna sem síðan pakkar sjálf í skrunramma. Þá skrunaði taflan
+         INNI Í rammanum, skrunið hreiðraðist og aftari dálkar lokuðust inni (/sveitarfelog/ faldi 5 af 9).
+         `.tw` merkir skrunramma töflu (aðrir rammar bera merkið líka); reglan nær aðeins til taflna utan
+         hans. min-width er núllað því display:block gerði annars kassann sjálfan breiðari en síðuna
+         (/verdlag/ var 540px á 375px skjá). */
+      main .tw { overflow-x: auto; }
+      @media (max-width: 760px) { main table:not(.tw table) { display: block; overflow-x: auto; min-width: 0 !important; } }
+      /* Dofnun á brún skrunramma er í <style is:inline> neðar: CSS-þjöppunin sameinar annars animation og
+         animation-timeline í eina styttingu sem Chrome hafnar, og reglan varð tóm. */
       /* 🐟 Fljótandi Spyrðu-Karp hnappurinn (LOTA 19; animation-safnið
          flutti HEIM í KarpFish.astro í LOTU 50 — hér aðeins staðsetning + hover-hraði) */
       #karp-fab { position: fixed; right: 18px; bottom: 18px; z-index: 60; display: flex; align-items: center; gap: 2px; background: none; border: 0; padding: 0; cursor: pointer; filter: drop-shadow(0 6px 18px rgba(0,0,0,.45)); }
@@ -317,6 +325,17 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
         .datainfo .tip:hover::after, .datainfo .tip:focus::after { position: fixed; inset: auto 10px 12px 10px; width: auto; max-width: none; transform: none; z-index: 95; }
         [data-tip]:hover::before, [data-tip]:focus::before,
         .datainfo .tip:hover::before, .datainfo .tip:focus::before { display: none; }
+      }
+    </style>
+    <!-- Hægri brún skrunramma töflu dofnar meðan meira er til hægri, svo falinn dálkur sjáist (22.9.2026).
+         Skrunknúin hreyfing, engin JS: kassi sem skrunar ekki hefur óvirka tímalínu og fær enga grímu, og
+         vafri án stuðnings sýnir töfluna eins og áður. ⚠ is:inline: CSS-þjöppunin sameinaði animation og
+         animation-timeline í `animation: … scroll(self inline)`, sem Chrome hafnar, og reglan varð tóm. -->
+    <style is:inline>
+      @keyframes skrunbrun { 0%, 99% { mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); } 100% { mask-image: none; } }
+      @supports (animation-timeline: scroll()) {
+        main .tw { animation: skrunbrun linear both; animation-timeline: scroll(self inline); }
+        @media (max-width: 760px) { main table:not(.tw table) { animation: skrunbrun linear both; animation-timeline: scroll(self inline); } }
       }
     </style>
   </head>

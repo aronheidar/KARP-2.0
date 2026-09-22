@@ -87,10 +87,8 @@ const R12 = { man: r12.man.map(monthLabel), nyskr: r12.nyskr, skrad: r12.skrad, 
     #chart-gj { width: 100%; height: 300px; }
     .cap { font-size: 12.5px; color: var(--muted); margin: 4px 0 10px; }
     .tw { overflow-x: auto; }
-    /* display: table vinnur víðtæku regluna `main table { display: block }` í Layout: hún gerir töfluna að
-       skrunkassa á síma og fimmti dálkurinn byrjaði þá rétt utan brúnar, svo enginn sá hann. Hér passar
-       taflan í staðinn (minna letur og bil undir 520px) og .tw grípur það sem kynni samt að flæða. */
-    .gt { display: table; width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+    /* Fimm dálkar passa á 375px með minna letri og bili undir 520px (sjá neðst); .tw skrunar ef ekki. */
+    .gt { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
     .gt th { text-align: right; font-size: 11.5px; font-weight: 600; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
     .gt td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line); color: var(--ink); }
     .gt th:first-child, .gt td:first-child { text-align: left; }
