@@ -129,3 +129,13 @@ test('rýnin 22.9: hornklofaritháttur á atburðinum greinist líka', () => {
   const med = (env) => ({ permissions: {}, jobs: { j: { permissions: {}, steps: [{ run: 'echo x', env }] } } });
   assert.match(ctoBrot(med({ L: "${{ github.event['client_payload'].lykill }}" })).join(), /github\.event\[…\]/);
 });
+
+test('rýnin 22.9: setup-node kveikir sjálft á skyndiminni ef package.json fær packageManager eða devEngines', () => {
+  // skyndiminniBrot sér aðeins `cache:`. setup-node v5+ vistar og endurheimtir ~/.npm SJÁLFKRAFA um leið og
+  // package.json ber annan hvorn reitinn, og þá gerðu öll setup-node-skref í job-um með réttindi það líka.
+  // Bætist reiturinn við þarf `package-manager-cache: false` á hvert slíkt skref (og regla í skyndiminniBrot).
+  for (const f of ['package.json', 'web/package.json']) {
+    const p = JSON.parse(readFileSync(rot + f, 'utf8'));
+    assert.ok(!('packageManager' in p) && !('devEngines' in p), f + ' ber packageManager/devEngines');
+  }
+});

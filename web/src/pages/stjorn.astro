@@ -1452,7 +1452,7 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
           if (act === 'samthykkja' && r2.merge && !r2.merge.ok) alert('Samþykkt skráð, en merge-keyrslan fór ekki af stað (' + (r2.merge.error || r2.merge.status) + ').\nMerge-aðu PR-inn handvirkt á GitHub — deploy fylgir sjálfkrafa.');
           if (VIDBRAGD[act]) vidbragdEftirBoot(VIDBRAGD[act]);
           boot();
-        } else { spilaVidbragd(sigrunHylki(), 'dapur'); err.textContent = r2 && r2.error === 'unconfigured' ? 'GITHUB_DISPATCH_TOKEN vantar í worker.' : r2 && r2.error === 'engin_pr' ? 'Ticketið ber engan PR frá CTO — ekkert að samþykkja.' : 'Villa — reyndu aftur.'; }
+        } else { spilaVidbragd(sigrunHylki(), 'dapur'); err.textContent = r2 && r2.error === 'unconfigured' ? 'GITHUB_DISPATCH_TOKEN vantar í worker.' : r2 && r2.error === 'engin_pr' ? 'Ticketið ber engan PR frá CTO — ekkert að samþykkja.' : r2 && r2.error === 'i_vinnslu' ? 'Hrafn er þegar að vinna í þessari beiðni. Niðurstaðan kemur í pósti.' : 'Villa — reyndu aftur.'; }
       }));
     }
     // ══════════════════════════════════════════════════════════════════════════════════════════════════
@@ -1721,7 +1721,9 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       if (thjonsAdgerd) {
         const r3 = adgerd === 'cto' ? await tixPost({ action: 'cto', id }) : await tixPost({ action: 'stada', id, stada: adgerd === 'hafna' ? 'hafnad' : 'lokad' });
         if (!r3 || !r3.ok) {
-          err.textContent = r3 && r3.error === 'unconfigured' ? 'GITHUB_DISPATCH_TOKEN vantar í worker — atkvæðið var EKKI skráð.' : 'Aðgerðin mistókst — atkvæðið var EKKI skráð. Reyndu aftur.';
+          err.textContent = r3 && r3.error === 'unconfigured' ? 'GITHUB_DISPATCH_TOKEN vantar í worker — atkvæðið var EKKI skráð.'
+            : r3 && r3.error === 'i_vinnslu' ? 'Hrafn er þegar að vinna í beiðninni, svo atkvæðið var EKKI skráð. Kjóstu aftur þegar niðurstaðan er komin.'
+              : 'Aðgerðin mistókst — atkvæðið var EKKI skráð. Reyndu aftur.';
           btns.forEach((b) => { b.disabled = false; }); return;
         }
       }

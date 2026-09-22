@@ -108,3 +108,34 @@ t('adminTicketHandler cto: bregðist dispatch fer staðan aftur þangað sem hú
   } finally { globalThis.fetch = orig; }
   assert.equal(db.prepare('SELECT stada FROM tickets WHERE id=7').get().stada, 'nytt');
 });
+
+const adminPost = (env, body, fetchFn) => {
+  const orig = globalThis.fetch; const log = [];
+  globalThis.fetch = async (url, o) => { log.push(String(url)); return fetchFn ? fetchFn(url, o) : { ok: true, status: 204, json: async () => ({}) }; };
+  return adminTicketHandler(new Request('https://karp.is/api/admin/ticket', { method: 'POST', headers: { 'content-type': 'application/json', 'X-Admin-Key': 'adm' }, body: JSON.stringify(body) }),
+    Object.assign({ GITHUB_DISPATCH_TOKEN: 'ghp' }, env), { waitUntil: () => {} })
+    .then((r) => r.json()).then((j) => ({ j, log })).finally(() => { globalThis.fetch = orig; });
+};
+
+t('rýnin 22.9: ekki önnur keyrsla á sömu beiðni meðan sú fyrri vinnur, nema hún sé komin fram yfir tímamörkin', async () => {
+  const { db, env } = grunnur('cto');
+  const nyleg = await adminPost(env, { action: 'cto', id: 7 });
+  assert.deepEqual(nyleg.j, { ok: false, error: 'i_vinnslu' });
+  assert.ok(!nyleg.log.some((u) => u.endsWith('/dispatches')), 'engin keyrsla ræst');
+  db.prepare('UPDATE tickets SET updated=? WHERE id=7').run(Math.floor(Date.now() / 1000) - 91 * 60);
+  const fost = await adminPost(env, { action: 'cto', id: 7 });
+  assert.equal(fost.j.ok, true, 'föst keyrsla heldur beiðninni ekki lengur en 90 mín');
+  assert.ok(fost.log.some((u) => u.endsWith('/dispatches')));
+});
+
+t('rýnin 22.9: niðurstaða sem kemur eftir að beiðnin fór úr CTO fer í notu og þurrkar ekki út PR', async () => {
+  const { db, env } = grunnur('tillaga');
+  db.prepare("UPDATE tickets SET cto_pr='https://github.com/aronheidar/KARP-2.0/pull/12', cto_samantekt='Fyrri keyrslan' WHERE id=7").run();
+  const r = await adminPost(env, { action: 'cto_result', id: 7, pr: '', branch: '', samantekt: 'Keyrslan náði ekki að skila breytingu' });
+  assert.deepEqual(r.j, { ok: true, seint: true });
+  const t7 = db.prepare('SELECT stada, cto_pr, cto_samantekt, notur FROM tickets WHERE id=7').get();
+  assert.equal(t7.stada, 'tillaga');
+  assert.equal(t7.cto_pr, 'https://github.com/aronheidar/KARP-2.0/pull/12', 'PR fyrri keyrslunnar stendur');
+  assert.equal(t7.cto_samantekt, 'Fyrri keyrslan');
+  assert.match(t7.notur, /CTO-keyrsla skilaði eftir að beiðnin fór úr CTO\nKeyrslan náði ekki að skila breytingu/);
+});

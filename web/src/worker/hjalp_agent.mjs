@@ -201,6 +201,7 @@ export async function _ghDispatch(env, eventType, payload) {
   return { ok: !!(r && r.status === 204), status: r ? r.status : 0 };
 }
 const _CTO_PR_RE = /^https:\/\/github\.com\/aronheidar\/KARP-2\.0\/pull\/\d+$/;
+const CTO_BID_SEK = 90 * 60;   // lengsta keyrsla cto.yml (tímamörk job-anna 80 mín) + biðröð
 
 async function _baetaNotu(env, t, n) {
   await setTicket(env, t.id, { notur: ((t.notur ? t.notur + '\n' : '') + '[' + new Date().toISOString().slice(0, 16) + '] ' + n).slice(-6000) });
@@ -320,8 +321,13 @@ export async function adminTicketHandler(request, env, ctx) {
     // Lykillinn gildir fyrir ÞESSA beiðni í 2 klst: vél líkansins sækir beiðnina með honum (cto_lykill.mjs),
     // svo textinn fari aldrei um opinbera keyrsluskrá. Farmurinn prentast hvergi. Staðan fer FYRST á 'cto':
     // lykillinn virkar aðeins meðan hún er þar, og vélin má ekki koma að beiðninni á undan henni.
+    // Ein keyrsla í einu (rýnin 22.9): seinni keyrslan félli á stöðunni þegar sú fyrri skilar, og án
+    // girðingar myndi niðurstaða hennar þurrka út PR þeirrar fyrri. Eftir CTO_BID_SEK hafa öll job-in
+    // runnið út á tíma (40+30+10 mín), svo föst keyrsla heldur beiðninni ekki lengur en það.
+    if (t.stada === 'cto' && _nowSek() - Number(t.updated || 0) < CTO_BID_SEK) return _ajson({ ok: false, error: 'i_vinnslu' });
+    const lykill = await ctoLykill(env, t.id);   // á undan stöðunni: bregðist hann situr beiðnin ekki föst í 'cto'
     await setTicket(env, id, { stada: 'cto' });
-    const r = await _ghDispatch(env, 'cto', { ticket: t.id, lykill: await ctoLykill(env, t.id) });
+    const r = await _ghDispatch(env, 'cto', { ticket: t.id, lykill });
     if (!r.ok) await setTicket(env, id, { stada: t.stada });
     else if (t.stada !== 'cto') await skraAtburd(env, 'cto', id);
     return _ajson(r);
@@ -342,6 +348,12 @@ export async function adminTicketHandler(request, env, ctx) {
     // Frá CTO-workflow (X-Admin-Key): PR-slóð + samantekt → staða 'tillaga' og Aron fær póst.
     // Tillagan að svari og hali loggsins komu BEINT frá keyrslunni (/api/cto/drog), ekki um opinbera skrá.
     const drog = await ctoDrogTaka(env, id);
+    // Beiðnin er ekki lengur hjá CTO (önnur keyrsla skilaði fyrst, eða Aron færði hana): niðurstaðan fer í
+    // notu, og hvorki staðan né PR fyrri keyrslu breytast.
+    if (t.stada !== 'cto') {
+      await _baetaNotu(env, t, 'CTO-keyrsla skilaði eftir að beiðnin fór úr CTO' + (b.pr ? ' — PR: ' + String(b.pr).slice(0, 300) : '') + '\n' + String(b.samantekt || '').slice(0, 1200));
+      return _ajson({ ok: true, seint: true });
+    }
     const grunnur = String(b.samantekt || '');
     const samantekt = (grunnur + (drog && drog.svar ? '\n\n## Tillaga að svari\n' + String(drog.svar) : '')
       + (drog && drog.hali && /skilaði engri samantekt|Engin samantekt/.test(grunnur) ? '\n\n## Lok keyrslunnar\n' + String(drog.hali).slice(-600) : '')).slice(0, 4000);
