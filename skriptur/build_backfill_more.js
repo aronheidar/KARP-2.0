@@ -66,11 +66,20 @@ function extractDesc(html) {
     || html.match(/<meta[^>]+name=["']description["'][^>]*content=["']([^"']*)["']/i);
   return m ? dec(m[1]).slice(0, 400) : '';
 }
+// ⚠ 22.9.2026: VB (og Fiskifréttir) bera ENGA vélræna birtingardagsetningu, aðeins sýnilegan texta á borð við
+//   „3. september 2026 13:19“. Án þessarar varaleiðar féll hver VB-grein á dagsetningu Wayback-afritsins, sem
+//   getur verið dögum síðar (Booking-grein frá 3.9 fékk 9.9). Klukkutíminn er SKILYRÐI: dagsetningar í
+//   meginmáli („19. september 2024 þar sem …“) bera hann ekki. Ísland er á UTC allt árið.
+const MAN_IS = ['janúar', 'febrúar', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágúst', 'september', 'október', 'nóvember', 'desember'];
+const DAGS_IS = new RegExp('\\b(\\d{1,2})\\.\\s*(' + MAN_IS.join('|') + ')\\s+(20\\d\\d)\\s+(\\d{1,2}):(\\d{2})\\b', 'i');
 function extractPub(html) {
   let m = html.match(/(?:article:published_time|datePublished)["'][^>]*content=["']([^"']+)["']/i)
     || html.match(/content=["']([^"']+)["'][^>]*(?:property|name)=["']article:published_time["']/i)
     || html.match(/"datePublished"\s*:\s*"([^"]+)"/);
-  if (!m) return 0;
+  if (!m) {
+    const d = html.match(DAGS_IS);
+    return d ? Math.floor(Date.UTC(+d[3], MAN_IS.indexOf(d[2].toLowerCase()), +d[1], +d[4], +d[5]) / 1000) : 0;
+  }
   const v = m[1].trim();
   let t = Date.parse(v); if (!isNaN(t)) return Math.floor(t / 1000);                 // ISO
   const im = v.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/); if (im) return Math.floor(Date.UTC(+im[3], +im[2] - 1, +im[1], 12) / 1000); // D.M.YYYY
@@ -152,7 +161,8 @@ async function main() {
           } catch (e) { await sleep(1200); }
         }
         const ts = r.ud || pub || capToTs(r.cap);
-        meta[r.url] = { t: title || '', d: desc || '', ts: ts };
+        // p: 1 = dagsetning úr slóð eða síðu, 0 = aðeins dagsetning afritsins (efri mörk, getur verið dögum of sein)
+        meta[r.url] = { t: title || '', d: desc || '', ts: ts, p: (r.ud || pub) ? 1 : 0 };
         done++; if (title) okT++;
         if (done % 200 === 0) { fs.writeFileSync(mpath, JSON.stringify(meta)); console.log('  ', done, '/', todo.length, '(', okT, 'með titil)…'); }
         await sleep(120);
@@ -162,6 +172,9 @@ async function main() {
     fs.writeFileSync(mpath, JSON.stringify(meta));
     console.log('Sótt. Með titil:', okT, '/', todo.length);
   }
+  const _m = recs.map((r) => meta[r.url]).filter(Boolean);
+  console.log('Dagsetning úr slóð/síðu:', _m.filter((x) => x.p === 1).length, '/', _m.length,
+    '(hinar bera dagsetningu Wayback-afritsins' + (_m.some((x) => x.p == null) ? '; eldri skyndiminni ber ekki merkið' : '') + ')');
 
   // Skrifa út: aðeins greinar með titil OG dagsetningu í 2026.
   const out = [];
@@ -178,5 +191,5 @@ async function main() {
   if (out.length) { console.log('elsta:', new Date(out[0].ts * 1000).toISOString().slice(0, 10), '· nýjasta:', new Date(out[out.length - 1].ts * 1000).toISOString().slice(0, 10)); console.log('dæmi:', JSON.stringify(out[Math.floor(out.length / 2)]).slice(0, 200)); }
 }
 
-module.exports = { SRC };
+module.exports = { SRC, extractPub };
 if (require.main === module) main().catch(e => { console.error('ERR', e); process.exit(1); });

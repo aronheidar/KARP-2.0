@@ -38,3 +38,23 @@ for (const skra of ['./build_backfill.js', './build_backfill_more.js']) {
     assert.ok(borid > 0, 'ekkert borið saman, svo prófið gætir einskis');
   });
 }
+
+// ── Birtingardagsetning VB (22.9.2026) ───────────────────────────────────────
+// VB ber ENGA vélræna dagsetningu, aðeins sýnilegan texta. Án hans féll hver VB-grein á dagsetningu
+// Wayback-afritsins: Booking-grein frá 3.9 fékk 9.9.
+test('sýnileg íslensk dagsetning MEÐ klukkutíma er lesin (VB, Fiskifréttir)', () => {
+  const { extractPub } = require('./build_backfill_more.js');
+  const html = '<div class="dags">3. september 2026 13:19</div><p>Samningurinn var gerður 19. september 2024 þar sem …</p>';
+  assert.equal(extractPub(html), Math.floor(Date.UTC(2026, 8, 3, 13, 19) / 1000));
+});
+
+test('dagsetning í meginmáli ÁN klukkutíma er ekki tekin sem birtingartími', () => {
+  const { extractPub } = require('./build_backfill_more.js');
+  assert.equal(extractPub('<p>Samningurinn var gerður 19. september 2024 þar sem staðfest var …</p>'), 0);
+});
+
+test('vélræn dagsetning gengur fyrir sýnilegum texta', () => {
+  const { extractPub } = require('./build_backfill_more.js');
+  const html = '<meta property="article:published_time" content="2026-09-05T08:00:00Z"><div>3. september 2026 13:19</div>';
+  assert.equal(extractPub(html), Math.floor(Date.UTC(2026, 8, 5, 8, 0) / 1000));
+});
