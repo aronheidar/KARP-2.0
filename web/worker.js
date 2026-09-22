@@ -25,7 +25,7 @@ import { askellSessionHandler, askellWebhookHandler, payCallbackHandler, payChec
 import { RSK_ROT, _isStem, _kycAfterEvents, _kycRunDiff, _lobbyGate, atvinnugreinHandler, computeGreinRank, greinRankHandler, hladLeit, kycHandler, leiHandler, leyfiHandler, lobbyvaktHandler, loftforHandler, newsSince, roadsSectorsHandler, rskErFyrirtaeki, rskHandler, rskProxyHandler, sanctionsHandler, tengslStatsHandler, tengslanetHandler, topplistarHandler, vanskilHandler } from './src/worker/veitur.mjs';
 import { FRETTA_TYPES, _mentions, _rssItems, digestRun, eftirlitCriticalCron, fetchNews, kycCriticalCron, kycDiffCron, leikurPruneCron, logbirtingCriticalCron, newsIngest, newsSearch } from './src/worker/cron.mjs';
 import { adminEmailHandler, adminOverviewHandler, adminRefreshHandler, adminSendHandler, adminSetTypeHandler, adminSyncHandler, adminUserHandler } from './src/worker/stjornbord.mjs';
-import { adminHlidVilla, adminTicketHandler, createTicket, processNewTicket, ticketsOverview } from './src/worker/hjalp_agent.mjs';   // 🎫 þjónustufulltrúi: ticket → greining → svar/tillaga
+import { adminHlidVilla, adminTicketHandler, createTicket, kokuHlidVilla, processNewTicket, ticketsOverview } from './src/worker/hjalp_agent.mjs';   // 🎫 þjónustufulltrúi: ticket → greining → svar/tillaga
 import { sigrunVikupostur, endurreynaNu } from './src/worker/sigrun_vinna.mjs';   // 🙋 vikupóstur Sigrúnar á mánudagsmorgni
 import { adminMootHandler, mootVerkbeidni } from './src/worker/moot.mjs';   // 🏛️ Moot: ráðsfundur persónanna um eitt ticket — tillaga sem Aron greiðir atkvæði um
 import { ctoHandler } from './src/worker/cto_lykill.mjs';   // 🛠️ CTO-keyrslan sækir beiðnina og skilar drögum með lykli sem gildir fyrir eina beiðni
@@ -1712,6 +1712,9 @@ async function eigendurRequestHandler(request, env, ctx) {
 // /fyrirtaeki/ kallar hér þegar skýrsla hefur enga byggða stjórn. repository_dispatch { kt } →
 // .github/workflows/stjorn.yml → web/public/gogn/stjorn/<kt>.json. Aðeins innskráðir → gegn misnotkun.
 async function stjornRequestHandler(request, env, ctx) {
+  // POST eingöngu (22.9): áður ræsti hvaða GET-hlekkur sem er GitHub-keyrslu í nafni innskráðs notanda,
+  // og Lax-kakan fylgir GET-leiðsögn af öðrum vefjum. Bæði köllin (ubo-report.js, fyrirtaeki.astro) eru POST.
+  if (request.method !== 'POST') return sjson({ error: 'post' });
   const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
   if (kt.length !== 10) return sjson({ error: 'kt' });
   if (!env.GITHUB_DISPATCH_TOKEN) return sjson({ error: 'unconfigured' });
@@ -3046,11 +3049,15 @@ export default {
     //    „site"), og fimm admin-leiðir athuguðu þetta ekki sjálfar (set-type gerði hvern sem er að admin).
     //    Stendur á undan ÖLLUM leiðum, svo ný admin-leið fái hliðið sjálfkrafa. Próf: admin_csrf.test.mjs.
     if (url.pathname.startsWith('/api/admin/')) { const v = adminHlidVilla(request, env); if (v) return _ajson({ ok: false, error: v }); }
+    // ⚠⚠ Sama ógn á notenda-leiðunum (22.9): /api/kyc/ack, /api/u/reports/open, /api/auth/kt o.fl. þáttuðu
+    //    JSON án uppruna-gátar. Hvert /api-kall sem breytir einhverju og ber lotukökuna verður að koma af
+    //    karp.is, og /api/auth/* líka án köku (innskráningar-CSRF). Próf: notenda_csrf.test.mjs.
+    if (url.pathname.startsWith('/api/')) { const v = kokuHlidVilla(request, url.pathname); if (v) return _ajson({ ok: false, error: v }); }
     // ── Cloudflare-native auðkenning (F2) — leysir wp.karp.is /me + innskráningu af hólmi ──
     if (url.pathname === '/api/auth/me') return authMeHandler(request, env);
     if (url.pathname === '/api/auth/register') return authRegisterHandler(request, env);
     if (url.pathname === '/api/auth/login') return authLoginHandler(request, env);
-    if (url.pathname === '/api/auth/logout') return authLogoutHandler();
+    if (url.pathname === '/api/auth/logout') return request.method === 'POST' ? authLogoutHandler() : _ajson({ ok: false, error: 'post' });   // GET-hlekkur af annarri síðu skráði út
     if (url.pathname === '/api/auth/kt') return authSaveKtHandler(request, env);
     if (url.pathname === '/api/auth/forgot') return authForgotHandler(request, env, ctx);
     if (url.pathname === '/api/auth/reset') return authResetHandler(request, env);

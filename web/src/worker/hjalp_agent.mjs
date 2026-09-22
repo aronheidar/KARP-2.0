@@ -55,6 +55,29 @@ export function adminHlidVilla(request, env) {
   if (key && env && env.ADMIN_API_KEY && key === env.ADMIN_API_KEY) return null;
   return adminCsrfVilla(request);
 }
+
+/** Hlið leiðavalsins fyrir ÖLL /api/*-köll sem breyta einhverju og bera lotukökuna (22.9). Lax-kakan fer
+ *  með POST af systkina-undirlénum (wp.karp.is), svo slík beiðni verður að koma af karp.is sjálfu: annars
+ *  gat síða þar merkt KYC-viðvaranir afgreiddar, brennt skýrslu-inneign eða skipt um kennitölu reiknings.
+ *  Ólíkt admin-hliðinu er JSON EKKI skilyrði þegar vafrinn segir til um uppruna, því útskráning, sendBeacon
+ *  og form á karp.is senda annað; án beggja upprunahausanna (gamall vafri) er JSON krafist.
+ *  Beiðni ÁN köku fer óbreytt, þar er engin lota til að misnota (vefkrókar, greiðslusvör, CTO-lykill),
+ *  NEMA /api/auth/*: þar myndi síða á wp.karp.is annars skrá útskráðan gest inn á reikning árásaraðila. */
+export function kokuHlidVilla(request, slod) {
+  const m = request.method;
+  if (m === 'GET' || m === 'HEAD' || m === 'OPTIONS') return null;
+  const kaka = /(?:^|;\s*)karp_session=/.test(request.headers.get('Cookie') || '');
+  if (!kaka && !String(slod || '').startsWith('/api/auth/')) return null;
+  const sfs = request.headers.get('Sec-Fetch-Site');
+  if (sfs && sfs !== 'same-origin' && sfs !== 'none') return 'origin';
+  const origin = request.headers.get('Origin');
+  if (origin) {
+    let own = ''; try { own = new URL(request.url).origin; } catch (e) { own = ''; }
+    if (origin !== own && origin !== 'https://karp.is') return 'origin';
+  }
+  if (!sfs && !origin && !String(request.headers.get('content-type') || '').toLowerCase().startsWith('application/json')) return 'content_type';
+  return null;
+}
 async function _rofiOff(env) {
   const r = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='hjalp_agent_off'").first().catch(() => null);
   return !!(r && String(r.v) === '1');
