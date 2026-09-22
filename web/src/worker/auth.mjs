@@ -324,7 +324,10 @@ export async function authVerifyHandler(request, env) {
   const t = await env.TENGSL.prepare("SELECT token, user_id FROM auth_tokens WHERE token=? AND kind='verify' AND expires>?").bind(token, now).first().catch(() => null);
   if (!t) return new Response(null, { status: 302, headers: { location: '/innskra/?verify=expired' } });
   await env.TENGSL.prepare('UPDATE users SET email_verified=1, updated=? WHERE id=?').bind(now, t.user_id).run().catch(() => {});
-  await env.TENGSL.prepare("DELETE FROM auth_tokens WHERE user_id=? AND kind='verify'").bind(t.user_id).run().catch(() => {});
+  // Tókanum er EKKI eytt við notkun (22.9): póstskannar (t.d. Outlook Safe Links) opna hlekkinn á undan
+  // viðtakandanum, og smellur hans sýndi þá „útrunninn" þótt netfangið væri staðfest. Endurnotkun er skaðlaus:
+  // tókinn staðfestir aðeins (sama aðgerð aftur) og skráir aðeins inn vafrann sem nýskráði sig. Hann rennur út
+  // eftir sólarhring, og nýr staðfestingarpóstur eyðir eldri tókum (_sendVerifyEmail).
   // Lota AÐEINS í vafranum sem nýskráði sig (sjá _nyskraKaka). Sá sem er þegar innskráður sem sami notandi
   // heldur sinni lotu. Allir aðrir fá staðfestinguna en skrá sig inn sjálfir, og lota sem fyrir er helst óbreytt.
   const uid = Number(t.user_id);

@@ -120,3 +120,19 @@ t('þegar innskráður sem sami notandi: staðfestingin heldur lotunni án þess
   assert.equal(res.headers.get('location'), '/mitt-svaedi/?verified=1');
   assert.deepEqual(kokurUr(res), []);
 });
+
+t('póstskanni opnar hlekkinn á undan viðtakanda: smellur hans skráir samt inn, og annar smellur sýnir ekki „útrunninn"', async () => {
+  const { db, env } = grunnur();
+  const kaka = kokurUr(await nyskra(env, 'anna@x.is'))[0];
+  const toki = tokiFyrir(db, 'anna@x.is');
+  const skanni = await smella(env, toki);   // t.d. Outlook Safe Links: engin kaka
+  assert.equal(skanni.headers.get('location'), '/innskra/?verify=ok');
+  assert.deepEqual(kokurUr(skanni), [], 'skanninn fær enga lotu');
+  const smellur = await smella(env, toki, [gildiKoku(kaka)]);
+  assert.equal(smellur.headers.get('location'), '/mitt-svaedi/?verified=1', 'tókinn gildir enn eftir skannann');
+  const lota = kokurUr(smellur).find((x) => x.startsWith('karp_session=') && !/Max-Age=0/.test(x));
+  assert.ok(lota, 'viðtakandinn skráður inn');
+  const aftur = await smella(env, toki, [gildiKoku(lota)]);
+  assert.equal(aftur.headers.get('location'), '/mitt-svaedi/?verified=1', 'annar smellur, nú innskráður');
+  assert.deepEqual(kokurUr(aftur), []);
+});
