@@ -53,7 +53,7 @@ export const CAT = {
   nefnd:      { label: 'Nefndir', color: '#9d86ff', img: 'althingi', heimild: 'Alþingi', rule: 'Breyting á formennsku fastanefndar Alþingis skv. nefndaskrá.' },
   toppar:     { label: 'Topplisti', color: '#f6b13b', img: 'utbod', heimild: 'Útboðsgáttir', rule: 'Verðmætustu opinberu útboðssamningar nýlega.' },
   // ── Bylgja 2: djúp innsýn ──
-  fastthr:    { label: 'Íbúðamarkaður', color: '#42d086', img: 'fasteignir', heimild: 'Kaupskrá HMS', rule: 'Íbúðamarkaðurinn skiptir um takt (hitnar/kólnar) — 3ja og 12 mánaða verðþróun.' },
+  fastthr:    { label: 'Íbúðamarkaður', color: '#42d086', img: 'fasteignir', heimild: 'Kaupskrá HMS', rule: 'Íbúðamarkaðurinn skiptir um takt (hitnar, kólnar, lækkar, stendur í stað) skv. 3ja og 12 mánaða verðþróun — aðeins dæmt á liðnum mánuði, því þinglýsingar skila sér vikum saman eftir á.' },
   leiga:      { label: 'Leiga', color: '#42d086', img: 'leiga', imgFb: 'fasteignir', heimild: 'Leiguskrá HMS', rule: 'Miðgildi leiguverðs á fermetra nær sögulegu hámarki.' },
   svaedi:     { label: 'Fasteignaverð svæða', color: '#42d086', img: 'fasteignir', heimild: 'Kaupskrá HMS × matssvæði HMS', rule: 'Miðgildi fermetraverðs í matssvæði HMS víkur ≥6% milli ára (sl. 12 mán vs 12 mán þar á undan, ≥40 þinglýst kaup) — einn atburður per svæði per ársfjórðung.' },
   samanburdur:{ label: 'Ísland í samhengi', color: '#3aa0ff', img: 'samanburdur', imgFb: 'annad', heimild: 'Numbeo', rule: 'Samanburður Reykjavíkur við aðrar höfuðborgir á verðlagi og kaupmætti.' },

@@ -31,6 +31,7 @@ const { pickRaedur } = require('./raedur_detect.js');   // ræðumínútur vikun
 const { pickEftirlit } = require('./eftirlit_detect.js');   // eftirlitsvaktin; dagsettur grunnur, hálf skrá ekki borin saman (22.9.2026)
 const { pickStjorar } = require('./stjorar_detect.js');   // bæjar-/sveitarstjórar; dagsettur grunnur (22.9.2026)
 const { pickNefndir } = require('./nefndir_detect.js');   // formennska þingnefnda; dagsetning úr althingi_meta (22.9.2026)
+const { pickFastthr } = require('./fastthr_detect.js');   // taktur íbúðamarkaðar; AÐEINS liðinn mánuður, dagsettur grunnur (22.9.2026)
 let slugifyIS = null;   // @lib/format.mjs slugify (ESM) — hlaðið í main() svo svæðis-slóðir séu þær sömu og /fasteignaverd/[slug]
 const G = (f) => path.join(__dirname, '..', 'gogn', f);
 const J = (f) => { try { return JSON.parse(fs.readFileSync(G(f), 'utf8')); } catch (e) { return null; } };
@@ -663,17 +664,19 @@ function detect(state) {
   }
 
   // ══ BYLGJA 2 (LOTA 34): djúp innsýn ══
-  // Íbúðamarkaðurinn skiptir um takt (hitnar/kólnar) — verdict-diff
+  // Íbúðamarkaðurinn skiptir um takt — verdict-diff. Hreinn skynjari í fastthr_detect.js (próf): AÐEINS liðinn
+  // mánuður er dæmdur (dómurinn flökti fimm sinnum meðan júlí 2026 fylltist og birti þrjár mótsagnakenndar fréttir
+  // um sama mánuðinn), lágmarksfjöldi kaupa miðað við næstu 12 mánuði, dagsettur grunnur og biluð skrá heldur honum.
   const fa2 = J('fasteignir.json');
-  if (fa2 && fa2.direction && typeof fa2.direction.chg3 === 'number' && fa2.direction.verdict) {
-    const dir = fa2.direction, v = dir.verdict;
-    if (state.fastVerdict && state.fastVerdict !== v) {
-      const label = { cooling: 'kólnar', heating: 'hitnar', stable: 'stendur í stað' }[v] || v;
-      ev.push({ id: `fastthr-${dir.updated}-${v}`, type: 'fastthr', spark: downsample((fa2.months || []).map((m) => (m.hbsv || {}).m2 || 0), 24), facts: { verdict: v, breyting3man: dir.chg3, breyting12man: dir.chg12, manudur: dir.updated }, url: '/fasteignir/',
-        title: `Íbúðamarkaðurinn ${label}`,
-        text: `Íbúðaverð á höfuðborgarsvæðinu ${dir.chg3 < 0 ? 'lækkaði' : 'hækkaði'} um ${pct1(Math.abs(dir.chg3))}% síðustu þrjá mánuði (${dir.chg12 >= 0 ? '+' : ''}${pct1(dir.chg12)}% á tólf mánuðum) samkvæmt kaupskrá HMS — markaðurinn ${label}.` });
+  {
+    const { cand, grunnur } = pickFastthr(fa2, state.fastthr, { todayISO: TODAY });
+    for (const c of cand) {
+      ev.push({ id: `fastthr-${c.manudur}-${c.verdict}`, type: 'fastthr', spark: downsample(((fa2 || {}).months || []).map((m) => (m.hbsv || {}).m2 || 0), 24), facts: { verdict: c.verdict, breyting3man: c.chg3, breyting12man: c.chg12, manudur: c.manudur, kaupsamningar: c.n }, url: '/fasteignir/',
+        title: `Íbúðamarkaðurinn ${c.ordalag}`,
+        text: `Íbúðaverð á höfuðborgarsvæðinu ${c.chg3 < 0 ? 'lækkaði' : 'hækkaði'} um ${pct1(Math.abs(c.chg3))}% á þremur mánuðum til loka ${manIS(c.manudur)} (${c.chg12 >= 0 ? '+' : ''}${pct1(c.chg12)}% á tólf mánuðum) samkvæmt kaupskrá HMS — markaðurinn ${c.ordalag}.` });
     }
-    state.fastVerdict = v;
+    state.fastthr = grunnur;
+    delete state.fastVerdict;   // gamla sniðið: ber strengur án mánaðar eða dagsetningar
   }
   // Leiguverð í sögulegu hámarki
   const lei = J('leiga.json');
