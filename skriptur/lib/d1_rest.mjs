@@ -43,9 +43,9 @@ export function makeD1(webDir) {
     throw new Error('Vantar CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID (env eða web/.dev.vars). Sjá d1_rest.mjs haus.');
   }
   const url = `${API}/accounts/${account}/d1/database/${DB_ID}/query`;
-  // Keyrir SQL (ein EÐA fleiri setningar með ; á milli — D1 þáttar strengja-bókstafi rétt). Skilar
-  // röðum FYRSTU setningar (fyrir SELECT). params = bundnar breytur (?). Endurreynir tímabundnar villur.
-  async function query(sql, params = []) {
+  // Keyrir SQL (ein EÐA fleiri setningar með ; á milli — D1 þáttar strengja-bókstafi rétt) og skilar
+  // niðurstöðu HVERRAR setningar. params = bundnar breytur (?). Endurreynir tímabundnar villur.
+  async function senda(sql, params = []) {
     let lastErr;
     for (let attempt = 0; attempt < 3; attempt++) {
       if (attempt) await new Promise((r) => setTimeout(r, 800 * attempt));
@@ -62,9 +62,17 @@ export function makeD1(webDir) {
       let j;
       try { j = await r.json(); } catch (e) { throw new Error('D1 REST: ógilt JSON-svar (HTTP ' + r.status + ')'); }
       if (!j.success) throw new Error('D1 REST villa: ' + JSON.stringify(j.errors || j.messages || j));
-      return (j.result && j.result[0] && j.result[0].results) || [];
+      return j.result || [];
     }
     throw lastErr || new Error('D1 REST: mistókst eftir endurtekningar');
   }
-  return { query };
+  // Raðir FYRSTU setningar (fyrir SELECT).
+  async function query(sql, params = []) {
+    const r = await senda(sql, params);
+    return (r[0] && r[0].results) || [];
+  }
+  // Öll niðurstaðan, ein færsla per setningu með `meta` — t.d. `meta.changes` = raðir sem RAUNVERULEGA
+  // bættust við (INSERT OR IGNORE telur ekki þær sem voru þegar til).
+  async function queryAll(sql, params = []) { return senda(sql, params); }
+  return { query, queryAll };
 }

@@ -62,6 +62,21 @@ test('query: posts correct request and parses rows', async () => {
   } finally { restore(); }
 });
 
+test('queryAll: returns every statement result, with meta (rows actually inserted)', async () => {
+  process.env.CLOUDFLARE_API_TOKEN = 'tok';
+  process.env.CLOUDFLARE_ACCOUNT_ID = 'acc';
+  globalThis.fetch = async () => ({
+    status: 200,
+    json: async () => ({ success: true, result: [{ results: [], meta: { changes: 1 } }, { results: [], meta: { changes: 0 } }] }),
+  });
+  try {
+    const d1 = makeD1('/nonexistent/web');
+    const r = await d1.queryAll('INSERT OR IGNORE INTO news VALUES (1); INSERT OR IGNORE INTO news VALUES (2);');
+    assert.equal(r.length, 2, 'one result per statement');
+    assert.equal(r[0].meta.changes + r[1].meta.changes, 1, 'OR IGNORE: only the new row counts');
+  } finally { restore(); }
+});
+
 test('query: throws on success:false', async () => {
   process.env.CLOUDFLARE_API_TOKEN = 'tok';
   process.env.CLOUDFLARE_ACCOUNT_ID = 'acc';
