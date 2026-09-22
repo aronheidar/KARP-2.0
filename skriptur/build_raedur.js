@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────
 // build_raedur.js — Ræðugreining Alþingis (LOTA 16, liður 4)
-// Les ræðulista yfirstandandi þings (XML, ~15þ ræður) og reiknar TÖLFRÆÐILEGT
+// Les ræðulista YFIRSTANDANDI OG NÆSTLIÐINS þings (XML, ~16þ ræður) og reiknar TÖLFRÆÐILEGT
 // „málróf" hvers þingmanns: fjöldi/mínútur eftir tegund ræðu (ræða,
 // andsvar, um fundarstjórn…), topp-málefni eftir ræðutíma, lengsta ræða.
 // ENGIN gervigreind — hrein talning úr opinberu XML-i Alþingis.
@@ -8,7 +8,13 @@
 //
 // ⚠ lthing var harðkóðað 157 og `thing: 157` skrifað í skrána — 158. þing hófst 9/2026 og
 //   gögnin frusu: summa mp[*].min stóð í 42.503 á hverju einasta dagskommitti frá júlí meðan
-//   `updated` færðist daglega. Nú spurt hjá Alþingi (nuverandiThing, sama og build_cabinet.js).
+//   `updated` færðist daglega. Nú spurt hjá Alþingi.
+//
+// ⚠ BÆÐI þing (thingListi), ekki aðeins það yfirstandandi: ræður eru ATHAFNA-gögn sem safnast
+//   upp yfir þingið og nýtt þing er nær tómt fyrstu vikurnar. 158 eitt og sér gaf 65 ræðumenn
+//   á móti 115 — um 50 þingmenn hefðu fengið AUTT „Málróf" í SELDU þingmannaskýrslunni og
+//   `andsvor`-hundraðshlutinn í build_thingskyrsla.js reiknast af hálfu þingi. Systkinið
+//   build_speeches.js (raedumin/raedur í althingi.json) notar thingListi af sömu ástæðu.
 //
 // ⚠ Seigla (sjá _seigla.js): fetchText hendir á non-2xx og reynir aftur með bakslagi, og
 //   writeJsonUnlessEmpty heldur fyrri skrá ef ekkert fannst. Hvort tveggja er nauðsyn hér því
@@ -17,7 +23,7 @@
 //   skrifa mp: {} yfir 115 þingmenn.
 // ─────────────────────────────────────────────────────────────
 const path = require('path');
-const { fetchText, writeJsonUnlessEmpty, nuverandiThing } = require('./_seigla.js');
+const { fetchText, writeJsonUnlessEmpty, thingListi } = require('./_seigla.js');
 
 const OUT = path.join(__dirname, '..', 'gogn', 'raedugreining.json');
 const UA = { 'User-Agent': 'KARP dashboard build (karp.is)' };
@@ -28,37 +34,49 @@ const grab = (xml, tag) => {
 };
 const klippt = (h) => (h.length > 80 ? h.slice(0, 77) + '…' : h);
 
-// ── greinRaedulista(xml) → { total, skipped, mp } ────────────────────────────
+// ── greinRaedulista(xml | [xml, …]) → { total, skipped, mp } ─────────────────
 // Hreint fall (engin fs/net) svo talningin sé prófanleg og svo að þáttun á rusli skili
 // sannanlega TÓMU mp í stað þess að búa til gögn.
 // `skipped` = ræður án ræðumanns-auðkennis: forseti Íslands og gestir eru ekki þingmenn og
 // síast hvort eð er út við samsvörun við althingi.json síðar.
+//
+// Tekur LISTA af XML-um (eitt per löggjafarþing) og safnar í EINN sjóð áður en úttakið er
+// mótað. Það skiptir máli fyrir topMal: væri hvert þing skorið niður í topp-5 fyrir sig og
+// listarnir lagðir saman dytti mál sem situr í 6. sæti á hvoru þingi út þótt það sé efst
+// samanlagt. Auðkenni þingmanna eru þau sömu milli þinga, svo sameining eftir id er rétt.
+// ⚠ Málin eru lykluð á HEITI, ekki málsnúmer — mál nr. 1 á 158 eru fjárlögin en allt annað
+//   á 157. Samnefnd mál (t.d. „störf þingsins") sameinast viljandi; það er sama umræðuefnið.
 function greinRaedulista(xml) {
-  const chunks = String(xml || '').split('<ræða>').slice(1);
-  const safn = {}; // id → safn
+  const skrar = Array.isArray(xml) ? xml : [xml];
+  const safn = {}; // id → safn (yfir ÖLL þing)
   let skipped = 0;
-  for (const c of chunks) {
-    const idm = c.match(/<ræðumaður id='(\d+)'/);
-    if (!idm) { skipped++; continue; }
-    const id = +idm[1];
-    const teg = grab(c, 'tegundræðu') || 'ræða';
-    const heiti = grab(c, 'málsheiti');
-    const t0 = grab(c, 'ræðahófst'), t1 = grab(c, 'ræðulauk');
-    let min = 0;
-    if (t0 && t1) {
-      const d = (new Date(t1) - new Date(t0)) / 60000;
-      if (d > 0 && d < 180) min = d;   // meira en 3 klst er skráningarvilla, ekki ræða
+  let total = 0;
+  for (const skra of skrar) {
+    const chunks = String(skra || '').split('<ræða>').slice(1);
+    total += chunks.length;
+    for (const c of chunks) {
+      const idm = c.match(/<ræðumaður id='(\d+)'/);
+      if (!idm) { skipped++; continue; }
+      const id = +idm[1];
+      const teg = grab(c, 'tegundræðu') || 'ræða';
+      const heiti = grab(c, 'málsheiti');
+      const t0 = grab(c, 'ræðahófst'), t1 = grab(c, 'ræðulauk');
+      let min = 0;
+      if (t0 && t1) {
+        const d = (new Date(t1) - new Date(t0)) / 60000;
+        if (d > 0 && d < 180) min = d;   // meira en 3 klst er skráningarvilla, ekki ræða
+      }
+      const e = (safn[id] = safn[id] || { n: 0, min: 0, teg: {}, mal: {}, longest: 0, longestHeiti: '' });
+      e.n++;
+      e.min += min;
+      e.teg[teg] = (e.teg[teg] || 0) + 1;
+      if (heiti && !/^ávarp|^þingsetning/i.test(heiti)) {
+        const m2 = (e.mal[heiti] = e.mal[heiti] || { n: 0, min: 0 });
+        m2.n++;
+        m2.min += min;
+      }
+      if (min > e.longest) { e.longest = min; e.longestHeiti = heiti; }
     }
-    const e = (safn[id] = safn[id] || { n: 0, min: 0, teg: {}, mal: {}, longest: 0, longestHeiti: '' });
-    e.n++;
-    e.min += min;
-    e.teg[teg] = (e.teg[teg] || 0) + 1;
-    if (heiti && !/^ávarp|^þingsetning/i.test(heiti)) {
-      const m2 = (e.mal[heiti] = e.mal[heiti] || { n: 0, min: 0 });
-      m2.n++;
-      m2.min += min;
-    }
-    if (min > e.longest) { e.longest = min; e.longestHeiti = heiti; }
   }
 
   const mp = {};
@@ -77,7 +95,17 @@ function greinRaedulista(xml) {
       longestHeiti: klippt(e.longestHeiti),
     };
   });
-  return { total: chunks.length, skipped, mp };
+  return { total, skipped, mp };
+}
+
+// ── byggSkra(thingin, greining, dags) → skráin eins og hún fer á disk ────────
+// ⚠⚠ `thing` VERÐUR að vera TALA — yfirstandandi þingið, ekki spönnin. raedur_detect.js ber
+//   grunninn saman með `snap.thing === ra.thing`; fylki er aldrei === öðru fylki eftir
+//   JSON-umferð, svo `thing: [158,157]` endurstillti grunninn í HVERRI keyrslu og
+//   „talaði mest"-fréttin kviknaði aldrei framar. Þögult og varanlegt. Spönnin fer í
+//   `thingin` svo skráin ljúgi ekki um umfang sitt.
+function byggSkra(thingin, greining, dags) {
+  return { updated: dags, thing: Number(thingin[0]), thingin, total: greining.total, mp: greining.mp };
 }
 
 // ── erTom(d) — skilgreining á „tómu" fyrir writeJsonUnlessEmpty ──────────────
@@ -89,19 +117,26 @@ function erTom(d) {
 }
 
 async function main() {
-  const LTHING = await nuverandiThing({ fallback: 157 });
-  console.log('Sæki ræðulista ' + LTHING + '…');
-  const xml = await fetchText('https://www.althingi.is/altext/xml/raedulisti/?lthing=' + LTHING, { headers: UA });
-  const { total, skipped, mp } = greinRaedulista(xml);
-  console.log('Ræður í skrá:', total);
+  const THING = await thingListi({ fallback: 157 });   // [yfirstandandi, næstliðið]
+  console.log('Sæki ræðulista þinga ' + THING.join(' og ') + '…');
+  const xmls = [];
+  for (const lt of THING) {
+    const xml = await fetchText('https://www.althingi.is/altext/xml/raedulisti/?lthing=' + lt, { headers: UA });
+    console.log('  þing ' + lt + ':', xml.split('<ræða>').length - 1, 'ræður');
+    xmls.push(xml);
+  }
+  // Engin per-þing gildra hér viljandi: bregðist ANNAÐ þingið hendir fetchText og ekkert er
+  // skrifað. Hálf sókn sem skrifaði hálfa skrá væri verri en engin keyrsla.
+  const greining = greinRaedulista(xmls);
+  const out = byggSkra(THING, greining, new Date().toISOString().slice(0, 10));
 
-  const out = { updated: new Date().toISOString().slice(0, 10), thing: LTHING, total, mp };
   const { kept } = writeJsonUnlessEmpty(OUT, out, { isEmpty: erTom, label: 'raedugreining.json' });
-  console.log('Þingmenn/ræðumenn m/gögn:', Object.keys(mp).length, '· sleppt (án id):', skipped);
+  console.log('Ræður alls:', greining.total, '· þingmenn/ræðumenn m/gögn:', Object.keys(greining.mp).length,
+    '· sleppt (án id):', greining.skipped);
   console.log(kept ? 'Fyrri skrá haldið:' : 'Skrifað:', OUT);
 }
 
-module.exports = { greinRaedulista, erTom };
+module.exports = { greinRaedulista, erTom, byggSkra };
 
 if (require.main === module) {
   main().catch((e) => { console.error('VILLA', e); process.exit(1); });

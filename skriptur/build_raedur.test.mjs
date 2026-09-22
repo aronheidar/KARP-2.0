@@ -1,14 +1,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import mod from './build_raedur.js';
-const { greinRaedulista, erTom } = mod;
+const { greinRaedulista, erTom, byggSkra } = mod;
 
 // ── fixtures: snið raedulisti-XML (sbr. build_raedur_nylegar.test.mjs, staðfest 22.8.2026) ──
 const RAEDA = (o = {}) => {
   const { id = '1417', teg = 'ræða', heiti = 'prufumál', t0 = '2026-09-10T10:00:00', t1 = '2026-09-10T10:10:00' } = o;
   const maelandi = id === null ? '<ræðumaður> <nafn>Gestur</nafn> </ræðumaður>' : `<ræðumaður id='${id}'> <nafn>X</nafn> </ræðumaður>`;
+  const mal = heiti === null ? '' : ` <mál> <málsheiti>${heiti}</málsheiti> </mál>`;   // heiti: null → málsheiti-taggið vantar alveg
   return `<ræða> ${maelandi} <löggjafarþing>158</löggjafarþing> <ræðahófst>${t0}</ræðahófst> <ræðulauk>${t1}</ræðulauk>`
-    + ` <tegundræðu>${teg}</tegundræðu> <mál> <málsheiti>${heiti}</málsheiti> </mál> </ræða>`;
+    + ` <tegundræðu>${teg}</tegundræðu>${mal} </ræða>`;
 };
 const LISTI = (...c) => `<?xml version="1.0" encoding="UTF-8"?> <ræðulisti>${c.join('')}</ræðulisti>`;
 
@@ -91,6 +92,67 @@ test('greinRaedulista: longest/longestHeiti er lengsta STAKA ræðan, ekki samta
   assert.equal(r.mp['1417'].longest, 8);
   assert.equal(r.mp['1417'].longestHeiti, 'lengsta');
   assert.equal(r.mp['1417'].min, 18);
+});
+
+// ── tvö þing (thingListi): ræður eru ATHAFNA-gögn ─────────────────────────
+test('greinRaedulista: listi af XML-um leggur saman ræður og mínútur sama ræðumanns milli þinga', () => {
+  const fyrra = LISTI(RAEDA({ id: '1417', t0: '2026-03-01T10:00:00', t1: '2026-03-01T10:20:00' }));
+  const nuv = LISTI(
+    RAEDA({ id: '1417', t0: '2026-09-10T10:00:00', t1: '2026-09-10T10:05:00' }),
+    RAEDA({ id: '2222', t0: '2026-09-10T11:00:00', t1: '2026-09-10T11:04:00' }),
+  );
+  const r = greinRaedulista([nuv, fyrra]);
+  assert.equal(r.total, 3);
+  assert.equal(r.mp['1417'].n, 2);
+  assert.equal(r.mp['1417'].min, 25, '20 mín á fyrra þingi + 5 á því núverandi');
+  assert.equal(r.mp['1417'].longest, 20, 'lengsta stök ræða yfir bæði þing');
+  assert.equal(r.mp['2222'].min, 4);
+});
+
+// ⚠ Málin verða að sameinast ÁÐUR en topp-5 er skorið. Væri hvert þing skorið fyrir sig
+//   og listarnir lagðir saman dytti mál sem er í 6. sæti á hvoru þingi út, þótt það sé
+//   efst samanlagt. Hér er „sameiginlegt" 1 mín á fyrra þingi (sæti 6) og 30 á því núverandi.
+test('greinRaedulista: topMal reiknað EFTIR sameiningu þinga, ekki sem samtala tveggja topplista', () => {
+  const T = (m) => `2026-09-10T10:${String(m).padStart(2, '0')}:00`;
+  const fyrra = LISTI(...[['a', 10], ['b', 9], ['c', 8], ['d', 7], ['e', 6], ['sameiginlegt', 1]]
+    .map(([h, m]) => RAEDA({ heiti: h, t0: T(0), t1: T(m) })));
+  const nuv = LISTI(RAEDA({ heiti: 'sameiginlegt', t0: T(0), t1: T(30) }));
+  const top = greinRaedulista([nuv, fyrra]).mp['1417'].topMal;
+  assert.deepEqual(top[0], { h: 'sameiginlegt', n: 2, min: 31 });
+  assert.deepEqual(top.map((x) => x.h), ['sameiginlegt', 'a', 'b', 'c', 'd']);
+  assert.ok(!top.some((x) => x.h === 'e'), '„e" fellur út við sameininguna, ekki fyrir hana');
+});
+
+// Ræða án <málsheiti> á ekki að fá heiti lánað frá nágranna sínum — grab() tekur fyrstu
+// samsvörun í bútnum og bútaskilin liggja á <ræða>, svo heitið verður að vera tómt.
+test('greinRaedulista: ræða án málsheitis fær ekkert heiti lánað, hvorki innan þings né milli þinga', () => {
+  const anHeitis = LISTI(RAEDA({ id: '1417', heiti: null }));
+  const medHeiti = LISTI(RAEDA({ id: '2222', heiti: 'leki' }));
+  const r = greinRaedulista([anHeitis, medHeiti]);
+  assert.deepEqual(r.mp['1417'].topMal, [], 'ræðan bar ekkert málsheiti — og má ekki fá lánað');
+  assert.equal(r.mp['1417'].longestHeiti, '');
+  assert.deepEqual(r.mp['2222'].topMal, [{ h: 'leki', n: 1, min: 10 }]);
+});
+
+test('greinRaedulista: nýtt þing sem er enn tómt fellir ekki út gögn næstliðins þings', () => {
+  const r = greinRaedulista(['<?xml version="1.0"?> <ræðulisti> </ræðulisti>', LISTI(RAEDA({ id: '1417' }))]);
+  assert.equal(Object.keys(r.mp).length, 1);
+  assert.equal(erTom({ mp: r.mp }), false);
+});
+
+// ── byggSkra: samningurinn við raedur_detect.js ───────────────────────────
+test('byggSkra: `thing` er TALA (yfirstandandi þing) — fylki myndi eyðileggja þing-gátina', () => {
+  const ut = byggSkra([158, 157], { total: 3, skipped: 1, mp: { 1417: { n: 1, min: 5 } } }, '2026-09-22');
+  // raedur_detect.js ber saman með `snap.thing === ra.thing`. Fylki er aldrei === öðru fylki
+  // eftir JSON-umferð, svo `thing: [158,157]` endurstillti grunninn í HVERRI keyrslu og
+  // „talaði mest"-fréttin kviknaði aldrei framar — þögult og varanlegt.
+  assert.equal(typeof ut.thing, 'number');
+  assert.equal(ut.thing, 158);
+  assert.deepEqual(ut.thingin, [158, 157], 'spönnin skráð svo skráin ljúgi ekki um umfang sitt');
+  assert.equal(ut.updated, '2026-09-22');
+  assert.equal(ut.total, 3);
+  assert.deepEqual(ut.mp, { 1417: { n: 1, min: 5 } });
+  assert.ok(!('skipped' in ut), 'skipped er logg-tala, ekki hluti af skránni');
 });
 
 // ── erTom: vörnin sem writeJsonUnlessEmpty byggir á ───────────────────────
