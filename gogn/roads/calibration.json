@@ -28,7 +28,7 @@
   {
    "id": "r_hbs",
    "label": "Vextir → húsnæði höfuðb. (semi-teygni, töf 2 ár)",
-   "coef": -1.121,
+   "coef": -1.122,
    "se": 0.428,
    "t": -2.62,
    "ci": [
@@ -50,12 +50,12 @@
   {
    "id": "r_land",
    "label": "Vextir → húsnæði landsb. (semi-teygni, töf 2 ár)",
-   "coef": -1.459,
+   "coef": -1.457,
    "se": 0.407,
-   "t": -3.59,
+   "t": -3.58,
    "ci": [
-    -2.256,
-    -0.662
+    -2.254,
+    -0.66
    ],
    "r2": 0.25,
    "n": 41,
@@ -72,15 +72,15 @@
   {
    "id": "phillips",
    "label": "Phillips (verðbólga ~ atvinnuleysi)",
-   "coef": 0.103,
-   "se": 0.108,
-   "t": 0.96,
+   "coef": 0.101,
+   "se": 0.107,
+   "t": 0.94,
    "ci": [
-    -0.108,
-    0.315
+    -0.11,
+    0.311
    ],
    "r2": 0.01,
-   "n": 66,
+   "n": 67,
    "span": [
     "2010.1",
     "2026.3"
