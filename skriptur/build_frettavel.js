@@ -19,6 +19,7 @@
 // ─────────────────────────────────────────────────────────────
 const fs = require('fs');
 const path = require('path');
+const { malLykill, flettaLykil } = require('./lib/malalyklar.cjs');   // þingmál lykluð <þing>-<nr> (22.9.2026)
 const { pickThrotlok } = require('./throtlok_detect.js');
 const { pickVikan } = require('./vikan_detect.js');
 const { pickSvaedi } = require('./svaedi_detect.js');   // fasteignaverð per matssvæði HMS (19.8.2026)
@@ -85,20 +86,25 @@ function detect(state) {
   const mps = J('althingi.json') || [];
   const bills = J('frumvorp.json') || [];
   const flokkurAf = {}; mps.forEach((m) => { if (m.flokkur && m.flokkur !== 'utan þingflokka') flokkurAf[m.nafn] = m.flokkur; });
-  const billAf = {}; bills.forEach((b) => { billAf[b.nr] = b; });
+  // ⚠ Lyklað á <þing>-<nr>: mál nr. 1 á 158 eru fjárlögin en allt annað á 157 (lib/malalyklar.cjs).
+  const billAf = {}; bills.forEach((b) => { billAf[malLykill(b.thing, b.nr)] = b; });
 
   // Formsatriði (lengd þingfundar, afbrigði, dagskrártillögur) eru ekki fréttir.
   const FORMSATRIDI = /lengd þingfundar|afbrigði|dagskrá|frestun.*fund|fundarhlé/i;
   if (atk && atk.mal) {
-    for (const [nr, v] of Object.entries(atk.mal)) {
-      const b = billAf[+nr] || billAf[nr] || {};
+    for (const [lykill, v] of Object.entries(atk.mal)) {
+      // Lykillinn ber þingið. Beri lykill (skrá á gamla sniðinu meðan CI hefur ekki keyrt)
+      // fellur aftur á þing skrárinnar — þá haldast atburða-ID óbreytt og ekkert tvíbirtist.
+      const { thing: lThing, nr } = flettaLykil(lykill);
+      const thing = lThing == null ? atk.thing : lThing;
+      const b = billAf[malLykill(thing, nr)] || {};
       const titill = b.titill || ('mál nr. ' + nr);
       if (FORMSATRIDI.test(titill)) continue;
       const ja = (v.ja || []), nei = (v.nei || []);
       // taep — ræðst á ≤5 atkvæðum (raunveruleg atkvgr., ekki einróma formsatriði)
       const munur = Math.abs(ja.length - nei.length);
       if (ja.length + nei.length >= 40 && nei.length >= 10 && munur <= 5) {
-        ev.push({ id: `taep-${atk.thing}-${nr}`, type: 'taep', facts: { titill, nr: +nr, thing: atk.thing, ja: ja.length, nei: nei.length, munur, nidurstada: ja.length > nei.length ? 'samþykkt' : 'fellt' }, url: `/thingmal/?nr=${nr}`,
+        ev.push({ id: `taep-${thing}-${nr}`, type: 'taep', facts: { titill, nr, thing, ja: ja.length, nei: nei.length, munur, nidurstada: ja.length > nei.length ? 'samþykkt' : 'fellt' }, url: `/thingmal/?nr=${nr}`,
           title: `Naumur meirihluti um „${titill.length > 60 ? titill.slice(0, 57) + '…' : titill}“`,
           text: `„${titill}“ var ${ja.length > nei.length ? 'samþykkt' : 'fellt'} á Alþingi með ${ja.length} atkvæðum gegn ${nei.length} — aðeins ${munur} atkvæða munur.` });
       }
@@ -114,7 +120,7 @@ function detect(state) {
         if (meiri / alls < 0.75) continue;
         const rebels = meiriJa ? t.nei : t.ja;
         for (const nafn of rebels) {
-          ev.push({ id: `rebel-${atk.thing}-${nr}-${nafn.replace(/\s+/g, '_')}`, type: 'rebel', facts: { nafn, flokkur: fl, titill, nr: +nr, thing: atk.thing, kaus: meiriJa ? 'nei' : 'já', flokkurKaus: meiriJa ? 'já' : 'nei', medFlokki: meiri, alls, ja: ja.length, nei: nei.length }, url: `/thingmal/?nr=${nr}`,
+          ev.push({ id: `rebel-${thing}-${nr}-${nafn.replace(/\s+/g, '_')}`, type: 'rebel', facts: { nafn, flokkur: fl, titill, nr, thing, kaus: meiriJa ? 'nei' : 'já', flokkurKaus: meiriJa ? 'já' : 'nei', medFlokki: meiri, alls, ja: ja.length, nei: nei.length }, url: `/thingmal/?nr=${nr}`,
             title: `${nafn} kaus gegn eigin flokki um „${titill.length > 55 ? titill.slice(0, 52) + '…' : titill}“`,
             text: `${nafn} (${fl}) kaus ${meiriJa ? 'nei' : 'já'} í atkvæðagreiðslu um „${titill}“ þótt ${meiri} af ${alls} flokksfélögum í atkvæðagreiðslunni kysu ${meiriJa ? 'já' : 'nei'}. Niðurstaða þingsins: ${ja.length} já, ${nei.length} nei.` });
         }
@@ -236,11 +242,17 @@ function detect(state) {
 
   // ── Fjarvistayfirlit þingsins (mánaðarlega) ──────────────────
   if (atk && atk.mal) {
-    const total = Object.keys(atk.mal).length;
+    // ⚠ Skráin spannar TVÖ þing (thingListi í build_frumvorp). Fréttin segir „á yfirstandandi
+    //   þingi", svo hún má aðeins telja atkvæðagreiðslur ÞESS þings — annars blandaðist heilt
+    //   liðið þing inn í hlutfallið. Beri lykill (gamla sniðið) telst til þings skrárinnar,
+    //   svo talan er óbreytt þangað til CI endurbyggir.
+    const thingAf = (k) => { const t = flettaLykil(k).thing; return t == null ? atk.thing : t; };
+    const iAr = Object.entries(atk.mal).filter(([k]) => thingAf(k) === atk.thing);
+    const total = iAr.length;
     if (total >= 60) {
       const ym = TODAY.slice(0, 7);
       const cnt = {};
-      Object.values(atk.mal).forEach((v) => (v.fjar || []).forEach((n) => { cnt[n] = (cnt[n] || 0) + 1; }));
+      iAr.forEach(([, v]) => (v.fjar || []).forEach((n) => { cnt[n] = (cnt[n] || 0) + 1; }));
       const top = Object.entries(cnt).filter(([n]) => flokkurAf[n]).sort((a, b) => b[1] - a[1]).slice(0, 3)
         .map(([n, c]) => ({ nafn: n, flokkur: flokkurAf[n], fjoldi: c, hlutfall: Math.round(c / total * 100) }));
       if (top.length && top[0].hlutfall >= 25) {
@@ -397,7 +409,7 @@ function detect(state) {
       const govJa = [...govL].reduce((a, l) => a + ((b.P[l] || [0, 0])[0]), 0);
       const govNei = [...govL].reduce((a, l) => a + ((b.P[l] || [0, 0])[1]), 0);
       if (govJa > govNei && govJa >= 10 && b.nei > b.ja) {
-        ev.push({ id: `stjorntap-${atk ? atk.thing : ''}-${b.nr}`, type: 'stjorntap', facts: { titill: b.titill, nr: b.nr, ja: b.ja, nei: b.nei, stjornJa: govJa, stjornNei: govNei }, url: `/thingmal/?nr=${b.nr}`,
+        ev.push({ id: `stjorntap-${b.thing ?? (atk ? atk.thing : '')}-${b.nr}`, type: 'stjorntap', facts: { titill: b.titill, nr: b.nr, ja: b.ja, nei: b.nei, stjornJa: govJa, stjornNei: govNei }, url: `/thingmal/?nr=${b.nr}`,
           title: `Stjórnarmeirihlutinn undir í atkvæðagreiðslu um „${String(b.titill).slice(0, 50)}“`,
           text: `„${b.titill}“ var fellt með ${b.nei} atkvæðum gegn ${b.ja} þótt meirihluti stjórnarþingmanna (${govJa}) styddi málið.` });
       }
@@ -408,7 +420,7 @@ function detect(state) {
       if (einnCount < 2 && neiParties.length === 1 && jaParties.length >= 4 && b.ja >= 40) {
         const [l, v] = neiParties[0];
         einnCount++;
-        ev.push({ id: `einn-${atk ? atk.thing : ''}-${b.nr}-${l}`, type: 'einn', facts: { flokkur: LETTER[l], nei: v[1], titill: b.titill, nr: b.nr, ja: b.ja, neiAlls: b.nei }, url: `/thingmal/?nr=${b.nr}`,
+        ev.push({ id: `einn-${b.thing ?? (atk ? atk.thing : '')}-${b.nr}-${l}`, type: 'einn', facts: { flokkur: LETTER[l], nei: v[1], titill: b.titill, nr: b.nr, ja: b.ja, neiAlls: b.nei }, url: `/thingmal/?nr=${b.nr}`,
           title: `${LETTER[l]} einn gegn öllum um „${String(b.titill).slice(0, 55)}“`,
           text: `Allir ${v[1]} viðstaddir þingmenn ${LETTER[l]} greiddu atkvæði gegn „${b.titill}“ á meðan enginn þingmaður annarra flokka gerði það. Málið var samþykkt með ${b.ja} atkvæðum gegn ${b.nei}.` });
       }

@@ -2,7 +2,7 @@
 // build_atkvaedi.js — nafnakall þingmanna per þingmál (LOTA 19, #2)
 // frumvorp.json ber vs2 = atkvæðagreiðslu-ID; hér er LOKA-atkvæðagreiðsla
 // hvers máls sótt af XML-veitu Alþingis og nöfnin flokkuð eftir atkvæði.
-// Úttak: gogn/atkvaedi.json { nr: { ja:[nöfn], nei:[], hja:[], fjar:[] } }
+// Úttak: gogn/atkvaedi.json { "<þing>-<nr>": { ja:[nöfn], nei:[], hja:[], fjar:[] } }
 // — knýr „Hvernig kusu þingmenn?" í frumvarpa-glugganum á /thingmal/.
 // ─────────────────────────────────────────────────────────────
 const fs = require('fs');
@@ -11,6 +11,8 @@ const path = require('path');
 const FRUMVORP = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'gogn', 'frumvorp.json'), 'utf8'));
 const OUT = path.join(__dirname, '..', 'gogn', 'atkvaedi.json');
 const UA = { 'User-Agent': 'KARP build (karp.is; aronheidars@gmail.com)' };
+// Lyklun á <þing>-<nr>: mál nr. 1 á 158 eru fjárlögin en allt annað á 157. Sjá lib/malalyklar.cjs.
+const { malLykill, faeraLykla } = require('./lib/malalyklar.cjs');
 
 const grab = (x, tag) => { const m = x.match(new RegExp('<' + tag + '[^>]*>([\\s\\S]*?)</' + tag + '>')); return m ? m[1].trim() : ''; };
 
@@ -20,12 +22,9 @@ const grab = (x, tag) => { const m = x.match(new RegExp('<' + tag + '[^>]*>([\\s
 // var það ekki. frumvorp.json notar thingListi() og spannar því tvö þing um leið og nýja
 // þingið eignast mál með lokaatkvæðagreiðslu.
 //
-// ⚠⚠ Um leið og spönnin er tvö þing REKAST LYKLARNIR Á: atkvaedi.json er lyklað á bert
-//   málsnúmer og mál nr. 1 á 158 eru fjárlögin en allt annað á 157. `if (mal[b.nr]) continue`
-//   heldur því sem kom fyrst og hitt málið fengi RANGT nafnakall undir sig — þögult.
-//   Skráin getur ekki borið bæði án nýrrar lyklingar (sem breytir líka thingmal.astro og
-//   build_frettavel.js), svo hér er AÐEINS greint og varað. Sjá minni: „Lyklar VERÐA að bera
-//   þing við sameiningu".
+// `arekstrar` = málsnúmer sem eru á fleiri en einu þingi. Þau eru EKKI lengur hættuleg —
+// lyklunin (<þing>-<nr>, sjá lib/malalyklar.cjs) heldur þeim aðskildum — en talan er áfram
+// birt því hún segir hvenær tvö þing eru raunverulega í gögnunum.
 function malasponn(bills) {
   const medAtkv = (bills || []).filter((b) => Array.isArray(b.vs2) && b.vs2.length);
   const thingin = [...new Set(medAtkv.map((b) => b.thing).filter((t) => t != null))].sort((a, b) => a - b);
@@ -62,19 +61,24 @@ async function main() {
   const { thingin, arekstrar } = malasponn(FRUMVORP);
   console.log('Mál með atkvæðagreiðslu:', bills.length, '· þing:', thingin.join(', ') || '(óþekkt)');
   if (arekstrar.length) {
-    console.log('⚠⚠ ' + arekstrar.length + ' málsnúmer eru á FLEIRI EN EINU þingi — atkvaedi.json er lyklað á bert');
-    console.log('   málsnúmer og getur aðeins borið annað þeirra. Nafnakall getur birst undir RÖNGU máli.');
+    console.log('  ' + arekstrar.length + ' málsnúmer eru á fleiri en einu þingi — lyklunin heldur þeim aðskildum:');
     arekstrar.slice(0, 10).forEach((a) => console.log('   · mál ' + a.nr + ' á þingum ' + a.thing.join(' og ')));
   }
-  const mal = { ...existing };
+  // Flytjum gömlu beru lyklana yfir á <þing>-<nr> í stað þess að sækja 161 nafnaköll upp á nýtt.
+  const flutt = faeraLykla(existing, bills);
+  if (flutt.faerd) console.log('  lyklar færðir á <þing>-<nr>:', flutt.faerd);
+  if (flutt.oraedanleg) console.log('  ⚠ berir lyklar sem ekki tókst að staðsetja (haldast óbreyttir):', flutt.oraedanleg);
+
+  const mal = { ...flutt.mal };
   let fetched = 0;
   for (const b of bills) {
-    if (mal[b.nr]) continue; // þegar sótt (nafnakall breytist ekki eftir á)
+    const lyk = malLykill(b.thing, b.nr);
+    if (mal[lyk]) continue; // þegar sótt (nafnakall breytist ekki eftir á)
     const voteId = b.vs2[b.vs2.length - 1]; // loka-atkvæðagreiðslan
     try {
       const rc = await rollCall(voteId);
-      if (rc) { mal[b.nr] = rc; fetched++; }
-    } catch (e) { console.log('  villa mál', b.nr, String(e).slice(0, 60)); }
+      if (rc) { mal[lyk] = rc; fetched++; }
+    } catch (e) { console.log('  villa mál', lyk, String(e).slice(0, 60)); }
     if (fetched && fetched % 25 === 0) console.log('  …', fetched, 'sótt');
   }
   // thing = efsta þingið sem gögnin ná yfir (tala, eins og aðrar skrár), thingin = öll spönnin.
@@ -82,7 +86,7 @@ async function main() {
     updated: new Date().toISOString().slice(0, 10),
     thing: thingin.length ? thingin[thingin.length - 1] : null,
     thingin,
-    arekstrar: arekstrar.length,   // >0 þýðir að nafnakall getur setið undir röngu máli
+    arekstrar: arekstrar.length,   // málsnúmer á fleiri en einu þingi — aðskilin af lyklinum
     mal,
   });
   fs.writeFileSync(OUT, payload);

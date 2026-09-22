@@ -22,7 +22,17 @@ const bills = FRUMVORP
     const P = b.P || {};
     const dissent = Object.keys(P).filter((k) => (P[k][1] || 0) > 0).map(pName);
     return {
-      key: 'mal_' + b.nr,
+      // ⚠ Lykillinn ber ÞINGIÐ: mál nr. 1 á 158 eru fjárlögin en allt annað á 157. Væri lyklað
+      //   á bert númer skrifaðist annað málið yfir hitt — og nafnakallið settist undir rangt mál.
+      key: 'mal_' + b.thing + '-' + b.nr,
+      // ⚠⚠ ATKVÆÐALYKILLINN ER VILJANDI ÁFRAM BER. Hann er PRIMÆRLYKILL í D1-töflunni
+      //   `bill_votes` (web/worker.js: SELECT … WHERE bill=?). Yrði honum breytt slitnaði á ALLAR
+      //   skráðar skoðanir lesenda — tölurnar birtust sem núll og eigið atkvæði hyrfi.
+      //   Samnefnd mál tveggja þinga deila því áfram könnun; það er óbreytt ástand og óformleg
+      //   könnun, ekki nafnakall. Til að skilja það að þarf D1-flutning á `bill_votes.bill`.
+      voteKey: 'mal_' + b.nr,
+      thing: b.thing,
+      nr: b.nr,
       titill: b.titill,
       type: b.hs === 'Frv.' ? 'Frumvarp' : 'Tillaga',
       isFrv: b.hs === 'Frv.',
@@ -39,7 +49,9 @@ const bills = FRUMVORP
 
 // Gluggagögn (frumvarpa-modal): key → full lýsing + flokka-atkvæði.
 const BILLS = {};
-bills.forEach((b) => { BILLS[b.key] = { t: b.titill, type: b.type, d: b.d, sam: b.sam, stada: b.stada, ja: b.ja, nei: b.nei, fj: b.fj, passed: b.passed, parties: b.parties, ras: b.ras }; });
+bills.forEach((b) => { BILLS[b.key] = { t: b.titill, type: b.type, d: b.d, sam: b.sam, stada: b.stada, ja: b.ja, nei: b.nei, fj: b.fj, passed: b.passed, parties: b.parties, ras: b.ras, thing: b.thing, nr: b.nr }; });
+// Yfirstandandi þing — fyrir ferils-hlekk máls sem er svo nýtt að það er ekki í bökuðu skránni.
+const THING_NU = Math.max(...FRUMVORP.map((b) => b.thing).filter((t) => t != null));
 // Nafnakallið (LOTA 19→23): sótt LATÍNT af /gogn/atkvaedi.json við fyrsta glugga
 // (var 272KB inline — óþarfa þungi á hverri síðuhleðslu).
 
@@ -121,7 +133,7 @@ const jsonLd = {
     </p>
 
     <div id="live-mal" hidden>
-      <h2 class="lm-h">Frá Alþingi <span class="lm-sub">nýjustu mál þingsins 157 — beint úr XML-veitu Alþingis (10 mín cache)</span></h2>
+      <h2 class="lm-h">Frá Alþingi <span class="lm-sub">nýjustu mál beint úr XML-veitu Alþingis (10 mín cache)</span></h2>
       <div id="lm-list" class="lm-grid"></div>
     </div>
 
@@ -150,7 +162,7 @@ const jsonLd = {
             <span class="r-count">Alþingi: {b.ja}–{b.nei}{b.fj ? ` · ${b.fj} fjarv.` : ''}</span>
             {b.dissent.length > 0 && <span class="r-dissent">Á móti: {b.dissent.join(', ')}</span>}
           </div>
-          <div class="vote" data-bill={b.key}><div class="v-load">…</div></div>
+          <div class="vote" data-bill={b.voteKey}><div class="v-load">…</div></div>
         </article>
       ))}
     </div>
@@ -165,7 +177,7 @@ const jsonLd = {
       <div class="bm-back"></div>
       <div class="bm-box" role="dialog" aria-modal="true" aria-label="Upplýsingar um þingmál"><button class="bm-x" aria-label="Loka glugganum">×</button><div id="bm-body"></div></div>
     </div>
-    <script type="application/json" id="d-bills" set:html={JSON.stringify(BILLS)}></script>
+    <script type="application/json" id="d-bills" data-thing={THING_NU} set:html={JSON.stringify(BILLS)}></script>
   </main>
 
   <style is:global>
@@ -368,15 +380,22 @@ const jsonLd = {
       document.getElementById('bm-body').innerHTML = h;
       m.hidden = false;
       bmFocusIn();
-      appendRollCall(key, esc);
+      appendRollCall(d, esc);
     }
     // Nafnakalls-skyndiminnið: eitt fetch per heimsókn, síðan úr module-breytu
     let ATKV_CACHE = null;
-    function appendRollCall(key, esc) {
+    // Spegill af finnaMal() i skriptur/lib/malalyklar.cjs: nyi lykillinn fyrst, beri sem varaleid.
+    // ⚠ Varaleidin er NAUDSYN — sidan og gagnaskrain fara i loftid hvor i sinu lagi, svo
+    //   nafnakallid myndi hverfa thar til refresh-data keyrdi naest ef adeins nyja snidid thyldist.
+    function finnaNafnakall(mal, thing, nr) {
+      if (!mal) return null;
+      return mal[thing + '-' + nr] || mal[String(nr)] || null;
+    }
+    function appendRollCall(d, esc) {
       const paint = (mal) => {
         const slot = document.getElementById('bm-rollcall');
         if (!slot) return; // glugginn lokaður á meðan
-        const A = (mal || {})[key.slice(4)];
+        const A = finnaNafnakall(mal, d.thing, d.nr);
         if (!A || !(A.ja.length || A.nei.length)) return;
         const grp = (label, cls, arr) => (arr && arr.length ? `<details class="bm-g ${cls}"><summary>${label} · ${arr.length}</summary><div class="bm-names">${arr.map(esc).join(' · ')}</div></details>` : '');
         slot.innerHTML = '<div class="bm-ph">Hvernig kusu þingmenn? <span class="bm-sub">loka-atkvæðagreiðslan · smelltu til að fletta upp</span></div>'
@@ -419,7 +438,13 @@ const jsonLd = {
       if (nr && /^\d+$/.test(nr)) {
         let B2 = {};
         try { B2 = JSON.parse((document.getElementById('d-bills') || {}).textContent || '{}'); } catch (e) {}
-        if (B2['mal_' + nr]) bmOpen('mal_' + nr); else bmOpenBasic({ nr: +nr });
+        // Djuptengillinn ber adeins numer. Sama numer getur verid a badum thingum — nyjasta vinnur.
+        let bestiLykill = null, bestaThing = -1;
+        for (const k of Object.keys(B2)) {
+          const v = B2[k];
+          if (v && +v.nr === +nr && (v.thing || 0) > bestaThing) { bestaThing = v.thing || 0; bestiLykill = k; }
+        }
+        if (bestiLykill) bmOpen(bestiLykill); else bmOpenBasic({ nr: +nr });
         try { history.replaceState(null, '', location.pathname); } catch (e) {}
       }
       initBillFilter();
@@ -431,7 +456,9 @@ const jsonLd = {
       if (!m) return;
       if (m.parentElement !== document.body) document.body.appendChild(m);
       const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-      const ferill = d.html && /^https?:/.test(d.html) ? d.html : 'https://www.althingi.is/thingstorf/thingmalalistar-eftir-thingum/ferill/?ltg=157&mnr=' + d.nr;
+      // ⚠ ltg var hardkodad 157 — hlekkurinn visadi a ranga thingid um leid og 158 hofst.
+      const ltg = d.thing || +((document.getElementById('d-bills') || { dataset: {} }).dataset.thing) || '';
+      const ferill = d.html && /^https?:/.test(d.html) ? d.html : 'https://www.althingi.is/thingstorf/thingmalalistar-eftir-thingum/ferill/?ltg=' + ltg + '&mnr=' + d.nr;
       const paint = (x) => {
         document.getElementById('bm-body').innerHTML =
           `<div class="bm-type">Í meðferð þingsins${x.teg ? ' · ' + esc(x.teg) : ''} · mál nr. ${esc(x.nr)}</div>`
