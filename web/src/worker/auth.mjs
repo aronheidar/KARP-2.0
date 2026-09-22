@@ -43,6 +43,32 @@ export async function readSession(env, request) {
 
 const _sessCookie = (val, maxAge) => `karp_session=${encodeURIComponent(val)}; Domain=.karp.is; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`;
 
+// ⚠⚠ Sjálfvirk innskráning úr staðfestingarhlekk AÐEINS í vafranum sem nýskráði sig (22.9). Hlekkurinn skráði
+//    áður HVAÐA vafra sem er inn sem eiganda tókans: sendi einhver þér sinn eigin staðfestingarhlekk varstu
+//    innskráð á reikning hans án þess að taka eftir því (innskráningar-CSRF). Nýskráningin setur nú undirritaða
+//    `__Host-`-köku sem bindur vafrann við notandanúmerið. `__Host-` krefst Secure, Path=/ og ENGRAR Domain, svo
+//    wp.karp.is getur hvorki sett hana né skrifað yfir hana. Forskeytið `nyskra:` aðgreinir undirskriftina frá
+//    lotukökunni (`uid.exp`) og CTO-lyklinum (`cto-lykill:`), sem nota sama SESSION_SECRET.
+//    Lax (ekki Strict): hlekkur úr vefpósti er leiðsögn af öðrum vef, og Strict sendi kökuna þá ekki.
+const NYSKRA_GILDI_SEK = 7 * 86400;   // nær líka yfir endursendan hlekk vikuna eftir nýskráningu
+const _nyskraSkilabod = (uid, exp) => 'nyskra:' + Number(uid) + ':' + Number(exp);
+const _nyskraCookie = (val, maxAge) => `__Host-karp_nyskra=${encodeURIComponent(val)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`;
+async function _nyskraKaka(env, uid, now) {
+  const exp = Number(now) + NYSKRA_GILDI_SEK;
+  return _nyskraCookie(Number(uid) + '.' + exp + '.' + await _hmac(env, _nyskraSkilabod(uid, exp)), NYSKRA_GILDI_SEK);
+}
+/** Notandanúmerið sem þessi vafri nýskráði, eða 0. Aldrei kast. */
+export async function nyskraUid(env, request, now = Math.floor(Date.now() / 1000)) {
+  try {
+    const m = (request.headers.get('Cookie') || '').match(/(?:^|;\s*)__Host-karp_nyskra=([^;]+)/);
+    if (!m) return 0;
+    const [uid, exp, sig] = decodeURIComponent(m[1]).split('.');
+    if (!/^\d{1,12}$/.test(uid || '') || !/^\d{9,11}$/.test(exp || '') || !sig || +exp < now) return 0;
+    if (await _hmac(env, _nyskraSkilabod(uid, exp)) !== sig) return 0;
+    return +uid;
+  } catch (e) { return 0; }
+}
+
 export function userPayload(u, owner, now) {
   // paywall: KVEIKT 1.8.2026 að beiðni Arons. Gætir NÁKVÆMLEGA þriggja áskriftarvara —
   // /frettir/ (Fjölmiðlavakt, þrep 2 eða svc 'frettir'), /utbod/ ('utbod') og /kvotavaktin/ ('kvoti').
@@ -136,7 +162,10 @@ export async function authRegisterHandler(request, env) {
     .bind(email, username, await hashPassword(pw), b.name || null, b.terms ? now : null, now).run();
   // F5: staðfesting netfangs — sendum staðfestingar-póst; login-hlið hafnar 'unverified' þar til smellt er á hlekkinn.
   await _sendVerifyEmail(env, res.meta.last_row_id, email, now).catch(() => {});
-  return _ajson({ ok: true, verify: true, email });
+  // Þessi vafri fær að skrá sig sjálfkrafa inn þegar smellt er á hlekkinn (sjá _nyskraKaka); aðrir fara á /innskra/.
+  // Bregðist undirritunin er reikningurinn samt til og pósturinn farinn, svo nýskráningin má ekki falla á því.
+  const kaka = await _nyskraKaka(env, res.meta.last_row_id, now).catch(() => null);
+  return _ajson({ ok: true, verify: true, email }, kaka ? { 'set-cookie': kaka } : {});
 }
 
 export async function authLoginHandler(request, env) {
@@ -296,7 +325,17 @@ export async function authVerifyHandler(request, env) {
   if (!t) return new Response(null, { status: 302, headers: { location: '/innskra/?verify=expired' } });
   await env.TENGSL.prepare('UPDATE users SET email_verified=1, updated=? WHERE id=?').bind(now, t.user_id).run().catch(() => {});
   await env.TENGSL.prepare("DELETE FROM auth_tokens WHERE user_id=? AND kind='verify'").bind(t.user_id).run().catch(() => {});
-  return new Response(null, { status: 302, headers: { location: '/mitt-svaedi/?verified=1', 'set-cookie': _sessCookie(await makeSession(env, t.user_id), 60 * 86400) } });
+  // Lota AÐEINS í vafranum sem nýskráði sig (sjá _nyskraKaka). Sá sem er þegar innskráður sem sami notandi
+  // heldur sinni lotu. Allir aðrir fá staðfestinguna en skrá sig inn sjálfir, og lota sem fyrir er helst óbreytt.
+  const uid = Number(t.user_id);
+  if (await nyskraUid(env, request, now) === uid) {
+    const h = new Headers({ location: '/mitt-svaedi/?verified=1' });
+    h.append('set-cookie', _sessCookie(await makeSession(env, uid), 60 * 86400));
+    h.append('set-cookie', _nyskraCookie('', 0));
+    return new Response(null, { status: 302, headers: h });
+  }
+  if (await readSession(env, request) === uid) return new Response(null, { status: 302, headers: { location: '/mitt-svaedi/?verified=1' } });
+  return new Response(null, { status: 302, headers: { location: '/innskra/?verify=ok' } });
 }
 
 export async function authResendVerifyHandler(request, env, ctx) {

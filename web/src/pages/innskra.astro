@@ -10,6 +10,7 @@ const desc = 'Skráðu þig inn á Karp — aðgangur að Karp+ vöktun, stefnup
 <Layout title="Skrá inn — Karp" description={desc} canonical="https://karp.is/innskra/" ogTitle="Skrá inn á Karp" noindex={true}>
   <AuthShell pg="innskra" heading="Skrá inn" sub="Aðgangur að Karp+ og þínu persónulega svæði.">
     <p class="ka-msg err" id="ka-err" hidden></p>
+    <p class="ka-msg ok" id="ka-ok" hidden></p>
 
     <div id="ka-form-wrap">
       <form method="POST" action="/api/auth/login" id="ka-form" autocomplete="on">
@@ -67,6 +68,11 @@ const desc = 'Skráðu þig inn á Karp — aðgangur að Karp+ vöktun, stefnup
       if (log) { const el = document.getElementById('ka-log'); if (el && !el.value) el.value = log; }
       const err = p.get('villa');
       if (err) { const box = document.getElementById('ka-err'); if (box) { box.textContent = MSG[err] || MSG._; box.hidden = false; } }
+      // Frá staðfestingarhlekknum (/api/auth/verify). Sjálfvirk innskráning er aðeins í vafranum sem nýskráði
+      // sig, svo í öðrum vafra eða tæki lendir fólk hér með staðfest netfang og skráir sig inn sjálft.
+      const ver = p.get('verify');
+      if (ver === 'ok') { const ok = document.getElementById('ka-ok'); if (ok) { ok.textContent = 'Netfangið er staðfest. Skráðu þig inn til að halda áfram.'; ok.hidden = false; } }
+      else if (ver) { const box = document.getElementById('ka-err'); if (box) { box.textContent = 'Staðfestingarhlekkurinn er útrunninn eða hefur þegar verið notaður. Prófaðu að skrá þig inn.'; box.hidden = false; } }
       // Innskráning gegnum worker (fetch) — intercept submit.
       const form = document.getElementById('ka-form');
       if (form && !form.dataset.wired) {
