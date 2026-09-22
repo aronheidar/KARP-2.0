@@ -30,8 +30,14 @@ Claude. Nýja samhengið heitir því `bakgrunnur` og býr inni í `facts` svo �
 | Markaðir | `mark` | viðskiptadagar í röð, hæsta og lægsta gengi í röðinni, breyting frá upphafi raðar (%), stærsta dagshreyfing í röðinni og hvort hreyfing dagsins sé stærri, breyting úrvalsvísitölu sama dag |
 | Hagtölur | `verdbolga`, `vextir`, `vika` | verðbólga 12 mán fyrr, 12 mán hámark/lágmark, verðbólgumarkmið 2,5 og frávik, raunstýrivextir, dagsetning síðustu vaxtabreytingar, atvinnuleysi 12 mán fyrr |
 | Lyf | `lyf` | önnur lyf á skrá með sama ATC-kóða og þar af í skorti, lyf í skorti alls, dagsetning sem skortur sást fyrst (nýtt state-svið `lyfFyrst`) |
-| Dómar | `domur` | dómar sama dómstóls á árinu, þar af á sama réttarsviði. Einstaklingar áfram „X" |
 | Fyrirtæki | `styrkur`, `vorumerki` | eins og sigurvegari í útboðum + fyrri styrkir sama þega |
+| Gjaldþrot | `gjaldthrot` | eins og sigurvegari í útboðum, á kennitölu úr Lögbirtingablaðinu (síðasti ársreikningur o.fl.) |
+
+**Breyting frá kynningu (22.9, við áætlanagerð):** dómar fá EKKI bakgrunn. `domar_ai.json` geymir aðeins 78 dóma,
+brot af dómum ársins, svo „dómar Hæstaréttar á árinu" væri villandi og bryti regluna „ekkert giskað". Dómar njóta
+samt nýju ritunarinnar og talnavarnarinnar. Gjaldþrot (vægi 9) kemur í staðinn sem sjötti hópurinn.
+**Persónuvernd:** fyrirtækjasamhengi aðeins fyrir lögaðila; gefin kennitala einstaklings (fyrsti stafur 0–3) stöðvar
+samhengið alveg, líka nafnaleit.
 
 **Nafn → kennitala:** aðeins ótvíræð samsvörun eftir stöðlun (lágstafir, án „ehf./hf./ohf." og greinarmerkja) í
 `felagaskra.json`. Tvíræð eða engin samsvörun → ekkert fyrirtækjasamhengi (frekar en að giska).
