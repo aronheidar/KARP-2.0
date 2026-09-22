@@ -64,6 +64,79 @@ function parseDate(s, fallbackYear) {
   return yr + '-' + String(mo).padStart(2, '0') + '-' + String(day).padStart(2, '0');
 }
 
+// ── Íslenska Wikipedia („Næstu alþingiskosningar") ───────────────────────────────────────────
+// ⚠ 22.9.2026: enska síðan stóð í Gallup 30.6 en sú íslenska var komin í 31.8 (Gallup, Maskína
+//   11.8 o.fl.). Gallup birtir nákvæmar tölur aðeins í innfelldu Looker-mælaborði með undirrituðum
+//   innskráningarhlekk, svo Wikipedia-síðurnar tvær eru heimildin. Íslenska taflan hefur KOMMU sem
+//   tugabrot og PUNKT sem þúsund, íslensk mánaðarheiti, og aðra flokkaröð (lesin úr hausnum).
+const IS_PAGE = 'Næstu_alþingiskosningar';
+const IS_URL = 'https://is.wikipedia.org/w/api.php?action=parse&page=' + encodeURIComponent(IS_PAGE) + '&format=json&prop=wikitext&origin=*';
+const MAN_IS = { jan: 1, feb: 2, mar: 3, apr: 4, maí: 5, jún: 6, júl: 7, ágú: 8, sep: 9, okt: 10, nóv: 11, des: 12 };
+
+function parseDateIs(s) {
+  s = String(s || '').replace(/&nbsp;/g, ' ').replace(/<[^>]*>/g, ' ').toLowerCase();
+  const ar = (s.match(/\b20\d\d\b/g) || []).pop();
+  const man = (s.match(/(jan|feb|mar|apr|maí|jún|júl|ágú|sep|okt|nóv|des)[a-zúáéíóýþæö]*/g) || []).pop();
+  const dagar = (s.replace(/\b20\d\d\b/g, '').match(/\d{1,2}(?=\.)/g) || []).map(Number).filter((n) => n >= 1 && n <= 31);
+  if (!ar || !man || !dagar.length) return null;
+  const mo = MAN_IS[man.slice(0, 3)];
+  const sidasti = new Date(Date.UTC(+ar, mo, 0)).getUTCDate();
+  const dagur = Math.min(dagar[dagar.length - 1], sidasti);
+  return ar + '-' + String(mo).padStart(2, '0') + '-' + String(dagur).padStart(2, '0');
+}
+
+function numIs(cell) {
+  if (cell == null) return null;
+  let t = String(cell).replace(/(?:style|class)\s*=\s*"[^"]*"\s*\|/g, '');   // stíll + pípa á undan gildinu
+  t = t.split(/<br|\{\{/)[0];
+  if (t.indexOf('|') > -1) t = t.split('|').pop();
+  t = t.replace(/'''/g, '').replace(/<[^>]*>/g, '').trim();
+  if (/^[–\-—]+$/.test(t) || t === '' || /^\?/.test(t)) return null;
+  t = t.replace(/\./g, '').replace(',', '.');                                   // 13.836 → 13836, 29,6 → 29.6
+  const m = t.match(/(\d+(?:\.\d+)?)/);
+  return m ? parseFloat(m[1]) : null;
+}
+
+/** Wikitexti íslensku síðunnar → kannanir [{ date, pollster, sample, v }] með sömu flokkalyklum og enska. */
+function lesaIsTofla(wt) {
+  const kafli = wt.search(/==\s*Skoðanakannanir/i);
+  const byrjun = wt.indexOf('{|', kafli < 0 ? 0 : kafli);
+  if (byrjun < 0) return [];
+  const tafla = wt.slice(byrjun, wt.indexOf('|}', byrjun));
+  const flokkar = [...tafla.matchAll(/^!.*\[\[[^\]|]*\|([A-ZÁÐÉÍÓÚÝÞÆÖ])\]\]/gm)].map((m) => m[1]);
+  const kannanir = [];
+  for (const bitur of tafla.split(/\n\|-/).slice(1)) {
+    const linur = bitur.split('\n').map((l) => l.trim()).filter((l) => l && !/^style=|^class=/.test(l));
+    if (!linur.length || !linur[0].startsWith('|')) continue;        // haus- og atburðalínur byrja á „!"
+    const reitir = linur.flatMap((l) => l.replace(/^\|/, '').split('||'));
+    const who = pollster(reitir[0]);
+    const date = parseDateIs(reitir[1]);
+    if (!date || /kosning/i.test(who)) continue;
+    const v = {};
+    PARTIES.forEach((p) => { const k = flokkar.indexOf(p); v[p] = k < 0 ? null : numIs(reitir[4 + k]); });
+    if (PARTIES.filter((p) => v[p] != null).length < 3) continue;
+    kannanir.push({ date, pollster: who, sample: numIs(reitir[2]), v });
+  }
+  return kannanir;
+}
+
+/**
+ * Sameinar kannanir síðnanna tveggja; íslenska útgáfan gildir. Sama könnun = sama fyrirtæki, innan
+ * við viku á milli OG sömu fylgistölur (≤0,2 pp). ⚠ Síðurnar skrá stundum ólíkan lokadag fyrir sömu
+ * könnun (Maskína 2025-06-22 á ensku, 2025-06-26 á íslensku); nákvæm pörun á dagsetningu tvítaldi þær.
+ */
+function sameinaKannanir(en, is) {
+  const fyrirtaeki = (k) => String(k.pollster).toLowerCase().normalize('NFC').trim();
+  const dagar = (a, b) => Math.abs(Date.parse(a) - Date.parse(b)) / 864e5;
+  const somuTolur = (a, b) => {
+    const sam = Object.keys(a.v).filter((p) => a.v[p] != null && b.v[p] != null);
+    return sam.length >= 3 && sam.every((p) => Math.abs(a.v[p] - b.v[p]) <= 0.2);
+  };
+  const sama = (a, b) => fyrirtaeki(a) === fyrirtaeki(b) && (a.date === b.date || (dagar(a.date, b.date) <= 7 && somuTolur(a, b)));
+  const eftir = en.filter((e) => !is.some((i) => sama(e, i)));
+  return [...eftir, ...is].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+}
+
 const main = async () => {
   const r = await fetch(URL, { headers: { 'User-Agent': 'KARP dashboard build (karp.is)' } });
   const j = await r.json();
@@ -97,10 +170,19 @@ const main = async () => {
     }
   });
 
-  polls.sort((a, b) => a.date < b.date ? -1 : 1); // ascending for time series
+  // Íslenska síðan er fljótari; bilun þar má aldrei fella ensku kannanirnar.
+  let isPolls = [];
+  try {
+    const ri = await fetch(IS_URL, { headers: { 'User-Agent': 'KARP dashboard build (karp.is)' } });
+    isPolls = lesaIsTofla((await ri.json()).parse.wikitext['*']);
+  } catch (e) { console.warn('⚠ íslenska Wikipedia náðist ekki:', e.message); }
+  const enN = polls.length;
+  const allar = sameinaKannanir(polls, isPolls);
+  polls.length = 0; polls.push(...allar);   // polls er const; sama fylkið áfram
+  console.log(`kannanir: enska ${enN} + íslenska ${isPolls.length} → ${polls.length} eftir sameiningu`);
   const out = {
-    source: 'Wikipedia — Next Icelandic parliamentary election',
-    sourceUrl: 'https://en.wikipedia.org/wiki/' + PAGE,
+    source: 'Wikipedia — Næstu alþingiskosningar (is) og Next Icelandic parliamentary election (en)',
+    sourceUrl: 'https://is.wikipedia.org/wiki/' + IS_PAGE,
     license: 'CC BY-SA 4.0',
     parties: PARTIES,
     polls: polls,
@@ -126,4 +208,4 @@ const main = async () => {
 
 // Keyrt beint => byggja. Flutt inn (próf) => aðeins föllin, ENGIN netköll.
 if (require.main === module) main().catch((e) => { console.error('ERR', e); process.exit(1); });
-module.exports = { parseDate, pollster, num };
+module.exports = { parseDate, pollster, num, parseDateIs, numIs, lesaIsTofla, sameinaKannanir };

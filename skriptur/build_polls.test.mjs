@@ -8,7 +8,116 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
-const { parseDate, pollster, num } = createRequire(import.meta.url)('./build_polls.js');
+const { parseDate, pollster, num, parseDateIs, numIs, lesaIsTofla, sameinaKannanir } = createRequire(import.meta.url)('./build_polls.js');
+
+// ⚠ 22.9.2026: enska Wikipedia stóð í Gallup 30.6 en sú íslenska var komin í 31.8 (Gallup,
+// Maskína 11.8 o.fl.). Íslenska taflan: komma = tugabrot, punktur = þúsund, íslensk mánaðarheiti,
+// flokkaröð S, D, C, F, M, B, J, P, V lesin úr hausnum, og atburðalínur sem byrja á „!".
+const IS_TAFLA = `==Skoðanakannanir==
+{| class="wikitable sortable"
+|- style="height:40px;"
+! rowspan="2"| Fyrirtæki
+! rowspan="2"| Síðasti dagur framkvæmda
+! rowspan="2"| Úrtak
+! rowspan="2"| Svarhlutfall
+! class="unsortable" |[[Samfylkingin|S]]
+! class="unsortable" |[[Sjálfstæðisflokkurinn|D]]
+! class="unsortable" |[[Viðreisn|C]]
+! class="unsortable" |[[Flokkur fólksins|F]]
+! class="unsortable" |[[Miðflokkurinn (Ísland)|M]]
+! class="unsortable" |[[Framsóknarflokkurinn|B]]
+! class="unsortable" |[[Sósíalistaflokkur Íslands (21. öld)|J]]
+! class="unsortable" |[[Píratar|P]]
+! class="unsortable" |[[Vinstrihreyfingin – grænt framboð|V]]
+! rowspan="2"| Aðrir
+! rowspan="2"| Forskot
+|-
+! style="background:{{flokkslitur|Samfylkingin}};"|
+|-
+|[https://www.ruv.is/frettir/x Gallup]
+|31. ágúst 2026
+|13.836
+|40,2
+|style="background:#F6CDCF;"|'''29,6'''
+|26,8
+|9,7
+|4,8
+|15,6
+|5,5
+|2,4
+|1,9
+|3,6
+|–
+| style="background:{{flokkslitur|Samfylkingin}};color:#FFFFFF;"| 2,8
+|-
+!
+!29. ágúst 2026
+! colspan="13" |Þjóðaratkvæðagreiðsla fer fram.
+|-
+|[https://www.visir.is/g/y Maskína]
+|11. ágúst 2026
+|3.172
+|–
+|style="background:#F6CDCF;"|'''26,2'''
+|25,1
+|11,5
+|5,2
+|12,7
+|7,8
+|3,9
+|3,5
+|4,2
+|–
+| 1,1
+|}`;
+
+test('íslensk dagsetning: síðasti dagur og síðasta mánaðarheiti', () => {
+  assert.equal(parseDateIs('31. ágúst 2026'), '2026-08-31');
+  assert.equal(parseDateIs('1.–30. júní 2026'), '2026-06-30');
+  assert.equal(parseDateIs('28. febrúar 2026'), '2026-02-28');
+  assert.equal(parseDateIs('óljóst'), null);
+});
+
+test('íslensk tala: komma er tugabrot og punktur þúsund', () => {
+  assert.equal(numIs("style=\"background:#F6CDCF;\"|'''29,6'''"), 29.6);
+  assert.equal(numIs('13.836'), 13836);
+  assert.equal(numIs('–'), null);
+});
+
+test('íslenska taflan: flokkaröð úr hausnum og atburðalínum sleppt', () => {
+  const k = lesaIsTofla(IS_TAFLA);
+  assert.equal(k.length, 2);
+  assert.deepEqual(k[0], { date: '2026-08-31', pollster: 'Gallup', sample: 13836,
+    v: { S: 29.6, D: 26.8, C: 9.7, F: 4.8, M: 15.6, B: 5.5, J: 2.4, P: 1.9, V: 3.6 } });
+  assert.equal(k[1].pollster, 'Maskína');
+  assert.equal(k[1].v.M, 12.7);
+});
+
+test('sameinaKannanir: sama könnun með ólíkum lokadegi á síðunum tveimur telst einu sinni', () => {
+  // Raunverulegt 22.9.2026: Maskína 2025-06-22 (en) og 2025-06-26 (is), sömu fylgistölur.
+  const v = { S: 28.1, D: 20.2, C: 12.0 };
+  const en = [{ date: '2025-06-22', pollster: 'Maskína', sample: null, v }];
+  const is = [{ date: '2025-06-26', pollster: 'Maskína', sample: 876, v: { ...v } }];
+  const s = sameinaKannanir(en, is);
+  assert.equal(s.length, 1);
+  assert.equal(s[0].date, '2025-06-26', 'íslenska útgáfan gildir');
+});
+
+test('sameinaKannanir: tvær ólíkar kannanir sama fyrirtækis sömu viku halda sér báðar', () => {
+  const en = [{ date: '2026-03-02', pollster: 'Prósent', sample: 900, v: { S: 27.0, D: 21.0, C: 11.0 } }];
+  const is = [{ date: '2026-03-06', pollster: 'Prósent', sample: 950, v: { S: 29.5, D: 19.0, C: 12.5 } }];
+  assert.equal(sameinaKannanir(en, is).length, 2);
+});
+
+test('sameinaKannanir: sama fyrirtæki og dagur telst einu sinni, íslenska gildir', () => {
+  const en = [{ date: '2026-06-30', pollster: 'Gallup', sample: 12102, v: { S: 26.2 } }];
+  const is = [{ date: '2026-06-30', pollster: 'Gallup', sample: 12102, v: { S: 26.3 } },
+    { date: '2026-08-31', pollster: 'Gallup', sample: 13836, v: { S: 29.6 } }];
+  const s = sameinaKannanir(en, is);
+  assert.equal(s.length, 2);
+  assert.equal(s[0].v.S, 26.3);
+  assert.deepEqual(s.map((k) => k.date), ['2026-06-30', '2026-08-31']);
+});
 
 test('fullt mánaðarheiti þáttast (var þögult brottfall)', () => {
   assert.equal(parseDate('1–30 June 2026'), '2026-06-30');
