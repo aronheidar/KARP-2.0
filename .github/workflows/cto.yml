@@ -244,7 +244,9 @@ jobs:
           if [ -f "$U/samantekt.md" ]; then hreinsa < "$U/samantekt.md" > "$HREINT.allt"; else echo "Engin samantekt." > "$HREINT.allt"; fi
           head -c 6000 "$HREINT.allt" > "$HREINT"
           utan() { [ -s "$U/utan.txt" ] && head -c 2000 "$U/utan.txt" | tr '\n\r\t' '   ' | tr -d '\000-\037' | head -c 300; }
-          lok() { echo "note=$1" >> "$GITHUB_OUTPUT"; echo "pr=" >> "$GITHUB_OUTPUT"; exit 0; }
+          # Athugasemdin getur nefnt skráarnöfn sem líkanið valdi, og fer því um skrá en ekki skrefaúttak (env prentast).
+          NOTA="$RUNNER_TEMP/cto_note.txt"
+          lok() { printf '%s' "$1" > "$NOTA"; echo "pr=" >> "$GITHUB_OUTPUT"; exit 0; }
           [ "$LAGA" = "success" ] && [ -f "$P" ] || lok "Keyrslan náði ekki að skila breytingu, t.d. beiðnin náðist ekki eða Claude féll (run $GITHUB_RUN_ID)"
           [ -z "$(utan)" ] || lok "Óleyfilegar skrár snertar ($(utan)) — öllum breytingum hent"
           [ -s "$P" ] || lok "Engin kóðabreyting"
@@ -264,7 +266,7 @@ jobs:
           # PR: villur SÝNILEGAR; ef stofnun bregst skilar skrefið samt compare-hlekk svo Aron fái greinina.
           URL=$(gh pr create --title "CTO: $TITILL" --body "$(cat "$HREINT")"$'\n\n'"Ticket: https://karp.is/stjorn/#ticket-$TICKET · Samþykki Arons = merge (deploy sjálfvirkt)." --base main --head "$BR" 2>&1 | tee "$RUNNER_TEMP/pr.log" | grep -oE 'https://github.com/[^ ]+/pull/[0-9]+' | head -1 || true)
           if [ -z "$URL" ]; then URL=$(gh pr view "$BR" --json url -q .url 2>/dev/null || true); fi
-          if [ -z "$URL" ]; then cat "$RUNNER_TEMP/pr.log"; URL="https://github.com/$REPO/compare/main...$BR?expand=1"; echo "note=PR var ekki stofnaður sjálfkrafa — opna compare-hlekkinn og stofna handvirkt. $VID" >> "$GITHUB_OUTPUT"; else echo "note=$VID" >> "$GITHUB_OUTPUT"; fi
+          if [ -z "$URL" ]; then cat "$RUNNER_TEMP/pr.log"; URL="https://github.com/$REPO/compare/main...$BR?expand=1"; printf '%s' "PR var ekki stofnaður sjálfkrafa — opna compare-hlekkinn og stofna handvirkt. $VID" > "$NOTA"; else printf '%s' "$VID" > "$NOTA"; fi
           echo "pr=$URL" >> "$GITHUB_OUTPUT"
           echo "branch=$BR" >> "$GITHUB_OUTPUT"
       - name: Skila niðurstöðu á karp.is
@@ -273,15 +275,14 @@ jobs:
           KARP_ADMIN_KEY: ${{ secrets.KARP_ADMIN_KEY }}
           PR: ${{ steps.pr.outputs.pr }}
           BRANCH: ${{ steps.pr.outputs.branch }}
-          NOTE: ${{ steps.pr.outputs.note }}
         # Keyrt úr $RUNNER_TEMP, utan checkout-sins. Tillagan að svari kom beint frá laga-vélinni
         # (/api/cto/drog), og worker-inn skeytir henni við samantektina — hún fer aldrei um þessa vél.
         working-directory: ${{ runner.temp }}
         run: |
           node -e "
             const fs = require('fs'), lesa = (f) => { try { return fs.readFileSync(f, 'utf8'); } catch (e) { return ''; } };
-            const sam = lesa('cto_ut/samantekt.md').slice(0, 3000);
-            const samantekt = (process.env.NOTE ? process.env.NOTE + '\n\n' : '') + (sam || 'Engin samantekt — sjá keyrslu ' + process.env.GITHUB_RUN_ID);
+            const sam = lesa('cto_ut/samantekt.md').slice(0, 3000), note = lesa('cto_note.txt').slice(0, 800);
+            const samantekt = (note ? note + '\n\n' : '') + (sam || 'Engin samantekt — sjá keyrslu ' + process.env.GITHUB_RUN_ID);
             const body = { action: 'cto_result', id: Number(process.env.TICKET), pr: process.env.PR || '', branch: process.env.PR ? (process.env.BRANCH || '') : '', samantekt: samantekt.slice(0, 3400) };
             fetch('https://karp.is/api/admin/ticket', { method: 'POST', headers: { 'X-Admin-Key': process.env.KARP_ADMIN_KEY, 'content-type': 'application/json' }, body: JSON.stringify(body) })
               .then((r) => r.text()).then((t) => console.log('cto_result →', t.slice(0, 200)));

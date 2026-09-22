@@ -20,6 +20,8 @@ test('cto.yml stenst öryggismörkin', () => {
   assert.deepEqual(wf.jobs.skila.needs, ['laga', 'profa'], 'skila bíður prófanna');
   // lykillinn og texti beiðnarinnar koma úr atburðaskránni, aldrei úr env (sem prentast)
   assert.ok(JSON.stringify(wf.jobs.laga).includes('GITHUB_EVENT_PATH'));
+  // athugasemd skila-jobbsins getur nefnt skráarnöfn sem líkanið valdi: hún fer um skrá, ekki skrefaúttak í env
+  assert.ok(!JSON.stringify(wf.jobs.skila).includes('outputs.note'), 'athugasemdin fer ekki um env');
 });
 
 // Hönnunin sem var í notkun 21.9: eitt job, skrifaðgangur á workflow-stigi, vistuð skilríki, og admin-
