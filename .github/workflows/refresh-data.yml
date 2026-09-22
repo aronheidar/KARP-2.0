@@ -238,6 +238,7 @@ jobs:
           node skriptur/build_vidskipti.mjs   || true   # utanríkisverslun (UTA06105/06202/06108/06002/06003) → vidskipti.json
           node skriptur/build_verdlag.mjs     || true   # verðbólga (VIS01000) + uppruni (VIS01101) + karfa (VIS01300) + FX + IMF-verðbólguspá → verdlag.json
           node skriptur/build_vinnumarkadur.mjs || true # laun vs verðbólga / kaupmáttur (LAU04001 + VIS01000) → vinnumarkadur.json
+          node skriptur/build_gjaldthrot.mjs  || true   # nýskráningar og gjaldþrot (FYR03001 + FYR03010) → gjaldthrot.json
           node skriptur/build_audlindir.mjs   || true   # ferðamenn (SAM02001) + CO2 á mann (OWID) → audlindir.json
           node skriptur/build_furduhagfraedi.mjs || true # launakapphlaupið: laun/húsnæði/verðlag (LAU04000/VIS01106/VIS01000) → furduhagfraedi.json
           node skriptur/build_hugverk.mjs     || true   # R&Þ-útgjöld (FYR05101) + nýskráð vörumerki (Hugverkastofan) → hugverk.json
