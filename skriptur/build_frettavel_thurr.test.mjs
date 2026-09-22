@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 const ROT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(import.meta.url);
 // Flutt inn (ekki keyrt beint) => aðeins föllin; main() keyrir ekki og ekkert er skrifað.
-const { synishornUrSafni, vorumerkjaKt, prufukeyrsla, naestaLyfFyrst } = require('./build_frettavel.js');
+const { synishornUrSafni, vorumerkjaKt, prufukeyrsla } = require('./build_frettavel.js');
 const VAKTADAR = ['gogn/frettavel.json', 'gogn/frettavel_state.json', 'gogn/frettavel_seen.json', 'gogn/frettavel_archive.json',
   'web/public/frettavel.xml', 'web/public/gogn/frettavel.json', 'web/public/gogn/frettavel_archive.json'];
 const fingrafar = () => Object.fromEntries(VAKTADAR.map((f) => {
@@ -31,20 +31,7 @@ test('--thurr skrifar ekkert og sýnir bakgrunn á sýnishornum úr safninu', { 
   assert.deepEqual(fingrafar(), fyrir, 'prufuhamur má ekki snerta birt gögn');
 });
 
-// Tóm skortsmynd þegar hún var það ekki síðast er líklega gagnabilun: annars fengju öll lyf nýjan upphafsdag skorts
-// daginn sem skráin kæmi aftur, og bakgrunnurinn segði að áralangur skortur hefði „hafist" þann dag.
-test('lyfFyrst: enginn skortur í skránni en fyrri mynd ekki tóm → fyrri mynd helst og viðvörun prentast', () => {
-  const fyrri = { a: '2026-09-01', b: 'ohekkt' };
-  const r = naestaLyfFyrst(fyrri, [], '2026-09-22');
-  assert.deepEqual(r.mynd, fyrri);
-  assert.match(r.vidvorun, /gagnabilun/);
-  assert.deepEqual(naestaLyfFyrst(fyrri, ['a', 'c'], '2026-09-22'), { mynd: { a: '2026-09-01', c: '2026-09-22' }, vidvorun: null });
-  assert.deepEqual(naestaLyfFyrst(null, ['a'], '2026-09-22'), { mynd: { a: 'ohekkt' }, vidvorun: null }, 'fyrsta keyrsla: upphaf óþekkt');
-  assert.deepEqual(naestaLyfFyrst({}, [], '2026-09-22'), { mynd: {}, vidvorun: null }, 'enginn skortur, hvorki nú né síðast');
-  // Tóm mynd ({}) er í reynd sömu merkingar og engin mynd (null): engin ÁLITIN fyrri gögn. Núverandi skortur á þá að fá
-  // 'ohekkt' (fyrsta-keyrslu merking), ekki daginn í dag — annars liti út fyrir að áralangur skortur hæfist einmitt núna.
-  assert.deepEqual(naestaLyfFyrst({}, ['a'], '2026-09-22'), { mynd: { a: 'ohekkt' }, vidvorun: null }, 'tóm mynd er sömu merkingar og engin mynd: ohekkt, ekki dagsetning dagsins');
-});
+// Upphafsdagur skorts (lyfFyrst) er reiknaður í lyf_detect.js ásamt grunni lyfjafrétta; prófin eru í lyf_detect.test.mjs.
 
 // Safnið geymir ekki kt, en persónuverndarvörnin hvílir á henni (5 af 7 vörumerkjasýnishornum 22.9 voru einstaklingar).
 test('sýnishorn úr safninu fá kt (gjaldþrot úr id, vörumerki úr skránni) og birtingardag', () => {

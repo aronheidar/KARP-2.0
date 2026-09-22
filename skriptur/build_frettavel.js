@@ -23,6 +23,13 @@ const { pickThrotlok } = require('./throtlok_detect.js');
 const { pickVikan } = require('./vikan_detect.js');
 const { pickSvaedi } = require('./svaedi_detect.js');   // fasteignaverð per matssvæði HMS (19.8.2026)
 const { pickSent } = require('./sent_detect.js');   // tónsveifla; grunnur með dagsetningu (22.9.2026)
+const { pickMark } = require('./mark_detect.js');   // markaðir; frétt ber viðskiptadag bréfsins (22.9.2026)
+const { pickNyjar } = require('./nyjar_detect.js');   // nýjar færslur (útboð, opnanir, styrkir); dagsettur grunnur (22.9.2026)
+const { pickRadherra } = require('./radherra_detect.js');   // ráðherraskipti; embætti sem mengi (22.9.2026)
+const { pickLyf } = require('./lyf_detect.js');   // lyfjaskortur + lyfFyrst; dagsettur grunnur (22.9.2026)
+const { pickRaedur } = require('./raedur_detect.js');   // ræðumínútur vikunnar; grunnur með dagsetningu skrár (22.9.2026)
+const { pickEftirlit } = require('./eftirlit_detect.js');   // eftirlitsvaktin; dagsettur grunnur, hálf skrá ekki borin saman (22.9.2026)
+const { pickStjorar } = require('./stjorar_detect.js');   // bæjar-/sveitarstjórar; dagsettur grunnur (22.9.2026)
 let slugifyIS = null;   // @lib/format.mjs slugify (ESM) — hlaðið í main() svo svæðis-slóðir séu þær sömu og /fasteignaverd/[slug]
 const G = (f) => path.join(__dirname, '..', 'gogn', f);
 const J = (f) => { try { return JSON.parse(fs.readFileSync(G(f), 'utf8')); } catch (e) { return null; } };
@@ -57,26 +64,16 @@ const pct2 = (v) => Number(v).toFixed(2).replace('.', ',');
 const kr = (v) => Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 const MAN = ['janúar', 'febrúar', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágúst', 'september', 'október', 'nóvember', 'desember'];
 const manIS = (ym) => { const m = String(ym).match(/(\d{4})-(\d{2})/); return m ? MAN[+m[2] - 1] + ' ' + m[1] : ym; };
+const dmyIS = (d) => { const m = String(d).match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : d; };
 // Smágraf: síðustu n tölugildi úr röð (fyrir sparkline á fréttakorti). Skilar [] ef of stutt.
 const downsample = (arr, n = 24) => { const a = (arr || []).filter((x) => typeof x === 'number'); return a.length <= n ? a : a.slice(-n); };
-
-// Hvenær skortur sást FYRST (bakgrunnur lyfjafréttar). Fyrsta keyrsla merkir núverandi skort 'ohekkt', annars stæði að
-// skortur á lyfi sem hefur vantað í marga mánuði hefði „hafist" daginn sem þessi kóði fór í loftið. Enginn skortur í
-// skránni þegar fyrri mynd er ekki tóm er líklega gagnabilun (tóm eða hálf lyf.json): fyrri mynd helst, annars fengju öll
-// lyf nýjan upphafsdag daginn sem skráin kæmi aftur.
-function naestaLyfFyrst(fyrri, slugs, idag) {
-  const nFyrri = fyrri ? Object.keys(fyrri).length : 0;
-  if (!slugs.length && nFyrri) return { mynd: fyrri, vidvorun: 'lyf.json: enginn skortur skráður en ' + nFyrri + ' lyf voru í skorti síðast; líkleg gagnabilun, lyfFyrst óbreytt' };
-  const mynd = {};
-  // nFyrri (ekki hrátt fyrri): tóm mynd ({}) er sömu merkingar og engin mynd (null) — engin ÁLITIN fyrri gögn, svo
-  // núverandi skortur fær fyrsta-keyrslu gildið 'ohekkt' en ekki daginn í dag (fyrri var truthy sem tómur hlutur).
-  for (const s of slugs) mynd[s] = nFyrri ? (fyrri[s] || idag) : 'ohekkt';
-  return { mynd, vidvorun: null };
-}
 
 // ── Detectorar ────────────────────────────────────────────────
 // state = frettavel_state.json: snapshot-samanburður milli keyrslna (diff-fréttir)
 // og viku/mánaðar-taktar. FYRSTA keyrsla hvers hluta er HLJÓÐ (initialiserar bara).
+// ⚠ Skynjari sem diffar við state þarf DAGSETTAN grunn (dagsetning gagnaskrárinnar sjálfrar, ekki keyrslunnar) og má
+//   ekki láta tóma skrá skrifa yfir grunninn; annars birtist úrelt skrá sem lifnar við sem fréttir dagsins (22.9.2026).
+//   Mynstrið og prófin eru í *_detect.js (sent, mark, nyjar, radherra, stjorar, lyf, raedur, eftirlit).
 function detect(state) {
   const ev = [];
 
@@ -252,55 +249,41 @@ function detect(state) {
   }
 
   // ── Ræðukóngur vikunnar (diff á ræðugreiningu) ───────────────
+  // Hreinn skynjari í raedur_detect.js (próf): grunnurinn ber dagsetningu skrárinnar og er borinn saman við skrá sem er
+  // 6–8 dögum yngri; lengra bil (skráin stóð og lifnaði), nýtt þing og gamla sniðið endurstilla í þögn.
   const ra = J('raedugreining.json');
   if (ra && ra.mp) {
     const nafnAf = {}; mps.forEach((m) => { nafnAf[m.id] = m.nafn; });
-    const cur = {}; Object.entries(ra.mp).forEach(([id, d]) => { cur[id] = Math.round(d.min || 0); });
-    const snap = state.raedur;
-    if (snap && snap.thing === ra.thing && snap.date && (Date.parse(TODAY) - Date.parse(snap.date)) >= 6 * 86400000) {
-      const deltas = Object.entries(cur).map(([id, m]) => ({ id, nafn: nafnAf[id], min: m - (snap.min[id] || 0) })).filter((x) => x.nafn && x.min > 0).sort((a, b) => b.min - a.min);
-      if (deltas.length && deltas[0].min >= 60) {
-        const t = deltas.slice(0, 3);
-        ev.push({ id: `raedur-${TODAY}`, type: 'raedur', facts: { fra: snap.date, til: TODAY, listi: t.map((x) => ({ nafn: x.nafn, minutur: x.min })) }, url: '/althingi/',
-          title: `${t[0].nafn} talaði mest á Alþingi: ${kr(t[0].min)} mínútur á viku`,
-          text: `${t[0].nafn} átti flestar ræðumínútur á Alþingi frá ${snap.date} til ${TODAY}: ${kr(t[0].min)} mínútur.${t[1] ? ` Næst komu ${t[1].nafn} (${kr(t[1].min)} mín)${t[2] ? ' og ' + t[2].nafn + ' (' + kr(t[2].min) + ' mín)' : ''}.` : ''}` });
-      }
-      state.raedur = { thing: ra.thing, date: TODAY, min: cur };
-    } else if (!snap || snap.thing !== ra.thing) {
-      state.raedur = { thing: ra.thing, date: TODAY, min: cur };
+    const r = pickRaedur(ra, state.raedur, { nafnAf });
+    const t = r.listi;
+    if (t.length) {
+      ev.push({ id: `raedur-${r.til}`, type: 'raedur', facts: { fra: r.fra, til: r.til, listi: t }, url: '/althingi/',
+        title: `${t[0].nafn} talaði mest á Alþingi: ${kr(t[0].minutur)} mínútur á viku`,
+        text: `${t[0].nafn} átti flestar ræðumínútur á Alþingi frá ${r.fra} til ${r.til}: ${kr(t[0].minutur)} mínútur.${t[1] ? ` Næst komu ${t[1].nafn} (${kr(t[1].minutur)} mín)${t[2] ? ' og ' + t[2].nafn + ' (' + kr(t[2].minutur) + ' mín)' : ''}.` : ''}` });
     }
+    state.raedur = r.snap;
   }
 
   // ── Markaðir: dagshreyfarar ≥4% + met í gagnaröð ─────────────
+  // Hreinn skynjari í mark_detect.js (próf): fréttin ber síðasta viðskiptadag bréfsins (id og texti) og bréf sem hefur
+  // ekki verslast í 4 daga er ekki fréttaefni. Met kviknar aðeins þegar nýtt met er sett (markRec). Þak 2 á dag.
   const mk = J('markadir.json');
   if (mk && Array.isArray(mk.stocks)) {
-    const rec = state.markRec || {}, recInit = !!state.markRec;   // markRec = síðasta TILKYNNTA met per bréfi
-    const cand = [];
-    for (const s of mk.stocks) {
-      const h = (s.hist || []).filter((x) => x > 0);
-      const sp = downsample((s.hist || []).concat([s.price]), 30);
-      if (typeof s.chgPct === 'number' && Math.abs(s.chgPct) >= 4) {
-        cand.push({ w: Math.abs(s.chgPct), e: { id: `mark-${TODAY}-${slug(s.sym)}`, type: 'mark', spark: sp, facts: { felag: s.name, breyting: +s.chgPct.toFixed(1), verd: s.price }, url: '/markadir/',
-          title: `${s.name} ${s.chgPct > 0 ? 'hækkar' : 'lækkar'} um ${pct1(Math.abs(s.chgPct))}% í Kauphöllinni`,
-          text: `Gengi ${s.name} ${s.chgPct > 0 ? 'hækkaði' : 'lækkaði'} um ${pct1(Math.abs(s.chgPct))}% í dag og stendur í ${String(s.price).replace('.', ',')}.` } });
-      } else if (h.length >= 30) {
-        // ENDURTEKNINGARVÖRN: met-frétt kviknar AÐEINS þegar NÝTT met er sett — ekki daglega meðan bréfið
-        // situr í hámarki. rec[sym] geymir síðasta tilkynnta hámark/lágmark. Fyrsta keyrsla er þögul (recInit=false).
-        const r = rec[s.sym] || {};
-        if (recInit && s.price >= Math.max(...h) && s.price > (typeof r.hi === 'number' ? r.hi : 0)) {
-          cand.push({ w: 3, e: { id: `markmet-${TODAY}-${slug(s.sym)}-ha`, type: 'mark', spark: sp, facts: { felag: s.name, verd: s.price, met: 'hæsta', dagar: h.length }, url: '/markadir/',
-            title: `${s.name} í hæsta gildi í gagnaröð Karp`,
-            text: `Gengi ${s.name} stendur í ${String(s.price).replace('.', ',')} — það hæsta í gagnaröð Karp (${h.length} viðskiptadagar).` } });
-        } else if (recInit && s.price <= Math.min(...h) && s.price < (typeof r.lo === 'number' ? r.lo : Infinity)) {
-          cand.push({ w: 3, e: { id: `markmet-${TODAY}-${slug(s.sym)}-la`, type: 'mark', spark: sp, facts: { felag: s.name, verd: s.price, met: 'lægsta', dagar: h.length }, url: '/markadir/',
-            title: `${s.name} í lægsta gildi í gagnaröð Karp`,
-            text: `Gengi ${s.name} stendur í ${String(s.price).replace('.', ',')} — það lægsta í gagnaröð Karp (${h.length} viðskiptadagar).` } });
-        }
-        rec[s.sym] = { hi: Math.max(typeof r.hi === 'number' ? r.hi : 0, s.price), lo: Math.min(typeof r.lo === 'number' ? r.lo : Infinity, s.price) };
+    const { cand, rec } = pickMark(mk, state.markRec, { idag: TODAY });
+    for (const c of cand) {
+      const sp = downsample((c.hist || []).concat([c.verd]), 30);
+      const verd = String(c.verd).replace('.', ',');
+      if (c.tegund === 'hreyfing') {
+        ev.push({ id: `mark-${c.dags}-${slug(c.sym)}`, type: 'mark', spark: sp, facts: { felag: c.nafn, breyting: +c.breyting.toFixed(1), verd: c.verd, dags: c.dags }, url: '/markadir/',
+          title: `${c.nafn} ${c.breyting > 0 ? 'hækkar' : 'lækkar'} um ${pct1(Math.abs(c.breyting))}% í Kauphöllinni`,
+          text: `Gengi ${c.nafn} ${c.breyting > 0 ? 'hækkaði' : 'lækkaði'} um ${pct1(Math.abs(c.breyting))}% ${c.dags === TODAY ? 'í dag' : 'í viðskiptum ' + dmyIS(c.dags)} og stendur í ${verd}.` });
+      } else {
+        ev.push({ id: `markmet-${c.dags}-${slug(c.sym)}-${c.met === 'hæsta' ? 'ha' : 'la'}`, type: 'mark', spark: sp, facts: { felag: c.nafn, verd: c.verd, met: c.met, dagar: c.dagar, dags: c.dags }, url: '/markadir/',
+          title: `${c.nafn} í ${c.met} gildi í gagnaröð Karp`,
+          text: `Gengi ${c.nafn} stendur í ${verd} — það ${c.met} í gagnaröð Karp (${c.dagar} viðskiptadagar).` });
       }
     }
     state.markRec = rec;
-    cand.sort((a, b) => b.w - a.w).slice(0, 2).forEach((c) => ev.push(c.e));   // þak 2 markaðsfréttir/dag
   }
 
   // ── Umfjöllunarviðsnúningur (diff á sentiment-vísitölu) ──────
@@ -347,34 +330,27 @@ function detect(state) {
   }
 
   // ── Persónu-diffar: ráðherrar, bæjarstjórar, sendiherrar, ívilnanir ──
+  // Ráðherrar: hreinn skynjari í radherra_detect.js (próf). Tóm skrá skrifar ekki yfir grunninn, embætti eru borin saman
+  // sem mengi og ráðherra sem vantar í grunninn er aðeins nýr ef seta hans hófst á síðustu 14 dögum.
   if (Array.isArray(cab)) {
-    const cur = {}; cab.forEach((c) => { cur[c.id] = { nafn: c.nafn, emb: (c.emb || [])[0] || '', flokkur: c.flok || c.flokur || '' }; });
-    if (state.cabinet) {
-      for (const [id, c] of Object.entries(cur)) {
-        const p = state.cabinet[id];
-        if (!p || p.emb !== c.emb) {
-          ev.push({ id: `radherra-${TODAY}-${slug(c.nafn)}`, type: 'radherra', facts: { nafn: c.nafn, embaetti: c.emb, flokkur: c.flokkur, adur: p ? p.emb : null }, url: '/althingi/',
-            title: `${c.nafn} tekur við sem ${c.emb}`,
-            text: `${c.nafn} (${c.flokkur}) er ${c.emb} samkvæmt uppfærðri ráðherraskrá Alþingis.${p && p.emb ? ` Var áður ${p.emb}.` : ''}` });
-        }
-      }
+    const { cand, grunnur } = pickRadherra(cab, state.cabinet, { idag: TODAY });
+    for (const c of cand) {
+      ev.push({ id: `radherra-${TODAY}-${slug(c.nafn)}`, type: 'radherra', facts: { nafn: c.nafn, embaetti: c.embaetti, flokkur: c.flokkur, adur: c.adur }, url: '/althingi/',
+        title: `${c.nafn} tekur við sem ${c.embaetti}`,
+        text: `${c.nafn} (${c.flokkur}) er ${c.embaetti} samkvæmt uppfærðri ráðherraskrá Alþingis.${c.adur ? ` Var áður ${c.adur}.` : ''}` });
     }
-    state.cabinet = cur;
+    state.cabinet = grunnur;
   }
+  // Bæjar-/sveitarstjórar: hreinn skynjari í stjorar_detect.js (próf) — dagsettur grunnur (≤ 3 dagar), tóm skrá haldin.
   const st = J('sveitarstjorar.json');
   if (st && st.byName) {
-    const cur = {}; Object.entries(st.byName).forEach(([muni, d]) => { if (d.stjori) cur[muni] = { stjori: d.stjori, titill: d.stjoriTitill || 'sveitarstjóri' }; });
-    if (state.stjorar) {
-      for (const [muni, c] of Object.entries(cur)) {
-        const p = state.stjorar[muni];
-        if (p && p.stjori !== c.stjori) {
-          ev.push({ id: `baejarstjori-${slug(muni)}-${slug(c.stjori)}`, type: 'baejarstjori', facts: { sveitarfelag: muni, nafn: c.stjori, titill: c.titill, fyrri: p.stjori }, url: '/sveitarfelog/',
-            title: `${c.stjori} nýr ${c.titill} — ${muni}`,
-            text: `${c.stjori} er ${c.titill} sveitarfélagsins ${muni} samkvæmt uppfærðri skrá Sambands íslenskra sveitarfélaga. Fyrri ${c.titill} var ${p.stjori}.` });
-        }
-      }
+    const { cand, grunnur } = pickStjorar(st, state.stjorar);
+    for (const c of cand) {
+      ev.push({ id: `baejarstjori-${slug(c.sveitarfelag)}-${slug(c.nafn)}`, type: 'baejarstjori', facts: { sveitarfelag: c.sveitarfelag, nafn: c.nafn, titill: c.titill, fyrri: c.fyrri }, url: '/sveitarfelog/',
+        title: `${c.nafn} nýr ${c.titill} — ${c.sveitarfelag}`,
+        text: `${c.nafn} er ${c.titill} sveitarfélagsins ${c.sveitarfelag} samkvæmt uppfærðri skrá Sambands íslenskra sveitarfélaga. Fyrri ${c.titill} var ${c.fyrri}.` });
     }
-    state.stjorar = cur;
+    state.stjorar = grunnur;
   }
   const sr = J('sendirad.json');
   if (sr && Array.isArray(sr.abroad)) {
@@ -434,34 +410,32 @@ function detect(state) {
   }
 
   // ── 🏆 Útboðsniðurstöður: hver vann (TED awards, LOTA 30) ────
-  // Silent-init: fyrsta keyrsla merkir allt séð — annars 259 fréttir dag 1.
+  // Silent-init: fyrsta keyrsla merkir allt séð — annars 259 fréttir dag 1. Hreinn skynjari í nyjar_detect.js (próf):
+  // tóm skrá skrifar ekki yfir grunninn, grunnurinn er dagsettur (≤ 3 dagar) og niðurstaða eldri en 30 daga er ekki frétt.
   const ur = J('utbod_urslit.json');
   if (ur && Array.isArray(ur.awards)) {
-    if (state.urslitInit) {
-      const nyjar = ur.awards.filter((a) => !state.urslitInit.includes(a.nr));
-      nyjar.sort((a, b) => (b.cur === 'ISK' ? b.value || 0 : 0) - (a.cur === 'ISK' ? a.value || 0 : 0));
-      for (const a of nyjar.slice(0, 3)) {
-        const w1 = a.winners[0];
-        const fleiri = a.winners.length > 1;
-        const upph = a.cur === 'ISK' && a.value ? kr(a.value) + ' kr.' : null;
-        const titill = a.t.replace(/^Iceland – /, '');
-        ev.push({ id: `urslit-${a.nr}`, type: 'urslit', facts: { titill, kaupandi: a.buyer, sigurvegarar: a.winners, verdmaeti: upph ? a.value : null, dags: a.d, tedNr: a.nr }, url: '/utbod/',
-          title: fleiri ? `${w1} og ${a.winners.length - 1} til viðbótar valin í „${titill.slice(0, 45)}“` : `${w1} vann útboð${upph ? ' upp á ' + upph : ''}: ${titill.slice(0, 50)}`,
-          text: `${fleiri ? a.winners.slice(0, 4).join(', ') + (a.winners.length > 4 ? ' o.fl.' : '') + ' voru valin' : w1 + ' var valið'} í útboðinu „${titill}“ hjá ${a.buyer}${upph ? `. Samningsverðmæti: ${upph}` : ''} samkvæmt samningstilkynningu í TED (${a.d}).` });
-      }
+    const { nyjar, grunnur } = pickNyjar(ur.awards, state.urslitInit, { dags: ur.updated, lykill: (a) => a.nr, dagsetning: (a) => a.d });
+    nyjar.sort((a, b) => (b.cur === 'ISK' ? b.value || 0 : 0) - (a.cur === 'ISK' ? a.value || 0 : 0));
+    for (const a of nyjar.slice(0, 3)) {
+      const w1 = a.winners[0];
+      const fleiri = a.winners.length > 1;
+      const upph = a.cur === 'ISK' && a.value ? kr(a.value) + ' kr.' : null;
+      const titill = a.t.replace(/^Iceland – /, '');
+      ev.push({ id: `urslit-${a.nr}`, type: 'urslit', facts: { titill, kaupandi: a.buyer, sigurvegarar: a.winners, verdmaeti: upph ? a.value : null, dags: a.d, tedNr: a.nr }, url: '/utbod/',
+        title: fleiri ? `${w1} og ${a.winners.length - 1} til viðbótar valin í „${titill.slice(0, 45)}“` : `${w1} vann útboð${upph ? ' upp á ' + upph : ''}: ${titill.slice(0, 50)}`,
+        text: `${fleiri ? a.winners.slice(0, 4).join(', ') + (a.winners.length > 4 ? ' o.fl.' : '') + ' voru valin' : w1 + ' var valið'} í útboðinu „${titill}“ hjá ${a.buyer}${upph ? `. Samningsverðmæti: ${upph}` : ''} samkvæmt samningstilkynningu í TED (${a.d}).` });
     }
-    state.urslitInit = ur.awards.map((a) => a.nr).slice(0, 400);
+    state.urslitInit = grunnur;
   }
-  // Tilboðsopnanir (Landsvirkjun) — lægstbjóðandi er frétt fyrir verktaka
+  // Tilboðsopnanir (Landsvirkjun) — lægstbjóðandi er frétt fyrir verktaka. Sami skynjari og niðurstöðurnar.
   if (ur && Array.isArray(ur.opnanir)) {
-    if (state.opnanirInit) {
-      for (const o of ur.opnanir.filter((x) => !state.opnanirInit.includes(slug(x.t))).slice(0, 2)) {
-        ev.push({ id: `opnun-lv-${slug(o.t)}`, type: 'urslit', facts: { titill: o.t, dags: o.d, tilbod: o.bids.length, laegst: o.laegst.n, upphaed: o.laegst.isk }, url: '/utbod/',
-          title: `Tilboð opnuð hjá Landsvirkjun: lægst bauð ${o.laegst.n}`,
-          text: `${o.bids.length} tilboð bárust í útboð Landsvirkjunar „${o.t}“${o.d ? ' (opnuð ' + o.d + ')' : ''}. Lægsta boð átti ${o.laegst.n}: ${kr(o.laegst.isk)} kr. án VSK. Lægsta boð er ekki sjálfkrafa það sem verður valið.` });
-      }
+    const { nyjar, grunnur } = pickNyjar(ur.opnanir, state.opnanirInit, { dags: ur.updated, lykill: (x) => slug(x.t), dagsetning: (x) => x.d });
+    for (const o of nyjar.slice(0, 2)) {
+      ev.push({ id: `opnun-lv-${slug(o.t)}`, type: 'urslit', facts: { titill: o.t, dags: o.d, tilbod: o.bids.length, laegst: o.laegst.n, upphaed: o.laegst.isk }, url: '/utbod/',
+        title: `Tilboð opnuð hjá Landsvirkjun: lægst bauð ${o.laegst.n}`,
+        text: `${o.bids.length} tilboð bárust í útboð Landsvirkjunar „${o.t}“${o.d ? ' (opnuð ' + o.d + ')' : ''}. Lægsta boð átti ${o.laegst.n}: ${kr(o.laegst.isk)} kr. án VSK. Lægsta boð er ekki sjálfkrafa það sem verður valið.` });
     }
-    state.opnanirInit = ur.opnanir.map((x) => slug(x.t)).slice(0, 100);
+    state.opnanirInit = grunnur;
   }
 
   // ══ LOTA 31: fjölbreytni — ný gagnaefni ═════════════════════════
@@ -504,19 +478,19 @@ function detect(state) {
   }
 
   // ── Nýir styrkir (kvikmynda-/vísinda-/atvinnusjóðir) — state-diff, þögul frumstilling ──
+  // Hreinn skynjari í nyjar_detect.js (próf): sjóður sem vantaði í skrána síðast er ekki borinn saman (sjóðir detta
+  // reglulega út í einn dag), grunnurinn er dagsettur (≤ 3 dagar), þekktir styrkir gleymast ekki og styrkur með
+  // úthlutunarár meira en ári á undan skránni er ekki frétt.
   const sty = J('styrkir.json');
   if (sty && Array.isArray(sty.styrkir)) {
-    const key = (s) => `${s.slug}-${s.ar}-${s.upphaed}`;
-    if (Array.isArray(state.styrkirSeen)) {
-      const seen = new Set(state.styrkirSeen);
-      sty.styrkir.filter((s) => s.upphaed >= 15000000 && !seen.has(key(s)))
-        .sort((a, b) => b.upphaed - a.upphaed).slice(0, 3).forEach((s) => {
-          ev.push({ id: `styrkur-${s.slug}-${s.ar}`, type: 'styrkur', facts: { thegi: s.nafn, sjodur: s.sjodur, flokkur: s.flokkur || null, upphaed: s.upphaed, ar: s.ar, verkefni: s.verkefni || null }, url: '/styrkir/',
-            title: `${s.nafn} fær ${kr(s.upphaed)} kr. styrk úr ${s.sjodur}`,
-            text: `${s.nafn} hlýtur ${kr(s.upphaed)} kr. styrk úr ${s.sjodur}${s.flokkur ? ' (' + s.flokkur + ')' : ''}${s.verkefni ? ` fyrir verkefnið „${s.verkefni}“` : ''}${s.ar ? `, úthlutað ${s.ar}` : ''}.` });
-        });
-    }
-    state.styrkirSeen = sty.styrkir.map(key).slice(0, 4000);
+    const { nyjar, grunnur } = pickNyjar(sty.styrkir, state.styrkirSeen, { dags: sty.updated, lykill: (s) => `${s.slug}-${s.ar}-${s.upphaed}`, hopur: (s) => s.sjodur, ar: (s) => s.ar });
+    nyjar.filter((s) => s.upphaed >= 15000000)
+      .sort((a, b) => b.upphaed - a.upphaed).slice(0, 3).forEach((s) => {
+        ev.push({ id: `styrkur-${s.slug}-${s.ar}`, type: 'styrkur', facts: { thegi: s.nafn, sjodur: s.sjodur, flokkur: s.flokkur || null, upphaed: s.upphaed, ar: s.ar, verkefni: s.verkefni || null }, url: '/styrkir/',
+          title: `${s.nafn} fær ${kr(s.upphaed)} kr. styrk úr ${s.sjodur}`,
+          text: `${s.nafn} hlýtur ${kr(s.upphaed)} kr. styrk úr ${s.sjodur}${s.flokkur ? ' (' + s.flokkur + ')' : ''}${s.verkefni ? ` fyrir verkefnið „${s.verkefni}“` : ''}${s.ar ? `, úthlutað ${s.ar}` : ''}.` });
+      });
+    state.styrkirSeen = grunnur;
   }
 
   // ── Seðlabankinn: meginvextir (breyting) + verðbólga (ný mæling) ──
@@ -548,22 +522,20 @@ function detect(state) {
   }
 
   // ── Lyfjaskortur á nauðsynlegum lyfjum (Sérlyfjaskrá) — state-diff, þögul frumstilling ──
+  // Hreinn skynjari í lyf_detect.js (próf): dagsettur grunnur (≤ 3 dagar), skortur sem sást á síðustu 30 dögum er ekki
+  // nýr, tóm eða hálf skrá er gagnabilun og upphafsdagur skorts (lyfFyrst) er dagsetning skrárinnar.
   const lyf = J('lyf.json');
   if (lyf && Array.isArray(lyf.lyf)) {
-    const inShort = lyf.lyf.filter((x) => x.shortage);
-    if (Array.isArray(state.lyfSeen)) {
-      const seen = new Set(state.lyfSeen);
-      inShort.filter((x) => x.essential && !seen.has(x.slug)).slice(0, 2).forEach((x) => {
-        const efni = (x.ingredients || []).join(', ') || ((x.atc || {}).name) || '';
-        ev.push({ id: `lyfskortur-${x.slug}`, type: 'lyf', facts: { lyf: x.name, virkt: efni || null, styrkur: x.strength || null, form: x.form || null, markadsleyfishafi: x.holder || null }, url: '/lyf/',
-          title: `Lyfjaskortur: ${x.name}${x.strength ? ' ' + x.strength : ''}`,
-          text: `Skráður er skortur á lyfinu ${x.name}${x.strength ? ' (' + x.strength + ')' : ''}${efni ? `, virkt efni ${efni}` : ''} samkvæmt Sérlyfjaskrá Lyfjastofnunar. Lyfið er skráð sem nauðsynlegt lyf.` });
-      });
-    }
-    state.lyfSeen = inShort.map((x) => x.slug).slice(0, 4000);
-    const lf = naestaLyfFyrst(state.lyfFyrst || null, inShort.map((x) => x.slug), TODAY);
-    if (lf.vidvorun) console.log('⚠ ' + lf.vidvorun);
-    state.lyfFyrst = lf.mynd;
+    const r = pickLyf(lyf, state.lyfSeen, state.lyfFyrst);
+    r.cand.forEach((x) => {
+      const efni = (x.ingredients || []).join(', ') || ((x.atc || {}).name) || '';
+      ev.push({ id: `lyfskortur-${x.slug}`, type: 'lyf', facts: { lyf: x.name, virkt: efni || null, styrkur: x.strength || null, form: x.form || null, markadsleyfishafi: x.holder || null }, url: '/lyf/',
+        title: `Lyfjaskortur: ${x.name}${x.strength ? ' ' + x.strength : ''}`,
+        text: `Skráður er skortur á lyfinu ${x.name}${x.strength ? ' (' + x.strength + ')' : ''}${efni ? `, virkt efni ${efni}` : ''} samkvæmt Sérlyfjaskrá Lyfjastofnunar. Lyfið er skráð sem nauðsynlegt lyf.` });
+    });
+    if (r.vidvorun) console.log('⚠ ' + r.vidvorun);
+    state.lyfSeen = r.grunnur;
+    state.lyfFyrst = r.fyrst;
   }
 
   // ── Ný vörumerki íslenskra aðila (Hugverkastofan) ──
@@ -740,7 +712,6 @@ function detect(state) {
   }
 
   // ══ BYLGJA 3 (LOTA 35): byggingar · sveitarfjármál · grænar tölur ══
-  const dmyIS = (d) => { const m = String(d).match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : d; };
   // Nýtt byggingarleyfi fyrir atvinnuhúsnæði SAMÞYKKT hjá byggingarfulltrúa RVK (nýlegt, ekki íbúðarhúsnæði — engin PII)
   const byW = J('byggingarleyfi_vakt.json');
   if (byW && Array.isArray(byW.recent)) {
@@ -877,15 +848,17 @@ function detect(state) {
   }
 
   // Eftirlitsvaktin (matvælaeftirlit RVK) — AGGREGATE, engin nöfn. Diff á fjölda stöðvaðra/takmarkaðra (einkunn 0–1).
+  // Hreinn skynjari í eftirlit_detect.js (próf): dagsettur grunnur (≤ 3 dagar) og hálf skrá er ekki borin saman.
   const eft = J('eftirlit.json');
   if (eft && Array.isArray(eft.dist) && eft.dist.length >= 6 && eft.count) {
-    const bad = (eft.dist[0] || 0) + (eft.dist[1] || 0), full = eft.dist[5] || 0;
-    if (typeof state.eftirlitBad === 'number' && state.eftirlitBad !== bad) {
-      ev.push({ id: `eftirlit-${TODAY}`, type: 'eftirlit', facts: { stodvud_takmorkud: bad, fjoldi: eft.count, medaleinkunn: eft.avg, krofur_uppfylltar: full, fyrri: state.eftirlitBad }, url: '/eftirlit/',
+    const { bad, fyrri, grunnur } = pickEftirlit(eft, state.eftirlitBad);
+    const full = eft.dist[5] || 0;
+    if (fyrri !== null) {
+      ev.push({ id: `eftirlit-${TODAY}`, type: 'eftirlit', facts: { stodvud_takmorkud: bad, fjoldi: eft.count, medaleinkunn: eft.avg, krofur_uppfylltar: full, fyrri }, url: '/eftirlit/',
         title: `Eftirlitsvaktin: ${bad} matvælastaðir með stöðvaða eða takmarkaða starfsemi`,
-        text: `${bad} af ${eft.count} matvæla- og veitingastöðum í Reykjavík eru nú með stöðvaða eða takmarkaða starfsemi samkvæmt heilbrigðiseftirliti Reykjavíkur (einkunn 0–1 á kvarðanum 0–5), borið saman við ${state.eftirlitBad} áður. Meðaleinkunn allra staða er ${String(eft.avg).replace('.', ',')} og ${full} staðir uppfylla allar kröfur. Yfirlitið er á heildar-grunni og nefnir ekki einstaka staði.` });
+        text: `${bad} af ${eft.count} matvæla- og veitingastöðum í Reykjavík eru nú með stöðvaða eða takmarkaða starfsemi samkvæmt heilbrigðiseftirliti Reykjavíkur (einkunn 0–1 á kvarðanum 0–5), borið saman við ${fyrri} áður. Meðaleinkunn allra staða er ${String(eft.avg).replace('.', ',')} og ${full} staðir uppfylla allar kröfur. Yfirlitið er á heildar-grunni og nefnir ekki einstaka staði.` });
     }
-    state.eftirlitBad = bad;
+    state.eftirlitBad = grunnur;
   }
 
   return ev;
@@ -1121,4 +1094,4 @@ async function main() {
 }
 // Keyrt beint => byggja. Flutt inn (próf) => aðeins föllin: main() keyrir EKKI og ekkert er skrifað.
 if (require.main === module) main().catch((e) => { console.error(e); process.exit(1); });
-module.exports = { synishornUrSafni, vorumerkjaKt, prufukeyrsla, naestaLyfFyrst };
+module.exports = { synishornUrSafni, vorumerkjaKt, prufukeyrsla };
