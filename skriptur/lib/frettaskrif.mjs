@@ -7,6 +7,10 @@ import { athugaTolur } from './talnavorn.mjs';
 
 export const SJALFGEFID_LIKAN = 'claude-opus-5';
 export const HAMARK = 30;   // kostnaðarþak á keyrslu; umfram fréttir halda sniðmátstexta
+export const MAX_TOKENS = 4096;   // hugsunartókar claude-opus-5 teljast í max_tokens; 1500 dugði ekki fyrir hugsun + frétt
+export const TIMATHAK = 12 * 60 * 1000;   // heildartími ritunar á keyrslu (ms); eftir hann byrjar engin ný frétt
+// stop_reason sem endurskrif lagar ekki: max_tokens = svarið klipptist, refusal = líkanið neitaði að skrifa
+const STOPP_AN_ENDURSKRIFS = new Set(['max_tokens', 'refusal']);
 export const TOLUFRETTIR = new Set(['mark', 'vextir', 'verdbolga', 'vika', 'fylgi', 'fast', 'fastthr', 'samanburdur', 'gengi', 'spike']);
 export const snidFyrir = (type) => (TOLUFRETTIR.has(type) ? 'tolur' : 'efni');
 
@@ -59,56 +63,87 @@ export function styttaTitil(titill, hamark = 90) {
 }
 
 async function kalla(client, model, messages) {
-  // skyndiminni (cache_control) virkjast aðeins þegar KERFI fer yfir lágmarkslengd líkansins fyrir skyndiminni — meinlaust í dag en sparar ekki endilega kostnað.
-  const msg = await client.messages.create({ model, max_tokens: 1500, system: [{ type: 'text', text: KERFI, cache_control: { type: 'ephemeral' } }], messages });
-  return (msg.content || []).map((c) => c.text || '').join('');
+  // effort 'low' en hugsun EKKI gerð óvirk: á claude-opus-5 er aðlögunarhæf hugsun sjálfgefin (effort high) og skjöl
+  // vara við thinking:{type:'disabled'} því þá lekur hugsun inn í textann. Skyndiminni (cache_control) krefst a.m.k.
+  // 512 tóka á Opus 5; styttri fyrirmæli eru einfaldlega ekki geymd (engin villa).
+  const msg = await client.messages.create({
+    model, max_tokens: MAX_TOKENS, output_config: { effort: 'low' },
+    system: [{ type: 'text', text: KERFI, cache_control: { type: 'ephemeral' } }], messages,
+  });
+  // svarið getur byrjað á thinking-blokk (án .text) á undan text-blokkinni; fréttin er AÐEINS í text-blokkum
+  const texti = (msg.content || []).filter((c) => c && c.type === 'text').map((c) => c.text || '').join('');
+  return { texti, stopp: msg.stop_reason || null };
 }
 
-export async function skrifaFrettir(events, { client, model = SJALFGEFID_LIKAN, hamark = HAMARK, skra = console.log } = {}) {
-  const t = { skrifadar: 0, endurskrifadar: 0, hafnad: 0, villur: 0, sleppt: 0 };
+// röng tala er verri en langur titill: nefnist EITT vandamál í endurskrifinu, aldrei bæði
+function athugasemd(vandi, ut, vorn) {
+  if (vandi === 'json') return 'Svarið var ekki gildur JSON-hlutur. Skilaðu AÐEINS {"title":"...","text":"..."}.';
+  if (vandi === 'tolur') return 'Þessar tölur standa ekki í facts: ' + vorn.rangar.join(', ') + '. Skrifaðu fréttina aftur án þeirra eða með réttum gildum úr facts. Skilaðu AÐEINS JSON-hlutnum.';
+  return 'Titillinn er ' + ut.title.length + ' stafir en má vera 90 að hámarki. Styttu hann án þess að breyta staðreyndum. Skilaðu AÐEINS JSON-hlutnum.';
+}
+
+/** Skrifar EINA frétt. { ok, endurskrifad, astaeda?, rangar? } — við höfnun helst sniðmátstextinn óbreyttur. */
+async function skrifaEina(e, client, model, skra) {
+  const facts = e.facts || {};
+  const skilabod = [{ role: 'user', content: JSON.stringify({ type: e.type, snid: snidFyrir(e.type), facts }) }];
+  let endurskrifad = false, vorn = null;
+  try {
+    let svar = await kalla(client, model, skilabod);
+    if (STOPP_AN_ENDURSKRIFS.has(svar.stopp)) return { ok: false, endurskrifad, astaeda: svar.stopp };
+    let ut = thattaSvar(svar.texti);
+    vorn = ut ? athugaTolur(ut.title + '\n' + ut.text, facts) : null;
+    const vandi = !ut ? 'json' : !vorn.ok ? 'tolur' : ut.title.length > 90 ? 'titill' : null;
+    if (vandi) {
+      endurskrifad = true;
+      skilabod.push({ role: 'assistant', content: svar.texti || '(tómt)' }, { role: 'user', content: athugasemd(vandi, ut, vorn) });
+      svar = await kalla(client, model, skilabod);
+      if (STOPP_AN_ENDURSKRIFS.has(svar.stopp)) return { ok: false, endurskrifad, astaeda: svar.stopp };
+      ut = thattaSvar(svar.texti);
+      vorn = ut ? athugaTolur(ut.title + '\n' + ut.text, facts) : null;
+    }
+    if (!ut) return { ok: false, endurskrifad, astaeda: 'json' };
+    if (!vorn.ok) return { ok: false, endurskrifad, astaeda: 'tolur', rangar: vorn.rangar };
+    e.title = styttaTitil(ut.title);
+    e.text = ut.text.slice(0, 2200);
+    e.ai = true;
+    delete e.talnavorn;   // hreinsa stakt merki frá fyrri keyrslu — má ekki lifa við hlið ferska ai:true textans
+    return { ok: true, endurskrifad };
+  } catch (err) {
+    skra('• ritun brást fyrir ' + e.id + ': ' + String(err).slice(0, 100));
+    // brást endurskrifið sjálft (t.d. 529) eftir talnavarnarhöfnun björgum við röngu tölunum úr fyrri atrennu
+    return { ok: false, endurskrifad, astaeda: 'villa', rangar: vorn && !vorn.ok ? vorn.rangar : undefined };
+  }
+}
+
+/** Skrifar fréttirnar hverja í sínu kalli. Tölfræðin ber `hafnadar: [{ id, astaeda, rangar? }]` þar sem astaeda er
+ *  'tolur' | 'json' | 'titill' | 'texti' | 'max_tokens' | 'refusal' | 'villa'. `nu` er inndælanleg klukka (próf). */
+export async function skrifaFrettir(events, { client, model = SJALFGEFID_LIKAN, hamark = HAMARK, timaThak = TIMATHAK, nu = Date.now, skra = console.log } = {}) {
+  const t = { skrifadar: 0, endurskrifadar: 0, hafnad: 0, villur: 0, sleppt: 0, hafnadar: [] };
   if (!client) return t;
   const hopur = (events || []).filter((e) => e && !e.noai);
-  t.sleppt = Math.max(0, hopur.length - hamark);
-  for (const e of hopur.slice(0, hamark)) {
-    const facts = e.facts || {};
-    const skilabod = [{ role: 'user', content: JSON.stringify({ type: e.type, snid: snidFyrir(e.type), facts }) }];
-    try {
-      let raw = await kalla(client, model, skilabod);
-      let ut = thattaSvar(raw);
-      let vorn = ut ? athugaTolur(ut.title + '\n' + ut.text, facts) : null;
-      const titillLangur = !!(ut && ut.title.length > 90);
-      if (!ut || !vorn.ok || titillLangur) {
-        t.endurskrifadar++;
-        // röng tala er verri en langur titill — nefnist EITT vandamál í endurskrifinu, aldrei bæði
-        const athugasemd = !ut
-          ? 'Svarið var ekki gildur JSON-hlutur. Skilaðu AÐEINS {"title":"...","text":"..."}.'
-          : !vorn.ok
-          ? 'Þessar tölur standa ekki í facts: ' + vorn.rangar.join(', ') + '. Skrifaðu fréttina aftur án þeirra eða með réttum gildum úr facts. Skilaðu AÐEINS JSON-hlutnum.'
-          : 'Titillinn er ' + ut.title.length + ' stafir en má vera 90 að hámarki. Styttu hann án þess að breyta staðreyndum. Skilaðu AÐEINS JSON-hlutnum.';
-        skilabod.push({ role: 'assistant', content: raw || '(tómt)' }, { role: 'user', content: athugasemd });
-        try {
-          raw = await kalla(client, model, skilabod);
-        } catch (err) {
-          // endurskrifið sjálft brást (t.d. 529) — teljum sem villu en björgum fyrri talnavörn ef það var höfnunarástæðan
-          t.villur++;
-          if (vorn && !vorn.ok) e.talnavorn = vorn.rangar;
-          skra('• ritun brást fyrir ' + e.id + ': ' + String(err).slice(0, 100));
-          continue;
-        }
-        ut = thattaSvar(raw);
-        vorn = ut ? athugaTolur(ut.title + '\n' + ut.text, facts) : null;
-      }
-      if (ut && vorn && vorn.ok) {
-        e.title = styttaTitil(ut.title);
-        e.text = ut.text.slice(0, 2200);
-        e.ai = true;
-        delete e.talnavorn;   // hreinsa stakt merki frá fyrri keyrslu — má ekki lifa við hlið ferska ai:true textans
-        t.skrifadar++;
-      } else { t.hafnad++; if (vorn && !vorn.ok) e.talnavorn = vorn.rangar; }
-    } catch (err) { t.villur++; skra('• ritun brást fyrir ' + e.id + ': ' + String(err).slice(0, 100)); }
+  const byrjun = nu();
+  for (let i = 0; i < hopur.length; i++) {
+    // Kostnaðarþak (fjöldi) og tímaþak: eftir annað hvort byrjar engin ný frétt og afgangurinn heldur sniðmáti. Tímaþakið
+    // ver daglegu keyrsluna: hún uppfærir líka önnur gögn og má ekki stöðvast þótt API-ið hægi á sér.
+    if (i >= hamark || nu() - byrjun >= timaThak) {
+      t.sleppt = hopur.length - i;
+      if (i < hamark) skra('• tímaþak ritunar náð eftir ' + i + ' fréttir; ' + t.sleppt + ' halda sniðmáti');
+      break;
+    }
+    const e = hopur[i];
+    const r = await skrifaEina(e, client, model, skra);
+    if (r.endurskrifad) t.endurskrifadar++;
+    if (r.ok) { t.skrifadar++; continue; }
+    if (r.astaeda === 'villa') t.villur++; else t.hafnad++;
+    if (r.rangar) e.talnavorn = r.rangar;
+    t.hafnadar.push(r.rangar ? { id: e.id, astaeda: r.astaeda, rangar: r.rangar } : { id: e.id, astaeda: r.astaeda });
   }
   return t;
 }
+
+/** Ein lína á hverja höfnun: id · ástæða · rangar tölur (ef til). */
+export const hafnadarLinur = (hafnadar) => (hafnadar || [])
+  .map((h) => '• hafnað: ' + h.id + ' · ' + h.astaeda + (h.rangar && h.rangar.length ? ' · ' + h.rangar.join(', ') : ''));
 
 /** Læsileg samantekt prufukeyrslu (markdown): áður/nýtt, bakgrunnur, höfnun talnavarnar. */
 export function samantektMd(events, { titill = 'Prufukeyrsla fréttavélar' } = {}) {

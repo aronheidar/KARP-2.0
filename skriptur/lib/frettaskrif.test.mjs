@@ -1,15 +1,23 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { skrifaFrettir, thattaSvar, samantektMd, snidFyrir, styttaTitil, SJALFGEFID_LIKAN } from './frettaskrif.mjs';
+import { skrifaFrettir, thattaSvar, samantektMd, snidFyrir, styttaTitil, hafnadarLinur, SJALFGEFID_LIKAN } from './frettaskrif.mjs';
 
-/** Gervi-client: hvert kall tekur næsta svar (strengur, fall af beiðni, eða Error sem kastast). */
+/** Gervi-client: hvert kall tekur næsta svar — strengur, fall af beiðni, Error sem kastast, eða hlutur
+ *  { text, stop_reason, hugsun } þar sem hugsun:true setur thinking-blokk (án .text) Á UNDAN text-blokkinni,
+ *  eins og claude-opus-5 gerir með aðlögunarhæfri hugsun. */
 function gervi(svor) {
   const kol = [];
   return { kol, messages: { create: async (req) => {
     kol.push(JSON.parse(JSON.stringify(req)));
-    const s = svor.shift();
+    let s = svor.shift();
     if (s instanceof Error) throw s;
-    return { content: [{ type: 'text', text: typeof s === 'function' ? s(req) : s }] };
+    if (typeof s === 'function') s = s(req);
+    const o = s && typeof s === 'object' ? s : { text: s };
+    const content = [];
+    // hugsunin ber JSON-líkan streng með rangri tölu: sá sem læsi .thinking fengi ranga frétt
+    if (o.hugsun) content.push({ type: 'thinking', thinking: '{"title":"Síminn lækkar um 9,9%","text":"9,9%"}', signature: 'sig' });
+    content.push({ type: 'text', text: o.text });
+    return { content, stop_reason: o.stop_reason || 'end_turn' };
   } } };
 }
 const SIMINN = () => ({ id: 'mark-x', type: 'mark', facts: { felag: 'Siminn hf', breyting: -7.3, verd: 10.2 }, title: 'gamall titill', text: 'gamall texti' });
@@ -20,7 +28,7 @@ const RANGT = J('Síminn lækkar um 7,5%', 'Hlutabréf í Símanum lækkuðu um 
 test('stenst í fyrstu atrennu: nýr texti, nýtt líkan, skyndiminni á fyrirmælum, tölusnið', async () => {
   const c = gervi([GOTT]); const e = SIMINN();
   const t = await skrifaFrettir([e], { client: c });
-  assert.deepEqual(t, { skrifadar: 1, endurskrifadar: 0, hafnad: 0, villur: 0, sleppt: 0 });
+  assert.deepEqual(t, { skrifadar: 1, endurskrifadar: 0, hafnad: 0, villur: 0, sleppt: 0, hafnadar: [] });
   assert.equal(e.ai, true);
   assert.equal(e.title, 'Síminn lækkar um 7,3%');
   assert.equal(c.kol[0].model, SJALFGEFID_LIKAN);
@@ -71,6 +79,7 @@ test('API-villa fellir ekki næstu frétt; þak og noai virt', async () => {
   assert.equal(a.text, 'gamall texti');
   assert.equal(b.ai, true);
   assert.equal(c.kol.length, 2, 'noai sent aldrei');
+  assert.deepEqual(t.hafnadar, [{ id: 'mark-x', astaeda: 'villa' }]);
 });
 
 test('efnismál fá efnissnið; samantekt sýnir áður/nýtt, bakgrunn og höfnun', () => {
@@ -130,4 +139,91 @@ test('samþykkt hreinsar gamalt talnavörn-merki af fyrri keyrslu', async () => 
   const t = await skrifaFrettir([e], { client: c });
   assert.equal(e.ai, true);
   assert.equal(e.talnavorn, undefined);
+});
+
+// ── Kallið sjálft (yfirferð 22.9): max_tokens, effort, stop_reason, hugsun, tímaþak ──────────────
+test('hvert kall: max_tokens 4096 og effort low, líka endurskrifið; hugsun er ekki gerð óvirk', async () => {
+  const c = gervi([RANGT, GOTT]);
+  await skrifaFrettir([SIMINN()], { client: c });
+  assert.equal(c.kol.length, 2);
+  for (const k of c.kol) {
+    assert.equal(k.max_tokens, 4096);
+    assert.deepEqual(k.output_config, { effort: 'low' });
+    assert.equal(k.thinking, undefined, 'skjöl vara við thinking:disabled, hugsun lekur þá inn í textann');
+  }
+});
+
+test('svar sem byrjar á thinking-blokk (án .text): aðeins text-blokkin er lesin', async () => {
+  const c = gervi([{ text: GOTT, hugsun: true }]); const e = SIMINN();
+  const t = await skrifaFrettir([e], { client: c });
+  assert.equal(t.skrifadar, 1);
+  assert.equal(e.title, 'Síminn lækkar um 7,3%');
+  assert.doesNotMatch(e.text, /9,9/);
+});
+
+test('stop_reason max_tokens → hafnað strax, endurskrifinu er ekki eytt á klippt svar', async () => {
+  const c = gervi([{ text: '{"title":"Síminn lækk', stop_reason: 'max_tokens' }]); const e = SIMINN();
+  const t = await skrifaFrettir([e], { client: c });
+  assert.equal(c.kol.length, 1);
+  assert.equal(t.endurskrifadar, 0);
+  assert.equal(t.hafnad, 1);
+  assert.deepEqual(t.hafnadar, [{ id: 'mark-x', astaeda: 'max_tokens' }]);
+  assert.equal(e.text, 'gamall texti');
+  assert.equal(e.ai, undefined);
+});
+
+test('stop_reason refusal → hafnað strax án endurskrifs, jafnvel þótt texti fylgi', async () => {
+  const c = gervi([{ text: GOTT, stop_reason: 'refusal' }]); const e = SIMINN();
+  const t = await skrifaFrettir([e], { client: c });
+  assert.equal(c.kol.length, 1);
+  assert.deepEqual(t.hafnadar, [{ id: 'mark-x', astaeda: 'refusal' }]);
+  assert.equal(e.ai, undefined);
+});
+
+test('max_tokens í endurskrifinu → hafnað með þeirri ástæðu', async () => {
+  const c = gervi([RANGT, { text: GOTT, stop_reason: 'max_tokens' }]); const e = SIMINN();
+  const t = await skrifaFrettir([e], { client: c });
+  assert.equal(c.kol.length, 2);
+  assert.equal(t.endurskrifadar, 1);
+  assert.deepEqual(t.hafnadar, [{ id: 'mark-x', astaeda: 'max_tokens' }]);
+  assert.equal(e.ai, undefined);
+});
+
+test('tölfræðin skráir hverja höfnun: id, ástæðu og röngu tölurnar; línurnar prentast', async () => {
+  const c = gervi([RANGT, RANGT, 'ekki json', 'ekki heldur', new Error('529 overloaded')]);
+  const a = SIMINN(), b = { ...SIMINN(), id: 'mark-y' }, d = { ...SIMINN(), id: 'mark-z' };
+  const t = await skrifaFrettir([a, b, d], { client: c, skra: () => {} });
+  assert.deepEqual(t.hafnadar, [
+    { id: 'mark-x', astaeda: 'tolur', rangar: ['7,5%'] },
+    { id: 'mark-y', astaeda: 'json' },
+    { id: 'mark-z', astaeda: 'villa' },
+  ]);
+  assert.equal(t.hafnad, 2);
+  assert.equal(t.villur, 1);
+  assert.deepEqual(hafnadarLinur(t.hafnadar), ['• hafnað: mark-x · tolur · 7,5%', '• hafnað: mark-y · json', '• hafnað: mark-z · villa']);
+});
+
+test('tímaþak: eftir þakið byrjar engin ný frétt og afgangurinn heldur sniðmáti (sleppt)', async () => {
+  let klukka = 0;
+  const skref = () => { klukka += 5 * 60000; return GOTT; };   // hvert kall tekur 5 mínútur
+  const c = gervi([skref, skref, skref, GOTT]);
+  const ev = [SIMINN(), SIMINN(), SIMINN(), SIMINN()];
+  const t = await skrifaFrettir(ev, { client: c, nu: () => klukka, timaThak: 12 * 60000, skra: () => {} });
+  assert.equal(t.skrifadar, 3, 'fréttir byrja kl. 0, 5 og 10 mín; sú fjórða hefði byrjað kl. 15');
+  assert.equal(t.sleppt, 1);
+  assert.equal(c.kol.length, 3);
+  assert.equal(ev[3].text, 'gamall texti');
+  assert.equal(ev[3].ai, undefined);
+});
+
+test('sjálfgefið tímaþak er 12 mínútur', async () => {
+  const keyra = async (lidid) => {
+    let klukka = 0;
+    const c = gervi([() => { klukka = lidid; return GOTT; }, GOTT]);
+    return skrifaFrettir([SIMINN(), SIMINN()], { client: c, nu: () => klukka, skra: () => {} });
+  };
+  assert.equal((await keyra(11.9 * 60000)).skrifadar, 2, 'fyrir 12 mín byrjar næsta frétt');
+  const eftir = await keyra(12 * 60000);
+  assert.equal(eftir.skrifadar, 1);
+  assert.equal(eftir.sleppt, 1, 'eftir 12 mín byrjar engin ný frétt');
 });

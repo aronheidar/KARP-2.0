@@ -943,14 +943,15 @@ function gognBakgrunns() {
 }
 function nyrClient() {
   if (!process.env.ANTHROPIC_API_KEY) return null;
-  try { const p = require('@anthropic-ai/sdk'); const A = p.Anthropic || p.default || p; return new A(); }
+  // 60 s á kall og eitt endurkall (sjálfgefið í SDK: 10 mín og 2): eitt hangandi kall má ekki éta tímaþak ritunarinnar
+  try { const p = require('@anthropic-ai/sdk'); const A = p.Anthropic || p.default || p; return new A({ timeout: 60_000, maxRetries: 1 }); }
   catch (e) { console.log('• @anthropic-ai/sdk ekki til — sniðmátstextar notaðir.'); return null; }
 }
 // ⚠ Prufuhamur skrifar EKKERT. Hann skrifar fréttir dagsins og N nýlegar úr safninu (áður vs nýtt) og prentar
 //   samantekt, líka í $GITHUB_STEP_SUMMARY. Markaðsfréttum eldri en 2 daga er sleppt (verðsagan hefur hreyfst).
 async function prufukeyrsla(published, state) {
   const { baetaVidBakgrunni, STUDDAR_TEGUNDIR } = await import('./lib/frettasamhengi.mjs');
-  const { skrifaFrettir, samantektMd } = await import('./lib/frettaskrif.mjs');
+  const { skrifaFrettir, samantektMd, hafnadarLinur } = await import('./lib/frettaskrif.mjs');
   const synishorn = [];
   if (ENDURSKRIFA) {
     const markMork = new Date(Date.now() - 2 * 86400000).toISOString().slice(0, 10);
@@ -973,8 +974,9 @@ async function prufukeyrsla(published, state) {
   const allt = published.concat(synishorn);
   const client = nyrClient();
   const t = client ? await skrifaFrettir(allt, { client, model: process.env.KARP_FRETTAVEL_MODEL || undefined }) : null;
+  const { hafnadar = [], ...tolur } = t || {};
   const md = samantektMd(allt, { titill: 'Prufukeyrsla fréttavélar ' + TODAY + (client ? '' : ' (enginn lykill: aðeins bakgrunnur)') })
-    + (t ? '\n\nTölfræði: ' + JSON.stringify(t) : '');
+    + (t ? '\n\nTölfræði: ' + JSON.stringify(tolur) + (hafnadar.length ? '\n\n' + hafnadarLinur(hafnadar).join('\n') : '') : '');
   console.log('\n===== PRUFUKEYRSLA — ekkert skrifað =====\n' + md);
   if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, md + '\n');
 }
@@ -1018,10 +1020,11 @@ async function main() {
   if (THURR) { await prufukeyrsla(published, state); return; }
 
   if (NYTT) {
-    const { skrifaFrettir } = await import('./lib/frettaskrif.mjs');
+    const { skrifaFrettir, hafnadarLinur } = await import('./lib/frettaskrif.mjs');
     const client = nyrClient();
     const t = client ? await skrifaFrettir(published, { client, model: process.env.KARP_FRETTAVEL_MODEL || undefined }) : null;
-    console.log('Ný ritun:', t ? JSON.stringify(t) : '(enginn lykill — sniðmát)');
+    if (!t) console.log('Ný ritun: (enginn lykill — sniðmát)');
+    else { const { hafnadar, ...tolur } = t; console.log('Ný ritun:', JSON.stringify(tolur)); hafnadarLinur(hafnadar).forEach((l) => console.log(l)); }
   } else {
     const aiN = await aiWrite(published);
     console.log('AI-skrifaðar:', aiN, 'af', Math.min(published.length, 16), process.env.ANTHROPIC_API_KEY ? '' : '(enginn lykill — sniðmát)');
