@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { skrifaFrettir, thattaSvar, samantektMd, snidFyrir, styttaTitil, hafnadarLinur, SJALFGEFID_LIKAN, KERFI } from './frettaskrif.mjs';
+import { skrifaFrettir, thattaSvar, samantektMd, efnisgreinMd, snidFyrir, styttaTitil, hafnadarLinur, SJALFGEFID_LIKAN, KERFI } from './frettaskrif.mjs';
 
 /** Gervi-client: hvert kall tekur næsta svar — strengur, fall af beiðni, Error sem kastast, eða hlutur
  *  { text, stop_reason, hugsun } þar sem hugsun:true setur thinking-blokk (án .text) Á UNDAN text-blokkinni,
@@ -219,6 +219,30 @@ test('tímaþak: eftir þakið byrjar engin ný frétt og afgangurinn heldur sni
   assert.equal(c.kol.length, 3);
   assert.equal(ev[3].text, 'gamall texti');
   assert.equal(ev[3].ai, undefined);
+});
+
+// Prufuhamurinn prentar hverja frétt jafnóðum (I7), svo sýnishorn glatist ekki þótt vinnuflæðið nái tímamörkum.
+test('eftirHverja kallast strax eftir hverja frétt, áður en sú næsta er skrifuð, með höfnuninni ef hún varð', async () => {
+  const kallad = [];
+  const c = gervi([() => { kallad.push('kall1'); return GOTT; }, () => { kallad.push('kall2'); return RANGT; }, RANGT]);
+  const a = SIMINN(), b = { ...SIMINN(), id: 'mark-y' };
+  await skrifaFrettir([a, b], { client: c, eftirHverja: (e, h) => kallad.push(e.id + (h ? ':' + h.astaeda : '')) });
+  assert.deepEqual(kallad, ['kall1', 'mark-x', 'kall2', 'mark-y:tolur']);
+});
+
+test('prentun sem bregst stöðvar ekki ritunina', async () => {
+  const c = gervi([GOTT, GOTT]);
+  const t = await skrifaFrettir([SIMINN(), SIMINN()], { client: c, skra: () => {}, eftirHverja: () => { throw new Error('diskur fullur'); } });
+  assert.equal(t.skrifadar, 2);
+});
+
+test('efnisgreinMd: ein frétt með áður/nýtt, bakgrunni og höfnunarástæðu', () => {
+  const md = efnisgreinMd({ id: 'b', type: 'mark', title: 'Sniðmát', text: 'S.', gamall: { title: 'Gamalt', text: 'G.' }, facts: { bakgrunnur: { x: 1 } } }, { id: 'b', astaeda: 'tolur', rangar: ['7,5%'] });
+  assert.match(md, /^### mark · b/);
+  assert.match(md, /Áður:\*\* Gamalt/);
+  assert.match(md, /Sniðmát \(ekki vélskrifað\)/);
+  assert.match(md, /"x":1/);
+  assert.match(md, /Hafnað:_ tolur · 7,5%/);
 });
 
 test('sjálfgefið tímaþak er 12 mínútur', async () => {

@@ -118,8 +118,9 @@ async function skrifaEina(e, client, model, skra) {
 }
 
 /** Skrifar fréttirnar hverja í sínu kalli. Tölfræðin ber `hafnadar: [{ id, astaeda, rangar? }]` þar sem astaeda er
- *  'tolur' | 'json' | 'titill' | 'texti' | 'max_tokens' | 'refusal' | 'villa'. `nu` er inndælanleg klukka (próf). */
-export async function skrifaFrettir(events, { client, model = SJALFGEFID_LIKAN, hamark = HAMARK, timaThak = TIMATHAK, nu = Date.now, skra = console.log } = {}) {
+ *  'tolur' | 'json' | 'titill' | 'texti' | 'max_tokens' | 'refusal' | 'villa'. `nu` er inndælanleg klukka (próf).
+ *  `eftirHverja(e, hofnun)` kallast strax eftir hverja frétt (prufuhamur prentar jafnóðum). */
+export async function skrifaFrettir(events, { client, model = SJALFGEFID_LIKAN, hamark = HAMARK, timaThak = TIMATHAK, nu = Date.now, skra = console.log, eftirHverja = null } = {}) {
   const t = { skrifadar: 0, endurskrifadar: 0, hafnad: 0, villur: 0, sleppt: 0, hafnadar: [] };
   if (!client) return t;
   const hopur = (events || []).filter((e) => e && !e.noai);
@@ -135,10 +136,16 @@ export async function skrifaFrettir(events, { client, model = SJALFGEFID_LIKAN, 
     const e = hopur[i];
     const r = await skrifaEina(e, client, model, skra);
     if (r.endurskrifad) t.endurskrifadar++;
-    if (r.ok) { t.skrifadar++; continue; }
-    if (r.astaeda === 'villa') t.villur++; else t.hafnad++;
-    if (r.rangar) e.talnavorn = r.rangar;
-    t.hafnadar.push(r.rangar ? { id: e.id, astaeda: r.astaeda, rangar: r.rangar } : { id: e.id, astaeda: r.astaeda });
+    if (r.ok) t.skrifadar++;
+    else {
+      if (r.astaeda === 'villa') t.villur++; else t.hafnad++;
+      if (r.rangar) e.talnavorn = r.rangar;
+    }
+    const h = !r.astaeda ? null : r.rangar ? { id: e.id, astaeda: r.astaeda, rangar: r.rangar } : { id: e.id, astaeda: r.astaeda };
+    if (h) t.hafnadar.push(h);
+    if (eftirHverja) {
+      try { eftirHverja(e, h); } catch (err) { skra('• prentun brást fyrir ' + e.id + ': ' + String(err).slice(0, 100)); }
+    }
   }
   return t;
 }
@@ -147,17 +154,20 @@ export async function skrifaFrettir(events, { client, model = SJALFGEFID_LIKAN, 
 export const hafnadarLinur = (hafnadar) => (hafnadar || [])
   .map((h) => '• hafnað: ' + h.id + ' · ' + h.astaeda + (h.rangar && h.rangar.length ? ' · ' + h.rangar.join(', ') : ''));
 
+/** Ein frétt prufukeyrslu (markdown): áður/nýtt, bakgrunnur og höfnun (h = færsla úr hafnadar, ef hún varð). */
+export function efnisgreinMd(e, h = null) {
+  const l = ['### ' + e.type + ' · ' + e.id];
+  if (e.gamall) l.push('**Áður:** ' + e.gamall.title, '', e.gamall.text || '', '');
+  l.push('**' + (e.ai ? 'Nýtt' : 'Sniðmát (ekki vélskrifað)') + ':** ' + e.title, '', e.text || '', '');
+  const bg = e.facts && e.facts.bakgrunnur;
+  l.push('_Bakgrunnur:_ ' + (bg ? '`' + JSON.stringify(bg) + '`' : 'enginn'));
+  if (h) l.push('_Hafnað:_ ' + h.astaeda + (h.rangar && h.rangar.length ? ' · ' + h.rangar.join(', ') : ''));
+  else if (e.talnavorn) l.push('_Talnavörn hafnaði:_ ' + e.talnavorn.join(', '));
+  l.push('');
+  return l.join('\n');
+}
+
 /** Læsileg samantekt prufukeyrslu (markdown): áður/nýtt, bakgrunnur, höfnun talnavarnar. */
 export function samantektMd(events, { titill = 'Prufukeyrsla fréttavélar' } = {}) {
-  const l = ['## ' + titill, ''];
-  for (const e of (events || [])) {
-    l.push('### ' + e.type + ' · ' + e.id);
-    if (e.gamall) l.push('**Áður:** ' + e.gamall.title, '', e.gamall.text || '', '');
-    l.push('**' + (e.ai ? 'Nýtt' : 'Sniðmát (ekki vélskrifað)') + ':** ' + e.title, '', e.text || '', '');
-    const bg = e.facts && e.facts.bakgrunnur;
-    l.push('_Bakgrunnur:_ ' + (bg ? '`' + JSON.stringify(bg) + '`' : 'enginn'));
-    if (e.talnavorn) l.push('_Talnavörn hafnaði:_ ' + e.talnavorn.join(', '));
-    l.push('');
-  }
-  return l.join('\n');
+  return ['## ' + titill, '', ...(events || []).map((e) => efnisgreinMd(e))].join('\n');
 }

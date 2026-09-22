@@ -947,38 +947,71 @@ function nyrClient() {
   try { const p = require('@anthropic-ai/sdk'); const A = p.Anthropic || p.default || p; return new A({ timeout: 60_000, maxRetries: 1 }); }
   catch (e) { console.log('• @anthropic-ai/sdk ekki til — sniðmátstextar notaðir.'); return null; }
 }
-// ⚠ Prufuhamur skrifar EKKERT. Hann skrifar fréttir dagsins og N nýlegar úr safninu (áður vs nýtt) og prentar
-//   samantekt, líka í $GITHUB_STEP_SUMMARY. Markaðsfréttum eldri en 2 daga er sleppt (verðsagan hefur hreyfst).
-async function prufukeyrsla(published, state) {
+// Safnið geymir ekki kt, en persónuverndarvörnin hvílir á henni (5 af 7 vörumerkjasýnishornum 22.9 voru einstaklingar):
+// gjaldþrot bera kt aftast í id (gjaldthrot-<ref>-<kt>), vörumerki finnast eftir id í vorumerki_nyskrad.byKt.
+function vorumerkjaKt(vm) {
+  const m = new Map();
+  for (const [kt, listi] of Object.entries((vm && vm.byKt) || {})) for (const t of (listi || [])) if (t && t.id) m.set(String(t.id), kt);
+  return m;
+}
+function ktSynishorns(a, vmKt) {
+  if (a.type === 'gjaldthrot') { const m = /-(\d{10})$/.exec(String(a.id)); return m ? m[1] : null; }
+  if (a.type === 'vorumerki') return vmKt.get(String(a.id).replace(/^vorumerki-/, '')) || null;
+  return null;
+}
+// Sýnishorn úr safninu: hringferð yfir tegundir svo sýnishornið nái yfir sem flesta hópa. `birt` = birtingardagur
+// fréttarinnar, svo bakgrunnurinn miðist við hann en ekki daginn í dag (engin gögn sem komu eftir fréttina).
+function synishornUrSafni(items, n, { studdar, markMork, vmKt }) {
+  const hopar = {};
+  for (const a of (items || [])) {
+    if (!a || !a.facts || (!studdar.includes(a.type) && a.type !== 'domur')) continue;
+    if (a.type === 'mark' && String(a.date) < markMork) continue;
+    (hopar[a.type] = hopar[a.type] || []).push(a);
+  }
+  const rodir = Object.values(hopar), ut = [];
+  for (let i = 0; ut.length < n && rodir.some((r) => r.length); i++) {
+    const r = rodir[i % rodir.length];
+    if (!r.length) continue;
+    const a = r.shift();
+    const f = JSON.parse(JSON.stringify(a.facts)); delete f.bakgrunnur;
+    const s = { id: 'prufa-' + a.id, type: a.type, facts: f, title: a.title, text: a.text, gamall: { title: a.title, text: a.text }, birt: a.date || null };
+    const kt = ktSynishorns(a, vmKt);
+    if (kt) s.kt = kt;
+    ut.push(s);
+  }
+  return ut;
+}
+// ⚠ Prufuhamur skrifar EKKERT. Hann skrifar fréttir dagsins og N nýlegar úr safninu (áður vs nýtt), án fjöldaþaks, og
+//   prentar HVERJA frétt um leið og hún er tilbúin (líka í $GITHUB_STEP_SUMMARY), svo sýnishorn glatist ekki þótt
+//   vinnuflæðið nái tímamörkum; tölfræðin kemur í lokin. Tímaþak ritunar (12 mín) gildir áfram, innan 20 mín vinnuflæðisins.
+//   Markaðsfréttum eldri en 2 daga er sleppt (verðsagan hefur hreyfst). `client` er inndælanlegur (próf).
+async function prufukeyrsla(published, state, { client = nyrClient() } = {}) {
   const { baetaVidBakgrunni, STUDDAR_TEGUNDIR } = await import('./lib/frettasamhengi.mjs');
-  const { skrifaFrettir, samantektMd, hafnadarLinur } = await import('./lib/frettaskrif.mjs');
-  const synishorn = [];
+  const { skrifaFrettir, efnisgreinMd, hafnadarLinur } = await import('./lib/frettaskrif.mjs');
+  let synishorn = [];
   if (ENDURSKRIFA) {
-    const markMork = new Date(Date.now() - 2 * 86400000).toISOString().slice(0, 10);
-    const hopar = {};
-    for (const a of ((J('frettavel_archive.json') || {}).items || [])) {
-      if (!a || !a.facts || (!STUDDAR_TEGUNDIR.includes(a.type) && a.type !== 'domur')) continue;
-      if (a.type === 'mark' && String(a.date) < markMork) continue;
-      (hopar[a.type] = hopar[a.type] || []).push(a);
-    }
-    const rodir = Object.values(hopar);   // hringferð yfir tegundir svo sýnishornið nái yfir sem flesta hópa
-    for (let i = 0; synishorn.length < ENDURSKRIFA && rodir.some((r) => r.length); i++) {
-      const r = rodir[i % rodir.length];
-      if (!r.length) continue;
-      const a = r.shift();
-      const f = JSON.parse(JSON.stringify(a.facts)); delete f.bakgrunnur;
-      synishorn.push({ id: 'prufa-' + a.id, type: a.type, facts: f, title: a.title, text: a.text, gamall: { title: a.title, text: a.text } });
-    }
-    baetaVidBakgrunni(synishorn, gognBakgrunns(), { idag: TODAY, state });
+    synishorn = synishornUrSafni((J('frettavel_archive.json') || {}).items, ENDURSKRIFA, {
+      studdar: STUDDAR_TEGUNDIR, markMork: new Date(Date.now() - 2 * 86400000).toISOString().slice(0, 10), vmKt: vorumerkjaKt(J('vorumerki_nyskrad.json')),
+    });
+    const gogn = gognBakgrunns();
+    for (const s of synishorn) baetaVidBakgrunni([s], gogn, { idag: s.birt || TODAY, state });
   }
   const allt = published.concat(synishorn);
-  const client = nyrClient();
-  const t = client ? await skrifaFrettir(allt, { client, model: process.env.KARP_FRETTAVEL_MODEL || undefined }) : null;
-  const { hafnadar = [], ...tolur } = t || {};
-  const md = samantektMd(allt, { titill: 'Prufukeyrsla fréttavélar ' + TODAY + (client ? '' : ' (enginn lykill: aðeins bakgrunnur)') })
-    + (t ? '\n\nTölfræði: ' + JSON.stringify(tolur) + (hafnadar.length ? '\n\n' + hafnadarLinur(hafnadar).join('\n') : '') : '');
-  console.log('\n===== PRUFUKEYRSLA — ekkert skrifað =====\n' + md);
-  if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, md + '\n');
+  const skrifa = (md) => {
+    console.log(md);
+    if (!process.env.GITHUB_STEP_SUMMARY) return;
+    try { fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, md + '\n'); } catch (e) { console.log('• samantekt náðist ekki í skrá: ' + String(e).slice(0, 80)); }
+  };
+  console.log('\n===== PRUFUKEYRSLA — ekkert skrifað =====');
+  skrifa('## Prufukeyrsla fréttavélar ' + TODAY + (client ? '' : ' (enginn lykill: aðeins bakgrunnur)') + '\n');
+  const prentud = new Set();
+  const prenta = (e, h) => { prentud.add(e); skrifa(efnisgreinMd(e, h)); };
+  const t = client ? await skrifaFrettir(allt, { client, model: process.env.KARP_FRETTAVEL_MODEL || undefined, hamark: Infinity, eftirHverja: prenta }) : null;
+  for (const e of allt) if (!prentud.has(e)) prenta(e, null);   // ekki sendar: noai, utan tímaþaks eða enginn lykill
+  if (t) {
+    const { hafnadar, ...tolur } = t;
+    skrifa('### Samantekt\n\nTölfræði: ' + JSON.stringify(tolur) + (hafnadar.length ? '\n\n' + hafnadarLinur(hafnadar).join('\n') : '') + '\n');
+  }
 }
 
 // ── Aðal ──────────────────────────────────────────────────────
@@ -1072,4 +1105,6 @@ async function main() {
   fs.writeFileSync(path.join(__dirname, '..', 'web', 'public', 'frettavel.xml'), rss(feed));
   console.log('Skrifað: frettavel.json (' + feed.length + ') + frettavel_archive.json (' + archItems.length + ') + frettavel.xml (RSS)');
 }
-main().catch((e) => { console.error(e); process.exit(1); });
+// Keyrt beint => byggja. Flutt inn (próf) => aðeins föllin: main() keyrir EKKI og ekkert er skrifað.
+if (require.main === module) main().catch((e) => { console.error(e); process.exit(1); });
+module.exports = { synishornUrSafni, vorumerkjaKt, prufukeyrsla };
