@@ -2,10 +2,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { EMAIL_TYPES, emailById, resolveEmail, renderEmail, validateEmail } from './emails.mjs';
 
-test('skráin telur allar 14 póst-tegundir og hver er heil', () => {
-  assert.equal(EMAIL_TYPES.length, 14);   // +ticket_ack (þjónustufulltrúi) +kyc_digest (morgunfundurinn), +leikur_lota/_uppgjor (hægur hamur)
+test('skráin telur allar 15 póst-tegundir og hver er heil', () => {
+  assert.equal(EMAIL_TYPES.length, 15);   // +ticket_ack (þjónustufulltrúi) +kyc_digest (morgunfundurinn), +leikur_lota/_uppgjor (hægur hamur), +bod (samningsaðgangur)
   const ids = EMAIL_TYPES.map((t) => t.id);
-  assert.equal(new Set(ids).size, 14, 'id verða að vera einkvæm');
+  assert.equal(new Set(ids).size, 15, 'id verða að vera einkvæm');
   for (const t of EMAIL_TYPES) {
     assert.ok(t.label && t.hvenaer && t.vidtakandi && t.hopur, t.id + ' vantar lýsingu');
     assert.ok(t.subject, t.id + ' vantar efnislínu');
@@ -15,7 +15,7 @@ test('skráin telur allar 14 póst-tegundir og hver er heil', () => {
 });
 
 test('auðkenningar-póstar bera skyldu-hlekkinn sjálfgefið', () => {
-  for (const id of ['verify', 'reset', 'reset_admin']) {
+  for (const id of ['verify', 'reset', 'reset_admin', 'bod']) {
     const t = emailById(id);
     assert.deepEqual(t.krafist, ['hlekkur']);
     assert.ok(t.html.includes('{{hlekkur}}'), id + ' vantar {{hlekkur}}');
@@ -113,4 +113,40 @@ test('leikjapóstar bera engin liðsheiti, stig né ákvarðanir (DPIA Viðbót 
     assert.ok(t.krafist.includes('hlekkur'), id + ' verður að krefjast {{hlekkur}}');
     assert.equal(t.hopur, 'RÁS-Leikurinn', id + ' á að vera í leikja-hópnum');
   }
+});
+
+// ── Boðspóstur (samningsaðgangur) ────────────────────────────────────────────
+// ⚠ Póstreglur Arons (15.9.2026): hvorki tvípunktur né strik af neinu tagi, engir listar. Reglan á
+//   við SÝNILEGA textann; stílar og slóðir inni í tögum mega bera hvort tveggja.
+const sýnilegt = (html) => String(html).replace(/<[^>]+>/g, ' ');
+
+test('boðspósturinn er auðkenningar-póstur með hlekk, nafni og stofu', () => {
+  const t = emailById('bod');
+  assert.ok(t, 'bod vantar í skrána');
+  assert.equal(t.flokkur, 'fastur');
+  assert.equal(t.hopur, 'Auðkenning');
+  assert.deepEqual(t.breytur, ['hlekkur', 'nafn', 'stofa']);
+  assert.deepEqual(t.krafist, ['hlekkur']);
+});
+
+test('⚠ boðspósturinn fylgir póstreglum Arons: enginn tvípunktur, ekkert strik, enginn listi', () => {
+  const t = emailById('bod');
+  for (const [reitur, texti] of [['subject', t.subject], ['html', sýnilegt(t.html)]]) {
+    assert.equal(/:/.test(texti), false, reitur + ' ber tvípunkt');
+    assert.equal(/[-‐‑‒–—―]/.test(texti), false, reitur + ' ber strik');
+  }
+  assert.equal(/<(ul|ol|li)\b/i.test(t.html), false, 'enginn listi');
+});
+
+test('boðspósturinn segir hlekkinn gilda í viku (sama og BOD_GILDI_SEK)', () => {
+  assert.match(sýnilegt(emailById('bod').html), /gildir í viku/);
+});
+
+test('boðspósturinn fyllist út og hlekkurinn lendir í hnappnum', () => {
+  const t = emailById('bod');
+  const html = renderEmail(t.html, { hlekkur: 'https://karp.is/endurstilla/?token=x&bod=1', nafn: 'Jón', stofa: 'Allt' });
+  assert.match(html, /Hæ Jón,/);
+  assert.match(html, /Allt og Karp gerðu samning/);
+  assert.match(html, /href="https:\/\/karp\.is\/endurstilla\/\?token=x&bod=1"/);
+  assert.equal(/\{\{\w+\}\}/.test(html), false, 'engin breyta má standa óútfyllt');
 });

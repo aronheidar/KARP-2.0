@@ -834,7 +834,7 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         const list = sortUsers(ust.all.filter((x) => passFilter(x) && passQuery(x)));
         if (!list.length) { utbody.innerHTML = '<tr class="stj-empty-row"><td colspan="10">Enginn notandi passar við leit/síu.</td></tr>'; return; }
         utbody.innerHTML = list.map((x) =>
-          `<tr${x.test ? ' class="stj-test"' : ''} data-uid="${x.id}"><td>${x.id}</td><td>${esc(x.email)}${x.admin ? ' <span class="stj-badge admin">admin</span>' : ''}${x.test ? ' <span class="stj-badge test">prufa · ekki talin</span>' : ''}</td><td>${typeSelect(x)}</td><td>${esc(x.name)}</td>`
+          `<tr${x.test ? ' class="stj-test"' : ''} data-uid="${x.id}"><td>${x.id}</td><td>${esc(x.email)}${x.admin ? ' <span class="stj-badge admin">admin</span>' : ''}${x.test ? ' <span class="stj-badge test">prufa · ekki talin</span>' : ''}${x.samningur ? ' <span class="stj-badge tier" title="Samningsaðgangur (lib/samningar.mjs), utan Áskels og MRR">samningur ' + esc(x.samningur) + '</span>' : ''}${x.lykilord === false ? ' <span class="stj-badge" title="Aðgangur stofnaður fyrir boð. Starfsmaðurinn hefur ekki enn valið lykilorð.">bíður lykilorðs</span>' : ''}</td><td>${typeSelect(x)}</td><td>${esc(x.name)}</td>`
           + `<td>${x.tier ? '<span class="stj-badge tier">' + esc(x.tier) + '</span>' : '—'}</td>`
           + `<td>${x.subs.length ? x.subs.map((sv) => '<span class="stj-badge">' + esc(SVC[sv] || sv) + '</span>').join('') : '—'}</td>`
           + `<td>${x.reports || '—'}</td><td>${x.verified ? '<span class="stj-badge ok">✓</span>' : '—'}</td><td>${dIS(x.created)}</td>`

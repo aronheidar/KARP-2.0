@@ -4,6 +4,7 @@
 import { _ajson, _b64u, _emailTpl, _fromB64, _hmac, _te, _tokenHex, sendGmail } from './felag.mjs';
 import { accountId, tierFields } from '../lib/account.mjs';
 import { renderEmail } from '../lib/emails.mjs';
+import { BOD_GILDI_SEK, anLykilords, bodHlekkur, fornafn, samningurNotanda } from '../lib/samningar.mjs';
 
 export const _freeAll = (u) => !!(u && (u.is_admin === 1 || u.free_access === 1));
 
@@ -96,6 +97,15 @@ export async function authMeHandler(request, env) {
   const used = (owner.reports_month === ym) ? (owner.reports_used || 0) : 0;   // kvóta-teljari á account-eigandanum
   const quota = _freeAll(u) ? 9999 : (p.effectiveTier ? (REPORT_QUOTA[p.effectiveTier] || 0) : 0);   // þak skv. account-þrepi
   p.reportsRemaining = Math.max(0, quota - used);
+  // Samningsaðgangur (lib/samningar.mjs): þjónustur samningsins bætast í subs svo hasSub() opni þær.
+  // ⚠ Þær eru EKKI í sub_service — þar teldust þær á listaverði í MRR stjórnborðsins og í samstemmingu
+  //   við Áskel, en samningurinn er greiddur með föstu gjaldi utan Áskels.
+  // `samningur.thjonustur` = þjónustur sem koma EINGÖNGU úr samningnum. Borgi starfsmaður sjálfur fyrir sömu
+  // þjónustu birtist hún sem venjuleg áskrift á Mitt svæði, svo henni megi segja upp (annars rukkar Áskell áfram).
+  const sam = samningurNotanda(u, now);
+  const eigin = p.subs.slice();
+  p.samningur = sam ? { id: sam.id, nafn: sam.nafn, thjonustur: sam.thjonustur.filter((s) => eigin.indexOf(s) < 0) } : null;
+  if (sam) for (const s of sam.thjonustur) if (p.subs.indexOf(s) < 0) p.subs.push(s);
   p.plus = p.plus || p.subs.length > 0;   // Karp+ ef þrep EÐA einhver virk þjónustu-áskrift
   p.membership = u.parent_account_id ? { owner: owner.email } : null;   // UI-borði fyrir meðlimi
   p.pendingInvite = u.parent_account_id ? null : await _pendingInvite(env, u, now);
@@ -223,14 +233,29 @@ export async function authForgotHandler(request, env, ctx) {
   const b = (await request.json().catch(() => null)) || {};
   const login = String(b.login || b.email || '').trim().toLowerCase().slice(0, 120);
   if (!login) return _ajson({ ok: true });
-  const u = await env.TENGSL.prepare('SELECT id, email FROM users WHERE email=? OR username=?').bind(login, login).first().catch(() => null);
+  // SELECT * (ekki dálkalisti): samningur-dálkurinn (migration 0018) má vanta án þess að ÖLL endurstilling falli.
+  const u = await env.TENGSL.prepare('SELECT * FROM users WHERE email=? OR username=?').bind(login, login).first().catch(() => null);
   if (u) {
     const now = Math.floor(Date.now() / 1000);
     const token = _tokenHex();
-    await env.TENGSL.prepare('INSERT INTO auth_tokens (token, user_id, kind, expires) VALUES (?,?,?,?)').bind(token, u.id, 'reset', now + 3600).run().catch(() => {});
-    const link = 'https://karp.is/endurstilla/?token=' + token;
-    const t = await _emailTpl(env, 'reset');
-    ctx.waitUntil(sendGmail(env, { to: u.email, subject: renderEmail(t.subject, { hlekkur: link }), html: renderEmail(t.html, { hlekkur: link }) }));
+    // BOÐ: aðgangur sem var stofnaður fyrir starfsmann samningsaðila og hefur ALDREI fengið lykilorð fær
+    // boðspóst (eigin texti, hlekkur í viku) í stað „gleymt lykilorð". Sama tókn-tegund og sama
+    // /api/auth/reset — lykilorðið velur starfsmaðurinn sjálfur, það fer aldrei um neitt annað.
+    const sam = anLykilords(u.pass_hash) ? samningurNotanda(u, now) : null;
+    const vistad = await env.TENGSL.prepare('INSERT INTO auth_tokens (token, user_id, kind, expires) VALUES (?,?,?,?)').bind(token, u.id, 'reset', now + (sam ? BOD_GILDI_SEK : 3600)).run().then(() => true, () => false);
+    if (sam) {
+      // Útkoman í loggann (wrangler tail) svo sending sé staðfestanleg. ⚠ Hvorki tókn, netfang né notandanúmer.
+      // Vistaðist tóknið ekki fer enginn póstur: boð með dauðum hlekk er verra en ekkert boð.
+      if (!vistad) { console.log('bod villa gagnagrunnur'); return _ajson({ ok: true }); }
+      const t = await _emailTpl(env, 'bod');
+      const vars = { hlekkur: bodHlekkur(token), nafn: fornafn(u.name) || 'þarna', stofa: sam.stutt };
+      ctx.waitUntil(sendGmail(env, { to: u.email, subject: renderEmail(t.subject, vars), html: renderEmail(t.html, vars), replyTo: sam.tengilidur || undefined })
+        .then((r) => console.log(r && r.ok ? 'bod sent' : 'bod villa ' + ((r && (r.error || (r.unconfigured && 'unconfigured'))) || '?'))));
+    } else {
+      const link = 'https://karp.is/endurstilla/?token=' + token;
+      const t = await _emailTpl(env, 'reset');
+      ctx.waitUntil(sendGmail(env, { to: u.email, subject: renderEmail(t.subject, { hlekkur: link }), html: renderEmail(t.html, { hlekkur: link }) }));
+    }
   }
   return _ajson({ ok: true });
 }
@@ -246,7 +271,9 @@ export async function authResetHandler(request, env) {
   const t = await env.TENGSL.prepare("SELECT token, user_id FROM auth_tokens WHERE token=? AND kind='reset' AND expires>?").bind(token, now).first().catch(() => null);
   if (!t) return _ajson({ ok: false, error: 'badtoken' });
   await env.TENGSL.prepare('UPDATE users SET pass_hash=?, email_verified=1, updated=? WHERE id=?').bind(await hashPassword(pw), now, t.user_id).run().catch(() => {});
-  await env.TENGSL.prepare('DELETE FROM auth_tokens WHERE token=?').bind(token).run().catch(() => {});
+  // ⚠ ÖLL endurstillingartókn notandans, ekki aðeins þetta. Boðið býr til vikutókn við hverja beiðni, og eldri
+  //   hlekkur (t.d. í áframsendum pósti) gæti annars yfirskrifað nýja lykilorðið í heila viku (rýni 22.9.2026).
+  await env.TENGSL.prepare("DELETE FROM auth_tokens WHERE user_id=? AND kind='reset'").bind(t.user_id).run().catch(() => {});
   return _ajson({ ok: true, id: t.user_id }, { 'set-cookie': _sessCookie(await makeSession(env, t.user_id), 60 * 86400) });
 }
 

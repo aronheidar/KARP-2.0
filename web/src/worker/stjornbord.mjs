@@ -37,7 +37,9 @@ export async function adminOverviewHandler(request, env) {
   const bySecret = key && env.ADMIN_API_KEY && key === env.ADMIN_API_KEY;
   if (!bySecret && !(await _isAdmin(env, request))) return _ajson({ ok: false, error: 'admin' });
   const now = Math.floor(Date.now() / 1000);
-  const users = (await env.TENGSL.prepare('SELECT id,email,username,name,is_admin,email_verified,kt,tier,tier_until,created,free_access,nemandi FROM users ORDER BY created DESC LIMIT 1000').all().catch(() => ({ results: [] }))).results || [];
+  // samningur (migration 0018) + has_pw: hverjir eru á samningi og hvort boðið bíði enn. ⚠ Hashið sjálft fer
+  // aldrei út, aðeins hvort það sé pbkdf2 (aðgangur stofnaður fyrir boð hefur ekkert lykilorð).
+  const users = (await env.TENGSL.prepare("SELECT id,email,username,name,is_admin,email_verified,kt,tier,tier_until,created,free_access,nemandi,samningur,(pass_hash LIKE 'pbkdf2$%') AS has_pw FROM users ORDER BY created DESC LIMIT 1000").all().catch(() => ({ results: [] }))).results || [];
   const subs = (await env.TENGSL.prepare('SELECT user_id,service,until,askell_id FROM sub_service WHERE until>?').bind(now).all().catch(() => ({ results: [] }))).results || [];
   const reps = (await env.TENGSL.prepare('SELECT user_id,report_key,granted FROM reports_granted').all().catch(() => ({ results: [] }))).results || [];
   // Prufu-aðgangar eru TEKNIR ÚR samantektinni (stats) — birtast samt í notendalistanum (merktir).
@@ -48,7 +50,7 @@ export async function adminOverviewHandler(request, env) {
   const subByUser = {}, repByUser = {};
   for (const s of subs) (subByUser[s.user_id] = subByUser[s.user_id] || []).push(s.service);
   for (const r of reps) repByUser[r.user_id] = (repByUser[r.user_id] || 0) + 1;
-  const uList = users.map((u) => ({ id: u.id, email: u.email, name: u.name || u.username || '', admin: u.is_admin === 1, free: u.free_access === 1, nemandi: u.nemandi === 1, verified: u.email_verified === 1, kt: u.kt || null, tier: (u.tier && u.tier_until > now) ? u.tier : null, tierUntil: u.tier_until || 0, subs: subByUser[u.id] || [], reports: repByUser[u.id] || 0, created: u.created, test: testIds.has(u.id) }));
+  const uList = users.map((u) => ({ id: u.id, email: u.email, name: u.name || u.username || '', admin: u.is_admin === 1, free: u.free_access === 1, nemandi: u.nemandi === 1, verified: u.email_verified === 1, kt: u.kt || null, tier: (u.tier && u.tier_until > now) ? u.tier : null, tierUntil: u.tier_until || 0, subs: subByUser[u.id] || [], reports: repByUser[u.id] || 0, created: u.created, test: testIds.has(u.id), samningur: u.samningur || null, lykilord: u.has_pw === 1 }));
   // Síuð sett fyrir samantektina (án prufu-aðganga) — notendalistinn `uList` er ósíaður.
   const sUsers = users.filter((u) => !testIds.has(u.id));
   const sUList = uList.filter((u) => !u.test);

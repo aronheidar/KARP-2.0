@@ -429,6 +429,7 @@ const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síða
   <script>
     import { loadUser, karpGet, karpPost, loginHref, hasTier } from '../lib/auth.js';
     import { felagHref } from '../lib/fyrirtaeki-slod.mjs';
+    import { askriftarLina } from '../lib/samningar.mjs';   // kvótatexti + uppsögn (samningsþjónusta: ótakmörkuð, engin uppsögn)
     const $g = (id) => document.getElementById(id);
     const J = (id) => { try { return JSON.parse($g(id).textContent); } catch (e) { return null; } };
     const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -544,10 +545,13 @@ const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síða
           const SVCN = { utbod: 'Útboðsvaktin', fasteign: 'Fasteignavakt', frettir: 'Fjölmiðlavakt', thingskyrslur: 'Þingmannaskýrslur', kvoti: 'Kvótavaktin' };
           const subsUntil = u.subsUntil || {};
           const svcRows = (u.subs || []).map((s) => {
-            const sq = (u.svcQuota || {})[s];   // #22: fasteign/þingskyrslur = 20/mán → sýna „N eftir í mánuðinum"
-            const qtxt = sq ? ' · <span class="dim">' + sq.remaining + ' af ' + sq.quota + ' eftir í mánuðinum</span>' : '';
-            return '<div class="sub-row"><b>' + (SVCN[s] || s) + ':</b> virk' + (subsUntil[s] ? ' til ' + dags(subsUntil[s]) : '') + qtxt
-              + ' · <button class="sub-cancel" data-svc="' + esc(s) + '" type="button">Segja upp</button></div>';
+            // #22: fasteign/þingskyrslur = 20/mán → „N eftir í mánuðinum". Samningsþjónusta (t.d. Allt) er
+            // ótakmörkuð og ekki í Áskeli, svo „Segja upp" gæti ekkert gert þar nema villa.
+            const l = askriftarLina(s, u);
+            const qtxt = l.kvoti ? ' · <span class="dim">' + esc(l.kvoti) + '</span>' : '';
+            const hali = l.uppsogn ? ' · <button class="sub-cancel" data-svc="' + esc(s) + '" type="button">Segja upp</button>'
+              : ' · <span class="dim">samningur ' + esc(l.samningur) + '</span>';
+            return '<div class="sub-row"><b>' + (SVCN[s] || s) + ':</b> virk' + (subsUntil[s] ? ' til ' + dags(subsUntil[s]) : '') + qtxt + hali + '</div>';
           }).join('');
           const tierUntil = u.tier_until ? ' · til ' + dags(u.tier_until) : '';
           const tierCancel = (u.tier && u.effectiveTier === u.tier) ? ' · <button class="sub-cancel" data-svc="" type="button">Segja upp</button>' : '';

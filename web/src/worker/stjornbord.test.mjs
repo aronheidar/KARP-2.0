@@ -151,3 +151,25 @@ test('adminSyncHandler: rýnin 22.9 — lykillinn skrifar hvorki rofa, hjálparg
   // innskráður Aron (same-origin) má enn skrifa rofann, eins og áður
   assert.deepEqual(await sync(env, { Cookie: await cookieFor(env, 8), Origin: 'https://karp.is', 'Sec-Fetch-Site': 'same-origin', 'content-type': 'application/json' }), { ok: true });
 });
+
+// ── Samningsaðgangur (lib/samningar.mjs) á stjórnborðinu ─────────────────────────────────────────
+// Aron þarf að sjá hverjir eru á samningi og hverjir hafa ekki enn valið sér lykilorð (boðið bíður).
+test('notendalistinn ber samninginn og hvort lykilorð hafi verið valið', async () => {
+  const now = Math.floor(Date.now() / 1000);
+  const j = await yfirlit({
+    users: [{ ...notandi(40, null, now), samningur: 'allt', has_pw: 0 }, { ...notandi(41, null, now), samningur: null, has_pw: 1 }],
+    subs: [],
+  });
+  const a = j.users.find((u) => u.id === 40), b = j.users.find((u) => u.id === 41);
+  assert.equal(a.samningur, 'allt');
+  assert.equal(a.lykilord, false, 'boðið bíður: aðgangurinn hefur ekkert lykilorð enn');
+  assert.equal(b.samningur, null);
+  assert.equal(b.lykilord, true);
+});
+
+test('⚠⚠ samningsnotendur hreyfa hvorki MRR né borgandi-töluna (þeir eru utan Áskels)', async () => {
+  const now = Math.floor(Date.now() / 1000);
+  const j = await yfirlit({ users: [{ ...notandi(40, null, now), samningur: 'allt', has_pw: 1 }], subs: [] });
+  assert.equal(j.stats.mrr, 0);
+  assert.equal(j.stats.funnel.paying, 0);
+});

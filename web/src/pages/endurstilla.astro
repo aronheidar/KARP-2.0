@@ -61,9 +61,34 @@ const desc = 'Gleymdirðu lykilorðinu? Sláðu inn netfangið þitt og við sen
       const p = new URLSearchParams(location.search);
       const token = (p.get('token') || '').trim();
 
+      // ── Hamur 1: biðja um hlekk. Tengt í BÁÐUM hömum: útrunninn hlekkur í hami 2 sýnir þetta form. ──
+      const reqForm = document.getElementById('ka-req-form');
+      if (reqForm && !reqForm.dataset.wired) {
+        reqForm.dataset.wired = '1';
+        reqForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          hide('ka-err');
+          const login = (document.getElementById('ka-user').value || '').trim();
+          const btn = reqForm.querySelector('.ka-btn');
+          if (btn) { btn.disabled = true; btn.textContent = 'Sendi…'; }
+          await window.karpAuth.karpForgot(login);
+          hide('ka-req-wrap');
+          show('ka-ok', 'Ef aðgangur er skráður á þetta netfang sendum við hlekk til að endurstilla lykilorðið. Athugaðu pósthólfið — og ruslpóstinn.');
+        });
+      }
+
       if (token) {
         // ── Hamur 2: endurstilling úr hlekk ──
         hide('ka-req-wrap'); show('ka-reset-wrap');
+        // Boðs-hamur (?bod=1): aðgangur stofnaður fyrir starfsmann samningsaðila sem hefur aldrei átt
+        // lykilorð. „Gleymt lykilorð?" væri rangt, hann gleymdi engu (sjá lib/samningar.mjs bodHlekkur).
+        if (p.get('bod') === '1') {
+          const h = main.querySelector('.ka-h'), sub = main.querySelector('.ka-sub');
+          if (h) h.textContent = 'Veldu þér lykilorð';
+          if (sub) sub.textContent = 'Aðgangurinn þinn á Karp er tilbúinn. Veldu lykilorð og þú ferð beint inn.';
+          const lbl = main.querySelector('label[for="ka-pwd"]'); if (lbl) lbl.textContent = 'Lykilorð';
+          const b = main.querySelector('#ka-reset-form .ka-btn'); if (b) b.textContent = 'Vista lykilorð';
+        }
         const form = document.getElementById('ka-reset-form');
         if (form && !form.dataset.wired) {
           form.dataset.wired = '1';
@@ -78,27 +103,18 @@ const desc = 'Gleymdirðu lykilorðinu? Sláðu inn netfangið þitt og við sen
             if (btn) { btn.disabled = true; btn.textContent = 'Vista…'; }
             const res = await window.karpAuth.karpReset(token, pwd);
             if (res && res.ok) { location.href = 'https://karp.is/mitt-svaedi/'; return; }
-            if (btn) { btn.disabled = false; btn.textContent = 'Vista nýtt lykilorð'; }
+            if (btn) { btn.disabled = false; btn.textContent = p.get('bod') === '1' ? 'Vista lykilorð' : 'Vista nýtt lykilorð'; }
             show('ka-err', MSG[(res && res.error)] || MSG._);
+            // Útrunninn hlekkur: villan segir „biddu um nýjan hér að neðan", svo beiðnin VERÐUR að sjást — og
+            // fyrirsögn boðs-hamsins („Veldu þér lykilorð") á ekki heima yfir beiðniforminu.
+            if (res && res.error === 'badtoken') {
+              hide('ka-reset-wrap'); show('ka-req-wrap');
+              const h = main.querySelector('.ka-h'), sub = main.querySelector('.ka-sub');
+              if (h) h.textContent = 'Biddu um nýjan hlekk';
+              if (sub) sub.textContent = 'Sláðu inn netfangið þitt og við sendum þér nýjan hlekk til að velja lykilorð.';
+            }
           });
         }
-        return;
-      }
-
-      // ── Hamur 1: biðja um hlekk ──
-      const form = document.getElementById('ka-req-form');
-      if (form && !form.dataset.wired) {
-        form.dataset.wired = '1';
-        form.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          hide('ka-err');
-          const login = (document.getElementById('ka-user').value || '').trim();
-          const btn = form.querySelector('.ka-btn');
-          if (btn) { btn.disabled = true; btn.textContent = 'Sendi…'; }
-          await window.karpAuth.karpForgot(login);
-          hide('ka-req-wrap');
-          show('ka-ok', 'Ef aðgangur er skráður á þetta netfang sendum við hlekk til að endurstilla lykilorðið. Athugaðu pósthólfið — og ruslpóstinn.');
-        });
       }
     }
     if (document.readyState !== 'loading') boot(); else document.addEventListener('DOMContentLoaded', boot);

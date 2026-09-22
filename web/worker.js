@@ -16,6 +16,7 @@ import { byggMatch, rankMovement, ratingMovement, criticalDrop, criticalNotice, 
 import { sectorsFromMap, herfindahl, toppNShare, sectorForIsat } from './src/lib/atvinnugrein.mjs';
 import { GOGN_GATT_MYNSTUR, gognGattLyklar } from './src/lib/gogn-gatt.mjs';   // greiðsluveggur + PII-vörn á /gogn/{eigendur,arsreikningar,stjorn}/<kt>.json   // Atvinnugreinar v1 — hrein rökvél (hópun map→greinar, HHI, topp-N) + sectorForIsat (grein-rank)
 import { EMBED_RAMMAR, embedSidaHandler, embedTalningHandler } from './src/worker/embed.mjs';   // innfelldir gluggar samstarfsadila (allt.is)
+import { samningsThjonustur } from './src/lib/samningar.mjs';   // samningsaðgangur (Allt o.fl.): réttindi utan Áskels og sub_service
 import { leikurHandler, leikurAsyncCron } from '../src/lib/leikur/server.mjs';   // RÁS-Leikurinn (kennsluleikur) — /api/leikur/* + async-cron
 import { postVerkOll } from '../src/lib/leikur/postur.mjs';                      // cron-skil → póst-verk (hrein modúla, hvítlistuð)
 import { _ajson, _b64u, _cdata, _dget, _emailOvSet, _emailTpl, _esc, _fjson, _fromB64, _hmac, _te, _tokenHex, ddmmyyyy, erLogadili, htmlEsc, isoDate, ktSep, repAll, sendGmail, sjson } from './src/worker/felag.mjs';
@@ -2475,8 +2476,21 @@ async function userDataHandler(request, env) {
   // ── Fasteignamats-kvóti (fasteign-áskrift, 20/mán; endurmat sama fangs frítt): /fasteign/meta ──
   if (path === '/fasteign/meta' && method === 'POST') {
     const key = String(body.key || ''); if (!key) return _ajson({ error: true });
-    const u = await env.TENGSL.prepare('SELECT id, is_admin, parent_account_id, free_access FROM users WHERE id=?').bind(uid).first().catch(() => null);
+    // SELECT * (ekki dálkalisti): samningur-dálkinn (migration 0018) má vanta án þess að ÖLL verðmöt villist.
+    const u = await env.TENGSL.prepare('SELECT * FROM users WHERE id=?').bind(uid).first().catch(() => null);
     if (!u) return _ajson({ error: true });
+    // Samningsaðgangur (lib/samningar.mjs): ótakmarkað, étur ekki kvóta eigin áskriftar og skrifar ekkert á
+    // notandann. Talið á SAMNINGINN svo endurnýjun megi semja út frá raunnotkun.
+    // ⚠⚠ Aðeins mánuður, samningur og þjónusta fara í talninguna. Aldrei heimilisfangið né notandinn.
+    // ⚠ Talan er KEYRSLUR á matinu, ekki ólíkar eignir: sama eign metin aftur (smellur, íbúð í fjölbýli, vakt
+    //   opnuð, ?q=-hlekkur) telst aftur. Án heimilisfangs er ekki hægt að afrita-hreinsa, og það er viljandi.
+    if (samningsThjonustur(u, now).includes('fasteign')) {
+      try {
+        await env.TENGSL.prepare('INSERT INTO samningur_notkun (manudur, samningur, thjonusta, fjoldi) VALUES (?,?,?,1) ON CONFLICT(manudur, samningur, thjonusta) DO UPDATE SET fjoldi = fjoldi + 1')
+          .bind(_monthStr(now), u.samningur, 'fasteign').run();
+      } catch (e) { /* talning má aldrei fella verðmatið */ }
+      return _ajson({ granted: true, owned: false, remaining: -1 });
+    }
     const acct = accountId(u);                       // fasteign-áskrift + kvóti á account-eiganda (fasteign_done-pref = Task 5)
     const done = await _prefGet(env, acct, 'fasteign_done', []);
     if (_freeAll(u)) { if (done.indexOf(key) < 0) { done.push(key); await _prefSet(env, acct, 'fasteign_done', done); } return _ajson({ granted: true, owned: false, remaining: -1 }); }

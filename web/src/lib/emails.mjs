@@ -57,6 +57,25 @@ export const EMAIL_TYPES = [
       + BTN('Velja nýtt lykilorð')
       + '<p style="color:#666;font-size:13px">Hlekkurinn gildir í eina klukkustund.</p>'),
   },
+  {
+    // ⚠ Póstreglur Arons (aron-postur-tonn, 15.9.2026): hvorki tvípunktur né strik, engir listar,
+    //   stutt og mannlegt. Prófið í emails.test.mjs ver sýnilega textann. Sama WRAP-útlit og hinir
+    //   auðkenningarpóstarnir væri kerfispóstur með fyrirsögn, en þetta er bréf frá Aroni.
+    id: 'bod', label: 'Boð um að velja lykilorð (samningsaðgangur)', flokkur: 'fastur', hopur: 'Auðkenning',
+    ritanlegt: ['subject','html'],
+    hvenaer: 'Aðgangur sem stofnaður var fyrir starfsmann samningsaðila (engu lykilorði) biður um hlekk á /endurstilla/',
+    vidtakandi: 'Starfsmaður samningsaðila',
+    breytur: ['hlekkur', 'nafn', 'stofa'], krafist: ['hlekkur'],
+    subject: 'Aðgangurinn þinn á Karp',
+    html: '<div style="font-family:system-ui,Arial,sans-serif;max-width:480px;margin:auto;color:#222;font-size:15px;line-height:1.55">'
+      + '<p>Hæ {{nafn}},</p>'
+      + '<p>{{stofa}} og Karp gerðu samning um daginn og hluti af honum er að þið á stofunni fáið ótakmarkaðan aðgang að verðmötunum og fasteignaskýrslunum á Karp.</p>'
+      + '<p>Ég er búinn að stofna aðgang á netfangið þitt og það eina sem vantar er að þú veljir þér lykilorð.</p>'
+      + '<p style="margin:22px 0"><a href="{{hlekkur}}" style="background:#8a5e00;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:600">Velja lykilorð</a></p>'
+      + '<p>Hlekkurinn gildir í viku. Ef hann rennur út geturðu beðið um nýjan á karp.is/endurstilla.</p>'
+      + '<p>Verðmatið sjálft er á karp.is/fasteignavakt. Endilega láttu mig vita ef eitthvað er skrýtið.</p>'
+      + '<p>Aron</p></div>',
+  },
 
   // ── Vaktir & yfirlit (kvikt meginmál) ───────────────────────────────────────
   {
