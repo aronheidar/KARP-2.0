@@ -122,9 +122,11 @@ jobs:
           # Netföng, persónukennitölur (fyrsti stafur 0–3; félagakennitölur eru opinberar) og símanúmer út,
           # ÁÐUR en samantektin fer í artifact eða PR (opið repo). Nöfn nást ekki með mynstri, og því bannar
           # promptið þau.
-          hreinsa() { sed -E -e 's/[[:alnum:]._%+-]+@[[:alnum:].-]+\.[[:alpha:]]{2,}/[netfang]/g' \
-            -e 's/(^|[^0-9])[0-3][0-9][01][0-9]{3}(-|–|‑| )?[0-9]{4}([^0-9]|$)/\1[kennitala]\3/g' \
-            -e 's/(^|[^0-9])(\+354[ -]?)?[4-8][0-9]{2}([ -]?[0-9]{4}| [0-9]{2} [0-9]{2})([^0-9]|$)/\1[sími]\4/g'; }
+          # Kennitölu- og símamynstrin keyra TVISVAR: mörkin sitt hvorum megin eyða skilstafnum, svo tala
+          # beint á eftir annarri slapp í einni umferð (rýnin 22.9).
+          KT='s/(^|[^0-9])[0-3][0-9][01][0-9]{3}(-|–|‑| )?[0-9]{4}([^0-9]|$)/\1[kennitala]\3/g'
+          SIMI='s/(^|[^0-9])(\+354[ -]?)?[4-8][0-9]{2}([ -]?[0-9]{4}| [0-9]{2} [0-9]{2})([^0-9]|$)/\1[sími]\4/g'
+          hreinsa() { sed -E -e 's/[[:alnum:]._%+-]+@[[:alnum:].-]+\.[[:alpha:]]{2,}/[netfang]/g' -e "$KT" -e "$KT" -e "$SIMI" -e "$SIMI"; }
           # Skili Claude engri samantekt er hún smíðuð úr breyttum skrám — PR-lýsingin má ekki verða innantóm.
           if [ -f cto_summary.md ]; then hreinsa < cto_summary.md > "$U/samantekt.md"; else
             { printf '## Samantekt CTO\nClaude skilaði engri samantekt.\n\n## Breyttar skrár\n'; git add -N -- web skriptur 2>/dev/null; git --no-pager diff --stat -- web skriptur | tail -20; } > "$U/samantekt.md"; fi
@@ -237,9 +239,11 @@ jobs:
           # Samantektin er skrifuð af líkaninu og fer í OPINBERA PR-lýsingu og git-sögu. laga-vélin hreinsaði
           # hana, en hún er ótraust: sama hreinsun aftur hér, á traustri vél. Í skrá fyrst og SVO stytt: styttur
           # pípuendi drepur sed með SIGPIPE og pipefail felldi skrefið (rýnin 22.9).
-          hreinsa() { sed -E -e 's/[[:alnum:]._%+-]+@[[:alnum:].-]+\.[[:alpha:]]{2,}/[netfang]/g' \
-            -e 's/(^|[^0-9])[0-3][0-9][01][0-9]{3}(-|–|‑| )?[0-9]{4}([^0-9]|$)/\1[kennitala]\3/g' \
-            -e 's/(^|[^0-9])(\+354[ -]?)?[4-8][0-9]{2}([ -]?[0-9]{4}| [0-9]{2} [0-9]{2})([^0-9]|$)/\1[sími]\4/g'; }
+          # Kennitölu- og símamynstrin keyra TVISVAR: mörkin sitt hvorum megin eyða skilstafnum, svo tala
+          # beint á eftir annarri slapp í einni umferð (rýnin 22.9).
+          KT='s/(^|[^0-9])[0-3][0-9][01][0-9]{3}(-|–|‑| )?[0-9]{4}([^0-9]|$)/\1[kennitala]\3/g'
+          SIMI='s/(^|[^0-9])(\+354[ -]?)?[4-8][0-9]{2}([ -]?[0-9]{4}| [0-9]{2} [0-9]{2})([^0-9]|$)/\1[sími]\4/g'
+          hreinsa() { sed -E -e 's/[[:alnum:]._%+-]+@[[:alnum:].-]+\.[[:alpha:]]{2,}/[netfang]/g' -e "$KT" -e "$KT" -e "$SIMI" -e "$SIMI"; }
           HREINT="$RUNNER_TEMP/samantekt_hrein.md"
           if [ -f "$U/samantekt.md" ]; then hreinsa < "$U/samantekt.md" > "$HREINT.allt"; else echo "Engin samantekt." > "$HREINT.allt"; fi
           head -c 6000 "$HREINT.allt" > "$HREINT"

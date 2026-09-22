@@ -14,6 +14,9 @@ const GILDI_SEK = 2 * 3600;
 const UPSERT_DROG = 'INSERT INTO stjorn_sync (k, v, updated) VALUES (?, ?, ?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated';
 const _ctoNu = () => Math.floor(Date.now() / 1000);
 const _ctoSkilabod = (id, exp) => 'cto-lykill:' + Number(id) + ':' + Number(exp);
+// Lykillinn virkar aðeins meðan beiðnin er hjá CTO. Eftir cto_result (staðan 'tillaga'), eða ef Aron
+// færði hana annað, hættir hann að virka þótt tvær klukkustundir séu ekki liðnar (rýnin 22.9).
+const HJA_CTO = 'cto';
 
 /** Lykill fyrir beiðni `id`: `<exp>.<hmac>`. */
 export async function ctoLykill(env, id, nu = _ctoNu()) {
@@ -53,8 +56,9 @@ export async function ctoHandler(request, env, lesaMoot) {
   if (url.pathname === '/api/cto/beidni' && request.method === 'GET') {
     const id = parseInt(url.searchParams.get('id') || '', 10);
     if (!(await ctoLykillGildur(env, id, lykill))) return _ajson({ ok: false, error: 'lykill' });
-    const t = await env.TENGSL.prepare('SELECT id, flokkur, tegund, lysing, ai_greining FROM tickets WHERE id=?').bind(id).first().catch(() => null);
+    const t = await env.TENGSL.prepare('SELECT id, stada, flokkur, tegund, lysing, ai_greining FROM tickets WHERE id=?').bind(id).first().catch(() => null);
     if (!t) return _ajson({ ok: false, error: 'notfound' });
+    if (t.stada !== HJA_CTO) return _ajson({ ok: false, error: 'stada' });
     let g = {}; try { g = JSON.parse(t.ai_greining || '{}') || {}; } catch { g = {}; }
     const moot = typeof lesaMoot === 'function' ? await lesaMoot(env, id).catch(() => '') : '';
     return _ajson({ ok: true, beidni: { id: Number(t.id), flokkur: String(t.flokkur || ''), tegund: String(t.tegund || ''), lysing: String(t.lysing || ''),
@@ -64,6 +68,9 @@ export async function ctoHandler(request, env, lesaMoot) {
     const b = (await request.json().catch(() => null)) || {};
     const id = parseInt(b.id, 10);
     if (!(await ctoLykillGildur(env, id, lykill))) return _ajson({ ok: false, error: 'lykill' });
+    const t = await env.TENGSL.prepare('SELECT stada FROM tickets WHERE id=?').bind(id).first().catch(() => null);
+    if (!t) return _ajson({ ok: false, error: 'notfound' });
+    if (t.stada !== HJA_CTO) return _ajson({ ok: false, error: 'stada' });
     const drog = { svar: String(b.svar || '').slice(0, 900), hali: String(b.hali || '').slice(0, 1500), ts: _ctoNu() };
     const ok = await env.TENGSL.prepare(UPSERT_DROG).bind('cto_drog:' + id, JSON.stringify(drog), drog.ts).run().then(() => true).catch(() => false);
     return _ajson({ ok });

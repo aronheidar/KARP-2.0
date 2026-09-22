@@ -39,22 +39,15 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-          cache: 'pip'
-          cache-dependency-path: .github/workflows/arsreikningur.yml
-      # HRAÐA-LOTA 2026-08-01: uppsetningin var >50% af ~80-100 s keyrslu. Þrennt:
-      #  (1) puppeteer-core cache-að á lykil úr þessari skrá (breytist sjaldan) → ~2 s í stað ~15 s
-      #  (2) pip-cache á pdfplumber
-      #  (3) OCR-pakkarnir (apt, ~30-40 s) settir upp LÖT — aðeins þegar skannað PDF finnst (~1%)
-      - uses: actions/cache@v4
-        id: npmcache
-        with:
-          # ALLT node_modules: cache á 'node_modules/puppeteer-core' einu skilaði HÁLFRI uppsetningu
-          # (@puppeteer/browsers vantaði) → scrape féll ÞÖGULT með 'Engin ný gögn' + success. Lykill v2.
-          path: node_modules
-          key: arsreikn-node-v2-${{ runner.os }}-${{ hashFiles('.github/workflows/arsreikningur.yml') }}
+      # HRAÐA-LOTA 2026-08-01: uppsetningin var >50% af ~80-100 s keyrslu. OCR-pakkarnir (apt, ~30-40 s)
+      #  eru settir upp LÖT, aðeins þegar skannað PDF finnst (~1%).
+      # ⚠⚠ 22.9.2026: ENGIN skyndiminni hér (hvorki actions/cache á node_modules né pip-cache), þótt það
+      #  kosti ~15–20 s. Jobbið hefur skrifaðgang að main (push = deploy), og CTO-keyrslurnar (cto.yml)
+      #  keyra ótraustan kóða í skyndiminnis-umfangi main: það sem þær vista þar gæti þetta job endurheimt.
+      #  skriptur/lib/cto_verkflaedi.test.mjs fellir hvert workflow með réttindi sem endurheimtir skyndiminni.
       - name: Uppsetning (puppeteer-core + pdfplumber — OCR löt)
         run: |
-          if [ "${{ steps.npmcache.outputs.cache-hit }}" != "true" ]; then npm install puppeteer-core --no-save; fi
+          npm install puppeteer-core --no-save
           python -m pip install --quiet pdfplumber
       - name: Sækja + þátta ársreikning
         env:

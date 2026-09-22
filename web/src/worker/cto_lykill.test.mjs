@@ -23,12 +23,12 @@ function d1(db) {
   return { prepare: (sql) => stmt(sql) };
 }
 const NU = Math.floor(Date.now() / 1000);
-function grunnur() {
+function grunnur(stada7 = 'cto') {
   const db = new DatabaseSync(':memory:');
   db.exec(mig('0006_stjorn_sync.sql'));
   db.exec(mig('0015_tickets.sql'));
-  db.prepare("INSERT INTO tickets (id, created, updated, netfang, efni, lysing, stada, tegund, flokkur, ai_greining) VALUES (7, ?, ?, 'jon@x.is', 'Kortið', 'Kortið hleðst ekki á síma', 'nytt', 'villa', 'Villa', ?)")
-    .run(NU, NU, JSON.stringify({ cto_brief: 'Kortið á /fasteignaverd/ hrynur á iOS', samantekt: 's' }));
+  db.prepare("INSERT INTO tickets (id, created, updated, netfang, efni, lysing, stada, tegund, flokkur, ai_greining) VALUES (7, ?, ?, 'jon@x.is', 'Kortið', 'Kortið hleðst ekki á síma', ?, 'villa', 'Villa', ?)")
+    .run(NU, NU, stada7, JSON.stringify({ cto_brief: 'Kortið á /fasteignaverd/ hrynur á iOS', samantekt: 's' }));
   db.prepare("INSERT INTO tickets (id, created, updated, netfang, efni, lysing, stada) VALUES (8, ?, ?, 'anna@x.is', 'Annað', 'Allt annað mál', 'nytt')").run(NU, NU);
   return { db, env: { TENGSL: d1(db), SESSION_SECRET: 'leyndo-profun', ADMIN_API_KEY: 'adm' } };
 }
@@ -74,10 +74,14 @@ t('/api/cto/drog + cto_result: drögin skeytast við samantektina og eyðast svo
   assert.equal(t7.stada, 'tillaga');
   assert.equal(t7.cto_samantekt, '## Hvað var að\nKortið.\n\n## Tillaga að svari\nSæl/Sæll {nafn}, kortið er lagað.');
   assert.equal(await ctoDrogTaka(env, 7), null, 'drögin eru farin: þau áttu við þessa einu keyrslu');
+  // rýnin 22.9: lykillinn er enn innan tveggja klukkustunda, en keyrslan er búin
+  assert.deepEqual(await drog(env, { id: 7, svar: 'seinna' }, L), { ok: false, error: 'stada' }, 'engin drög eftir cto_result');
+  assert.deepEqual(await beidni(env, 7, L), { ok: false, error: 'stada' }, 'og beiðnin er ekki lengur opin lyklinum');
+  assert.equal(await ctoDrogTaka(env, 7), null);
 });
 
 t('adminTicketHandler cto: farmurinn ber lykil sem gildir fyrir beiðnina', async () => {
-  const { env } = grunnur();
+  const { db, env } = grunnur('nytt');
   const log = [];
   const orig = globalThis.fetch;
   globalThis.fetch = async (url, o) => { log.push({ url: String(url), body: o && o.body }); return { ok: true, status: 204, json: async () => ({}) }; };
@@ -89,4 +93,18 @@ t('adminTicketHandler cto: farmurinn ber lykil sem gildir fyrir beiðnina', asyn
   const farmur = JSON.parse(log.find((c) => c.url.endsWith('/dispatches')).body).client_payload;
   assert.equal(farmur.ticket, 7);
   assert.equal(await ctoLykillGildur(env, 7, farmur.lykill), true);
+  assert.equal(db.prepare('SELECT stada FROM tickets WHERE id=7').get().stada, 'cto');
+  assert.equal((await beidni(env, 7, farmur.lykill)).ok, true, 'vélin nær beiðninni með lyklinum úr farminum');
+});
+
+t('adminTicketHandler cto: bregðist dispatch fer staðan aftur þangað sem hún var', async () => {
+  const { db, env } = grunnur('nytt');
+  const orig = globalThis.fetch;
+  globalThis.fetch = async () => ({ ok: false, status: 422, json: async () => ({}) });
+  try {
+    const res = await adminTicketHandler(new Request('https://karp.is/api/admin/ticket', { method: 'POST', headers: { 'content-type': 'application/json', 'X-Admin-Key': 'adm' }, body: JSON.stringify({ action: 'cto', id: 7 }) }),
+      Object.assign({ GITHUB_DISPATCH_TOKEN: 'ghp' }, env), { waitUntil: () => {} });
+    assert.equal((await res.json()).ok, false);
+  } finally { globalThis.fetch = orig; }
+  assert.equal(db.prepare('SELECT stada FROM tickets WHERE id=7').get().stada, 'nytt');
 });

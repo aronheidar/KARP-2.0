@@ -2,10 +2,10 @@
 // dregur það inn); vanti það fellur prófið VILJANDI, svo athugunin hverfi ekki í þögn.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { ctoBrot } from './cto_verkflaedi.mjs';
+import { ctoBrot, skyndiminniBrot } from './cto_verkflaedi.mjs';
 
 const rot = fileURLToPath(new URL('../../', import.meta.url));
 const yaml = createRequire(rot + 'web/package.json')('js-yaml');
@@ -98,4 +98,34 @@ test('rýnin 22.9: farmur atburðarins í env prentast í opinbera skrá — að
   // úttak annars job-s í env prentast líka — svona fór beiðnin í opinbera skrá í fyrstu skiptingunni
   assert.match(ctoBrot(med({ P: '${{ needs.saekja.outputs.prompt }}' }, 'step')).join(), /needs\.saekja\.outputs\.prompt/);
   assert.deepEqual(ctoBrot(med({ L: '${{ needs.laga.result }}' }, 'job')), [], 'niðurstaða job-s er ekki gögn');
+});
+
+test('rýnin 22.9: ekkert workflow með réttindi endurheimtir skyndiminni (CTO-keyrslurnar skrifa í umfang main)', () => {
+  const skrar = readdirSync(rot + '.github/workflows').filter((f) => /\.ya?ml$/.test(f));
+  assert.ok(skrar.length >= 10, 'fann workflow-skrárnar');
+  const brot = skrar.flatMap((f) => skyndiminniBrot(lesa('.github/workflows/' + f), f));
+  assert.deepEqual(brot, []);
+});
+
+test('skyndiminniBrot fellir ársreikninga-hönnunina frá 1.8 — og aðeins þar sem réttindi eru', () => {
+  const ars = { permissions: { contents: 'write' }, jobs: { saekja: { steps: [
+    { uses: 'actions/setup-python@v6', with: { 'python-version': '3.12', cache: 'pip' } },
+    { uses: 'actions/cache@v4', id: 'npmcache', with: { path: 'node_modules', key: 'arsreikn-node-v2' } },
+    { run: 'git push' },
+  ] } } };
+  assert.deepEqual(skyndiminniBrot(ars, 'ars.yml'), [
+    'ars.yml: saekja: actions/setup-python@v6 með skyndiminni í job með réttindi',
+    'ars.yml: saekja: actions/cache@v4 endurheimtir skyndiminni í job með réttindi',
+  ]);
+  const aneins = (steps, extra = {}) => ({ permissions: {}, jobs: { j: Object.assign({ permissions: { contents: 'read' }, steps }, extra) } });
+  assert.deepEqual(skyndiminniBrot(aneins([{ uses: 'actions/cache@v4' }])), [], 'job án réttinda má nota skyndiminni');
+  assert.equal(skyndiminniBrot(aneins([{ uses: 'actions/cache/restore@v4' }], { env: { K: '${{ secrets.CLOUDFLARE_API_TOKEN }}' } })).length, 1, 'leyndarmál telst réttindi');
+  assert.equal(skyndiminniBrot(aneins([{ uses: 'actions/setup-go@v5' }], { permissions: { contents: 'write' } })).length, 1, 'setup-go vistar sjálfgefið');
+  assert.deepEqual(skyndiminniBrot(aneins([{ uses: 'actions/setup-go@v5', with: { cache: false } }], { permissions: { contents: 'write' } })), []);
+  assert.deepEqual(skyndiminniBrot(aneins([{ uses: 'actions/setup-node@v6', with: { 'node-version': '22' } }], { permissions: { contents: 'write' } })), []);
+});
+
+test('rýnin 22.9: hornklofaritháttur á atburðinum greinist líka', () => {
+  const med = (env) => ({ permissions: {}, jobs: { j: { permissions: {}, steps: [{ run: 'echo x', env }] } } });
+  assert.match(ctoBrot(med({ L: "${{ github.event['client_payload'].lykill }}" })).join(), /github\.event\[…\]/);
 });

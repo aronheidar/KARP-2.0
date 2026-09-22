@@ -318,9 +318,12 @@ export async function adminTicketHandler(request, env, ctx) {
   }
   if (action === 'cto') {
     // Lykillinn gildir fyrir ÞESSA beiðni í 2 klst: vél líkansins sækir beiðnina með honum (cto_lykill.mjs),
-    // svo textinn fari aldrei um opinbera keyrsluskrá. Farmurinn prentast hvergi.
+    // svo textinn fari aldrei um opinbera keyrsluskrá. Farmurinn prentast hvergi. Staðan fer FYRST á 'cto':
+    // lykillinn virkar aðeins meðan hún er þar, og vélin má ekki koma að beiðninni á undan henni.
+    await setTicket(env, id, { stada: 'cto' });
     const r = await _ghDispatch(env, 'cto', { ticket: t.id, lykill: await ctoLykill(env, t.id) });
-    if (r.ok) { await setTicket(env, id, { stada: 'cto' }); if (t.stada !== 'cto') await skraAtburd(env, 'cto', id); }
+    if (!r.ok) await setTicket(env, id, { stada: t.stada });
+    else if (t.stada !== 'cto') await skraAtburd(env, 'cto', id);
     return _ajson(r);
   }
   if (action === 'samthykkja') {

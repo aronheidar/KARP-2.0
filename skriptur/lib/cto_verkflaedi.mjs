@@ -47,11 +47,35 @@ function farmurIEnv(hlutur) {
   const t = JSON.stringify(hlutur || {});
   const brot = [];
   for (const m of t.matchAll(/github\.event\.client_payload(\.[A-Za-z0-9_]+)?/g)) if (m[1] !== '.ticket') brot.push(m[0]);
+  if (/github\.event\s*\[/.test(t)) brot.push('github.event[…]');   // rýnin 22.9: hornklofaritháttur
   if (/toJSON\(\s*github\.event|toJson\(\s*github\.event/i.test(t)) brot.push('toJson(github.event)');
   if (/\binputs\.verk\b|github\.event\.inputs/.test(t)) brot.push('inputs.verk');
   // ⚠ Rýnin 22.9: úttak annars job-s í env prentast líka. Fyrsta skiptingin sendi promptið þannig á milli
   //   (base64 er engin vörn), og allur texti beiðninnar lá í opinberri skrá.
   for (const m of t.matchAll(/needs\.[A-Za-z0-9_-]+\.outputs\.[A-Za-z0-9_-]+/g)) brot.push(m[0]);
+  return brot;
+}
+
+/**
+ * Skyndiminni í job með réttindi, í HVAÐA workflow sem er (rýnin 22.9). CTO-keyrslurnar keyra ótraustan
+ * kóða (líkanið, og kóða úr patchinu í profa) í skyndiminnis-umfangi sjálfgefnu greinarinnar, og það sem
+ * vistað er þar getur hver keyrsla á hvaða grein sem er endurheimt. `permissions:` stýrir því ekki. Job
+ * með skrifaðgang eða leyndarmál má því ekki endurheimta skyndiminni, annars væri þrískiptingin í cto.yml
+ * sniðgengin um annað workflow.
+ * @returns {string[]} brot — tómt ef ekkert job með réttindi endurheimtir skyndiminni
+ */
+export function skyndiminniBrot(wf, skra = 'workflow') {
+  const brot = [];
+  const wfLeyn = leyndarmal({ env: wf && wf.env });
+  for (const [nafn, job] of Object.entries((wf && wf.jobs) || {})) {
+    if (!skrifar(rettindi(wf, job)) && !leyndarmal(job).length && !wfLeyn.length) continue;
+    for (const s of skref(job)) {
+      const uses = String(s.uses || ''), w = s.with || {};
+      if (/^actions\/cache(\/restore)?@/.test(uses)) brot.push(skra + ': ' + nafn + ': ' + uses + ' endurheimtir skyndiminni í job með réttindi');
+      // setup-go vistar og endurheimtir sjálfgefið; hin aðeins ef `cache:` er gefið
+      else if (/^actions\/setup-go@/.test(uses) ? w.cache !== false : (/^actions\/setup-[a-z]+@/.test(uses) && w.cache)) brot.push(skra + ': ' + nafn + ': ' + uses + ' með skyndiminni í job með réttindi');
+    }
+  }
   return brot;
 }
 
