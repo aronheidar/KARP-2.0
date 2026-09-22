@@ -30,6 +30,7 @@ const { pickLyf } = require('./lyf_detect.js');   // lyfjaskortur + lyfFyrst; da
 const { pickRaedur } = require('./raedur_detect.js');   // ræðumínútur vikunnar; grunnur með dagsetningu skrár (22.9.2026)
 const { pickEftirlit } = require('./eftirlit_detect.js');   // eftirlitsvaktin; dagsettur grunnur, hálf skrá ekki borin saman (22.9.2026)
 const { pickStjorar } = require('./stjorar_detect.js');   // bæjar-/sveitarstjórar; dagsettur grunnur (22.9.2026)
+const { pickNefndir } = require('./nefndir_detect.js');   // formennska þingnefnda; dagsetning úr althingi_meta (22.9.2026)
 let slugifyIS = null;   // @lib/format.mjs slugify (ESM) — hlaðið í main() svo svæðis-slóðir séu þær sömu og /fasteignaverd/[slug]
 const G = (f) => path.join(__dirname, '..', 'gogn', f);
 const J = (f) => { try { return JSON.parse(fs.readFileSync(G(f), 'utf8')); } catch (e) { return null; } };
@@ -637,22 +638,18 @@ function detect(state) {
         text: `${x.n} fékk ${kr(Math.round(x.tot))} kr. í greiðslur frá ríkinu síðustu tólf mánuði en er nú kominn í gjaldþrotameðferð samkvæmt Lögbirtingablaðinu (${x.g.date}).` });
     });
   }
-  // #17 Ný formennska þingnefndar — diff (þögul frumstilling)
+  // #17 Ný formennska þingnefndar — diff (þögul frumstilling). Hreinn skynjari í nefndir_detect.js (próf): dagsettur
+  // grunnur (≤ 3 dagar) þar sem dagsetningin kemur úr althingi_meta.json (nefndir.json er fylki og ber enga), tóm skrá
+  // heldur grunninum og nefnd sem vantar í skrána geymist í 30 daga.
   const nef = J('nefndir.json');
   if (Array.isArray(nef)) {
-    const cur = {};
-    nef.forEach((c) => { const f = (c.members || []).find((m) => /formaður/i.test(m.stada || '')); if (c.id) cur[c.id] = { heiti: c.heiti, formadur: f ? f.nafn : null }; });
-    if (state.nefndir) {
-      for (const [id, c] of Object.entries(cur)) {
-        const p = state.nefndir[id];
-        if (p && c.formadur && p.formadur && p.formadur !== c.formadur) {
-          ev.push({ id: `nefnd-${id}-${slug(c.formadur)}`, type: 'nefnd', facts: { nefnd: c.heiti, formadur: c.formadur, fyrri: p.formadur }, url: '/althingi/',
-            title: `${c.formadur} nýr formaður ${c.heiti}`,
-            text: `${c.formadur} er orðinn formaður ${c.heiti} Alþingis samkvæmt uppfærðri nefndaskrá Alþingis. Fyrri formaður var ${p.formadur}.` });
-        }
-      }
+    const { cand, grunnur } = pickNefndir(nef, J('althingi_meta.json'), state.nefndir);
+    for (const c of cand) {
+      ev.push({ id: `nefnd-${c.id}-${slug(c.formadur)}`, type: 'nefnd', facts: { nefnd: c.nefnd, formadur: c.formadur, fyrri: c.fyrri }, url: '/althingi/',
+        title: `${c.formadur} nýr formaður ${c.nefnd}`,
+        text: `${c.formadur} er orðinn formaður ${c.nefnd} Alþingis samkvæmt uppfærðri nefndaskrá Alþingis. Fyrri formaður var ${c.fyrri}.` });
     }
-    state.nefndir = cur;
+    state.nefndir = grunnur;
   }
   // #27 Topplisti — verðmætustu opinberu útboð nýlega (kviknar þegar nýtt stærsta útboð birtist)
   const urW = J('utbod_urslit.json');

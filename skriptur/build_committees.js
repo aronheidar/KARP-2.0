@@ -55,7 +55,9 @@ const { fetchText, writeJsonUnlessEmpty, nuverandiThing } = require('./_seigla.j
   const perC = {}; meetings.forEach(b => { const n = ((b.match(/<nefnd[^>]*>([^<]*)<\/nefnd>/) || [])[1] || '').replace(/\s+/g, ' ').trim(); if (n) perC[n] = (perC[n] || 0) + 1; });
   const busiest = Object.entries(perC).sort((a, b) => b[1] - a[1])[0];
 
-  const meta = { nefndarfundir: meetings.length, busiestNefnd: busiest ? busiest[0].trim() : null, busiestN: busiest ? busiest[1] : 0, oppWeight: Math.round(oppSeats / mainSeats * 1000) / 10, mainSeats };
+  // `updated` = dagurinn sem nefndagögnin sóttust; skrifast aðeins þegar sóknin heppnast (seiglan neðar). nefndir.json er
+  // FYLKI og getur ekki borið dagsetningu sjálft, svo fréttavélin les hana hér — skjölin verða til í sömu keyrslu.
+  const meta = { updated: new Date().toISOString().slice(0, 10), nefndarfundir: meetings.length, busiestNefnd: busiest ? busiest[0].trim() : null, busiestN: busiest ? busiest[1] : 0, oppWeight: Math.round(oppSeats / mainSeats * 1000) / 10, mainSeats };
   // ⚠ Öll þrjú úttökin fara gegnum seigluna. `mps` ber nefndagögnin sem voru rétt sameinuð inn,
   //   svo bregðist nefndasóknin má hvorugt skrifast — annars holast þingmannaskýrslurnar líka.
   writeJsonUnlessEmpty(DIR + 'althingi.json', mps, { isEmpty: (d) => !d || !d.length, label: 'althingi.json' });
