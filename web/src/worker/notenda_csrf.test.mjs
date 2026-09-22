@@ -43,7 +43,8 @@ test('kokuHlidVilla: lestur fer óbreyttur, og beiðni án köku líka nema á /
 
 // Leiðirnar sem rýnin 22.9 nefndi, keyrðar gegnum leiðaval workersins sjálfs
 const LEIDIR = ['/api/kyc/ack', '/api/kyc/watch', '/api/u/reports/open', '/api/u/thing/open', '/api/auth/kt', '/api/u/profile',
-  '/api/u/follows', '/api/u/leitvakt', '/api/pay/checkout', '/api/stjorn/request?kt=5902697199', '/api/auth/logout', '/api/auth/resend-verify', '/api/leikur/ABC123/decisions', '/api/hjalp'];
+  '/api/u/follows', '/api/u/leitvakt', '/api/pay/checkout', '/api/stjorn/request?kt=5902697199', '/api/auth/logout', '/api/auth/resend-verify', '/api/leikur/ABC123/decisions', '/api/hjalp',
+  '/api/arsreikningur/request?kt=5902697199', '/api/eigendur/request?kt=5902697199'];
 
 test('leiðavalið: POST af wp.karp.is með köku fær origin á öllum leiðunum sem rýnin nefndi', async () => {
   const worker = (await import('../../worker.js')).default;
@@ -69,6 +70,9 @@ test('útskráning og stjórnar-beiðni taka aðeins POST (GET-hlekkur af öðru
   const get = (s) => worker.fetch(new Request('https://karp.is' + s, { headers: { Cookie: KAKA, 'Sec-Fetch-Site': 'cross-site' } }), {}, { waitUntil: () => {} }).then((x) => x.json());
   assert.deepEqual(await get('/api/auth/logout'), { ok: false, error: 'post' });
   assert.deepEqual(await get('/api/stjorn/request?kt=5902697199'), { error: 'post' });
+  // rýnin 22.9: sama gat á hinum tveimur keyrslu-leiðunum (ársreikningurinn skrapar RSK og ýtir á main)
+  assert.deepEqual(await get('/api/arsreikningur/request?kt=5902697199'), { error: 'post' });
+  assert.deepEqual(await get('/api/eigendur/request?kt=5902697199'), { error: 'post' });
   const ut = await worker.fetch(new Request('https://karp.is/api/auth/logout', { method: 'POST', headers: { Cookie: KAKA, 'Sec-Fetch-Site': 'same-origin', Origin: 'https://karp.is' } }), {}, { waitUntil: () => {} });
   assert.deepEqual(await ut.json(), { ok: true }, 'útskráning af karp.is virkar áfram');
   assert.match(ut.headers.get('set-cookie') || '', /karp_session=;.*Max-Age=0/);

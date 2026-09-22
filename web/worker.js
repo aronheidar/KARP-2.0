@@ -1673,6 +1673,9 @@ async function streetviewHandler(request, env, ctx) {
 // arsreikningar/<kt>.json (puppeteer+pdfplumber, keyrir EKKI í worker). ÓVIRKT þar til GITHUB_DISPATCH_TOKEN
 // secret er sett (PAT m/ repo/contents+actions). Aðeins innskráðir (kaupendur) → dregur úr misnotkun.
 async function arsreikningurRequestHandler(request, env, ctx) {
+  // POST eingöngu (22.9), sama ástæða og stjornRequestHandler: GET-hlekkur af öðrum vef ræsti keyrslu sem
+  // skrapar RSK (mánaðarkvóti) og ýtir á main. Öll köll (ubo-report.js, fyrirtaeki.astro) eru POST.
+  if (request.method !== 'POST') return sjson({ error: 'post' });
   const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
   if (kt.length !== 10) return sjson({ error: 'kt' });
   if (!env.GITHUB_DISPATCH_TOKEN) return sjson({ error: 'unconfigured' });
@@ -1693,6 +1696,7 @@ async function arsreikningurRequestHandler(request, env, ctx) {
 // repository_dispatch { kt } → .github/workflows/eigendur.yml byggir UBO-tré (build_eigendur.mjs,
 // puppeteer+pdfplumber) → web/public/gogn/eigendur/<kt>.json. Speglar ársreikninginn. Aðeins kaupendur.
 async function eigendurRequestHandler(request, env, ctx) {
+  if (request.method !== 'POST') return sjson({ error: 'post' });   // POST eingöngu (22.9), sjá arsreikningurRequestHandler
   const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
   if (kt.length !== 10) return sjson({ error: 'kt' });
   if (!env.GITHUB_DISPATCH_TOKEN) return sjson({ error: 'unconfigured' });
