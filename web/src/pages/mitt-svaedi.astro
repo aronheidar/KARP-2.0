@@ -545,8 +545,8 @@ const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síða
           const SVCN = { utbod: 'Útboðsvaktin', fasteign: 'Fasteignavakt', frettir: 'Fjölmiðlavakt', thingskyrslur: 'Þingmannaskýrslur', kvoti: 'Kvótavaktin' };
           const subsUntil = u.subsUntil || {};
           const svcRows = (u.subs || []).map((s) => {
-            // #22: fasteign/þingskyrslur = 20/mán → „N eftir í mánuðinum". Samningsþjónusta (t.d. Allt) er
-            // ótakmörkuð og ekki í Áskeli, svo „Segja upp" gæti ekkert gert þar nema villa.
+            // #22: þingskyrslur = 20/mán → „N eftir í mánuðinum"; Fasteignavaktin ótakmörkuð frá 22.9.2026.
+            // Samningsþjónusta (t.d. Allt) er ekki í Áskeli, svo „Segja upp" gæti ekkert gert þar nema villa.
             const l = askriftarLina(s, u);
             const qtxt = l.kvoti ? ' · <span class="dim">' + esc(l.kvoti) + '</span>' : '';
             const hali = l.uppsogn ? ' · <button class="sub-cancel" data-svc="' + esc(s) + '" type="button">Segja upp</button>'

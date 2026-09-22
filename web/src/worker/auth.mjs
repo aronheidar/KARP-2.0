@@ -112,10 +112,11 @@ export async function authMeHandler(request, env) {
   // F6: fylgja-listi úr user_prefs (KARP_USER.follows notað víða; followsCount á Mitt svæði). Account-scoped.
   p.follows = await _prefGet(env, acct, 'follows', []);
   p.followsCount = p.follows.length;
-  // #22: mánaðar-kvóti þjónustu-áskrifta (fasteign/þingskyrslur = 20/mán) svo UI geti sýnt „N eftir í mánuðinum".
-  const _svcQ = { fasteign: 20, thingskyrslur: 20 };
+  // #22: mánaðar-kvóti þjónustu-áskrifta svo UI geti sýnt „N eftir í mánuðinum". -1 = ótakmarkað: Fasteignavaktin
+  // frá 22.9.2026 (ákvörðun Arons, verð óbreytt 3.900 kr). `used` telur þar áfram til yfirlits.
+  const _svcQ = { fasteign: -1, thingskyrslur: 20 };
   p.svcQuota = {};
-  for (const r of (subsR.results || [])) { if (_svcQ[r.service]) { const su = (r.used_month === ym) ? (r.used || 0) : 0; p.svcQuota[r.service] = { used: su, quota: _svcQ[r.service], remaining: Math.max(0, _svcQ[r.service] - su) }; } }
+  for (const r of (subsR.results || [])) { if (_svcQ[r.service]) { const su = (r.used_month === ym) ? (r.used || 0) : 0; const q = _svcQ[r.service]; p.svcQuota[r.service] = { used: su, quota: q, remaining: q < 0 ? -1 : Math.max(0, q - su) }; } }
   return _ajson(p);
 }
 

@@ -103,6 +103,11 @@ test('áskriftarlína: venjuleg áskrift sýnir kvótann og má segja henni upp'
   assert.deepEqual(askriftarLina('fasteign', u), { kvoti: '5 af 20 eftir í mánuðinum', uppsogn: true, samningur: null });
 });
 
+test('áskriftarlína: ótakmörkuð Fasteignavakt (quota -1) segir það, og henni má segja upp', () => {
+  const u = { subs: ['fasteign'], svcQuota: { fasteign: { used: 30, quota: -1, remaining: -1 } } };
+  assert.deepEqual(askriftarLina('fasteign', u), { kvoti: 'ótakmörkuð verðmöt', uppsogn: true, samningur: null });
+});
+
 test('áskriftarlína: áskrift án kvóta hefur engan kvótatexta', () => {
   assert.deepEqual(askriftarLina('utbod', { subs: ['utbod'] }), { kvoti: '', uppsogn: true, samningur: null });
 });

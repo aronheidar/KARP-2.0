@@ -68,5 +68,7 @@ export function askriftarLina(svc, u) {
     return { kvoti: 'ótakmörkuð verðmöt', uppsogn: false, samningur: s.nafn };
   }
   const q = u && u.svcQuota && u.svcQuota[svc];
-  return { kvoti: q ? q.remaining + ' af ' + q.quota + ' eftir í mánuðinum' : '', uppsogn: true, samningur: null };
+  // quota -1 = ótakmarkað (Fasteignavaktin frá 22.9.2026).
+  const kvoti = !q ? '' : q.quota < 0 ? (svc === 'fasteign' ? 'ótakmörkuð verðmöt' : 'ótakmarkað') : q.remaining + ' af ' + q.quota + ' eftir í mánuðinum';
+  return { kvoti, uppsogn: true, samningur: null };
 }

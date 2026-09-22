@@ -2480,7 +2480,7 @@ async function userDataHandler(request, env) {
     return _ajson({ needPay: true, resets: _nextMonth(now) });
   }
 
-  // ── Fasteignamats-kvóti (fasteign-áskrift, 20/mán; endurmat sama fangs frítt): /fasteign/meta ──
+  // ── Fasteignamat: samningur / frír aðgangur / áskrift — allt ÓTAKMARKAÐ (frá 22.9.2026): /fasteign/meta ──
   if (path === '/fasteign/meta' && method === 'POST') {
     const key = String(body.key || ''); if (!key) return _ajson({ error: true });
     // SELECT * (ekki dálkalisti): samningur-dálkinn (migration 0018) má vanta án þess að ÖLL verðmöt villist.
@@ -2498,19 +2498,17 @@ async function userDataHandler(request, env) {
       } catch (e) { /* talning má aldrei fella verðmatið */ }
       return _ajson({ granted: true, owned: false, remaining: -1 });
     }
-    const acct = accountId(u);                       // fasteign-áskrift + kvóti á account-eiganda (fasteign_done-pref = Task 5)
-    const done = await _prefGet(env, acct, 'fasteign_done', []);
-    if (_freeAll(u)) { if (done.indexOf(key) < 0) { done.push(key); await _prefSet(env, acct, 'fasteign_done', done); } return _ajson({ granted: true, owned: false, remaining: -1 }); }
+    if (_freeAll(u)) return _ajson({ granted: true, owned: false, remaining: -1 });
+    const acct = accountId(u);                       // fasteign-áskrift á account-eiganda (sæta-sameign)
     const s = await env.TENGSL.prepare('SELECT * FROM sub_service WHERE user_id=? AND service=? AND until>?').bind(acct, 'fasteign', now).first().catch(() => null);
-    const used = (s && s.used_month === _monthStr(now)) ? (s.used || 0) : 0;
-    if (done.indexOf(key) >= 0) return _ajson({ granted: true, owned: true, remaining: s ? Math.max(0, 20 - used) : 0 });
     if (!s) return _ajson({ error: 'nosub' });
-    if (used < 20) {
-      done.push(key); await _prefSet(env, acct, 'fasteign_done', done);
-      await env.TENGSL.prepare('UPDATE sub_service SET used=?, used_month=? WHERE user_id=? AND service=?').bind(used + 1, _monthStr(now), acct, 'fasteign').run().catch(() => {});
-      return _ajson({ granted: true, owned: false, remaining: 20 - used - 1 });
-    }
-    return _ajson({ needPay: true, resets: _nextMonth(now) });
+    // Fasteignavaktin (3.900 kr/mán) er ÓTAKMÖRKUÐ frá 22.9.2026, ekki 20 á mánuði. Aron: „þessi markaður er núna
+    // með mikla samkeppni". `used` telur áfram til yfirlits (engin heimilisföng, aðeins fjöldi á mánuði).
+    // ⚠ `fasteign_done` (listi metinna heimilisfanga) var aðeins til svo endurmat sömu eignar æti ekki kvótann.
+    //   Án kvóta væri hann listi yfir heimilisföng sem enginn þarf, svo hann er ekki skrifaður lengur.
+    const used = (s.used_month === _monthStr(now)) ? (s.used || 0) : 0;
+    await env.TENGSL.prepare('UPDATE sub_service SET used=?, used_month=? WHERE user_id=? AND service=?').bind(used + 1, _monthStr(now), acct, 'fasteign').run().catch(() => {});
+    return _ajson({ granted: true, owned: false, remaining: -1 });
   }
 
   // ── Viðskiptamannavakt (kt-listi) + Teymi (sæti) ──

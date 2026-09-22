@@ -343,7 +343,7 @@ const jsonLd = {
   <script>
       import { KARP_MERKI } from '../lib/karp-merki.mjs';
     import { takn, TAKN } from '../lib/takn.mjs';
-    import { loadUser, karpGet, karpPost, loginHref, isAdmin, hasReport, hasSub, karpCheckout, helpNote, metaValuation, fasteignRemaining, fasteignResets, fasteignQuotaKnown } from '../lib/auth.js';
+    import { loadUser, karpGet, karpPost, loginHref, isAdmin, hasReport, hasSub, karpCheckout, helpNote, metaValuation, fasteignRemaining, fasteignQuotaKnown } from '../lib/auth.js';
     import { midgildi, hundradsmark, tsOf as fmTsOf, OUTLO as FM_OUTLO, OUTHI as FM_OUTHI, metaUrSolusogu, bakprof, veljaMatHlutfall, matDomur } from '../lib/fasteignamat.mjs';
     import { slugify as slugSvaedi } from '@lib/format.mjs';   // sama slug og /fasteignaverd/[slug].astro notar
     import { metaLeigu, avoxtun as leiguAvoxtun, bakprofLeiga } from '../lib/leiguverd.mjs';   // leiguverðmat (framreiknaðir þinglýstir samningar)
@@ -801,28 +801,20 @@ const jsonLd = {
           return;
         }
         // ── GÁTT: matið er læst á bak við greiðslu/kvóta ──
-        // Eigandi (hasReport) / admin / sýnishorn → fullt mat frítt. Fasteign-áskrifandi → mánaðar-kvóti (20).
-        // Annars → 990-kaupgátt (ekkert mat reiknað/birt).
+        // Eigandi (hasReport) / admin / sýnishorn → fullt mat frítt. Fasteign-áskrifandi (og samningur) → ótakmarkað
+        // frá 22.9.2026 (var 20 á mánuði). Annars → 990-kaupgátt (ekkert mat reiknað/birt).
         const matKey = 'fasteign:' + raw;
         if (!FVM_DEMO && !isAdmin() && !hasReport(matKey)) {
           if (hasSub('fasteign')) {
-            // Áskrift: eyðir 1 úr mánaðar-kvóta (endurmat sömu eignar í mánuðinum frítt); við 0 → 990-gátt.
-            const mv = await metaValuation(matKey);
+            // Áskrift: þjónninn skráir notkunina, ekkert þak. Fellur OPIÐ: borgandi áskrifandi er aldrei læstur
+            // úti vegna baklás eða tæknifeils — svarið er aðeins lesið til að uppfæra teljarann.
+            await metaValuation(matKey);
             paintQuota();
-            if (mv.needPay) {
-              const rd = mv.resets ? new Date(mv.resets * 1000).toLocaleDateString('is-IS', { day: 'numeric', month: 'long' }) : 'næstu mánaðamót';
-              showFvGate(raw, matKey, 'Mánaðarkvóti fullnýttur',
-                'Þú hefur nýtt öll 20 innifalin verðmöt þessa mánaðar (endurstillist ' + rd + '). Þú getur keypt stakt verðmat af ' + esc(raw) + ' núna á 990 kr — það vistast sem formleg skýrsla á Mitt svæði.',
-                'Kaupa þetta verðmat — 990 kr', '');
-              return;
-            }
-            // granted / owned / tæknifeill → HALDA ÁFRAM og reikna matið. Fellur OPIÐ: borgandi áskrifandi er
-            // aldrei læstur úti vegna baklás (t.d. WP-endapunktur enn óuppfærður) — aðeins needPay lokar.
           } else {
             showFvGate(raw, matKey, 'Verðmat fyrir ' + esc(raw),
               'Fullt verðmat opnast við kaup: áætlað markaðsvirði og verðbil, sölugraf götunnar, sambærilegar sölur, fasteignamat og brunabótamat, áætluð leiga og kort.',
               'Kaupa matsskýrslu — 990 kr',
-              'Metur þú margar eignir? <a href="/karp-pro/#verd">Komdu í áskrift — 20 verðmöt á mánuði á 3.900 kr/mán →</a>');
+              'Metur þú margar eignir? <a href="/karp-pro/#verd">Komdu í áskrift — ótakmörkuð verðmöt á 3.900 kr/mán →</a>');
             return;
           }
         }

@@ -45,7 +45,7 @@ export const SERLAUSNIR = [
     lysing: 'Útboð Ríkiskaupa, TED, Reykjavíkurborgar, Faxaflóahafna og Landsvirkjunar — með leitarorðavakt sniðinni að þinni verktöku og samkeppnisgreiningu.',
     fyrir: 'Verktakar og bjóðendur', href: '/utbod/' },
   { slug: 'fasteignir', heiti: 'Fasteignavakt', service: 'fasteign', verd: 3900, trialDays: 30,
-    lysing: '20 verðmöt fasteigna á mánuði — sölusaga, fasteigna- og brunabótamat, hverfagögn og sambærilegar eignir.',
+    lysing: 'Ótakmörkuð verðmöt fasteigna — sölusaga, fasteigna- og brunabótamat, hverfagögn og sambærilegar eignir.',
     fyrir: 'Fasteignasalar og fjárfestar', href: '/fasteignavakt/' },
   { slug: 'umfjollun', heiti: 'Fjölmiðlavakt', service: 'frettir', verd: 3900, trialDays: 30,
     lysing: 'Öll umfjöllun úr 35+ íslenskum miðlum + leitarorðavakt um fyrirtæki, fólk og málefni.',
