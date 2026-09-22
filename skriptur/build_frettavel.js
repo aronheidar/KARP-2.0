@@ -290,12 +290,14 @@ function detect(state) {
   }
 
   // ── Umfjöllunarviðsnúningur (diff á sentiment-vísitölu) ──────
-  // Hreinn skynjari í sent_detect.js (próf): ber aðeins saman við grunn sem er ≤ 3 dögum eldri en skráin.
+  // Hreinn skynjari í sent_detect.js (próf): ber aðeins saman við grunn sem er ≤ 3 dögum eldri en skráin, hálf skrá
+  // þurrkar ekki grunninn og hvert félag fær í mesta lagi eina tónfrétt á 30 daga (flökt-vörn).
+  // ⚠ id ber dagsetningu SKRÁRINNAR, ekki keyrsludaginn: seen-dedup lyklar á id og óbreytt skrá á ekki að fá nýtt id.
   const se = J('sentiment.json');
   if (se && se.companies) {
     const { cand, grunnur } = pickSent(se, state.sent);
     cand.forEach((c) => {
-      ev.push({ id: `sent-${TODAY}-${slug(c.nafn)}`, type: 'sent', facts: { fyrirtaeki: c.nafn, fra: c.fra, i: c.i, frettir: c.n, kvardi: '-100 til +100' }, url: '/frettir/',
+      ev.push({ id: `sent-${String(se.updated).slice(0, 10)}-${slug(c.nafn)}`, type: 'sent', facts: { fyrirtaeki: c.nafn, fra: c.fra, i: c.i, frettir: c.n, kvardi: '-100 til +100' }, url: '/frettir/',
         title: `Tónn umfjöllunar um ${c.nafn} ${c.i > c.fra ? 'batnar' : 'versnar'} skarpt`,
         text: `Tónvísitala Karp fyrir ${c.nafn} fór úr ${String(c.fra).replace('.', ',')} í ${String(c.i).replace('.', ',')} (kvarði -100 til +100) miðað við ${c.n} nýlegar fréttir í fjölmiðlavöktun Karp.` });
     });
