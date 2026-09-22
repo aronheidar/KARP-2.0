@@ -14,6 +14,29 @@ const UA = { 'User-Agent': 'KARP build (karp.is; aronheidars@gmail.com)' };
 
 const grab = (x, tag) => { const m = x.match(new RegExp('<' + tag + '[^>]*>([\\s\\S]*?)</' + tag + '>')); return m ? m[1].trim() : ''; };
 
+// ── malasponn(bills) → { thingin, arekstrar } ────────────────────────────────
+// Hvaða löggjafarþing ná málin með atkvæðagreiðslu raunverulega yfir? Þingið var HARÐKÓÐAÐ
+// 157 í úttakinu; gögnin sjálf eru rétt (sótt eftir atkvæðanúmeri, ekki þingi) en merkingin
+// var það ekki. frumvorp.json notar thingListi() og spannar því tvö þing um leið og nýja
+// þingið eignast mál með lokaatkvæðagreiðslu.
+//
+// ⚠⚠ Um leið og spönnin er tvö þing REKAST LYKLARNIR Á: atkvaedi.json er lyklað á bert
+//   málsnúmer og mál nr. 1 á 158 eru fjárlögin en allt annað á 157. `if (mal[b.nr]) continue`
+//   heldur því sem kom fyrst og hitt málið fengi RANGT nafnakall undir sig — þögult.
+//   Skráin getur ekki borið bæði án nýrrar lyklingar (sem breytir líka thingmal.astro og
+//   build_frettavel.js), svo hér er AÐEINS greint og varað. Sjá minni: „Lyklar VERÐA að bera
+//   þing við sameiningu".
+function malasponn(bills) {
+  const medAtkv = (bills || []).filter((b) => Array.isArray(b.vs2) && b.vs2.length);
+  const thingin = [...new Set(medAtkv.map((b) => b.thing).filter((t) => t != null))].sort((a, b) => a - b);
+  const perNr = {};
+  medAtkv.forEach((b) => { (perNr[b.nr] = perNr[b.nr] || new Set()).add(b.thing); });
+  const arekstrar = Object.entries(perNr)
+    .filter(([, t]) => t.size > 1)
+    .map(([nr, t]) => ({ nr: +nr, thing: [...t].sort((a, b) => a - b) }));
+  return { thingin, arekstrar };
+}
+
 async function rollCall(voteId) {
   const url = 'https://www.althingi.is/altext/xml/atkvaedagreidslur/atkvaedagreidsla/?numer=' + voteId;
   const x = await (await fetch(url, { headers: UA })).text();
@@ -36,7 +59,13 @@ async function main() {
   let existing = {};
   try { existing = JSON.parse(fs.readFileSync(OUT, 'utf8')).mal || {}; } catch (e) {}
   const bills = FRUMVORP.filter((b) => Array.isArray(b.vs2) && b.vs2.length);
-  console.log('Mál með atkvæðagreiðslu:', bills.length);
+  const { thingin, arekstrar } = malasponn(FRUMVORP);
+  console.log('Mál með atkvæðagreiðslu:', bills.length, '· þing:', thingin.join(', ') || '(óþekkt)');
+  if (arekstrar.length) {
+    console.log('⚠⚠ ' + arekstrar.length + ' málsnúmer eru á FLEIRI EN EINU þingi — atkvaedi.json er lyklað á bert');
+    console.log('   málsnúmer og getur aðeins borið annað þeirra. Nafnakall getur birst undir RÖNGU máli.');
+    arekstrar.slice(0, 10).forEach((a) => console.log('   · mál ' + a.nr + ' á þingum ' + a.thing.join(' og ')));
+  }
   const mal = { ...existing };
   let fetched = 0;
   for (const b of bills) {
@@ -48,7 +77,14 @@ async function main() {
     } catch (e) { console.log('  villa mál', b.nr, String(e).slice(0, 60)); }
     if (fetched && fetched % 25 === 0) console.log('  …', fetched, 'sótt');
   }
-  const payload = JSON.stringify({ updated: new Date().toISOString().slice(0, 10), thing: 157, mal });
+  // thing = efsta þingið sem gögnin ná yfir (tala, eins og aðrar skrár), thingin = öll spönnin.
+  const payload = JSON.stringify({
+    updated: new Date().toISOString().slice(0, 10),
+    thing: thingin.length ? thingin[thingin.length - 1] : null,
+    thingin,
+    arekstrar: arekstrar.length,   // >0 þýðir að nafnakall getur setið undir röngu máli
+    mal,
+  });
   fs.writeFileSync(OUT, payload);
   // LOTA 23: líka sem static asset — þingmálasíðan sækir nafnakallið LATÍNT
   // (fetch við fyrsta glugga) í stað 272KB inline í HTML-inu.
@@ -57,4 +93,8 @@ async function main() {
   fs.writeFileSync(path.join(pub, 'atkvaedi.json'), payload);
   console.log('Skrifað: gogn/atkvaedi.json + web/public/gogn/atkvaedi.json ·', Object.keys(mal).length, 'mál með nafnakalli (', fetched, 'ný )');
 }
-main().catch((e) => { console.error(e); process.exit(1); });
+module.exports = { malasponn };
+
+if (require.main === module) {
+  main().catch((e) => { console.error(e); process.exit(1); });
+}

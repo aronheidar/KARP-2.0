@@ -9,6 +9,11 @@
 const fs = require('fs');
 const path = require('path');
 const Anthropic = require('@anthropic-ai/sdk');
+// ⚠ lthing var harðkóðað 157 — bæði í ræðulistanum OG í slóð ræðutextans. Nú thingListi()
+//   (ræður eru ATHAFNA-gögn: nýtt þing er nær tómt fyrstu vikurnar) og hver ræða ber sitt
+//   eigið þing gegnum lib/raeduval.cjs — sjá þá skrá um 200-með-núll-bætum gildruna.
+const { fetchText, thingListi } = require('./_seigla.js');
+const { safnaEfnisraedum, raeduTextaSlod, thingOrdalag } = require('./lib/raeduval.cjs');
 
 const KEY = process.env.ANTHROPIC_API_KEY;
 if (!KEY) { console.error('Vantar ANTHROPIC_API_KEY í umhverfi.'); process.exit(1); }
@@ -18,32 +23,21 @@ const MODEL = 'claude-opus-4-8';
 const THINGMENN = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'gogn', 'althingi.json'), 'utf8'));
 const OUT = path.join(__dirname, '..', 'gogn', 'malrof_ai.json');
 
-const grab = (x, tag) => { const m = x.match(new RegExp('<' + tag + '[^>]*>([\\s\\S]*?)</' + tag + '>')); return m ? m[1].trim() : ''; };
+const UA = { 'User-Agent': 'KARP build (karp.is)' };
 
 async function main() {
-  console.log('Sæki ræðulista 157…');
-  const rl = await (await fetch('https://www.althingi.is/altext/xml/raedulisti/?lthing=157', { headers: { 'User-Agent': 'KARP build (karp.is)' } })).text();
-  const chunks = rl.split('<ræða>').slice(1);
-  const byMp = {};
-  for (const c of chunks) {
-    const idm = c.match(/<ræðumaður id='(\d+)'/);
-    if (!idm) continue;
-    const teg = grab(c, 'tegundræðu');
-    if (teg !== 'ræða' && teg !== 'flutningsræða') continue; // efnisræður eingöngu
-    const heiti = grab(c, 'málsheiti');
-    if (/fundarstjórn|þingsetning|ávarp|minning/i.test(heiti)) continue;
-    const t0 = grab(c, 'ræðahófst'), t1 = grab(c, 'ræðulauk');
-    if (!t0) continue;
-    const min = t1 ? (new Date(t1) - new Date(t0)) / 60000 : 0;
-    if (min < 1.5) continue; // örstuttar sleppa
-    const xm = c.match(new RegExp('<xml>(http[^<]*' + '/raedur/rad' + '[^<]+)</xml>'));
-    (byMp[+idm[1]] = byMp[+idm[1]] || []).push({ t0, heiti, min, url: xm ? xm[1].replace(/&amp;/g, '&') : null });
+  const THING = await thingListi({ fallback: 157 });   // [yfirstandandi, næstliðið]
+  console.log('Sæki ræðulista þinga ' + THING.join(' og ') + '…');
+  const skrar = [];
+  for (const lt of THING) {
+    skrar.push({ thing: lt, xml: await fetchText('https://www.althingi.is/altext/xml/raedulisti/?lthing=' + lt, { headers: UA }) });
   }
+  const byMp = safnaEfnisraedum(skrar, { lagmarkMin: 1.5 });   // örstuttar sleppa
 
-  const fetchText = async (t0, direct) => {
-    const url = direct || ('https://www.althingi.is/xml/157/raedur/rad' + t0.replace(/[-:]/g, '') + '.xml');
+  // Sækir ræðutextann sjálfan. Heitir EKKI fetchText — það nafn er frátekið fyrir seigluna.
+  const saekjaRaedutexta = async (s) => {
     try {
-      const x = await (await fetch(url, { headers: { 'User-Agent': 'KARP build (karp.is)' } })).text();
+      const x = await (await fetch(raeduTextaSlod(s), { headers: UA })).text();
       const body = x.split(/<\/ns:umsýsla>/)[1] || x;
       return body.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 2600);
     } catch (e) { return ''; }
@@ -53,9 +47,9 @@ async function main() {
   try { existing = JSON.parse(fs.readFileSync(OUT, 'utf8')).mp || {}; } catch (e) {}
   const mps = THINGMENN.filter((m) => (byMp[m.id] || []).length >= 2 && !existing[m.id]);
   console.log('Þingmenn með 2+ efnisræður:', mps.length);
-  const out = { updated: new Date().toISOString().slice(0, 10), model: MODEL, thing: 157,
+  const out = { updated: new Date().toISOString().slice(0, 10), model: MODEL, thing: THING[0], thingin: THING,
     mpPrev: undefined,
-    note: 'Vélrænt mat gervigreindar á tón og áherslum, byggt EINGÖNGU á brotum úr nýjustu efnisræðum viðkomandi á þingi 157. Ekki dómur Karp.', mp: { ...existing } };
+    note: `Vélrænt mat gervigreindar á tón og áherslum, byggt EINGÖNGU á brotum úr nýjustu efnisræðum viðkomandi á ${thingOrdalag(THING)}. Ekki dómur Karp.`, mp: { ...existing } };
 
   let done = 0;
   const work = mps.map((m) => async () => {
@@ -64,7 +58,7 @@ async function main() {
     const texts = [];
     for (const s of speeches) {
       if (texts.length >= 5) break;
-      const t = await fetchText(s.t0, s.url);
+      const t = await saekjaRaedutexta(s);
       if (t.length > 300) texts.push(`— Úr ræðu um „${s.heiti}“ (${Math.round(s.min)} mín):\n${t}`);
     }
     if (texts.length < 2) { console.log('  sleppi (of lítill texti):', m.nafn); return; }
