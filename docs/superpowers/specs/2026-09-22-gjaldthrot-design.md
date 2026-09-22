@@ -104,6 +104,9 @@ Mynstur rafbilar.astro (SiduHaus, spjöld, ECharts-eyja af CDN), en litir úr þ
   skráð gjaldþrot, því skráða talan hoppar þegar hætt félög eru gerð upp í stórum skömmtum.
 - `Layout.astro`: „Gjaldþrot fyrirtækja“ undir Efnahagur á eftir Atvinnugreinum, og `gjaldthrot` í
   `PATH_EFNI` fyrir efnahag. Sitemap tekur síðuna sjálfkrafa.
+- `atvinnuvegir/index.astro`: spjald með gjaldþrotum félaga með starfsemi frá áramótum, eins og hin spjöldin.
+- `web/src/lib/markadsefni_tillogur.mjs`: `'Gjaldþrot'` í `VORUKORT` (málefnið er til í `malefni.json`),
+  svo markaðstillögur Bjarka bendi á síðuna þegar gjaldþrot eru óvenju fyrirferðarmikil í fréttum.
 
 ### 5. Vöktun
 
