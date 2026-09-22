@@ -53,7 +53,7 @@ const COS = FYRIRTAEKI.map((c) => {
 });
 // SoV-samanburðurinn (LOTA 34C): allir aðilar sem hægt er að bera saman
 const SOVENTS = [...COS.map((c) => ({ n: c.n, a: c.a })), ...INST, ...PARTIES, ...MINS.map((m) => ({ n: m.n, a: m.a }))];
-const updated = '2026-07-04';
+const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síðan er forþjónuð við hvert push
 const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og umfjöllun um 35 íslensk fyrirtæki með vélrænu viðhorfsmati og verðkennitölum.';
 ---
 

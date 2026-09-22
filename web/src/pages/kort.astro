@@ -95,7 +95,7 @@ const JOFNCATS = (JOFNUN.catLabels || [])
   .sort((a, b) => b.v - a.v);
 const JOFNYEAR = JOFNUN.ar || '';
 
-const updated = '2026-07-01';
+const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síðan er forþjónuð við hvert push
 const desc = 'Gagnvirkt Íslandskort — öll 61 sveitarfélög lituð eftir vísitölu, lífsgæðum, atvinnuleysi, húsnæðisverði, fjármálum og fleiru. Smelltu á sveitarfélag fyrir nánari síðu.';
 const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Íslandskort — hagvísar sveitarfélaga', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland' };
 

@@ -7,7 +7,7 @@ import D from '@gogn/langtima.json';
 const CH = { ar: D.ar, skuldir: D.skuldir, afkoma: D.afkoma, markmid: D.markmid };
 const last = D.skuldir[D.skuldir.length - 1];
 const desc = `Langtímastefna ríkisfjármála: skuldahlutfall úr ${fmtNum(D.skuldir[0], 1)}% í ${fmtNum(last, 1)}% af VLF á tímabilinu ${D.ar[0]}–${D.ar[D.ar.length - 1]}, markmið ${D.markmid}%.`;
-const updated = '2026-07-02';
+const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síðan er forþjónuð við hvert push
 ---
 
 <Layout title="Langtímastefna ríkisfjármála | Karp" description={desc} canonical="https://karp.is/langtima/" ogTitle="Langtímastefna ríkisfjármála">

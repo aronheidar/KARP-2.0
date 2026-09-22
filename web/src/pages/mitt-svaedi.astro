@@ -79,7 +79,7 @@ const SPQ = FRUMVORP
 const SPP = {};
 [...new Set(SPQ.flatMap((q) => Object.keys(q.stance)))].forEach((k) => { SPP[k] = { n: pName(k), c: partyColor(k) }; });
 
-const updated = '2026-07-02';
+const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síðan er forþjónuð við hvert push
 ---
 
 <Layout title="Mitt svæði | Karp" noindex={true}>

@@ -5,7 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
 import SiduHaus from '../components/SiduHaus.astro';
-const updated = '2026-07-11';
+const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síðan er forþjónuð við hvert push
 const desc = 'Um Karp — Hagvísir Íslands: sjálfstætt mælaborð sem safnar, greinir og birtir opinber gögn um íslenskt samfélag, efnahag og stjórnmál á mannamáli.';
 ---
 

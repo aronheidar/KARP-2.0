@@ -27,7 +27,7 @@ Object.keys(FASTEIGNIR.byMuni || {}).forEach((n) => {
 });
 const fmatMunis = Object.keys(FMAT).sort((a, b) => a.localeCompare(b, 'is'));
 
-const updated = '2026-07-01';
+const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síðan er forþjónuð við hvert push
 const desc = 'Reiknivélar 2026 — launareiknivél (nettólaun úr brúttó með réttu útsvari) og húsnæðislánareiknivél (mánaðargreiðsla, óverðtryggt/verðtryggt). Reiknað í vafra, engin gögn send.';
 
 const jsonLd = {

@@ -14,7 +14,7 @@ const orgs = SAMTOK.filter((o) => o.group === 'samtok');
 const deals = SAMTOK.filter((o) => o.group === 'samningur');
 const nSanctions = SANCTIONS.n || (SANCTIONS.names || []).length;
 const fmtN = (v) => new Intl.NumberFormat('is-IS').format(v || 0);
-const updated = '2026-07-02';
+const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síðan er forþjónuð við hvert push
 const desc = `Alþjóðasamstarf Íslands — ${orgs.length} alþjóðasamtök (SÞ, NATO, EFTA, Norðurlandaráð…) og ${deals.length} lykilsamningar (EES, Schengen, Parísarsamningurinn…) með inngönguári og skýringum.`;
 const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Alþjóðasamstarf Íslands', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland' };
 ---

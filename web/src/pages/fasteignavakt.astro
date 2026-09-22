@@ -9,7 +9,7 @@
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
 import SiduHaus from '../components/SiduHaus.astro';
-const updated = '2026-07-04';
+const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síðan er forþjónuð við hvert push
 const desc = 'Fasteignavaktin — sjáðu hvað seldist í götunni þinni og á hvaða verði, fáðu tölvupóst við nýja sölu, áætlaðu virði eignar úr kaupskrá HMS og fylgstu með nauðungarsölum.';
 const jsonLd = {
   '@context': 'https://schema.org', '@type': 'WebApplication',

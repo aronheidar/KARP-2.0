@@ -26,7 +26,7 @@ const QUESTIONS = FRUMVORP
 
 const PARTIES = {};
 [...new Set(QUESTIONS.flatMap((q) => Object.keys(q.stance)))].forEach((k) => { PARTIES[k] = { n: partyName(k), c: partyColor(k) }; });
-const updated = '2026-07-02';
+const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síðan er forþjónuð við hvert push
 const desc = `Stefnupróf Karp — svaraðu ${QUESTIONS.length} raunverulegum þingmálum (já/nei) og sjáðu hvaða flokki þú ert mest sammála, borið saman við atkvæði flokkanna á Alþingi.`;
 ---
 

@@ -75,7 +75,7 @@ Object.keys(BM).forEach((n) => {
 });
 const mapWindow = FASTEIGNIR.byMuniWindow || '';
 
-const updated = '2026-07-01';
+const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síðan er forþjónuð við hvert push
 const yoyTxt = (v) => (v == null ? '' : (v > 0 ? '+' : '') + fmtNum(v, 1) + '%');
 const desc = `Fasteignaverð á Íslandi — miðgildi ${groupThousands(hb.m2)} þús.kr/m² á höfuðborgarsvæðinu (${yoyTxt(yoyHb)} á ári) og ${groupThousands(land.m2)} þús.kr/m² á landsbyggðinni. Þróun úr þinglýstum kaupum.`;
 const jsonLd = {

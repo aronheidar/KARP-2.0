@@ -66,7 +66,7 @@ const hRank = rankOf(HAPPY);
 const TAX_BARS = TAX ? Object.keys(PEERS).filter((c) => TAX[c]).map((c) => ({ c, n: PEERS[c], v: Math.round(TAX[c].v * 10) / 10 })) : [];
 const HAPPY_BARS = HAPPY ? Object.keys(PEERS).filter((c) => HAPPY[c]).map((c) => ({ c, n: PEERS[c], v: Math.round(HAPPY[c].v * 100) / 100 })) : [];
 
-const updated = '2026-07-10';
+const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síðan er forþjónuð við hvert push
 const desc = `Ísland í alþjóðlegum samanburði — hagvöxtur, verðbólga, skuldir hins opinbera og lífskjör (IMF-spár til 2031), skattbyrði, orku- og kolefnisnotkun á mann${eRank ? ` (nr. ${eRank.rank} af ${eRank.total} í orkunotkun)` : ''}${hRank ? ` og hamingju (nr. ${hRank.rank} af ${hRank.total})` : ''}. Samanburður við Norðurlöndin.`;
 const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ísland í alþjóðlegum samanburði', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland' };
 ---

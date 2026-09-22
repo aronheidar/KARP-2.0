@@ -67,7 +67,7 @@ export function getStaticPaths() {
 const p = Astro.props;
 const idxColor = (v) => `hsl(${Math.round((v == null ? 0 : v) * 1.2)}, 62%, 47%)`;
 const fp = (v, d = 1) => (v == null ? '–' : fmtNum(v, d));
-const updated = '2026-07-01';
+const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síðan er forþjónuð við hvert push
 
 const tiles = [];
 if (p.idx != null) tiles.push({ l: 'Vísitala', v: String(p.idx), s: `${p.rank}. af ${p.rankTotal}`, hero: true, col: idxColor(p.idx), t: 'Samsett vísitala Karp: fjárhagur, vöxtur og atvinna vegin jafnt (0–100). Reiknuð úr ársreikningum, mannfjölda- og atvinnuleysistölum — hlutlæg samantekt, ekki gæðamat.' });

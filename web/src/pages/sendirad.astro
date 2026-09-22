@@ -5,7 +5,7 @@ import SiduHaus from '../components/SiduHaus.astro';
 import SENDIRAD from '@gogn/sendirad.json';
 const abroad = SENDIRAD.abroad || [];
 const iceland = SENDIRAD.iceland || [];
-const updated = '2026-07-02';
+const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síðan er forþjónuð við hvert push
 const desc = `Sendiráðanet Íslands — ${abroad.length} sendiráð erlendis og ${iceland.length} erlend sendiráð á Íslandi, með sendiherrum og umdæmum.`;
 // Heimskorts-gögn (LOTA 15b): lönd með íslensku sendiráði → gull á kortinu
 const MAPDATA = abroad.filter((s) => s.geo).map((s) => ({ name: s.geo, value: 1, is: s.is, city: s.city, type: s.type, sh: s.sendiherra || '' }));

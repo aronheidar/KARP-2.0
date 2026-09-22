@@ -17,7 +17,7 @@ const { m } = Astro.props;
 const color = colorByName(m.flokkur);
 const yearFrom = m.fyrstInn ? String(m.fyrstInn).slice(0, 4) : null;
 const committees = Array.isArray(m.nefndalisti) ? m.nefndalisti : (m.nefndalisti ? [m.nefndalisti] : []);
-const updated = '2026-07-01';
+const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síðan er forþjónuð við hvert push
 
 const tiles = [
   { l: 'Aldur', v: m.aldur != null ? m.aldur + ' ára' : '–' },

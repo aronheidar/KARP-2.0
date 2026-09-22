@@ -20,7 +20,7 @@ import DAGATAL from '@gogn/dagatal.json';
 // Fallbakkið gildir aðeins þar til næsta gagnakeyrsla skrifar `lthing` í dagatal.json.
 const LTHING = DAGATAL.lthing ?? 158;
 
-const updated = '2026-07-01';
+const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síðan er forþjónuð við hvert push
 // Ríkisstjórnarflokkar úr cabinet.json (ráðherra-flokkar) — óháð sætaspánni (flutt á /kannanir/).
 const GOV = [...new Set(CABINET.map((c) => c.flokur).filter(Boolean))];
 const desc = `Alþingi — þingsalurinn með raun-sætaskipan, ríkisstjórnin, mál í gangi og þingfundadagatal löggjafarþings ${LTHING}. Úr opnum XML-gögnum Alþingis.`;

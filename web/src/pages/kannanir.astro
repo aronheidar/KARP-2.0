@@ -42,7 +42,7 @@ const rows = parties
   .sort((a, b) => (b.now || 0) - (a.now || 0));
 
 const top = rows[0];
-const updated = '2026-07-01';
+const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síðan er forþjónuð við hvert push
 const chg = (a, b) => (a == null || b == null ? null : Math.round((a - b) * 10) / 10);
 const chgTxt = (d) => (d == null ? '–' : d > 0 ? '+' + fmtNum(d, 1) : d < 0 ? fmtNum(d, 1) : '±0');
 

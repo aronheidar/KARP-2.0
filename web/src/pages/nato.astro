@@ -17,7 +17,7 @@ const overTarget = rikin.filter((r) => r.v >= target).length;
 
 const abroad = SENDIRAD.abroad || [];
 const iceland = SENDIRAD.iceland || [];
-const updated = '2026-07-01';
+const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síðan er forþjónuð við hvert push
 const desc = `Utanríkismál Íslands — varnarútgjöld NATO-ríkja ${natoYear} (Ísland er eina herlausa aðildarríkið), ${abroad.length} sendiráð Íslands erlendis og ${iceland.length} erlend sendiráð á Íslandi.`;
 const jsonLd = {
   '@context': 'https://schema.org', '@type': 'Dataset', name: 'Utanríkismál Íslands',

@@ -8,7 +8,7 @@ const TOPICS = [
   { t: 'styriv_arslok26', l: 'Stýrivextir í árslok 2026', u: '%', min: 0, max: 14, step: 0.25, hint: 'Meginvextir Seðlabankans eftir síðustu ákvörðun ársins' },
   { t: 'hagv_2026', l: 'Hagvöxtur ársins 2026', u: '%', min: -5, max: 8, step: 0.1, hint: 'Magnbreyting VLF milli ára' },
 ];
-const updated = '2026-07-02';
+const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síðan er forþjónuð við hvert push
 const desc = 'Hagspár lesenda Karp — spáðu um verðbólgu, stýrivexti og hagvöxt í árslok og sjáðu hvað almenningur heldur að meðaltali.';
 ---
 

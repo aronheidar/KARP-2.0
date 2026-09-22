@@ -58,7 +58,7 @@ const chartCols = rows.map((r) => idxColor(r.idx));
 const top3 = rows.slice(0, 3);
 const REGIONS = [...new Set(rows.map((r) => r.region).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'is'));
 
-const updated = '2026-07-01';
+const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síðan er forþjónuð við hvert push
 // Öll sveitarfélög (líka <1.000 íbúa) fyrir innri tengla → engar munaðarlausar síður.
 const allMunis = Object.keys(SVCOORDS).sort((a, b) => a.localeCompare(b, 'is'));
 const top = rows[0];

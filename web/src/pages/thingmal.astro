@@ -83,7 +83,7 @@ bills.forEach((b) => { CATCOUNTS[b.cat] = (CATCOUNTS[b.cat] || 0) + 1; });
 const CATCHIPS = Object.entries(AREAS).filter(([k]) => CATCOUNTS[k]).map(([k, label]) => ({ k, label, n: CATCOUNTS[k] }));
 if (CATCOUNTS.annad) CATCHIPS.push({ k: 'annad', label: 'Annað', n: CATCOUNTS.annad });
 
-const updated = '2026-07-01';
+const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síðan er forþjónuð við hvert push
 const nPassed = bills.filter((b) => b.passed).length;
 const desc = `Nýjustu ${bills.length} þingmál á Alþingi — frumvörp og þingsályktunartillögur með atkvæðagreiðslu, niðurstöðu og samantekt. Kjóstu þína eigin skoðun á hverju máli.`;
 

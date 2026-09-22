@@ -52,7 +52,7 @@ const MUNIS = Object.keys(SVCOORDS).map((name) => {
   };
 });
 
-const updated = '2026-07-02';
+const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síðan er forþjónuð við hvert push
 const desc = 'Topplistar sveitarfélaga — raðanir eftir vísitölu, lífsgæðum, atvinnuleysi, húsnæðisverði, útsvari, skuldum og fleiru. Öll 61 sveitarfélög, reiknað úr opinberum gögnum.';
 const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Topplistar sveitarfélaga', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland' };
 

@@ -25,7 +25,7 @@ const munis = Object.keys(M).map((n) => ({
 const topTotal = munis.slice().sort((a, b) => b.t - a.t).slice(0, 15);
 const topPerCap = munis.filter((x) => x.perCap != null).sort((a, b) => b.perCap - a.perCap).slice(0, 15);
 
-const updated = '2026-07-02';
+const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síðan er forþjónuð við hvert push
 const desc = `Jöfnunarsjóður sveitarfélaga greiddi ${fmtNum(totalMa, 1)} ma.kr til sveitarfélaga árið ${ar}${total2Ma ? ` (áætlun ${ar2}: ${fmtNum(total2Ma, 1)} ma.kr)` : ''} — skipting eftir framlagsflokkum og sveitarfélögum.`;
 const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Jöfnunarsjóður sveitarfélaga', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland', variableMeasured: 'Framlög Jöfnunarsjóðs (kr)' };
 ---

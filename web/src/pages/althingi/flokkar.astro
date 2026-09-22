@@ -51,7 +51,7 @@ const cards = codes.map((c) => {
     medallaun, fjarvera, talk, chairs, hlutf: Math.round(((r.cur[c] || 0) / 63) * 100) };
 }).sort((a, b) => b.cur - a.cur || b.proj - a.proj || (b.poll || 0) - (a.poll || 0));
 
-const updated = '2026-07-02';
+const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síðan er forþjónuð við hvert push
 const desc = `Stjórnmálaflokkarnir á Alþingi — sæti nú og í sætaspá, nýjasta fylgi (${lastPoll?.pollster}) og allir þingmenn hvers flokks.`;
 ---
 

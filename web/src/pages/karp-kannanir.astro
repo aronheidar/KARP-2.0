@@ -4,7 +4,7 @@
 // graceful gátt annars staðar. Eins og gamli kannanir-flipinn.
 import Layout from '../layouts/Layout.astro';
 import SiduHaus from '../components/SiduHaus.astro';
-const updated = '2026-07-02';
+const updated = new Date().toISOString().slice(0, 10); // byggingardagur: síðan er forþjónuð við hvert push
 const desc = 'Kannanir Karp — taktu þátt í púlsinum: kjóstu í könnunum lesenda og sjáðu niðurstöðurnar um leið og þú hefur kosið.';
 ---
 
