@@ -47,3 +47,9 @@ test('hvert vaktað gagnasafn hefur nafn, skrá, lesfall og jákvætt hámark', 
     assert.ok(g.nafn && g.skra && typeof g.les === 'function' && g.hamark > 0 && g.takt, g.skra);
   }
 });
+
+test('gjaldþrot: ársfjórðungsleg útgáfa, júní-tölur í lagi 20.10 en gamlar 15.11', () => {
+  const g = GAGNASOFN.find((x) => x.skra === 'gjaldthrot');
+  assert.equal(metaFerskleika([{ ...g, json: { nyjasti: '2026M06' } }], '2026-10-20')[0].stada, 'ok');       // 112 d
+  assert.equal(metaFerskleika([{ ...g, json: { nyjasti: '2026M06' } }], '2026-11-15')[0].stada, 'gamalt');   // 138 d
+});

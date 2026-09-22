@@ -37,6 +37,7 @@ export const GAGNASOFN = [
   { nafn: 'Launavísitala', skra: 'vinnumarkadur', les: (j) => j.WAGE?.months?.at(-1), hamark: 75, takt: 'mánaðarlegt, um mánuður í töf' },
   { nafn: 'Vöruviðskipti', skra: 'vidskipti', les: (j) => j.TREND?.labels?.at(-1), hamark: 75, takt: 'mánaðarlegt, um mánuður í töf' },
   { nafn: 'Launakapphlaupið', skra: 'furduhagfraedi', les: (j) => j.RACE?.labels?.at(-1), hamark: 90, takt: 'mánaðarlegt' },
+  { nafn: 'Gjaldþrot og nýskráningar', skra: 'gjaldthrot', les: (j) => j.nyjasti, hamark: 130, takt: 'ársfjórðungslegt, birt um tveimur vikum eftir lok ársfjórðungs' },
   { nafn: 'Mannfjöldi', skra: 'mannfjoldi', les: (j) => j.POP?.labels?.at(-1), hamark: 140, takt: 'ársfjórðungslegt' },
   { nafn: 'Landsframleiðsla', skra: 'hagvoxtur', les: (j) => j.GDP?.latestQ, hamark: 160, takt: 'ársfjórðungslegt, um tveir mánuðir í töf' },
   { nafn: 'Afbrot (Ríkislögreglustjóri)', skra: 'glaepir', les: (j) => (j.year != null ? String(j.year) : null), hamark: 430, takt: 'árlegt, birt í febrúar' },
