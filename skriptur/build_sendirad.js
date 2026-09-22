@@ -1,6 +1,14 @@
 // Sendiráð: scrapes Wikipedia's maintained lists (sourced to the Icelandic MFA diplomatic list)
 // → sendirad.json (baked). Abroad: Iceland's resident embassies. In Iceland: foreign embassies.
+//
+// ⚠⚠ RITSTÝRÐIR REITIR (22.9.2026): `sendiherra`, `umdaemi` og `ath` koma EKKI af Wikipediu — upprunasíðan ber engin
+// sendiherranöfn. Þeir voru handskráðir í upphafi. 29.7.2026 var dauð OneDrive-slóð löguð í 14 skriftum og þessi
+// skrifta fór þá loks að skrifa á raunverulegu gogn/-slóðina: hún skrifaði { abroad, iceland } yfir ritstýrðu skrána
+// og 20 sendiherranöfn hurfu á augabragði. /sendirad/ hefur sýnt „—" í sendiherradálknum síðan, og sendiherra-
+// skynjari fréttavélarinnar hefur verið dauður. Skrapið VARÐVEITIR því ritstýrðu reitina milli keyrslna (lyklað á
+// `cc`, sem er einkvæmt) og skráin ber nú `updated` svo sendirad_detect.js geti dagsett grunninn sinn.
 const fs = require('fs');
+const RITSTYRT = ['sendiherra', 'umdaemi', 'ath'];
 // __dirname-afstætt á kanóníska gogn/ (harðkóðaða OneDrive-slóðin braust hljóðlaust á ubuntu eftir CF-flutning)
 const DIR = require('path').join(__dirname, '..', 'gogn') + '/';
 async function wt(page) { const u = 'https://en.wikipedia.org/w/api.php?action=parse&prop=wikitext&format=json&redirects=1&page=' + encodeURIComponent(page); const r = await fetch(u, { headers: { 'User-Agent': 'KarpDashboard/1.0 (aronheidars@gmail.com)' } }); const j = await r.json(); return j.parse.wikitext['*']; }
@@ -36,7 +44,17 @@ const MTYPE = { 'Embassy': 'Sendiráð', 'Consulate-General': 'Aðalræðisskrif
     iceland.push({ is: d[0], cc: d[1], geo: d[2], type: MTYPE[t] || t });
   });
 
-  const out = { abroad: abroad, iceland: iceland };
+  // Varðveita ritstýrðu reitina úr fyrri skrá (skrapið framleiðir þá ekki og má ekki henda þeim).
+  let fyrri = { abroad: [], iceland: [] };
+  try { fyrri = JSON.parse(fs.readFileSync(DIR + 'sendirad.json', 'utf8')) || fyrri; } catch (e) {}
+  const geymt = (listi) => Object.fromEntries((listi || []).filter(x => x && x.cc).map(x => [x.cc, x]));
+  const erfa = (nyr, gamall) => nyr.map(x => { const p = gamall[x.cc]; if (p) RITSTYRT.forEach(k => { if (p[k] !== undefined && x[k] === undefined) x[k] = p[k]; }); return x; });
+  erfa(abroad, geymt(fyrri.abroad)); erfa(iceland, geymt(fyrri.iceland));
+  // ⚠ Skrapið má ekki skrifa hálfa skrá yfir heila: falli annar listinn er fyrri skrá haldið fyrir hann.
+  if (!abroad.length && (fyrri.abroad || []).length) { console.log('  ⚠ abroad tómt — held fyrri skrá'); abroad.push(...fyrri.abroad); }
+  if (!iceland.length && (fyrri.iceland || []).length) { console.log('  ⚠ iceland tómt — held fyrri skrá'); iceland.push(...fyrri.iceland); }
+
+  const out = { updated: new Date().toISOString().slice(0, 10), abroad: abroad, iceland: iceland };
   fs.writeFileSync(DIR + 'sendirad.json', JSON.stringify(out));
   console.log('abroad (íslensk sendiráð erlendis):', abroad.length, '| í Reykjavík:', iceland.length);
   console.log('abroad:', abroad.map(a => a.is + ' (' + a.city + ')').join(', '));

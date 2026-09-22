@@ -32,6 +32,7 @@ const { pickEftirlit } = require('./eftirlit_detect.js');   // eftirlitsvaktin; 
 const { pickStjorar } = require('./stjorar_detect.js');   // bæjar-/sveitarstjórar; dagsettur grunnur (22.9.2026)
 const { pickNefndir } = require('./nefndir_detect.js');   // formennska þingnefnda; dagsetning úr althingi_meta (22.9.2026)
 const { pickFastthr } = require('./fastthr_detect.js');   // taktur íbúðamarkaðar; AÐEINS liðinn mánuður, dagsettur grunnur (22.9.2026)
+const { pickSendirad } = require('./sendirad_detect.js');   // sendiherraskipti; dagsettur grunnur, hálf skrá þurrkar ekki (22.9.2026)
 let slugifyIS = null;   // @lib/format.mjs slugify (ESM) — hlaðið í main() svo svæðis-slóðir séu þær sömu og /fasteignaverd/[slug]
 const G = (f) => path.join(__dirname, '..', 'gogn', f);
 const J = (f) => { try { return JSON.parse(fs.readFileSync(G(f), 'utf8')); } catch (e) { return null; } };
@@ -354,19 +355,18 @@ function detect(state) {
     }
     state.stjorar = grunnur;
   }
+  // Sendiherrar: hreinn skynjari í sendirad_detect.js (próf). ⚠⚠ Tóm skrá ÞURRKAÐI grunninn 29.7.2026 (20 nöfn → {})
+  // þegar skrapið fór að skrifa yfir ritstýrðu skrána; nú heldur hálf eða tóm skrá grunninum, hann er dagsettur
+  // (≤ 3 dagar) og land sem vantar geymist í 30 daga. `sendiherra` er RITSTÝRÐUR reitur — sjá build_sendirad.js.
   const sr = J('sendirad.json');
-  if (sr && Array.isArray(sr.abroad)) {
-    const cur = {}; sr.abroad.forEach((s) => { if (s.sendiherra) cur[s.is] = s.sendiherra; });
-    if (state.sendirad) {
-      for (const [land, nafn] of Object.entries(cur)) {
-        if (state.sendirad[land] && state.sendirad[land] !== nafn) {
-          ev.push({ id: `sendiherra-${slug(land)}-${slug(nafn)}`, type: 'sendiherra', facts: { land, nafn, fyrri: state.sendirad[land] }, url: '/sendirad/',
-            title: `${nafn} nýr sendiherra Íslands — ${land}`,
-            text: `${nafn} er sendiherra Íslands gagnvart ${land} samkvæmt uppfærðri sendiráðaskrá utanríkisráðuneytisins. Fyrri sendiherra var ${state.sendirad[land]}.` });
-        }
-      }
+  {
+    const { cand, grunnur } = pickSendirad(sr, state.sendirad);
+    for (const c of cand) {
+      ev.push({ id: `sendiherra-${slug(c.land)}-${slug(c.nafn)}`, type: 'sendiherra', facts: { land: c.land, nafn: c.nafn, fyrri: c.fyrri }, url: '/sendirad/',
+        title: `${c.nafn} nýr sendiherra Íslands — ${c.land}`,
+        text: `${c.nafn} er sendiherra Íslands gagnvart ${c.land} samkvæmt uppfærðri sendiráðaskrá utanríkisráðuneytisins. Fyrri sendiherra var ${c.fyrri}.` });
     }
-    state.sendirad = cur;
+    state.sendirad = grunnur;
   }
   // Ívilnanir: skráin er RITSTÝRÐ og ber enga dagsetningu, svo grunnurinn er dagsettur eftir keyrsludegi. Ný færsla í
   // skránni er ekki sama og ný ívilnun: færsla sem ritstjóri bætir við (eða endurnefnir) er aðeins frétt ef hún tók
