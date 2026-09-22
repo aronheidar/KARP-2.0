@@ -26,6 +26,12 @@ let slugifyIS = null;   // @lib/format.mjs slugify (ESM) — hlaðið í main() 
 const G = (f) => path.join(__dirname, '..', 'gogn', f);
 const J = (f) => { try { return JSON.parse(fs.readFileSync(G(f), 'utf8')); } catch (e) { return null; } };
 const MODEL = process.env.KARP_FRETTAVEL_MODEL || 'claude-opus-4-8';
+// Nýja ritunin (bakgrunnur + ein frétt/kall + talnavörn, 22.9.2026) keyrir AÐEINS á rofa þar til Aron hefur
+// samþykkt sýnishorn úr prufukeyrslu. Án rofans er gamla leiðin (aiWrite) nákvæmlega óbreytt.
+const THURR = process.argv.includes('--thurr');
+const NYTT = THURR || process.env.KARP_FRETTAVEL_NYTT === '1';
+const _eI = process.argv.indexOf('--endurskrifa');
+const ENDURSKRIFA = _eI > 0 ? Math.max(0, Math.min(40, parseInt(process.argv[_eI + 1], 10) || 0)) : 0;
 const TODAY = new Date().toISOString().slice(0, 10);
 
 // RÁS-vörpun: macro-fréttir fá projection úr þjóðhags-herminum (bakað í facts → archive → article-síðu).
@@ -464,7 +470,7 @@ function detect(state) {
     }
     nyleg.sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 3).forEach((n) => {
       const heiti = (lb.typeLabels || {})[n.type] || n.type;
-      ev.push({ id: `gjaldthrot-${n.ref || n.date}-${n.kt}`, type: 'gjaldthrot', facts: { felag: n.nafn, tegund: heiti, domstoll: n.court || null, dags: n.date, fyrirtaka: n.when || null }, url: '/logbirting/',
+      ev.push({ id: `gjaldthrot-${n.ref || n.date}-${n.kt}`, type: 'gjaldthrot', kt: n.kt, facts: { felag: n.nafn, tegund: heiti, domstoll: n.court || null, dags: n.date, fyrirtaka: n.when || null }, url: '/logbirting/',
         samhengi: `Ein af ${nyleg.length} gjaldþrota- og skiptabeiðnum lögaðila sem birst hafa í Lögbirtingablaðinu síðustu 30 daga.`,
         title: `${heiti}: ${n.nafn}`,
         text: `${heiti} vegna ${n.nafn} birtist í Lögbirtingablaðinu ${n.date}${n.court ? ' (' + n.court + ')' : ''}${n.when ? `. Fyrirtaka málsins er ${n.when}` : ''}.` });
@@ -547,6 +553,11 @@ function detect(state) {
       });
     }
     state.lyfSeen = inShort.map((x) => x.slug).slice(0, 4000);
+    // Hvenær skortur sást FYRST (bakgrunnur fréttar). Fyrsta keyrsla merkir núverandi skort 'ohekkt', annars stæði
+    // að skortur á lyfi sem hefur vantað í marga mánuði hefði „hafist" daginn sem þessi kóði fór í loftið.
+    const _fyrst = state.lyfFyrst || null, _lf = {};
+    for (const x of inShort) _lf[x.slug] = _fyrst ? (_fyrst[x.slug] || TODAY) : 'ohekkt';
+    state.lyfFyrst = _lf;
   }
 
   // ── Ný vörumerki íslenskra aðila (Hugverkastofan) ──
@@ -558,7 +569,7 @@ function detect(state) {
     }
     const dnum = (d) => String(d || '').split('.').reverse().join('-');
     nyleg.sort((a, b) => dnum(b.skrad).localeCompare(dnum(a.skrad))).slice(0, 2).forEach((t) => {
-      ev.push({ id: `vorumerki-${t.id}`, type: 'vorumerki', facts: { merki: t.titill, tegund: t.tegund || null, eigandi: t.eigandi, flokkar: t.flokkar || null, skrad: t.skrad || null }, url: '/atvinnuvegir/hugverk/',
+      ev.push({ id: `vorumerki-${t.id}`, type: 'vorumerki', kt: t.kt, facts: { merki: t.titill, tegund: t.tegund || null, eigandi: t.eigandi, flokkar: t.flokkar || null, skrad: t.skrad || null }, url: '/atvinnuvegir/hugverk/',
         title: `Nýtt vörumerki skráð: ${t.titill}`,
         text: `${t.eigandi} hefur skráð vörumerkið „${t.titill}“${t.tegund ? ' (' + t.tegund + ')' : ''} hjá Hugverkastofunni${(t.flokkar || []).length ? ', í vöru-/þjónustuflokki ' + t.flokkar.join(', ') : ''}.` });
     });
@@ -909,7 +920,7 @@ function rss(items) {
     <link>https://karp.is/frettavel/#${xesc(x.id)}</link>
     <guid isPermaLink="false">${xesc(x.id)}</guid>
     <pubDate>${new Date(x.date + 'T08:00:00Z').toUTCString()}</pubDate>
-    <description>${xesc(x.text)} (Vélskrifuð frétt úr opinberum gögnum — heimild: karp.is${xesc(x.url)})</description>
+    <description>${xesc(String(x.text || '').replace(/\s*\n\s*\n\s*/g, ' '))} (Vélskrifuð frétt úr opinberum gögnum — heimild: karp.is${xesc(x.url)})</description>
   </item>`).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"><channel>
@@ -919,6 +930,53 @@ function rss(items) {
   <language>is</language>
 ${it}
 </channel></rss>`;
+}
+
+// ── Nýja ritunin: gögn bakgrunns, client og prufuhamur ────────
+function gognBakgrunns() {
+  const ARS = path.join(__dirname, '..', 'web', 'public', 'gogn', 'arsreikningar');
+  return {
+    felagaskra: J('felagaskra.json'), birgjar: J('birgjar.json'), utbod_urslit: J('utbod_urslit.json'), styrkir: J('styrkir.json'),
+    markadir: J('markadir.json'), sedlabanki: J('sedlabanki.json'), atvinnuleysi: J('atvinnuleysi.json'), lyf: J('lyf.json'),
+    arsreikningur: (kt) => { if (!/^\d{10}$/.test(String(kt))) return null; try { return JSON.parse(fs.readFileSync(path.join(ARS, kt + '.json'), 'utf8')); } catch (e) { return null; } },
+  };
+}
+function nyrClient() {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+  try { const p = require('@anthropic-ai/sdk'); const A = p.Anthropic || p.default || p; return new A(); }
+  catch (e) { console.log('• @anthropic-ai/sdk ekki til — sniðmátstextar notaðir.'); return null; }
+}
+// ⚠ Prufuhamur skrifar EKKERT. Hann skrifar fréttir dagsins og N nýlegar úr safninu (áður vs nýtt) og prentar
+//   samantekt, líka í $GITHUB_STEP_SUMMARY. Markaðsfréttum eldri en 2 daga er sleppt (verðsagan hefur hreyfst).
+async function prufukeyrsla(published, state) {
+  const { baetaVidBakgrunni, STUDDAR_TEGUNDIR } = await import('./lib/frettasamhengi.mjs');
+  const { skrifaFrettir, samantektMd } = await import('./lib/frettaskrif.mjs');
+  const synishorn = [];
+  if (ENDURSKRIFA) {
+    const markMork = new Date(Date.now() - 2 * 86400000).toISOString().slice(0, 10);
+    const hopar = {};
+    for (const a of ((J('frettavel_archive.json') || {}).items || [])) {
+      if (!a || !a.facts || (!STUDDAR_TEGUNDIR.includes(a.type) && a.type !== 'domur')) continue;
+      if (a.type === 'mark' && String(a.date) < markMork) continue;
+      (hopar[a.type] = hopar[a.type] || []).push(a);
+    }
+    const rodir = Object.values(hopar);   // hringferð yfir tegundir svo sýnishornið nái yfir sem flesta hópa
+    for (let i = 0; synishorn.length < ENDURSKRIFA && rodir.some((r) => r.length); i++) {
+      const r = rodir[i % rodir.length];
+      if (!r.length) continue;
+      const a = r.shift();
+      const f = JSON.parse(JSON.stringify(a.facts)); delete f.bakgrunnur;
+      synishorn.push({ id: 'prufa-' + a.id, type: a.type, facts: f, title: a.title, text: a.text, gamall: { title: a.title, text: a.text } });
+    }
+    baetaVidBakgrunni(synishorn, gognBakgrunns(), { idag: TODAY, state });
+  }
+  const allt = published.concat(synishorn);
+  const client = nyrClient();
+  const t = client ? await skrifaFrettir(allt, { client, model: process.env.KARP_FRETTAVEL_MODEL || undefined }) : null;
+  const md = samantektMd(allt, { titill: 'Prufukeyrsla fréttavélar ' + TODAY + (client ? '' : ' (enginn lykill: aðeins bakgrunnur)') })
+    + (t ? '\n\nTölfræði: ' + JSON.stringify(t) : '');
+  console.log('\n===== PRUFUKEYRSLA — ekkert skrifað =====\n' + md);
+  if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, md + '\n');
 }
 
 // ── Aðal ──────────────────────────────────────────────────────
@@ -945,7 +1003,11 @@ async function main() {
     const vikan = pickVikan([...events, ...arch], { todayISO: TODAY, weightOf, catOf, asciiId });
     if (vikan) events.push(vikan);
   }
-  fs.writeFileSync(G('frettavel_state.json'), JSON.stringify(state));
+  if (NYTT) {
+    const { baetaVidBakgrunni } = await import('./lib/frettasamhengi.mjs');
+    console.log('Bakgrunnur bættur við', baetaVidBakgrunni(events, gognBakgrunns(), { idag: TODAY, state }), 'atburði');
+  }
+  if (!THURR) fs.writeFileSync(G('frettavel_state.json'), JSON.stringify(state));
   const seen = J('frettavel_seen.json') || {};
   const fresh = events.filter((e) => !seen[e.id]);
   // JAFNVÆGI: hámark 3 fréttir af hverri tegund á dag svo engin ein uppspretta (t.d. markaðir) drottni.
@@ -953,9 +1015,17 @@ async function main() {
   const perType = {};
   const published = fresh.filter((e) => { perType[e.type] = (perType[e.type] || 0) + 1; return perType[e.type] <= 3; });
   console.log('Atburðir fundnir:', events.length, '· nýir:', fresh.length, '· birtir:', published.length, '·', published.map((e) => e.type + ':' + e.id.slice(0, 34)).join(' | ') || '—');
+  if (THURR) { await prufukeyrsla(published, state); return; }
 
-  const aiN = await aiWrite(published);
-  console.log('AI-skrifaðar:', aiN, 'af', Math.min(published.length, 16), process.env.ANTHROPIC_API_KEY ? '' : '(enginn lykill — sniðmát)');
+  if (NYTT) {
+    const { skrifaFrettir } = await import('./lib/frettaskrif.mjs');
+    const client = nyrClient();
+    const t = client ? await skrifaFrettir(published, { client, model: process.env.KARP_FRETTAVEL_MODEL || undefined }) : null;
+    console.log('Ný ritun:', t ? JSON.stringify(t) : '(enginn lykill — sniðmát)');
+  } else {
+    const aiN = await aiWrite(published);
+    console.log('AI-skrifaðar:', aiN, 'af', Math.min(published.length, 16), process.env.ANTHROPIC_API_KEY ? '' : '(enginn lykill — sniðmát)');
+  }
 
   const old = (J('frettavel.json') || {}).items || [];
   const items = published.map((e) => ({ id: e.id, date: TODAY, type: e.type, title: e.title, text: e.text, url: e.url, ai: !!e.ai, spark: (e.spark && e.spark.length >= 4) ? e.spark : undefined, samhengi: e.samhengi || undefined }))

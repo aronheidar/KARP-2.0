@@ -1,0 +1,26 @@
+# Prufukeyrsla nýju fréttaritunarinnar (bakgrunnur + talnavörn) með alvöru lykli. Skrifar EKKERT og commit-ar
+# ekkert: sýnishornin birtast í samantekt keyrslunnar og í logginum. Handræst eingöngu.
+name: frettavel-prufa
+on:
+  workflow_dispatch:
+    inputs:
+      endurskrifa:
+        description: 'Fjöldi nýlegra frétta úr safninu til að endurskrifa sem sýnishorn'
+        default: '12'
+permissions:
+  contents: read
+jobs:
+  prufa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - run: npm ci
+      - name: Prufukeyrsla fréttavélar (skrifar ekkert)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ENDURSKRIFA: ${{ inputs.endurskrifa }}
+        run: node skriptur/build_frettavel.js --thurr --endurskrifa "$ENDURSKRIFA"
