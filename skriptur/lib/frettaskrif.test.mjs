@@ -172,6 +172,12 @@ test('sniðmát skynjarans fer með í kallið svo efni fréttarinnar haldist', 
   assert.ok(KERFI.includes('snidmat'), 'fyrirmælin skýra sniðmátið');
 });
 
+// Prufukeyrsla 22.9: útboðsheitið „Blood analysers – Catheter ablation system" varð „kerfi til hollegasflæðimeðferðar"
+// hjá gömlu ritinni og „hollegaslæðimeðferðar" hjá þeirri nýju. Röng þýðing er fullyrðing sem ekki stendur í facts.
+test('fyrirmælin: heiti útboða, verkefna og lyfja standa orðrétt og eru ekki þýdd', () => {
+  assert.ok(KERFI.includes('Heiti útboða, verkefna og lyfja skulu standa orðrétt eins og í facts og ekki þýdd.'));
+});
+
 test('tala sem stendur aðeins í sniðmáti opnar ekki talnavörnina', async () => {
   const MED = J('Síminn lækkar um 7,3%', 'Hlutabréf í Símanum lækkuðu um 7,3% á 42 dögum.');
   const c = gervi([MED, MED]);
