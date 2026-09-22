@@ -1,6 +1,6 @@
 // radherra_detect.js — hreinn fréttavél-skynjari: ráðherra tekur við embætti (cabinet.json). CommonJS; engin fs/net.
-// pickRadherra(cab, grunnur, {idag, dagar=14}) → { cand: [{nafn, embaetti, flokkur, adur}],
-//   grunnur: {radherrar: {id: {nafn, emb, flokkur, sidast}}} }
+// pickRadherra(cab, grunnur, {idag, sott, dagar=14, max=3}) → { cand: [{nafn, embaetti, flokkur, adur}],
+//   grunnur: {dags, radherrar: {id: {nafn, emb, flokkur, sidast}}} }
 //
 // AF HVERJU (22.9.2026): allar fjórar ráðherrafréttir vélarinnar voru rangar.
 //   · 22.8 skilaði Alþingi engu (HTTP 429), cabinet.json varð [] og grunnurinn tæmdist; 23.8 „tóku" Þorgerður Katrín,
@@ -13,9 +13,22 @@
 //   · 8.9 (nýtt þing) raðaði Alþingi embættum Loga öðruvísi og „ráðherra norrænna samstarfsmála" varð emb[0]; vélin
 //     sagði hann taka við því. Embættin eru því borin saman sem mengi og aðeins NÝ embætti eru frétt.
 // Grunnur á gamla sniðinu ({id: {emb: strengur}}) endurstillist í þögn.
+//
+// VIÐBÓT (22.9.2026) — embættabreyting SITJANDI ráðherra var enn óvarin: mengjamunur `emb` var birtur skilyrðislaust,
+// án dagsetningar og án þaks. Tvær eyður eftir:
+//   1. DAGSETTUR GRUNNUR. cabinet.json er FYLKI og ber enga dagsetningu, og build_cabinet.js heldur fyrri skrá þegar
+//      Alþingi svarar 429 (writeJsonUnlessEmpty). Standi skráin í tvær vikur og lifni með uppstokkun spannaði
+//      mengjamunurinn allt gatið og varð „tekur við sem" í dag. `sott` kemur því úr cabinet_meta.json, systkinaskjali
+//      sem build_cabinet.js skrifar í SÖMU keyrslu og AÐEINS þegar sóknin heppnaðist (kept === false) — sama mynstur
+//      og althingi_meta.json fyrir nefndir_detect. Borið er saman við grunn sem er ≤ GRUNNUR_DAGAR eldri en skráin.
+//      ⚠ althingi_meta.json dugar EKKI: build_committees.js skrifar hana í heilu lagi úr annarri sókn.
+//   2. ÞAK / FLÓÐVÖRN. 8.9.2026 endurstillti Alþingi `sidan` ALLRA ráðherra á þingsetningardaginn. Hefði grunnurinn
+//      verið gleymdur (stopp > GLEYMA daga) hefðu öll ellefu ráðuneytin litið út fyrir að vera ný samdægurs. Fleiri en
+//      `max` breytingar í einni keyrslu er endurstilling, ekki uppstokkun: þá er ENGIN frétt birt (grunnurinn fylltur).
 'use strict';
 
 const GLEYMA = 30;
+const GRUNNUR_DAGAR = 3;
 
 const dagur = (s) => Date.parse(s + 'T00:00:00Z') / 86400000;
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
@@ -28,6 +41,8 @@ function sidanIso(s) {
 function pickRadherra(cab, grunnur, opts) {
   const o = opts || {};
   const dagar = o.dagar || 14;
+  const max = o.max || 3;
+  const sott = ISO.test(String(o.sott || '')) ? String(o.sott) : null;
   if (!Array.isArray(cab) || !cab.length) return { cand: [], grunnur };
 
   const cur = {}, sidan = {};
@@ -36,8 +51,12 @@ function pickRadherra(cab, grunnur, opts) {
     sidan[c.id] = sidanIso(c.sidan);
   }
   const g = grunnur && grunnur.radherrar && typeof grunnur.radherrar === 'object' ? grunnur.radherrar : null;
+  // 1. Samanburður aðeins þegar bæði skráin og grunnurinn bera sóknardag og bilið er hæfilegt.
+  const gDags = grunnur && ISO.test(String(grunnur.dags || '')) ? String(grunnur.dags) : null;
+  const bil = sott && gDags ? dagur(sott) - dagur(gDags) : NaN;
+  const beraSaman = bil >= 0 && bil <= GRUNNUR_DAGAR;
   const cand = [];
-  if (g) {
+  if (g && beraSaman) {
     for (const [id, c] of Object.entries(cur)) {
       const p = g[id];
       if (!p || !Array.isArray(p.emb)) {
@@ -50,13 +69,17 @@ function pickRadherra(cab, grunnur, opts) {
       const farin = p.emb.filter((e) => !c.emb.includes(e));
       cand.push({ nafn: c.nafn, embaetti: ny.join(' og '), flokkur: c.flokkur, adur: farin.length ? farin.join(' og ') : null });
     }
-    // Horfnir úr skránni geymast í GLEYMA daga (hálf skrá); síðan gleymast þeir.
+  }
+  // Horfnir úr skránni geymast í GLEYMA daga (hálf skrá); síðan gleymast þeir. ⚠ Geymslan er ÓHÁÐ samanburðinum:
+  // sé grunnurinn of gamall til að bera saman má hann samt ekki missa ráðherra sem vantar í þessa einu skrá.
+  if (g) {
     for (const [id, p] of Object.entries(g)) {
       if (cur[id] || !p || !Array.isArray(p.emb) || !ISO.test(String(p.sidast)) || !o.idag) continue;
       if (dagur(o.idag) - dagur(p.sidast) <= GLEYMA) cur[id] = p;
     }
   }
-  return { cand, grunnur: { radherrar: cur } };
+  // 2. Flóðvörn: fleiri en `max` breytingar í einni keyrslu er endurstilling, ekki uppstokkun.
+  return { cand: cand.length > max ? [] : cand, grunnur: { dags: sott, radherrar: cur } };
 }
 
 module.exports = { pickRadherra };

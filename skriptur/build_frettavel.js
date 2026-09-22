@@ -336,9 +336,12 @@ function detect(state) {
   // Ráðherrar: hreinn skynjari í radherra_detect.js (próf). Tóm skrá skrifar ekki yfir grunninn, embætti eru borin saman
   // sem mengi og ráðherra sem vantar í grunninn er aðeins nýr ef seta hans hófst á síðustu 14 dögum.
   if (Array.isArray(cab)) {
-    const { cand, grunnur } = pickRadherra(cab, state.cabinet, { idag: TODAY });
+    // `sott` = sóknardagur cabinet.json úr cabinet_meta.json (fylkið sjálft ber enga dagsetningu og seiglan getur
+    // haldið því dögum saman). ⚠ id má EKKI bera TODAY: seen-dedup lyklar á id og flöktandi embættafylki birti
+    // þá sömu frétt aftur á nýjum degi.
+    const { cand, grunnur } = pickRadherra(cab, state.cabinet, { idag: TODAY, sott: (J('cabinet_meta.json') || {}).updated });
     for (const c of cand) {
-      ev.push({ id: `radherra-${TODAY}-${slug(c.nafn)}`, type: 'radherra', facts: { nafn: c.nafn, embaetti: c.embaetti, flokkur: c.flokkur, adur: c.adur }, url: '/althingi/',
+      ev.push({ id: `radherra-${slug(c.nafn)}-${slug(c.embaetti)}`, type: 'radherra', facts: { nafn: c.nafn, embaetti: c.embaetti, flokkur: c.flokkur, adur: c.adur }, url: '/althingi/',
         title: `${c.nafn} tekur við sem ${c.embaetti}`,
         text: `${c.nafn} (${c.flokkur}) er ${c.embaetti} samkvæmt uppfærðri ráðherraskrá Alþingis.${c.adur ? ` Var áður ${c.adur}.` : ''}` });
     }

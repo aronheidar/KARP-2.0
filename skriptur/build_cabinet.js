@@ -67,6 +67,11 @@ const RANK = { 'forsætisráðherra': 0, 'fjármála- og efnahagsráðherra': 1,
   // tóm niðurstaða + fyrri skrá með efni → HALDA fyrri skrá og vara við (aldrei skrifa [] yfir gild gögn)
   const { kept } = writeJsonUnlessEmpty(OUT, cab, { isEmpty: d => !Array.isArray(d) || d.length === 0, label: 'cabinet.json' });
   if (kept) { process.exitCode = 1; return; }
+  // ⚠ cabinet.json er FYLKI og getur ekki borið dagsetningu, en radherra_detect.js þarf að vita hvenær skráin var
+  //   SÓTT (ekki hvenær vélin keyrði): haldi seiglan fyrri skrá dögum saman má mengjamunur ráðherraembætta ekki
+  //   spanna gatið. Dagsetningin skrifast því aðeins hér, eftir að sóknin heppnaðist og skráin var raunverulega
+  //   endurskrifuð. Systkinaskjal en ekki althingi_meta.json — build_committees.js skrifar hana í heilu lagi.
+  fs.writeFileSync(DIR + 'cabinet_meta.json', JSON.stringify({ updated: new Date().toISOString().slice(0, 10), n: cab.length }));
   const byParty = cab.reduce((o, m) => (o[m.flokur] = (o[m.flokur] || 0) + 1, o), {});
   console.log('\nWROTE cabinet.json | ministers:', cab.length, '| bytes:', fs.statSync(OUT).size);
   console.log('by party:', JSON.stringify(byParty));
