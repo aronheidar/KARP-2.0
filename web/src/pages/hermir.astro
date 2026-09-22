@@ -122,6 +122,9 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
     @media (max-width: 720px) { main[data-pg="roads"] .dash-body3 { grid-template-columns: 1fr; } }
     main[data-pg="roads"] .dash-body3.no-right { grid-template-columns: 232px minmax(0,1fr); }
     @media (max-width: 1080px) { main[data-pg="roads"] .dash-body3.no-right { grid-template-columns: 210px minmax(0,1fr); } }
+    /* ⚠ 22.9.2026: .no-right (tveir klasar) vann 1fr-regluna að ofan á síma, svo miðdálkurinn varð 107px og
+       200px spjöldin sprengdu síðuna í 446px. Sama sértækni hér svo síminn fái einn dálk. */
+    @media (max-width: 720px) { main[data-pg="roads"] .dash-body3.no-right { grid-template-columns: 1fr; } }
     main[data-pg="roads"] .tabbar { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0 12px; border-bottom: 1px solid var(--line); }
     main[data-pg="roads"] .tabbar button { background: transparent; border: 1px solid transparent; border-bottom: none; color: var(--muted); border-radius: 9px 9px 0 0; padding: 8px 13px; font-size: 13px; font-weight: 700; cursor: pointer; margin-bottom: -1px; }
     main[data-pg="roads"] .tabbar button:hover { color: var(--ink); }

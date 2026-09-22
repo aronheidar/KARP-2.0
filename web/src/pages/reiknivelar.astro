@@ -157,6 +157,8 @@ const jsonLd = {
     p { color: var(--ink); }
     .tabs { display: flex; gap: 6px; border-bottom: 1px solid rgba(255,255,255,.1); margin-bottom: 18px; }
     .tab { background: none; border: 0; color: var(--muted); font-size: 15px; font-weight: 700; padding: 10px 14px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+    /* Fjórir flipar voru 391px á 375px síma og síðan flæddi lárétt (22.9.2026). Þéttara undir 480px. */
+    @media (max-width: 480px) { .tab { font-size: 14px; padding: 10px 8px; white-space: nowrap; } .tabs { gap: 2px; } }
     .tab:hover { color: var(--ink); }
     .tab.on { color: var(--gold); border-bottom-color: var(--gold); }
     .calc { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 14px 0 6px; align-items: start; }
