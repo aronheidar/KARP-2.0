@@ -52,10 +52,10 @@ const R12 = { man: r12.man.map(monthLabel), nyskr: r12.nyskr, skrad: r12.skrad, 
     <p class="cap">12 mánaða summa. Mánaðartölur sveiflast mikið eftir árstíma.</p>
 
     <h2>Eftir atvinnugreinum</h2>
-    <p class="cap">Gjaldþrot félaga með starfsemi árið áður, {balkar.heiti}, borin saman við 12 mánuðina þar á undan.</p>
+    <p class="cap">Gjaldþrot félaga með starfsemi árið áður, {balkar.heiti}, borin saman við 12 mánuðina þar á undan. Velta í milljörðum króna.</p>
     <div class="tw">
       <table class="gt">
-        <thead><tr><th>Atvinnugrein</th><th>Gjaldþrot</th><th>Ári fyrr</th><th>Launafólk</th><th>Velta, ma.kr</th></tr></thead>
+        <thead><tr><th>Atvinnugrein</th><th>Gjaldþrot</th><th>Ári fyrr</th><th>Launafólk</th><th>Velta</th></tr></thead>
         <tbody>
           {balkar.rodir.map((r) => (
             <tr><td title={isatTitill(r)}>{r.nafn}</td><td>{tala(r.virk)}</td><td>{tala(r.virkFyrra)}</td><td>{tala(r.launafolk)}</td><td>{ma(r.velta)}</td></tr>
@@ -87,12 +87,20 @@ const R12 = { man: r12.man.map(monthLabel), nyskr: r12.nyskr, skrad: r12.skrad, 
     #chart-gj { width: 100%; height: 300px; }
     .cap { font-size: 12.5px; color: var(--muted); margin: 4px 0 10px; }
     .tw { overflow-x: auto; }
-    .gt { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+    /* display: table vinnur víðtæku regluna `main table { display: block }` í Layout: hún gerir töfluna að
+       skrunkassa á síma og fimmti dálkurinn byrjaði þá rétt utan brúnar, svo enginn sá hann. Hér passar
+       taflan í staðinn (minna letur og bil undir 520px) og .tw grípur það sem kynni samt að flæða. */
+    .gt { display: table; width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
     .gt th { text-align: right; font-size: 11.5px; font-weight: 600; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
     .gt td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line); color: var(--ink); }
     .gt th:first-child, .gt td:first-child { text-align: left; }
     .gt tfoot td { font-weight: 700; }
     .gt tfoot tr.thv td { font-weight: 400; color: var(--muted); }
+    @media (max-width: 520px) {
+      .gt { font-size: 12.5px; }
+      .gt th { font-size: 10.5px; white-space: normal; }
+      .gt th, .gt td { padding: 6px 4px; }
+    }
     .tengill { font-size: 14px; margin-top: 22px; }
     .tengill a, .foot a { color: var(--gold); }
     .foot { font-size: 12px; color: var(--faint); margin-top: 28px; border-top: 1px solid var(--line); padding-top: 14px; }
@@ -109,11 +117,13 @@ const R12 = { man: r12.man.map(monthLabel), nyskr: r12.nyskr, skrad: r12.skrad, 
         const lit = (n, v) => css.getPropertyValue(n).trim() || v;
         const fj = (v) => (v == null ? '–' : String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.'));
         const lina = (name, data, color, width) => ({ name, type: 'line', data, symbol: 'none', lineStyle: { width, color }, itemStyle: { color } });
+        // Á mjóum skjá fara skýringarnar í tvær línur; þá þarf grafið að byrja neðar.
+        const efst = () => (el.clientWidth < 520 ? 58 : 34);
         const c = window.echarts.init(el);
         c.setOption({
           backgroundColor: 'transparent',
           legend: { top: 0, textStyle: { color: lit('--muted', '#9fb0c8'), fontSize: 11 } },
-          grid: { left: 48, right: 14, top: 34, bottom: 26 },
+          grid: { left: 48, right: 14, top: efst(), bottom: 26 },
           xAxis: { type: 'category', data: R12.man, axisLabel: { color: lit('--faint', '#7e8ca6'), fontSize: 10 }, axisLine: { lineStyle: { color: lit('--line', 'rgba(255,255,255,.14)') } } },
           yAxis: { type: 'value', axisLabel: { color: lit('--faint', '#7e8ca6'), formatter: fj }, splitLine: { lineStyle: { color: lit('--line', 'rgba(255,255,255,.06)') } } },
           tooltip: { trigger: 'axis', valueFormatter: fj },
@@ -123,7 +133,7 @@ const R12 = { man: r12.man.map(monthLabel), nyskr: r12.nyskr, skrad: r12.skrad, 
             lina('Með starfsemi árið áður', R12.virk, lit('--gold', '#f6b13b'), 2.5),
           ],
         });
-        window.addEventListener('resize', () => c.resize());
+        window.addEventListener('resize', () => { c.setOption({ grid: { top: efst() } }); c.resize(); });
       };
       if (window.echarts) { go(); return; }
       let s = document.getElementById('echarts-cdn');
