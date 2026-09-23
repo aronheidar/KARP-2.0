@@ -10,6 +10,7 @@ import { findAdili, adiliTerms, adiliPageData, adiliDesc, skyldirAdilar } from '
 import { canon as kycCanon, hash as kycHash, signalEvents as kycSignalEvents, deriveRisk as kycDeriveRisk } from './src/lib/kyc.mjs';
 import { traceUbo as kycTraceUbo } from './src/lib/ubo-core.mjs';   // hrein obeint/endanlegt UBO-rakning
 import { accountId, tierFields } from './src/lib/account.mjs';   // firma-account (sæta-sameign v1) — resolver + tierFields
+import { nuverandiThing as lthingNu, thingmalSlod } from './src/lib/lthing.mjs';   // yfirstandandi þing fyrir /api/thingmal (23.9.2026)
 import { EMAIL_TYPES, resolveEmail, renderEmail, validateEmail } from './src/lib/emails.mjs';   // póst-sniðmát: skrá + yfirskriftir stjórnanda
 import { matchItem, matchKeyword, matchNews, feedFor, newSince, ALL_SECTORS, matchRaeda } from './src/lib/lobbyvakt.mjs';   // Lobbývakt — hrein rökvél (síun/röðun/nýtt-síðan/taxonomy) + matchNews (efnisvakt-fréttir)
 import { byggMatch, rankMovement, ratingMovement, criticalDrop, criticalNotice, noticeRef } from './src/lib/vaktir-signals.mjs';   // Byggingar-vöktun + greina-vöktun + einkunn-átt + strax-viðvaranir (eftirlit/gjaldþrot)
@@ -64,9 +65,12 @@ const PROXIES = {
     ttl: 3600,
     post: JSON.stringify({ query: 'place-of-performance IN (ISL) SORT BY publication-date DESC', fields: ['publication-number', 'notice-title', 'publication-date'], limit: 20 }),
   },
-  // 🏛️ Alþingi: lifandi málalisti þingsins (XML) — 10 mín cache
+  // 🏛️ Alþingi: lifandi málalisti YFIRSTANDANDI þings (XML) — 10 mín cache
+  // ⚠ Var FAST `lthing=157`. 158. þing hófst 9/2026 og straumurinn sýndi mál LIÐINS þings —
+  //   þagði um það, því svarið var fullgilt XML með fullt af málum. Slóðin er nú FALL sem
+  //   spyr Alþingi (lib/lthing.mjs; eigið skyndiminni + seigla á síðasta þekkta þing).
   '/api/thingmal': {
-    url: 'https://www.althingi.is/altext/xml/thingmalalisti/?lthing=157',
+    url: async ({ cache, ctx }) => thingmalSlod(await lthingNu({ cache, ctx })),
     ttl: 600,
     type: 'text/xml; charset=utf-8',
   },
@@ -3150,11 +3154,16 @@ export default {
     const proxy = PROXIES[url.pathname];
     if (proxy) {
       const cache = caches.default;
-      const cacheKey = new Request('https://cache.karp.internal' + url.pathname);
-      let res = await cache.match(cacheKey);
-      if (!res) {
-        try {
-          const up = await fetch(proxy.url, {
+      try {
+        // Slóðin má vera FALL (t.d. /api/thingmal sem verður að fylgja yfirstandandi þingi).
+        // ⚠ Þá fer hún LÍKA í skyndiminnislykilinn — annars bæri gamla þingið svarið áfram
+        //   eftir þingskipti, því lykillinn var aðeins slóðin sjálf (`pathname`).
+        const kvikt = typeof proxy.url === 'function';
+        const target = kvikt ? await proxy.url({ cache, ctx }) : proxy.url;
+        const cacheKey = new Request('https://cache.karp.internal' + url.pathname + (kvikt ? '/' + encodeURIComponent(target) : ''));
+        let res = await cache.match(cacheKey);
+        if (!res) {
+          const up = await fetch(target, {
             method: proxy.post ? 'POST' : 'GET',
             headers: { 'User-Agent': 'karp.is dashboard (aronheidars@gmail.com)', ...(proxy.post ? { 'Content-Type': 'application/json' } : {}) },
             body: proxy.post || undefined,
@@ -3169,11 +3178,11 @@ export default {
             },
           });
           if (up.ok) ctx.waitUntil(cache.put(cacheKey, res.clone()));
-        } catch (e) {
-          res = new Response(JSON.stringify({ error: 'upstream' }), { status: 200, headers: { 'content-type': 'application/json', 'access-control-allow-origin': '*' } });
         }
+        return res;
+      } catch (e) {
+        return new Response(JSON.stringify({ error: 'upstream' }), { status: 200, headers: { 'content-type': 'application/json', 'access-control-allow-origin': '*' } });
       }
-      return res;
     }
     // /fyrirtaeki/<kt>/ OG /fyrirtaeki/<slug>-<kt>/ — kt-formið 301-ast á nafn-slóðina.
     if (/^\/fyrirtaeki\/(?:[a-z0-9-]+-)?\d{10}\/?$/.test(url.pathname)) return fyrirtaekiSidaHandler(request, env, ctx);
