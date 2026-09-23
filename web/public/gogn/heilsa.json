@@ -1,10 +1,10 @@
 {
- "builtAt": "2026-09-23T12:04:03.232Z",
+ "builtAt": "2026-09-23T16:32:11.283Z",
  "freshness": [
   {
    "label": "Fréttavélin",
    "file": "frettavel.json",
-   "iso": "2026-09-23T11:51:19.753Z",
+   "iso": "2026-09-23T16:20:51.019Z",
    "maxAge": 158400000
   },
   {
@@ -16,7 +16,7 @@
   {
    "label": "Útboð",
    "file": "utbod.json",
-   "iso": "2026-09-23T10:45:00.983Z",
+   "iso": "2026-09-23T15:10:15.380Z",
    "maxAge": 158400000
   },
   {
@@ -28,7 +28,7 @@
   {
    "label": "Heilbrigðiseftirlit",
    "file": "eftirlit.json",
-   "iso": "2026-09-23T11:28:39.533Z",
+   "iso": "2026-09-23T15:56:04.958Z",
    "maxAge": 158400000
   },
   {
@@ -52,7 +52,7 @@
   {
    "label": "Seðlabanki",
    "file": "sedlabanki.json",
-   "iso": "2026-09-23T11:26:58.708Z",
+   "iso": "2026-09-23T15:54:23.453Z",
    "maxAge": 158400000
   },
   {
@@ -64,7 +64,7 @@
   {
    "label": "Dómar",
    "file": "domar_ai.json",
-   "iso": "2026-09-23T11:49:30.807Z",
+   "iso": "2026-09-23T16:19:14.553Z",
    "maxAge": 158400000
   },
   {
@@ -88,7 +88,7 @@
   {
    "label": "Kvótavaktin",
    "file": "kvoti.json",
-   "iso": "2026-09-23T12:02:16.141Z",
+   "iso": "2026-09-23T16:29:52.750Z",
    "maxAge": 777600000
   },
   {
@@ -118,7 +118,7 @@
   {
    "label": "Fjárhagur sveitarfélaga",
    "file": "sveitarfelog_fin.json",
-   "iso": "2026-09-23T10:44:46.998Z",
+   "iso": "2026-09-23T15:10:00.043Z",
    "maxAge": 3456000000
   }
  ],
